@@ -1,0 +1,303 @@
+{
+  "schema": "manual_reviewer_forensic_trace_v1",
+  "audit_skill": "experiment-audit",
+  "agent_id": "/root/d1049_correctness_review",
+  "review_independence": "same-family",
+  "acceptance_status": "provisional",
+  "reviewer_model": "inherited_available_model",
+  "reviewer_model_identity_known": false,
+  "reviewer_reasoning": "inherited_not_reported",
+  "date": "2026-11-04",
+  "review_start_timestamp": null,
+  "review_end_timestamp": null,
+  "fallback_reason": "The parent reported the skill-named gpt-5.6-sol unavailable. Both inspected shared-references directory locations were absent. A fresh inherited-model same-family reviewer performed the bounded read-only advisory fallback; no formal or cross-family acceptance is claimed.",
+  "original_prompt": "Read-only bounded experiment-audit fallback. The installed experiment-audit skill explicitly calls for a fresh reviewer; its named gpt-5.6-sol model and shared-reference files are unavailable, so this uses the inherited available model. Label review_independence=same-family, acceptance_status=provisional, never formal/cross-family PASS. No GPU execution, no services, no edits, no other agents, no huge scans or weight hashing. Review existing evidence only, return findings in Chinese plus machine-readable JSON. Do not invent extra gates or require exact cross-backend tokens unless the frozen protocol requires it. Do not assume evidence is valid or invalid. Numerical inference reference is not task dataset ground truth; classify appropriately. Scope: decide what current 3B main comparisons establish about correct completion, adapter participation and numerical agreement; distinguish missing evidence from unnecessary requalification, and determine whether mechanism ablations can proceed without rewriting raw unknowns. Check A reference provenance, B normalization, C actual results/claim values, D executed metric functions, E scope/model/version linkage, F evaluation type. Supply exact file:line evidence and smallest needed follow-up (if any). Do not promote n_correct by assertion or infer 3B from 7B. Paths below are inputs, not my interpretation. Worktree /home/qhq/serverless_llm_experiment_retry14_baseline. Read AGENTS.md and its required plan/protocol context yourself. Audit files: docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md; docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md; docs/ieee_tc/D1048_SAME_VERSION_3B_COMPARISON_20261104.md; docs/ieee_tc/D981_3B_NUMERICAL_WITNESS_AUDIT_20261031.md; docs/ieee_tc/D637_REPAIR_REUSE_AND_CORRECTNESS_SCOPE.md; docs/ieee_tc/D638_OUTPUT_BINDING_AND_REFERENCE_AUDIT.md; docs/ieee_tc/D393_7B_CORRECTNESS_AND_REMOTE_METRIC_ALIGNMENT.md; docs/ieee_tc/D991_D990_PEFT_REFERENCE_20261031.md; docs/ieee_tc/D990_7B_BUSY_SERVICE_WITNESS_20261031.md; paper_results/ieee_tc/main_comparison/d1048_same_version_3b/comparison.json; paper_results/ieee_tc/main_comparison/d1048_same_version_3b/metrics.csv; paper_results/ieee_tc/main_comparison/d1048_same_version_3b/analyze.py.snapshot; paper_results/ieee_tc/main_comparison/d1048_same_version_3b/source_registration.json; paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/full4000.json; paper_results/ieee_tc/p2_backend/d1046_same_version_w0/completion/full4000.json; paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/full4000.json; paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/native_descriptor.json; paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/collect_closed_evidence.py.snapshot; scripts/ieee_tc/check_d299_full_context.py. Follow only essential concrete references for 3B numerical evidence and actually called metrics; record any unread paths. Include source SHA for small audited files and exact source lines. Return full findings here; main agent will save trace/report. Do not use an absent reference file as a reason to block experiments. This review is advisory, not a new qualification protocol.",
+  "original_prompt_file": "prompt.txt",
+  "response_file": "response.md",
+  "report_files": [
+    "paper_results/ieee_tc/experiment_audit/d1049/EXPERIMENT_AUDIT.md",
+    "paper_results/ieee_tc/experiment_audit/d1049/EXPERIMENT_AUDIT.json"
+  ],
+  "trace_completeness": "partial_reconstructed",
+  "response_completeness": "Full final-answer content recovered; Markdown prose retained and its machine JSON serialized without semantic changes. Not claimed to be an automatic byte-for-byte conversation export.",
+  "command_output_semantics": "exec_command exposed one combined output field; stdout and stderr cannot reliably be separated here.",
+  "missing_or_incomplete": [
+    "No automatic full tool-transcript export was available to this reviewer; this JSON is a manual reconstruction, not a complete session dump.",
+    "Some source-reading calls and their outputs are omitted from this manually recovered trace; the recovered_read_command_inventory is not asserted exhaustive.",
+    "Large initial plan outputs were truncated by the orchestration output budget; later bounded reads were used to cover the plan. Exact truncated transport messages are not all copied here.",
+    "Most source-file read stdout is not duplicated in this trace; exact audited source hashes and evidence lines remain in EXPERIMENT_AUDIT.json and response.md.",
+    "The native capture/config verification record includes only its real stdout prefix; the subsequent long metadata-key listing is omitted.",
+    "The historical AST comparison record includes its first stdout JSON only; the following actual D980 metadata print is omitted.",
+    "Exact reviewer model identity, reasoning setting beyond inheritance, and wall-clock start/end timestamps are unavailable rather than guessed.",
+    "The read-only source-trace prefix probe failed because the local python lacked ijson; no full raw trace load or GPU fallback was performed."
+  ],
+  "recovered_read_command_inventory": [
+    {
+      "tool": "exec_command",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "pwd && rg --files -g 'AGENTS.md' -g 'SKILL.md' /home/qhq/serverless_llm_experiment_retry14_baseline /home/qhq/.codex/skills/experiment-audit",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": null,
+      "output_completeness": "not_duplicated_in_manual_trace"
+    },
+    {
+      "tool": "exec_command",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "cat /home/qhq/.codex/skills/experiment-audit/SKILL.md",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": null,
+      "output_completeness": "not_duplicated_in_manual_trace"
+    },
+    {
+      "tool": "exec_command",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "nl -ba AGENTS.md",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": null,
+      "output_completeness": "not_duplicated_in_manual_trace"
+    },
+    {
+      "tool": "exec_command",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "cat /home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": null,
+      "output_completeness": "not_duplicated_in_manual_trace"
+    },
+    {
+      "tool": "exec_command",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "sed -n '1,400p' /home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": null,
+      "output_completeness": "not_duplicated_in_manual_trace"
+    },
+    {
+      "tool": "exec_command",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "sed -n '1,180p' docs/ieee_tc/EXECUTION_STATUS.md",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": null,
+      "output_completeness": "not_duplicated_in_manual_trace"
+    },
+    {
+      "tool": "exec_command",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "sed -n '200,600p' /home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": null,
+      "output_completeness": "not_duplicated_in_manual_trace"
+    },
+    {
+      "tool": "exec_command",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "sed -n '601,1000p' /home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": null,
+      "output_completeness": "not_duplicated_in_manual_trace"
+    },
+    {
+      "tool": "exec_command",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "sed -n '1001,1567p' /home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": null,
+      "output_completeness": "not_duplicated_in_manual_trace"
+    },
+    {
+      "tool": "exec_command",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "nl -ba docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md && nl -ba docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": null,
+      "output_completeness": "not_duplicated_in_manual_trace"
+    },
+    {
+      "tool": "exec_command",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "cat docs/ieee_tc/BASELINE_ADAPTATION_STOP_RULE_20261016.md docs/ieee_tc/BASELINE_SCOPE_20261014.md docs/ieee_tc/STORAGE_PRIORITY_20261013.md docs/ieee_tc/STORAGE_PRIORITY_20261025.md docs/ieee_tc/BASELINE_COMPLETION_ORDER_20261012.md docs/ieee_tc/BASELINE_EXECUTION_RULES_20261011.md && sed -n '155,199p' /home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": null,
+      "output_completeness": "not_duplicated_in_manual_trace"
+    },
+    {
+      "tool": "exec_command",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "cat docs/ieee_tc/SLO_BUDGET_RATIONALE_20261014.md",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": null,
+      "output_completeness": "not_duplicated_in_manual_trace"
+    },
+    {
+      "tool": "exec_command",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "nl -ba docs/ieee_tc/D1048_SAME_VERSION_3B_COMPARISON_20261104.md && nl -ba docs/ieee_tc/D981_3B_NUMERICAL_WITNESS_AUDIT_20261031.md && nl -ba docs/ieee_tc/D637_REPAIR_REUSE_AND_CORRECTNESS_SCOPE.md",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": null,
+      "output_completeness": "not_duplicated_in_manual_trace"
+    },
+    {
+      "tool": "exec_command",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "nl -ba docs/ieee_tc/D638_OUTPUT_BINDING_AND_REFERENCE_AUDIT.md && nl -ba docs/ieee_tc/D393_7B_CORRECTNESS_AND_REMOTE_METRIC_ALIGNMENT.md && nl -ba docs/ieee_tc/D991_D990_PEFT_REFERENCE_20261031.md && nl -ba docs/ieee_tc/D990_7B_BUSY_SERVICE_WITNESS_20261031.md",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": null,
+      "output_completeness": "not_duplicated_in_manual_trace"
+    },
+    {
+      "tool": "exec_command",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "nl -ba paper_results/ieee_tc/main_comparison/d1048_same_version_3b/analyze.py.snapshot && nl -ba paper_results/ieee_tc/main_comparison/d1048_same_version_3b/source_registration.json && nl -ba paper_results/ieee_tc/main_comparison/d1048_same_version_3b/metrics.csv",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": null,
+      "output_completeness": "not_duplicated_in_manual_trace"
+    },
+    {
+      "tool": "exec_command",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "nl -ba scripts/ieee_tc_preflight.py | sed -n '3355,3605p' && nl -ba scripts/ieee_tc/plot_d290_diagnostic.py | sed -n '56,89p;237,269p' && nl -ba scripts/ieee_tc/audit_d402_serverlessllm_path.py | sed -n '295,320p' && nl -ba scripts/ieee_tc/check_d299_full_context.py | sed -n '909,933p'",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": null,
+      "output_completeness": "not_duplicated_in_manual_trace"
+    },
+    {
+      "tool": "exec_command",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "nl -ba configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml | sed -n '1,66p' && diff -u configs/ieee_tc/20261031_d979_3b_native_token_witness_100.yaml configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": null,
+      "output_completeness": "not_duplicated_in_manual_trace"
+    },
+    {
+      "tool": "exec_command",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "head -1 paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/stages/requests.csv && rg -n 'numerical|output|sha|witness|equivalence|correct' docs/ieee_tc/D1045* docs/ieee_tc/D1046* docs/ieee_tc/D1047* && nl -ba configs/ieee_tc/20261031_d979_3b_native_token_witness_100.yaml | sed -n '1,65p'",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": null,
+      "output_completeness": "not_duplicated_in_manual_trace"
+    }
+  ],
+  "records": [
+    {
+      "tool": "exec_command",
+      "phase": "read_only_audit",
+      "command": "ls -l /home/qhq/.codex/skills/experiment-audit/shared-references /home/qhq/.codex/skills/shared-references",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": "ls: 无法访问 '/home/qhq/.codex/skills/experiment-audit/shared-references': 没有那个文件或目录\nls: 无法访问 '/home/qhq/.codex/skills/shared-references': 没有那个文件或目录\n",
+      "output_completeness": "full_recovered",
+      "exit_code": 2
+    },
+    {
+      "tool": "exec_command",
+      "chunk_id": "75a853",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "python - <<'PY'\nimport ast, collections, copy, csv, hashlib, json, math, pathlib, statistics\nR=pathlib.Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nP=R/'paper_results/ieee_tc/main_comparison/d1048_same_version_3b'\nread=lambda p: json.loads(p.read_text())\nsha=lambda p: hashlib.sha256(p.read_bytes()).hexdigest()\nreport=read(P/'comparison.json'); reg=read(P/'source_registration.json'); manifest=read(P/'manifest.json')\nprovenance=[]\nfor item in report['source_refs']:\n p=pathlib.Path(item['path'])\n assert p.stat().st_size < 4*1024*1024,(str(p),p.stat().st_size)\n provenance.append({'path':str(p),'hash_match':sha(p)==item['sha256']})\nassert all(x['hash_match'] for x in provenance)\nns={'copy':copy,'math':math}\ntree=ast.parse((R/'scripts/ieee_tc/check_d299_full_context.py').read_text())\nfor name in ('sealed_matrix_row','matched_relative_observation'):\n node=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name==name)\n exec(compile(ast.Module(body=[node],type_ignores=[]),str(R/'scripts/ieee_tc/check_d299_full_context.py'),'exec'),ns)\nchecked=[]; stagechecks=[]\nfor item in reg:\n p=pathlib.Path(item['path']); payload=read(p); row=report['results'][item['workload']][item['system']]\n assert sha(p)==item['sha256']\n if item['source_kind']=='prime_full_audit':\n  stage=list(csv.DictReader((p.parent/'stages/requests.csv').open()))\n  launch=read(pathlib.Path(next(x['path'] for x in payload['source_refs'] if x['path'].endswith('/launch.json'))))\n  payload={'audit':payload,'native_output_token_total':sum(int(x['output_tokens']) for x in stage),'source_plan':launch['external_replay']['plan']}\n  summary={'run':item['run'],'rows':len(stage),'distinct_request_ids':len(set(x['request_id'] for x in stage)),'native_tokens':payload['native_output_token_total'],'joint_pass':sum(x['joint_pass']=='True' for x in stage),'metric_differences':{}}\n  for key in ('ttft_ms','tpot_ms','e2e_ms'):\n   vals=sorted(float(x[key]) for x in stage)\n   for stat,value in [('mean',statistics.mean(vals)),('p95_type1',vals[math.ceil(.95*len(vals))-1])]:\n    delta=value-payload['audit']['metrics'][key][stat]\n    summary['metric_differences'][key+'.'+stat]=delta\n    assert abs(delta)<1e-9\n  assert summary['joint_pass']==row['counts']['joint_pass']\n  stagechecks.append(summary)\n projected=ns['sealed_matrix_row'](payload,source_kind=item['source_kind'],system=item['system'],run=item['run'],workload=item['workload'],slo_sha=report['common_slo_sha256'])\n assert all(row[k]==v for k,v in projected.items()),item\n checked.append(item['run'])\nfor w,cohort in report['results'].items():\n for name,row in cohort.items():\n  if name!='PrimeLoRA': assert ns['matched_relative_observation'](cohort['PrimeLoRA'],row)==report['PrimeLoRA_relative_observations'][w][name]\nfor key,value in manifest['outputs'].items(): assert sha(P/key)==value\nwitness=pathlib.Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d981_20261031/3b_peft_sequence_reference_100_from_d980/3b_peft_sequence_reference_100_from_d980.json')\nd=read(witness); rs=d['requests']; mismatches=[x for x in rs if not x['exact_sequence_match']]\nprint(json.dumps({'read_only':True,'registered_source_hashes_matched':len(reg),'report_source_hashes_matched':len(provenance),'reprojected_rows':checked,'all_projected_fields_equal':True,'relative_observations_recomputed_equal':True,'output_hashes_equal':True,'stage_checks':stagechecks,'D981':{'sha256':sha(witness),'n':len(rs),'exact_matches':sum(x['exact_sequence_match'] for x in rs),'length_mismatches':sum(not(x['target_tokens']==x['native_tokens']==x['reference_tokens']) for x in rs),'adapters':len(set(x['adapter_id'] for x in rs)),'mismatch_details':[{k:x[k] for k in ('request_id','adapter_id','first_divergent_position','hf_top1_minus_top2','native_token_in_hf_top2')} for x in mismatches],'raw_pass':d['pass'],'measurement_complete':d['measurement_complete']}},indent=2))\nPY",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": "Traceback (most recent call last):\n  File \"<stdin>\", line 36, in <module>\nAssertionError: {'system': 'HydraServe', 'run': 'D807', 'workload': 'W0', 'source_kind': 'hydra_evaluation', 'path': '/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d807_hydraserve_3b_full_w0/full_w0_evaluation.json', 'sha256': '6c6c364fb9e948b665ddc41d4e100b31b6ef4e38afbbd5a621df80852cef8390'}\n",
+      "output_completeness": "full_recovered",
+      "exit_code": 1,
+      "interpretation": "Auditor's first projection omitted the actual analyzer's HydraServe source_plan supplementation; no source artifact was modified."
+    },
+    {
+      "tool": "exec_command",
+      "chunk_id": "703401",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "python - <<'PY'\nimport ast, copy, csv, hashlib, json, math, pathlib, statistics\nR=pathlib.Path('/home/qhq/serverless_llm_experiment_retry14_baseline'); P=R/'paper_results/ieee_tc/main_comparison/d1048_same_version_3b'\nread=lambda p: json.loads(p.read_text()); sha=lambda p: hashlib.sha256(p.read_bytes()).hexdigest()\nreport=read(P/'comparison.json'); reg=read(P/'source_registration.json'); manifest=read(P/'manifest.json')\nfor item in report['source_refs']:\n p=pathlib.Path(item['path']); assert p.stat().st_size < 4*1024*1024\n assert sha(p)==item['sha256']\nns={'copy':copy,'math':math}; tree=ast.parse((R/'scripts/ieee_tc/check_d299_full_context.py').read_text())\nfor name in ('sealed_matrix_row','matched_relative_observation'):\n node=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name==name)\n exec(compile(ast.Module(body=[node],type_ignores=[]),str(R/'scripts/ieee_tc/check_d299_full_context.py'),'exec'),ns)\nchecked=[]; stagechecks=[]\nfor item in reg:\n p=pathlib.Path(item['path']); payload=read(p); row=report['results'][item['workload']][item['system']]; assert sha(p)==item['sha256']\n if item['source_kind']=='prime_full_audit':\n  stage=list(csv.DictReader((p.parent/'stages/requests.csv').open()))\n  launch=read(pathlib.Path(next(x['path'] for x in payload['source_refs'] if x['path'].endswith('/launch.json'))))\n  payload={'audit':payload,'native_output_token_total':sum(int(x['output_tokens']) for x in stage),'source_plan':launch['external_replay']['plan']}\n  summary={'run':item['run'],'rows':len(stage),'distinct_request_ids':len(set(x['request_id'] for x in stage)),'native_tokens':payload['native_output_token_total'],'joint_pass':sum(x['joint_pass']=='True' for x in stage),'max_abs_metric_difference':0}\n  for key in ('ttft_ms','tpot_ms','e2e_ms'):\n   vals=sorted(float(x[key]) for x in stage)\n   for stat,value in [('mean',statistics.mean(vals)),('p95_type1',vals[math.ceil(.95*len(vals))-1])]:\n    delta=abs(value-payload['audit']['metrics'][key][stat]); summary['max_abs_metric_difference']=max(summary['max_abs_metric_difference'],delta); assert delta<1e-9\n  assert summary['joint_pass']==row['counts']['joint_pass']; stagechecks.append(summary)\n projected=ns['sealed_matrix_row'](payload,source_kind=item['source_kind'],system=item['system'],run=item['run'],workload=item['workload'],slo_sha=report['common_slo_sha256'])\n if item['source_kind']=='hydra_evaluation': projected['source_plan']=read(p.parent/'prepare_result.json')['plan_identity']\n assert all(row[k]==v for k,v in projected.items()), {k:(v,row[k]) for k,v in projected.items() if row[k]!=v}\n checked.append(item['run'])\nfor w,cohort in report['results'].items():\n for name,row in cohort.items():\n  if name!='PrimeLoRA': assert ns['matched_relative_observation'](cohort['PrimeLoRA'],row)==report['PrimeLoRA_relative_observations'][w][name]\nfor key,value in manifest['outputs'].items(): assert sha(P/key)==value\nwitness=pathlib.Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d981_20261031/3b_peft_sequence_reference_100_from_d980/3b_peft_sequence_reference_100_from_d980.json')\nd=read(witness); rs=d['requests']; mismatches=[x for x in rs if not x['exact_sequence_match']]\nprint(json.dumps({'read_only':True,'registered_source_hashes_matched':len(reg),'report_source_hashes_matched':len(report['source_refs']),'reprojected_rows':checked,'all_projected_fields_equal':True,'relative_observations_recomputed_equal':True,'output_hashes_equal':True,'stage_checks':stagechecks,'D981':{'sha256':sha(witness),'n':len(rs),'exact_matches':sum(x['exact_sequence_match'] for x in rs),'length_mismatches':sum(not(x['target_tokens']==x['native_tokens']==x['reference_tokens']) for x in rs),'adapters':len(set(x['adapter_id'] for x in rs)),'mismatch_details':[{k:x[k] for k in ('request_id','adapter_id','first_divergent_position','hf_top1_minus_top2','native_token_in_hf_top2')} for x in mismatches],'raw_pass':d['pass'],'measurement_complete':d['measurement_complete']}},indent=2))\nPY",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": "{\n  \"read_only\": true,\n  \"registered_source_hashes_matched\": 20,\n  \"report_source_hashes_matched\": 41,\n  \"reprojected_rows\": [\n    \"D653\",\n    \"D654\",\n    \"D656\",\n    \"D764\",\n    \"D765\",\n    \"D766\",\n    \"D771\",\n    \"D772\",\n    \"D773\",\n    \"D800\",\n    \"D801\",\n    \"D802\",\n    \"D807\",\n    \"D808\",\n    \"D809\",\n    \"D794\",\n    \"D795\",\n    \"D1046\",\n    \"D1047\",\n    \"D1045\"\n  ],\n  \"all_projected_fields_equal\": true,\n  \"relative_observations_recomputed_equal\": true,\n  \"output_hashes_equal\": true,\n  \"stage_checks\": [\n    {\n      \"run\": \"D1046\",\n      \"rows\": 4000,\n      \"distinct_request_ids\": 4000,\n      \"native_tokens\": 458224,\n      \"joint_pass\": 3914,\n      \"max_abs_metric_difference\": 0\n    },\n    {\n      \"run\": \"D1047\",\n      \"rows\": 4000,\n      \"distinct_request_ids\": 4000,\n      \"native_tokens\": 458224,\n      \"joint_pass\": 3836,\n      \"max_abs_metric_difference\": 0\n    },\n    {\n      \"run\": \"D1045\",\n      \"rows\": 4000,\n      \"distinct_request_ids\": 4000,\n      \"native_tokens\": 458224,\n      \"joint_pass\": 3833,\n      \"max_abs_metric_difference\": 0\n    }\n  ],\n  \"D981\": {\n    \"sha256\": \"11c715afbaf80eeb69c5fb318864819953e3f74a0cfeb3af03b5f3d4dcc6efad\",\n    \"n\": 100,\n    \"exact_matches\": 95,\n    \"length_mismatches\": 0,\n    \"adapters\": 29,\n    \"mismatch_details\": [\n      {\n        \"request_id\": \"req_00006\",\n        \"adapter_id\": \"finance_lora\",\n        \"first_divergent_position\": 39,\n        \"hf_top1_minus_top2\": 0.0,\n        \"native_token_in_hf_top2\": true\n      },\n      {\n        \"request_id\": \"req_00018\",\n        \"adapter_id\": \"ecommerce_lora_0009\",\n        \"first_divergent_position\": 4,\n        \"hf_top1_minus_top2\": 0.0078125,\n        \"native_token_in_hf_top2\": true\n      },\n      {\n        \"request_id\": \"req_00033\",\n        \"adapter_id\": \"finance_lora\",\n        \"first_divergent_position\": 42,\n        \"hf_top1_minus_top2\": 0.015625,\n        \"native_token_in_hf_top2\": true\n      },\n      {\n        \"request_id\": \"req_00072\",\n        \"adapter_id\": \"finance_lora\",\n        \"first_divergent_position\": 42,\n        \"hf_top1_minus_top2\": 0.015625,\n        \"native_token_in_hf_top2\": true\n      },\n      {\n        \"request_id\": \"req_00078\",\n        \"adapter_id\": \"research_lora_0008\",\n        \"first_divergent_position\": 18,\n        \"hf_top1_minus_top2\": 0.0,\n        \"native_token_in_hf_top2\": true\n      }\n    ],\n    \"raw_pass\": false,\n    \"measurement_complete\": true\n  }\n}\n",
+      "output_completeness": "full_recovered",
+      "exit_code": 0
+    },
+    {
+      "tool": "exec_command",
+      "chunk_id": "e787bc",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "python - <<'PY'\nimport hashlib,json,pathlib,yaml\nR=pathlib.Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nW=pathlib.Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d981_20261031/3b_peft_sequence_reference_100_from_d980/3b_peft_sequence_reference_100_from_d980.json')\nw=json.loads(W.read_text()); p=pathlib.Path(w['source_native_path']); data=p.read_bytes(); assert len(data)<10*1024*1024\nassert hashlib.sha256(data).hexdigest()==w['source_native_sha256']; native=json.loads(data); block=next(iter(native['detailed_results'].values())); rows=block['requests']; byid={r['request_id']:r for r in rows}\nfor r in w['requests']:\n n=byid[r['request_id']]; ids=n['native_token_timing']['completion_token_ids']\n assert r['adapter_id']==n['adapter_id']\n assert r['target_tokens']==n['requested_completion_tokens']==n['completion_tokens']==len(ids)\n assert hashlib.sha256(json.dumps(ids,separators=(',',':')).encode()).hexdigest()==r['native_ids_sha256']==n['completion_token_ids_sha256']\nconfigs=[]\nfor name in ('20261103_d1045_3b_event_busy_time_w2.yaml','20261103_d1046_3b_event_busy_time_w0.yaml','20261104_d1047_3b_event_busy_time_w1.yaml'):\n c=yaml.safe_load((R/'configs/ieee_tc'/name).read_text())\n for a,b in [('experiment','output_dir'),('storage','nvme_cache_dir'),('storage','host_cache_dir')]: del c[a][b]\n configs.append(c)\nassert configs[0]==configs[1]==configs[2]\nprint(json.dumps({'D980_source_bytes':len(data),'D980_source_sha256':hashlib.sha256(data).hexdigest(),'D981_native_join_and_captured_hashes':len(rows),'D980_all_success':all(r['success'] for r in rows),'D980_all_output_contract_match':all(r['output_contract_match'] for r in rows),'D1045_D1046_D1047_normalized_config_equal':True,'D980_metadata_keys':list(native['metadata']),'D980_output_performance_not_reused':True},indent=2))\nPY",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": "{\n  \"D980_source_bytes\": 7844347,\n  \"D980_source_sha256\": \"276b6f4577c72ad3c6f96e7a5a5e85f9c4bd2a88f3a8c1f2f31b947ad20c0eac\",\n  \"D981_native_join_and_captured_hashes\": 100,\n  \"D980_all_success\": true,\n  \"D980_all_output_contract_match\": true,\n  \"D1045_D1046_D1047_normalized_config_equal\": true,\n",
+      "output_completeness": "actual_prefix_only_metadata_key_listing_omitted",
+      "exit_code": 0
+    },
+    {
+      "tool": "exec_command",
+      "chunk_id": "18b31b",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "python - <<'PY'\nimport ast,hashlib,json,pathlib,subprocess\nR=pathlib.Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nold=subprocess.check_output(['git','show','76f47658f2f778602c8fde2a123a0fa071c03412:scripts/ieee_tc/check_d299_full_context.py'],cwd=R,text=True)\nnew=(R/'scripts/ieee_tc/check_d299_full_context.py').read_text()\nfuncs=lambda s:{x.name:ast.dump(x,include_attributes=False) for x in ast.parse(s).body if isinstance(x,ast.FunctionDef)}\na,b=map(funcs,(old,new)); names=['closed_physical_integral','matched_controller_rows','common_slo_flags','matched_relative_observation']\nprint(json.dumps({'actual_collector_helper_source_sha256':hashlib.sha256(old.encode()).hexdigest(),'inspected_functions_unchanged_since_collector':{n:a[n]==b[n] for n in names}},indent=2))\nw=pathlib.Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d981_20261031/3b_peft_sequence_reference_100_from_d980/3b_peft_sequence_reference_100_from_d980.json'); d=json.loads(w.read_text()); n=json.loads(pathlib.Path(d['source_native_path']).read_text()); m=n['metadata']\nprint(json.dumps({k:m[k] for k in ['model','backend','formal_run','max_loras','shared_trace_load_profile','shared_trace_metadata']},indent=2)[:5000])\nPY",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": "{\n  \"actual_collector_helper_source_sha256\": \"d7e7956d77805fbfafef5b92782adb7acc9d981b29d806f241d7f7ce44b9fd6d\",\n  \"inspected_functions_unchanged_since_collector\": {\n    \"closed_physical_integral\": true,\n    \"matched_controller_rows\": true,\n    \"common_slo_flags\": true,\n    \"matched_relative_observation\": true\n  }\n}\n",
+      "output_completeness": "actual_first_json_only_following_D980_metadata_omitted",
+      "exit_code": 0
+    },
+    {
+      "tool": "exec_command",
+      "chunk_id": "3be0b4",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "head -c 250 /home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json && head -c 400 paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json && python -c 'import ijson; print(ijson.__version__)'",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": "{\n  \"source\": \"faaslora_formal_workload\",\n  \"main_repo\": \"/home/qhq/serverless_llm_experiment_retry14_baseline\",\n  \"config_path\": \"/home/qhq/serverless_llm_experiment_retry14_baseline/configs/experiments.yaml\",\n  \"model_profile\": \"llama32_3b_main_mod{\n  \"schema\": \"rank_preserving_hotset_rotation_v1\",\n  \"model\": \"llama32_3b\",\n  \"source_path\": \"/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json\",\n  \"source_sha256\": \"4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d\",\n  \"source_w0_vieTraceback (most recent call last):\n  File \"<string>\", line 1, in <module>\n    import ijson; print(ijson.__version__)\n    ^^^^^^^^^^^^\nModuleNotFoundError: No module named 'ijson'\n",
+      "output_completeness": "full_recovered",
+      "exit_code": 1
+    },
+    {
+      "tool": "exec_command",
+      "chunk_id": "eadf0a",
+      "phase": "read_only_audit",
+      "workdir": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "command": "python - <<'PY'\nimport ast,hashlib,json,pathlib\nR=pathlib.Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nw=pathlib.Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d981_20261031/3b_peft_sequence_reference_100_from_d980/3b_peft_sequence_reference_100_from_d980.json'); d=json.loads(w.read_text()); n=json.loads(pathlib.Path(d['source_native_path']).read_text()); rows=next(iter(n['detailed_results'].values()))['requests']\nindex=json.loads((R/'paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json').read_text())\ncontent={a['id']:hashlib.sha256(json.dumps(sorted(a['files'],key=lambda f:f['path']),sort_keys=True,separators=(',',':')).encode()).hexdigest() for a in index['artifacts']}\ntree=ast.parse((R/'scripts/ieee_tc/plot_d290_diagnostic.py').read_text()); func=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='binding_checks'); ns={};exec(compile(ast.Module(body=[func],type_ignores=[]),'binding_checks','exec'),ns)\npassed=sum(all(ns['binding_checks'](r,content[r['adapter_id']]).values()) for r in rows)\nm=json.loads((R/'paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json').read_text())\nprint(json.dumps({'D980_binding_valid':passed,'D980_requests':len(rows),'map_first_row':m['rows'][0]},indent=2))\nPY",
+      "command_completeness": "full_recovered",
+      "combined_stdout_stderr": "{\n  \"D980_binding_valid\": 100,\n  \"D980_requests\": 100,\n  \"map_first_row\": {\n    \"request_id\": \"req_00000\",\n    \"source_item_sha256\": \"b22a7b89102f4257aa11965b3049680b333d487c4cdf37539a13ce10ee20500c\",\n    \"original_adapter_id\": \"finance_lora\",\n    \"adapter_id\": \"finance_lora\",\n    \"local_rank\": 0\n  }\n}\n",
+      "output_completeness": "full_recovered",
+      "exit_code": 0
+    },
+    {
+      "tool": "functions.exec",
+      "phase": "authorized_persistence_only",
+      "command_completeness": "relevant_expression_only",
+      "command_excerpt": "const saved = structuredClone(report);",
+      "combined_stdout_stderr": "Script error:\nReferenceError: structuredClone is not defined\n    at exec_main.mjs:223:15",
+      "output_completeness": "full_recovered",
+      "interpretation": "The orchestration isolate lacked structuredClone. Failure occurred before apply_patch; the original report was already in session store. Retried using JSON.parse(JSON.stringify(...)); no experiment rerun or source edit."
+    }
+  ],
+  "persist_authorization": {
+    "sender": "/root",
+    "text": "你的审阅已结束，不再扩展检查。为保存完整取证记录，现仅授权使用 apply_patch 写入以下新路径（不要改任何其他文件）：paper_results/ieee_tc/experiment_audit/d1049/EXPERIMENT_AUDIT.md 与 .json，.aris/traces/experiment-audit/2026-11-04_d1049/{prompt.txt,response.md,trace.json}。MD完整保存刚才最终答复；JSON保存刚才完整机器结果，附trace_path、agent_id、reviewer_reasoning=inherited_not_reported、模型未知如实、fallback原因。trace保存你收到的原始审阅prompt、实际读取/复算命令及stdout（包含首次HydraServe补充缺失的断言），仅保存能从自己上下文恢复的真实内容；无法完整导出工具转录时明确trace_completeness和缺失，不编造。正式acceptance仍provisional。本次是落盘同一审阅，不重新出新裁决、不跑GPU或改source/config/raw；主agent将验证输出和备份。根目录 /home/qhq/serverless_llm_experiment_retry14_baseline。"
+  },
+  "persistence": {
+    "method": "apply_patch",
+    "new_paths_only": [
+      "paper_results/ieee_tc/experiment_audit/d1049/EXPERIMENT_AUDIT.md",
+      "paper_results/ieee_tc/experiment_audit/d1049/EXPERIMENT_AUDIT.json",
+      ".aris/traces/experiment-audit/2026-11-04_d1049/prompt.txt",
+      ".aris/traces/experiment-audit/2026-11-04_d1049/response.md",
+      ".aris/traces/experiment-audit/2026-11-04_d1049/trace.json"
+    ],
+    "source_config_raw_modified": false,
+    "new_verdict_issued": false,
+    "gpu_or_service_actions": false,
+    "post_persistence_validation": "Delegated to parent as instructed; no further audit commands run in this persistence turn."
+  }
+}

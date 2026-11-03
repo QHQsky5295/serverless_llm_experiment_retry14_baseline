@@ -1,0 +1,246 @@
+{
+  "audit_skill": "experiment-audit",
+  "date": "2026-11-04",
+  "agent_id": "/root/d1049_correctness_review",
+  "reviewer_model": "inherited_available_model",
+  "reviewer_family": "openai",
+  "review_independence": "same-family",
+  "acceptance_status": "provisional",
+  "overall_verdict": "WARN",
+  "integrity_status": "warn",
+  "formal_acceptance": false,
+  "advisory_only": true,
+  "reason_codes": [
+    "numerical_reference_scope_is_bounded",
+    "zero_update_adapter_outputs_are_not_discriminative",
+    "historical_witness_not_rebound_to_current_backend_configuration",
+    "minor_reference_documentation_mismatches"
+  ],
+  "summary": "Current 3B comparisons establish complete native execution and binding/accounting observations with reproducible reported metrics. They do not establish task accuracy, full numerical arithmetic proof, or nonzero adapter effects. Mechanism ablations may proceed with these boundaries and unchanged raw unknowns.",
+  "checks": {
+    "A_reference_provenance": {
+      "status": "WARN",
+      "fake_task_ground_truth_found": false,
+      "reference_kind": "independent_numerical_inference_reference",
+      "evidence": [
+        "scripts/ieee_tc_preflight.py:3477",
+        "scripts/ieee_tc_preflight.py:3494",
+        "scripts/ieee_tc_preflight.py:3506",
+        "scripts/ieee_tc_preflight.py:3532",
+        "scripts/ieee_tc_preflight.py:3544",
+        "paper_results/ieee_tc/p2_backend/20260926_artifact_tensor_audit.json:23"
+      ]
+    },
+    "B_score_normalization": {
+      "status": "PASS",
+      "scope": "deterministic formulas and frozen denominators inspected",
+      "self_output_normalization_found": false,
+      "evidence": [
+        "scripts/ieee_tc/check_d299_full_context.py:985",
+        "scripts/ieee_tc/check_d299_full_context.py:1025",
+        "scripts/ieee_tc/check_d299_full_context.py:1700",
+        "paper_results/ieee_tc/main_comparison/d1048_same_version_3b/analyze.py.snapshot:148"
+      ]
+    },
+    "C_result_existence_and_values": {
+      "status": "WARN",
+      "registered_source_hashes_matched": 20,
+      "direct_source_hashes_matched": 41,
+      "reprojected_rows_equal": 20,
+      "relative_observations_equal": true,
+      "manifest_output_hashes_equal": true,
+      "metric_values_mismatched": false,
+      "documentation_corrections": [
+        "D981 raw limitations says 7B while backbone/config/pool are 3B.",
+        "D981 document says two finance requests have zero gap; raw rows are req_00006 finance_lora and req_00078 research_lora_0008."
+      ]
+    },
+    "D_executed_metric_functions": {
+      "status": "PASS",
+      "scope": "recorded collector/analyzer calls and matching outputs; no GPU function rerun",
+      "functions": [
+        "reevaluate_common_slo",
+        "closed_physical_integral",
+        "matched_controller_rows",
+        "binding_checks",
+        "request_vectors",
+        "common_slo_flags",
+        "timing_stats",
+        "sealed_matrix_row",
+        "matched_relative_observation",
+        "backend_peft_sequence_reference"
+      ],
+      "relevant_dead_metric_function_found": false
+    },
+    "E_scope_model_version": {
+      "status": "WARN",
+      "current_three_workload_configs_equal_except_exclusive_paths": true,
+      "historical_witness_current_version_equivalence_established": false,
+      "seven_b_evidence_used_as_three_b_proof": false,
+      "current_native_descriptor_is_arithmetic_proof": false,
+      "evidence": [
+        "configs/ieee_tc/20261031_d979_3b_native_token_witness_100.yaml:12",
+        "configs/ieee_tc/20261031_d979_3b_native_token_witness_100.yaml:55",
+        "configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml:14",
+        "configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml:17",
+        "configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml:59",
+        "paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/collect_closed_evidence.py.snapshot:48"
+      ]
+    },
+    "F_evaluation_type": {
+      "status": "PASS",
+      "main_comparison": "real_system_measurement_without_task_ground_truth",
+      "numerical_reference_skill_enum": "synthetic_proxy",
+      "numerical_reference_subtype": "independent_numerical_inference_reference",
+      "numerical_reference_is_task_accuracy": false,
+      "numerical_reference_is_self_copied_prediction": false,
+      "artifact_audit": "static_content_and_zero_update_audit",
+      "taxonomy_note": "The skill's task-evaluation enum does not precisely describe systems latency/resource measurement."
+    }
+  },
+  "current_prime_observations": [
+    {
+      "run": "D1046",
+      "workload": "W0",
+      "requests": 4000,
+      "unique_request_ids": 4000,
+      "native_output_tokens": 458224,
+      "joint_pass": 3914,
+      "joint_fraction": 0.9785,
+      "physical_gpu_seconds": 7967.349446525332,
+      "max_abs_csv_metric_recompute_difference": 0,
+      "raw_n_correct": null
+    },
+    {
+      "run": "D1047",
+      "workload": "W1",
+      "requests": 4000,
+      "unique_request_ids": 4000,
+      "native_output_tokens": 458224,
+      "joint_pass": 3836,
+      "joint_fraction": 0.959,
+      "physical_gpu_seconds": 6182.715970784891,
+      "max_abs_csv_metric_recompute_difference": 0,
+      "raw_n_correct": null
+    },
+    {
+      "run": "D1045",
+      "workload": "W2",
+      "requests": 4000,
+      "unique_request_ids": 4000,
+      "native_output_tokens": 458224,
+      "joint_pass": 3833,
+      "joint_fraction": 0.95825,
+      "physical_gpu_seconds": 8182.401820929721,
+      "max_abs_csv_metric_recompute_difference": 0,
+      "raw_n_correct": null
+    }
+  ],
+  "historical_3b_witness": {
+    "native_run": "D980",
+    "reference_run": "D981",
+    "requests": 100,
+    "adapters": 29,
+    "native_binding_checks_valid": 100,
+    "native_capture_hash_joins_valid": 100,
+    "exact_matches": 95,
+    "length_mismatches": 0,
+    "sequence_mismatches": 5,
+    "native_token_in_reference_top2_at_first_divergence": 5,
+    "raw_pass_preserved": false,
+    "measurement_complete": true,
+    "full_semantic_qualification": false,
+    "current_full_run_n_correct_inferred": false
+  },
+  "claims": [
+    {
+      "id": "complete_native_contract_execution_3b_W0_W1_W2",
+      "impact": "supported_with_sealed_audit_scope"
+    },
+    {
+      "id": "reported_3b_latency_resource_observations",
+      "impact": "supported"
+    },
+    {
+      "id": "three_b_nonzero_adapter_numerical_effect",
+      "impact": "unsupported_by_zero_update_pool"
+    },
+    {
+      "id": "current_three_b_full_numerical_equivalence",
+      "impact": "unknown"
+    },
+    {
+      "id": "task_accuracy_95_percent",
+      "impact": "not_measured"
+    },
+    {
+      "id": "formal_G1_G2_or_global_optimum",
+      "impact": "not_established"
+    }
+  ],
+  "next_action": {
+    "mechanism_ablations_can_proceed": true,
+    "new_gpu_evidence_required_by_this_review": false,
+    "rewrite_raw_unknowns": false,
+    "mandatory_followup": "Append the numerical-scope clarification and two documentation errata; preserve raw results and exact-test failures.",
+    "conditional_followup": "Only if claiming current-version numerical agreement, first join retained references/output digests under complete input/content identities and inspect the affected-version evidence.",
+    "unnecessary_requalification": [
+      "4000-request HF/PEFT exact equality gate",
+      "repeat unchanged binding/length checks",
+      "repeat existing warm or Resident calibration",
+      "repeat zero-adapter negative controls seeking distinguishable outputs",
+      "infer 3B qualification from 7B witnesses"
+    ]
+  },
+  "audited_input_hashes": {
+    "AGENTS.md": "sha256:4d852cae628f8749349f9180ad99f60a7beac607692903b40b839a0c2845e141",
+    "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md": "sha256:d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+    "docs/ieee_tc/EXECUTION_STATUS.md": "sha256:41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374",
+    "docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "sha256:5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "sha256:193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+    "docs/ieee_tc/D1048_SAME_VERSION_3B_COMPARISON_20261104.md": "sha256:249b53173a0b1537f1a840ce8996121b38c4e6d06126e3ff79cb4d7bbe63d8e8",
+    "docs/ieee_tc/D981_3B_NUMERICAL_WITNESS_AUDIT_20261031.md": "sha256:8a5fa808daef1979949be5ecc30bf6b1d10ba1edb7a30c0b65b9153c3704932f",
+    "docs/ieee_tc/D637_REPAIR_REUSE_AND_CORRECTNESS_SCOPE.md": "sha256:fdd72498c1355193925940e0d2d6caaef928a3b0270b5cdab013700f9beb1245",
+    "docs/ieee_tc/D638_OUTPUT_BINDING_AND_REFERENCE_AUDIT.md": "sha256:49fbde33466396af2d8ce22a610da31978073adb274628784d1407d1ac852679",
+    "docs/ieee_tc/D393_7B_CORRECTNESS_AND_REMOTE_METRIC_ALIGNMENT.md": "sha256:d6956812aa9cde04e55334a95f2d814454798e2a3e5e4b10eee634fa3782bf74",
+    "docs/ieee_tc/D991_D990_PEFT_REFERENCE_20261031.md": "sha256:9a6cfb9340f8bc9813b9e0d5897c66ea5eb3aed483c59bf00fbbc59af4192f49",
+    "docs/ieee_tc/D990_7B_BUSY_SERVICE_WITNESS_20261031.md": "sha256:e95998585913308b848480789bff1e0914c19c5620f613d88e4cb2e2bf88afde",
+    "paper_results/ieee_tc/main_comparison/d1048_same_version_3b/comparison.json": "sha256:96673673663996fe42e92ae65130a8c4c9d1db2d6f2c690492e27e4e36fde2ad",
+    "paper_results/ieee_tc/main_comparison/d1048_same_version_3b/metrics.csv": "sha256:a6d62c2d10c3e53ca8d83146b7ca4a9050531dc1477b29fb409a24dfed51f744",
+    "paper_results/ieee_tc/main_comparison/d1048_same_version_3b/analyze.py.snapshot": "sha256:21ca31d3e334f6a2b40dd5882e8a1f96cd84139a09db1df4dbdce718599f4d7f",
+    "paper_results/ieee_tc/main_comparison/d1048_same_version_3b/source_registration.json": "sha256:9e4f26e580711d204f5fbf2c31cf2b932504fde2ccc5239903a39e78c56a43fe",
+    "paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/full4000.json": "sha256:5da67242cf1ad257b6a5f4bb44aa50ef4d2398d096807b624de07d1d7f3188c2",
+    "paper_results/ieee_tc/p2_backend/d1046_same_version_w0/completion/full4000.json": "sha256:9b7469ceb0aadd941284db3a66a28d62939f416a8703e45caead8912a45280db",
+    "paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/full4000.json": "sha256:9efa154f7d9322e6ccac94541a7d323064d2bd868ee8642c8245755c42fde6e1",
+    "paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/native_descriptor.json": "sha256:cbc01f33f8e29673a6641d7b4671ca3e84fcecc0109405026f47cf343996c42e",
+    "paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/collect_closed_evidence.py.snapshot": "sha256:91dd9c58812f3a1d24904c76c25415b8e774e52f1123417c7cda799c2b4493df",
+    "scripts/ieee_tc/check_d299_full_context.py": "sha256:10645738c5c991c827da4c7b63895b9422a4340d92f678ff820695c0b43fefee",
+    "scripts/ieee_tc/audit_d703_3b_full.py": "sha256:3abcd9d766a7dc1c780244d8eedaac8440815aa85c0e45c6d9b81ef2cf35a070",
+    "scripts/ieee_tc/plot_d290_diagnostic.py": "sha256:18e96959d167c3b9b8c762a4ee4274d4443eba38610e02cd89cd0755c5664f22",
+    "scripts/ieee_tc/audit_d402_serverlessllm_path.py": "sha256:8a5f1bf18944a0c168525eddbde8eaed1b61e3b05d4f6279d0f9d81e8efec473",
+    "scripts/ieee_tc_preflight.py": "sha256:a15c5f21e7e30860dd5e413580726e6047245362cfcbbbc290799fff2acdcd4d",
+    "docs/ieee_tc/ARTIFACT_CONTENT_AUDIT.md": "sha256:b12d369fea12fba1940ac47a4a81e9506b9d86bf79e42a94792f9b9c9e7fa221",
+    "paper_results/ieee_tc/p2_backend/20260926_artifact_tensor_audit.json": "sha256:a7294504fe43d3de82c27c6000a90439ef25fe45d5c3c8ae8eaf248e28c6ece1",
+    "paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json": "sha256:d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8",
+    "paper_results/ieee_tc/main_comparison/d657_3b_references/resident_references.json": "sha256:f030f92f7bc426c427c6fa0ea65c8dd315a39cf52fd922973fc507117f30ea7a",
+    "configs/ieee_tc/20261031_d979_3b_native_token_witness_100.yaml": "sha256:e47bc09d4c18671441d75196966d247e4a85c32fe8e4c84192da15eb52f62d1a",
+    "configs/ieee_tc/20261103_d1045_3b_event_busy_time_w2.yaml": "sha256:cea1b5e669efd9142352a9a04fa921eb9a2660cd3fcfd1d65a8b3992b859a60e",
+    "configs/ieee_tc/20261103_d1046_3b_event_busy_time_w0.yaml": "sha256:65c327292787353d71f1037ee779762982ec384089ebab5f0c028735d867598a",
+    "configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml": "sha256:263bdcd6ff255108ddaffdd9ce46898d7f12be15948d7fe3d7ac27d5ea8828d2",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d981_20261031/3b_peft_sequence_reference_100_from_d980/3b_peft_sequence_reference_100_from_d980.json": "sha256:11c715afbaf80eeb69c5fb318864819953e3f74a0cfeb3af03b5f3d4dcc6efad",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d981_20261031/3b_peft_sequence_reference_100_from_d980/3b_peft_sequence_reference_100_from_d980_launch.json": "sha256:2d2e24489f96b82c9a4543453edcf95b906dc8e7022b8234e1c6580729c52b88",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d980_20261031/3b_native_token_witness_100/experiment_results_full_vllm_dedicated_a500_r100_c8_tc_ieee_native_token_witness_100_d980_3b_native_token_witness_100.json": "sha256:276b6f4577c72ad3c6f96e7a5a5e85f9c4bd2a88f3a8c1f2f31b947ad20c0eac"
+  },
+  "audit_attempt_notes": [
+    "Initial read-only row reprojection omitted HydraServe's analyzer-level source_plan supplementation; corrected diagnostic then matched all 20 rows. Preserve initial assertion in trace.",
+    "No files edited, GPU execution, services, model-weight hashing, or broad filesystem scan.",
+    "Executor is responsible for saving this report and tool trace."
+  ],
+  "trace_path": ".aris/traces/experiment-audit/2026-11-04_d1049/",
+  "reviewer_reasoning": "inherited_not_reported",
+  "reviewer_model_identity_known": false,
+  "reviewer_model_identity_note": "Exact inherited reviewer model was not disclosed to this reviewer; inherited_available_model is a provenance label, not an asserted model name.",
+  "fallback_reason": "The parent reported the skill-named gpt-5.6-sol unavailable. Both inspected shared-references directory locations were absent. A fresh inherited-model same-family reviewer performed the bounded read-only advisory fallback; no formal or cross-family acceptance is claimed.",
+  "trace_completeness": "partial_manual_reconstruction_from_reviewer_context",
+  "persistence_note": "Same completed review persisted under explicit parent authorization. Original audit_attempt_notes are preserved as statements about the review phase; this later persistence phase creates only the five specifically authorized report/trace files and changes no source/config/raw evidence."
+}

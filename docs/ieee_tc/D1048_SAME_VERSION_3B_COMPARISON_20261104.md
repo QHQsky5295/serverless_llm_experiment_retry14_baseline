@@ -121,3 +121,15 @@ CPU2/3/26/27包络，峰值342568960B，high/max/OOM/swap均0，实际已关闭�
 S1–S13、完整成本/CE/Pareto分析、两轮审稿设计文档、IEEE单栏图表和实际
 FaaSLoRA V2集成。本次不画图、不改论文、不新增13B/SGLang，不操作共享k3s。
 当前目标active，PROGRESS来自完整W1结束及20点比较完成，不是整体任务完成。
+
+## 检查点后置回执
+
+64cf6f3eb501a16387df172d05eb0b3eb54b3fec已推送并经ls-remote核实至
+origin/retry14_continuous_queue_v2及faaslora_origin/backup/
+d1048-same-version-3b-20261104。实际FaaSLoRA V2未强推，最终集成仍未完成。
+原始回执在raw根backup_completion.json；首次备份在暂存前因JSON序列化
+的等值小数/科学记数法导致字节断言失败，backup_attempt1.json保留。
+续备份验证原/整理测试回执各自SHA及解析后完整相等，未改结果或重跑测试。
+备份资源域已inactive/dead，当前无GPU计算进程；用户两项dirty未暂存。
+本后置说明留待下一正常检查点纳入，不追改既有结果身份。下一任务遵循上节，
+不要把旧EXECUTION_STATUS的D998头部或D1047历史监测当作当前待运行实验。

@@ -2089,9 +2089,9 @@ class IEEEActualControl(unittest.TestCase):
         async def run():
             self.assertFalse((files.nvme/'a').exists())
             service._hierarchical_residency_enabled=True
-            service._schedule_ieee_residency_epochs()
+            await service._schedule_ieee_residency_epochs()
             task=service._ieee_residency_tasks[id(engine)]
-            service._schedule_ieee_residency_epochs()
+            await service._schedule_ieee_residency_epochs()
             self.assertIs(service._ieee_residency_tasks[id(engine)],task)
             await task
             service._reap_ieee_residency_tasks()
@@ -2342,7 +2342,7 @@ class IEEEInitialDeployment(unittest.TestCase):
         service._cancel_runtime_gpu_forward_tasks = AsyncMock()
         service._sync_stack_gpu_accounting = Mock()
         # CPU fixture uses this test process, not an exited native worker.
-        service._retire_ieee_host_budget = Mock()
+        service._retire_ieee_host_budget = AsyncMock()
         return fixture, files, service, queue, engine
 
     def test_actual_initial_preparation_overlaps_init_without_changing_arrival_origin(self):

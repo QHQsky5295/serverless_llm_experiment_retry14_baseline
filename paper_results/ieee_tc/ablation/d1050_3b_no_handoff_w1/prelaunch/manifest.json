@@ -1,0 +1,20 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/ablation/d1050_3b_no_handoff_w1/prelaunch/curate.py.snapshot",
+      "sha256": "62efc135477b4fcd72278a81286195ea83d55ca7c37380f5548933839e6744d9"
+    },
+    {
+      "path": "paper_results/ieee_tc/ablation/d1050_3b_no_handoff_w1/prelaunch/qualification.json",
+      "sha256": "7854fcbd4979cccd5ac8f08bb9d64ecf2afa071de0fdd111889e31a2a94d0869"
+    },
+    {
+      "path": "paper_results/ieee_tc/ablation/d1050_3b_no_handoff_w1/prelaunch/targeted_tests_attempt1.json",
+      "sha256": "62943b5eca90281fec0868b4eeed741eac7101a37a21f1a376873648ef963fec"
+    },
+    {
+      "path": "paper_results/ieee_tc/ablation/d1050_3b_no_handoff_w1/prelaunch/targeted_tests_attempt2.json",
+      "sha256": "1e0c67c05f4a4bd46fa5a6e2b9d301c72e2424aeca8ffc31be99ce3e2b5ed755"
+    }
+  ]
+}

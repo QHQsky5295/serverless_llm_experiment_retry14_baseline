@@ -1,0 +1,16 @@
+{
+  "start": {
+    "chunk_id": "839375",
+    "wall_time_seconds": 1.002019477,
+    "session_id": 39103,
+    "original_token_count": 20,
+    "output": "Running scope as unit: primelora-tc-aux-7fcb8027afd14febad846573d1050002.scope\n"
+  },
+  "completion": {
+    "chunk_id": "51221d",
+    "wall_time_seconds": 0.000029887,
+    "exit_code": 0,
+    "original_token_count": 625,
+    "output": "W1104 01:52:36.990000 1808645 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'\ntest_no_handoff_activates_without_any_preparation_entry (tests.test_ieee_tc_transfer_pressure.ActivationPreparation.test_no_handoff_activates_without_any_preparation_entry) ... 2026-11-04 01:52:38 - faaslora.memory.residency_manager - INFO - Residency manager initialized\n2026-11-04 01:52:38 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized\n    remote artifact fetch a: 0.0 MB, 5.4 ms\n2026-11-04 01:52:38 - faaslora.experiment.instance_pool - INFO - Instance ieee-activation-f92530fc48924a558fcc0c91844e6fce added (total=1)\nok\ntest_no_handoff_still_activates_when_preload_disabled (tests.test_ieee_tc_launch.IEEEInitialDeployment.test_no_handoff_still_activates_when_preload_disabled) ... 2026-11-04 01:52:38 - faaslora.memory.residency_manager - INFO - Residency manager initialized\n2026-11-04 01:52:38 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized\n    remote artifact fetch a: 0.0 MB, 4.6 ms\n2026-11-04 01:52:38 - faaslora.experiment.instance_pool - INFO - Instance ieee-activation-51b5a8ae86614d298083225d5fe8e949 added (total=1)\n2026-11-04 01:52:38 - faaslora.experiment.instance_pool - INFO - Instance ieee-activation-51b5a8ae86614d298083225d5fe8e949 removed (total=0)\nok\ntest_no_handoff_still_runs_actual_ready_residency_without_duplicate_epoch (tests.test_ieee_tc_launch.IEEEActualControl.test_no_handoff_still_runs_actual_ready_residency_without_duplicate_epoch) ... 2026-11-04 01:52:38 - faaslora.memory.residency_manager - INFO - Residency manager initialized\n2026-11-04 01:52:38 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized\n    remote artifact fetch b: 0.0 MB, 4.4 ms\n    remote artifact fetch c: 0.0 MB, 4.1 ms\n    remote artifact fetch d: 0.0 MB, 6.2 ms\n    remote artifact fetch a: 0.0 MB, 5.1 ms\nW1104 01:52:45.540000 1809158 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'\nW1104 01:52:45.625000 1809157 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'\n2026-11-04 01:52:49 - faaslora.preloading.preloading_planner - INFO - Preloading planner initialized with strategy: hybrid\nok\n\n----------------------------------------------------------------------\nRan 3 tests in 11.024s\n\nOK\n    remote artifact fetch a: 0.0 MB, 9.2 ms\n"
+  }
+}
