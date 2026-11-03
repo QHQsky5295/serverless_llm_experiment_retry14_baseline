@@ -152,3 +152,9 @@ fda596df99900379bcfeba8bf91346f14b16b72a8bd394d49d93862dc40bbf20。
 复用run_d1000入口（名字含W1但实际W2）；不设prefix、不新增短Full，不扫描
 执行图或扩缩容参数。D648 SLO/预算不变。当前n_correct仍未知，画像通过
 不等于独立数值正确性、4000请求达标或排名。所有后续范围继续保留，目标active。
+
+后置备份回执：完成证据检查点9861fb0fcbff6d8361878e13bbcd53bff9486ac6已推送，
+ls-remote核验origin/retry14_continuous_queue_v2与faaslora_origin的
+backup/d1028-reachable-lora-profile-20261103均为该SHA。9个完成文件经diff、
+暂存凭据模式及6项来源SHA检查；用户dirty未暂存。此后置说明随下一正常检查点
+提交。当前没有运行中的GPU/分析/维护任务；D1028不再运行，完整W2尚未启动。
