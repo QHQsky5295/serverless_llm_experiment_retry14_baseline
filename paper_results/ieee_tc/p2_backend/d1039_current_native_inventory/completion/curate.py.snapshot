@@ -1,0 +1,71 @@
+"""Reuse D1016/D863 curation; add descriptive fresh-inventory projections.
+
+No new performance run, statistical threshold, or online mechanism is introduced.
+The unused file-process observer is explicitly not treated as zero overhead.
+"""
+import hashlib
+from pathlib import Path
+
+template = Path(__file__).resolve().parent.parent/'d1016_20261102_attempt2/curate.py'
+assert hashlib.sha256(template.read_bytes()).hexdigest() == '32631efadc158e52251bb6b96b11b0e966e8feb41b83f3a0ad01faf0dae8591f'
+source = template.read_text()
+for old, new in (
+    ('d1016_attempt2_3b_native_prefix1000', 'd1039_3b_file_native_prefix1000'),
+    ('d1016_current_native_prefix/completion', 'd1039_current_native_inventory/completion'),
+    ('8a60e085434f8ec1d868efc0f8f44b23a9ef1262740cbc846a7e307f9be5d85c',
+     '3abcd9d766a7dc1c780244d8eedaac8440815aa85c0e45c6d9b81ef2cf35a070'),
+    ('production_policy_changed=False, observer_changed=False,',
+     "production_policy_changed_during_collection=False, observer_changed_during_collection=False,\n"
+     "    source_commit='2430ac0501abe01b90dd9e2bdf75e27df2f41835',\n"
+     "    file_process_observation='not_exercised_inprocess_owner',\n"
+     "    file_owner_latency_measured=False,"),
+):
+    assert old in source, old
+    source = source.replace(old, new)
+old = "'core_processes.csv':RAW/'analysis1/core_timing/processes.csv',"
+assert old in source
+source = source.replace(old, old + "\n    'host_inventory.csv':RAW/'analysis1/core_timing/host_inventory.csv',\n    'core_groups.csv':RAW/'analysis1/core_timing/groups.csv',")
+insertion = '''
+# Reuse validated native windows and scalar inventory rows; no counterfactual subtraction.
+assert core['host_inventory_timing'] == 'fresh_inventory_v1'
+with (RAW/'analysis1/core_timing/host_inventory.csv').open() as f:
+    inventory = list(csv.DictReader(f))
+assert len(inventory) == core['host_inventory_observations']
+assert {w['request_id'] for w in windows} == {f'req_{i:05d}' for i in range(1000)}
+inventory_groups = []
+buckets = collections.defaultdict(list)
+for row in inventory:
+    buckets[row['boundary'],row['label'],row['state'],row['scope']].append(row)
+for (boundary,label,state,scope), rows in sorted(buckets.items()):
+    wall = sorted(float(r['wall_ms']) for r in rows)
+    cpu = [float(r['thread_cpu_ms']) for r in rows]
+    inventory_groups.append(dict(boundary=boundary,label=label,state=state,scope=scope,
+        calls=len(rows),wall_total_ms=math.fsum(wall),cpu_total_ms=math.fsum(cpu),
+        wall_mean_ms=math.fsum(wall)/len(wall),cpu_mean_ms=math.fsum(cpu)/len(cpu),
+        wall_p95_ms=wall[math.ceil(.95*len(wall))-1]))
+window_groups = []
+for phase in ('all','ordinal_lt500','ordinal_ge500'):
+    for miss in (False,True):
+        selected = [w for w in windows if (w['timing_tpot_miss']=='True')==miss
+            and (phase=='all' or (int(w['request_id'][4:])>=500)==(phase=='ordinal_ge500'))]
+        window_groups.append(dict(phase=phase,tpot_miss=miss,count=len(selected),
+            **{key:math.fsum(float(w[key]) for w in selected)/len(selected) if selected else None
+               for key in ('decode_ms','client_ms','input_nonclient_ms','step_ms',
+                           'other_or_unobserved_ms','host_inventory_ms','host_allocator_stats_ms')}))
+write_exclusive_csv(OUT/'inventory_groups.csv',inventory_groups)
+write_exclusive_csv(OUT/'inventory_window_groups.csv',window_groups)
+save(OUT/'inventory_interpretation.json',dict(
+    file_owner_timing_status='not_exercised_inprocess_owner',file_owner_latency_measured=False,
+    native_inventory_observations=len(inventory),native_inventory_complete=True,
+    curation_template=ref(template),all_requests=1000,window_groups=window_groups,
+    inventory_total_wall_ms=math.fsum(float(r['wall_ms']) for r in inventory if r['boundary']=='host_inventory'),
+    inventory_total_cpu_ms=math.fsum(float(r['thread_cpu_ms']) for r in inventory if r['boundary']=='host_inventory'),
+    file_observer_absence_is_zero_time=False,counterfactual_speedup_estimated=False,
+    caveats=['Inventory is nested in client/input/step, not an additional additive stage.',
+             'CPU time and window overlap do not prove removable delay or causal SLO improvement.',
+             'The first 1000 W2 requests are a diagnostic, not a complete G1/G2 point.']))
+'''
+marker = "save(OUT/'manifest.json', dict(files=[ref(x) for x in sorted(OUT.iterdir())]))"
+assert source.count(marker) == 1
+source = source.replace(marker, insertion + '\n' + marker)
+exec(compile(source, str(template), 'exec'), globals())

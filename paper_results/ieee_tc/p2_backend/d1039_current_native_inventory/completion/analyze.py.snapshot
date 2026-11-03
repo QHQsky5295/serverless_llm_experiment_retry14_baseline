@@ -1,0 +1,16 @@
+"""Reuse the retained D1016/D723 audit for D1039's current native prefix.
+
+Only campaign paths change. The native analyzer already supports the selected
+fresh_inventory_v1 spans. File-process timing was not exercised in this run;
+its absence is not an observed zero and is documented in the campaign handoff.
+"""
+import hashlib
+from pathlib import Path
+
+template = Path(__file__).resolve().parent.parent/'d1016_20261102/analyze.py'
+expected = 'a0743504ad6589def97eb22a04e1d175ebca3cf4c0b1fa680423d211d63a46d8'
+assert hashlib.sha256(template.read_bytes()).hexdigest() == expected
+source = template.read_text()
+assert source.count('d1016_3b_native_prefix1000') == 2
+source = source.replace('d1016_3b_native_prefix1000', 'd1039_3b_file_native_prefix1000')
+exec(compile(source, str(template), 'exec'), globals())
