@@ -232,3 +232,28 @@ D1029、D1033等历史取舍均保留，不把某一父点称为已接受最终�
 对照已关闭方向与原始来源寻找一个确有新证据的瓶颈；尚未启动新GPU候选。
 全部两模型同最终版本W0/W1/W2、正确性、最终外部比较、A1–A5、S1–S13、
 CE/Pareto、两轮审稿/设计文档、图表和V2最终集成仍待完成，整体目标active。
+
+## 封存备份与测量后空间维护
+
+结果提交4c9a3e353dd7b8b2ff90af347e8f71b25a52c158已推送并ls-remote核验
+origin/retry14_continuous_queue_v2和faaslora_origin/
+backup/d1036-native-host-capacity-outcome-20261103。18份指定文件，diff检查、
+16项analysis bundle/10项completion SHA、JSON/脚本语法、凭据模式和staged
+allowlist检查通过。所有离线分析实际完成作为本次smoke，不重跑未改的GPU
+资格或74项旧生产测试。用户两处修改始终未stage；未force分歧FaaSLoRA V2，
+备份不冒充最终集成。没有修改生产代码、测量配置或论文源文件。
+
+仅在测量、全部分析及备份结束后，复用compress_closed_main_outcomes.py，
+在固定辅助CPU、3/4GiB、swap0、低CPU/I/O优先级下分别压缩本次
+main_outcome.json及唯一experiment_results_full*.json。每份两次独立解压
+SHA与原源SHA一致，且再次对照已封存的source_refs，才移除未压缩副本；
+保留原目录同名.json.gz及逐文件receipt。旧manifest的原路径/SHA不追改，
+需要plain路径的旧reader须从对应gzip恢复完全相同字节，不能把路径缺失
+误当证据丢失、自动更换来源或重跑实验。
+
+回执paper_results/ieee_tc/storage/d1036_closed_outcome_20261103.json及
+d1036_closed_result_20261103.json；分别实际回收538116096和348409856B，
+合计886525952B。维护完成时available161075216384B，约150.013GiB，
+只表示当时超过启动下限，不能保证下一重任务准入。没有维护期连续资源采样，
+不虚构峰值/事件结论；保护范围、唯一工件、trace、环境与其他项目未动。
+下一步按前节主线查已有控制/等待证据；所有未完成范围和active状态不变。
