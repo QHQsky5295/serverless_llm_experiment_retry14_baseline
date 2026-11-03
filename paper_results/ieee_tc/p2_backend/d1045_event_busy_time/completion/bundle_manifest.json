@@ -1,0 +1,97 @@
+{
+  "kind": "append_only_completion_bundle",
+  "source_commit": "7b5bd01b1170aef79fd1b10be1a6ecfea4f43477",
+  "previous_manifest_sha256": "8701700eee53d3179b2b8c57cbc7da3465ce1973c3b2f91c9c387169318aef2c",
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/closure.json",
+      "sha256": "5020dc82764b5368c04590817445dffdf4be9923cc1da389c2b550e6af5234b9",
+      "bytes": 2854
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/collect_closed_evidence.py.snapshot",
+      "sha256": "14c998e9071b8f0c6bd21f17fc3ebb1ab8eec75428dbe62640d649b88bc326dd",
+      "bytes": 6409
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/control_observation/analyze.py.snapshot",
+      "sha256": "6d457718fbe6c14a47b09aa52d2c2822c9a3e91834394233f8f58260671c7075",
+      "bytes": 8721
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/control_observation/d1045_action_records.json",
+      "sha256": "e8c0f9cd1a49a833038421e0e7ec13893aacb3dbc231d11368c457c17e0794b1",
+      "bytes": 6508
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/control_observation/d1045_controls.csv",
+      "sha256": "c107f0fd1cd369e852ab8fe7485800c038d03d398cdaa797c66a5be9a2fbb819",
+      "bytes": 446499
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/control_observation/manifest.json",
+      "sha256": "491cb909e800ee4ebe052c6c59411b792b838fe909209066c31df7c7e053068c",
+      "bytes": 1194
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/control_observation/summary.json",
+      "sha256": "cce8ea2e6d72df6823d78a284c9bd308b11cad444f07a063e3b77374830a7661",
+      "bytes": 129626
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/delivery_and_resources.json",
+      "sha256": "7457abd403adcd6e818497e6ee31e114a0f4f66c97e77c84250eb799a931d795",
+      "bytes": 7655
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/full4000.json",
+      "sha256": "5da67242cf1ad257b6a5f4bb44aa50ef4d2398d096807b624de07d1d7f3188c2",
+      "bytes": 54769
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/manifest.json",
+      "sha256": "8701700eee53d3179b2b8c57cbc7da3465ce1973c3b2f91c9c387169318aef2c",
+      "bytes": 3371
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/native_descriptor.json",
+      "sha256": "03bf44f1efb9fae9ba638c3f3d749ae9d0b11c678e6651456b6a61d9380baac3",
+      "bytes": 584
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/paired_d1033/diagnosis.json",
+      "sha256": "e63fb1e23c4d603a37f81793c9e19ed510b0e74a446ba3d5bec863c6faac6323",
+      "bytes": 234555
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/paired_d1033/paired_requests.csv",
+      "sha256": "5598dc634296fe1f158797e41b9f7a191ff54f0d2789ee7d9cd61866a61a3577",
+      "bytes": 1231479
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/paired_d1043/diagnosis.json",
+      "sha256": "2e519d2a6754d01637fcd3adef1dbe4a924d3ee9527e8205cd02b088765d576d",
+      "bytes": 229307
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/paired_d1043/paired_requests.csv",
+      "sha256": "83049389c68f91c3d1000ba89694a8ab665f609bcb9fc39ce025ed81e5de19f1",
+      "bytes": 1230941
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/profile_bindings.json",
+      "sha256": "2397deda065a9d7b93f222960c531442ea6b5bbc12eb41c45c622cf51a1480ba",
+      "bytes": 2732
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/stages/diagnosis.json",
+      "sha256": "b5e2009772c23732e74dbe883ac67cb83875be5b84c5be096c7c6cbba7869abe",
+      "bytes": 213372
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/stages/requests.csv",
+      "sha256": "e5c5de3dac5b782e7406f19650a304fa7dac7236720491ffba0c16da13689de4",
+      "bytes": 2346653
+    }
+  ]
+}
