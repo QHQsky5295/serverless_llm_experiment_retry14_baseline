@@ -1,0 +1,16 @@
+{
+  "start": {
+    "chunk_id": "4e7d57",
+    "wall_time_seconds": 1.000658802,
+    "session_id": 36855,
+    "original_token_count": 15,
+    "output": "Running scope as unit: primelora-tc-aux-d1052-native.scope\n"
+  },
+  "completion": {
+    "chunk_id": "6c0dab",
+    "wall_time_seconds": 0.000030252,
+    "exit_code": 0,
+    "original_token_count": 200,
+    "output": "W1104 03:14:49.875000 2003798 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'\ntest_full_pressure_defers_without_eviction_or_lru_touch (tests.test_ieee_tc_gpu_references.NativeProactiveTransactions.test_full_pressure_defers_without_eviction_or_lru_touch) ... ok\ntest_capacity_only_uses_same_native_victim_and_retains_reference (tests.test_ieee_tc_gpu_references.NativeProactiveTransactions.test_capacity_only_uses_same_native_victim_and_retains_reference) ... ok\ntest_all_pinned_capacity_cannot_be_bypassed_by_capacity_only (tests.test_ieee_tc_gpu_references.NativeProactiveTransactions.test_all_pinned_capacity_cannot_be_bypassed_by_capacity_only) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 0.004s\n\nOK\n"
+  }
+}

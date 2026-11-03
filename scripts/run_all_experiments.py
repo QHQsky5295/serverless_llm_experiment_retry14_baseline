@@ -15778,6 +15778,7 @@ class ScenarioRunner:
                 preparation = asyncio.create_task(self._run_ieee_file_preparation_plan(
                     plan=plan, target_engine=None, target_replica=activation_id,
                     activation_id=activation_id, activation_ready=initialized,
+                    capacity_only=not self._coordination_enabled,
                     delayed=policy == 'delayed'))
                 if not hasattr(self, '_ieee_file_plan_tasks'):
                     self._ieee_file_plan_tasks = set()

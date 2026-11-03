@@ -1,0 +1,15 @@
+{
+  "kind": "tool_observation_transcription",
+  "test_classes": [
+    "tests.test_ieee_tc_transfer_pressure.ActivationPreparation",
+    "tests.test_ieee_tc_admission.AdmissionEquationContract"
+  ],
+  "tests_run": 21,
+  "exit_code": 0,
+  "passed": true,
+  "elapsed_seconds": 0.45,
+  "observed_local_interval": "2026-11-04 03:11:04 to 03:11:06 +08:00",
+  "scope": "primelora-tc-aux-2066a9adc7e8460fa240060b06b50f3f.scope",
+  "native_gpu_execution": false,
+  "transcription_note": "Observed completed tool session 78242 before context compaction. Full stdout was not retained as a file; this is not a fabricated full log or memory-peak receipt."
+}

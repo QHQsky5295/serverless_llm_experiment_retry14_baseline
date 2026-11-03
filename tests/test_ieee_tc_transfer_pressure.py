@@ -1896,6 +1896,7 @@ class ActivationPreparation(unittest.TestCase):
         runner._service_profiles = None
         runner._routing_policy = 'ieee_confirmed'
         runner._ieee_handoff_policy = policy
+        runner._coordination_enabled = True
         runner.instance_pool = InstancePool(min_instances=1,max_instances=4,preparation_profiles=profile)
         stack = ExperimentStack.__new__(ExperimentStack)
         stack.__dict__.update(runner._stack.__dict__)
@@ -1924,6 +1925,36 @@ class ActivationPreparation(unittest.TestCase):
         tasks=list(getattr(runner,'_ieee_file_plan_tasks',()))
         if tasks: await asyncio.wait_for(asyncio.gather(*tasks),3)
         await asyncio.sleep(0)  # Deliver the completion journal callback.
+
+    def test_initial_and_natural_activation_forward_only_soft_admission_gate(self):
+        for category in ('initial', 'natural_scaleout'):
+            for enabled in (True, False):
+                with self.subTest(category=category, coordination_enabled=enabled):
+                    fixture,runner,queue,engine,_=self.make()
+                    runner._coordination_enabled=enabled
+                    async def run():
+                        runner.engine_factory=AsyncMock(return_value=(engine,None))
+                        with patch.object(runner,'_run_ieee_file_preparation_plan',
+                                wraps=runner._run_ieee_file_preparation_plan) as preparation:
+                            event=await runner._add_dedicated_instance_slot(enabled,
+                                reserved_device_id=0,activation_kind=category)
+                            await self.finish_preparation(runner)
+                            preparation.assert_awaited_once()
+                            kwargs=preparation.await_args.kwargs
+                            self.assertIs(kwargs['capacity_only'],not enabled)
+                            self.assertFalse(kwargs['delayed'])
+                            self.assertEqual(kwargs['plan']['mode'],'handoff')
+                            self.assertEqual(kwargs['activation_id'],event['activation_id'])
+                            self.assertEqual(kwargs['target_replica'],event['instance_id'])
+                        self.assertEqual(event['activation_kind'],category)
+                        self.assertEqual((fixture.host/'a'/'weights').read_bytes(),b'a'*12288)
+                        budget=fixture.owner.host_budget_snapshot()
+                        self.assertFalse(budget['activation_reservations'])
+                        self.assertEqual(budget['native_reserved_bytes'],16384)
+                        self.assertEqual(runner.instance_pool.count(),1)
+                        runner._warmup_engine_hot_set.assert_not_awaited()
+                        await queue.close()
+                    asyncio.run(run())
 
     def test_full_file_copy_precedes_runtime_ready_and_adoption_has_no_budget_gap(self):
         fixture,runner,queue,engine,_=self.make()

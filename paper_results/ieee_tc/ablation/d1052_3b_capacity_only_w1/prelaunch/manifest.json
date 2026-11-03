@@ -1,0 +1,20 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/prelaunch/activation_admission_test_receipt.json",
+      "sha256": "5779f216d807ec8b28f6ffa092852fd90eb706840d310519c04163746f0e5b90"
+    },
+    {
+      "path": "paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/prelaunch/curate.py.snapshot",
+      "sha256": "8d0f94b115a08e278664830475ce53240573a1791d01a2450daaed07fb7599f0"
+    },
+    {
+      "path": "paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/prelaunch/native_reference_tests.json",
+      "sha256": "e46fbbbee577eca4ef6605b457cc81d58606cc967938b039bedfeb4ee4659835"
+    },
+    {
+      "path": "paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/prelaunch/qualification.json",
+      "sha256": "a1e9a0aac58f0952a8a8ea61e0fc24f0dba06c077dad6ce25352727fe640d91f"
+    }
+  ]
+}

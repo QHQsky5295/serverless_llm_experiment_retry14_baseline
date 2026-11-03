@@ -1,0 +1,103 @@
+"""CapacityOnly prelaunch: reuse D1047's contract; verify one mechanism difference."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import yaml
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/prelaunch'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from faaslora.datasets.workload_generator import FrozenReplayPlan
+
+def read(path):
+    return json.loads(path.read_text())
+
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, allow_nan=False)
+        handle.write('\n')
+
+identity = p.scope_identity(p.cg_path().name)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+parent_config = ROOT/'configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml'
+config = ROOT/'configs/ieee_tc/20261104_d1052_3b_capacity_only_w1.yaml'
+parent = yaml.safe_load(parent_config.read_text())
+candidate = yaml.safe_load(config.read_text())
+changes = []
+for section, key in [('experiment','output_dir'), ('storage','nvme_cache_dir'),
+                     ('storage','host_cache_dir')]:
+    a, b = parent[section][key], candidate[section][key]
+    assert a != b
+    changes.append(dict(section=section, key=key, parent=a, candidate=b))
+    candidate[section][key] = a
+assert 'coordination_enabled' not in parent['resource_coordination']
+assert candidate['resource_coordination'].pop('coordination_enabled') is False
+changes.append(dict(section='resource_coordination', key='coordination_enabled',
+    parent_effective=True, parent_explicit=False, candidate=False))
+assert parent == candidate, 'non-target serving configuration changed'
+parent_qualification = ROOT/'paper_results/ieee_tc/p2_backend/d1047_same_version_w1/prelaunch/qualification.json'
+prior = read(parent_qualification)
+assert prior['passed']
+unchanged = {}
+for name, sha in prior['sources'].items():
+    if name == 'tests/test_ieee_tc_launch.py':
+        continue  # Only obsolete async test fixtures changed; runtime is unchanged.
+    if name == 'scripts/run_all_experiments.py':
+        before = subprocess.check_output(['git','show','6679f6f4:'+name], cwd=ROOT)
+        import hashlib
+        assert hashlib.sha256(before).hexdigest() == sha
+        inserted = b'                    capacity_only=not self._coordination_enabled,\n'
+        after = (ROOT/name).read_bytes()
+        anchor = b'                    activation_id=activation_id, activation_ready=initialized,\n'
+        assert before.count(anchor) == 1
+        assert after == before.replace(anchor, anchor + inserted)
+        continue
+    assert p.digest(ROOT/name) == sha, name
+    unchanged[name] = sha
+test = read(RAW/'activation_admission_test_receipt.json')
+assert test['passed'] and test['exit_code'] == 0 and test['tests_run'] == 21
+native = read(RAW/'native_reference_tests.json')
+assert native['completion']['exit_code'] == 0
+assert 'Ran 3 tests' in native['completion']['output'] and '\nOK\n' in native['completion']['output']
+trace = prior['frozen_views']['W1']['source_path']
+view = FrozenReplayPlan.load(trace, profile='W1').identity()
+assert view['count'] == view['source_count'] == 4000
+for key in ('source_sha256', 'view_sha256'):
+    assert view[key] == prior['frozen_views']['W1'][key]
+full = ROOT/'paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/full4000.json'
+assert p.digest(full) == '9efa154f7d9322e6ccac94541a7d323064d2bd868ee8642c8245755c42fde6e1'
+protected = p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))
+assert protected['pass'] and protected['entry_count'] == 147
+user = {'configs/generated/lora_manifest_1000.json':'3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df',
+        'docs/ieee_tc/EXECUTION_STATUS.md':'41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374'}
+assert all(p.digest(ROOT/name) == sha for name, sha in user.items())
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'], text=True).strip()
+OUT.mkdir(parents=True, exist_ok=False)
+for name in ('activation_admission_test_receipt.json','native_reference_tests.json','curate.py'):
+    target = name + '.snapshot' if name.endswith('.py') else name
+    with (OUT/target).open('xb') as handle:
+        handle.write((RAW/name).read_bytes())
+save(OUT/'qualification.json', dict(passed=True, performance_result=False, tests=24,
+    variant='CapacityOnly', parent_variant='Full', raw_scenario='tc_ieee_full',
+    parent_result=dict(path=str(full),sha256=p.digest(full)),
+    parent_qualification=dict(path=str(parent_qualification),sha256=p.digest(parent_qualification)),
+    config=dict(path=str(config),sha256=p.digest(config)), config_changes=changes,
+    unchanged_sources=unchanged,
+    changed_sources={name:p.digest(ROOT/name) for name in
+        ('scripts/run_all_experiments.py','tests/test_ieee_tc_transfer_pressure.py')},
+    workload=view, plan_sha256=p.check_plan(),
+    identity=identity, resources=p.cgroup_snapshot(p.cg_path()), protected=protected,
+    user_protected=user, production_change='activation preparation forwards capacity_only=not coordination_enabled; Full default remains false; identical native owner/loader/victim and physical protection', test_fixture_changes='new initial/natural activation soft-admission pass-through cases; historical async fixture fixes retained',
+    n_correct=None, independent_numerical_proof=False, formal_ranking_eligible=False,
+    limitations=['Known source42 development workload; one run, no run-level CI',
+        'Raw scenario retained for executable compatibility; display variant must be CapacityOnly',
+        'CapacityOnly disables soft proactive E(t) check in activation and steady residency; physical feasibility, demand, routing, handoff and victim remain unchanged',
+        'Mechanism trigger and full timing/resource evidence must be read after completion']))
+save(OUT/'manifest.json', dict(files=[dict(path=str(x.relative_to(ROOT)),sha256=p.digest(x))
+    for x in sorted(OUT.iterdir()) if x.is_file()]))
+print(json.dumps(dict(passed=True,tests=24,variant='CapacityOnly',config_changes=changes)))
