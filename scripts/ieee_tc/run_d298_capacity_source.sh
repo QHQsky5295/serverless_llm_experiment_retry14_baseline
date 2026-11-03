@@ -3,6 +3,12 @@
 set -euo pipefail
 ROOT=/home/qhq/serverless_llm_experiment_retry14_baseline
 case "${1:-d298}" in
+  d1035)
+    # Same 423 cases, CPU count derived from the unchanged native HOST budget.
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1035_20261103
+    CONFIG=configs/ieee_tc/20261103_d1035_3b_native_host_capacity_source.yaml
+    SPEC=paper_results/ieee_tc/p2_backend/d1035_3b_native_host_capacity_profile/source_spec.json
+    ;;
   d1032)
     # Two existing D1031 waves: validate memory-cache hit, not a new profile.
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1032_20261103
@@ -180,7 +186,8 @@ cd "$ROOT"
 # D1032 shares every runtime environment selector with D1031; only the raw
 # directory/spec above differ. Preserve the original execution identity.
 SELECTOR="${1:-d298}"
-[[ "$SELECTOR" != d1032 ]] || set -- d1031
+# These measurements share D1031's runtime environment, not its config/spec.
+[[ "$SELECTOR" != d1032 && "$SELECTOR" != d1035 ]] || set -- d1031
 mkdir -p "$RAW"
 [[ ! -e "$RAW/${SOURCE_STEM}_launch.json" && ! -e "$RAW/$SOURCE_STEM.json" ]] || exit 2
 set -o noclobber

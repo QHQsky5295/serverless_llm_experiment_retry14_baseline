@@ -1,0 +1,167 @@
+{
+  "capacity_derivation": {
+    "budget_bytes": 2147483648,
+    "candidate_cpu_entries": 110,
+    "demand_and_proactive_workspace_bytes": 110160272,
+    "future_overhead_bounded": false,
+    "live_allocation_checks_required": true,
+    "observed_nonregistered_bytes": 18418980,
+    "projected_upper_bytes": 2147088052,
+    "resident_upper_bytes_per_entry": 18350080,
+    "static_universe": 500,
+    "transient_upper_bytes": 36730056
+  },
+  "configured_cpu_entries": 32,
+  "configured_gpu_slots": 32,
+  "counts": {
+    "joint_pass": 3772,
+    "n": 4000,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3913,
+    "ttft_pass": 3850
+  },
+  "cpu_capacity_reached_requests": 3868,
+  "demand_reuse": {
+    "groups": {
+      "first_in_owner": {
+        "joint_fail": 135,
+        "native_load_and_joint_fail": 129,
+        "native_load_invoked": 667,
+        "requests": 913,
+        "source:file": 667,
+        "source:gpu": 246,
+        "tpot_fail": 23,
+        "ttft_fail": 118
+      },
+      "repeat_0_to_7": {
+        "joint_fail": 56,
+        "native_load_and_joint_fail": 0,
+        "native_load_invoked": 35,
+        "requests": 1758,
+        "source:file": 33,
+        "source:gpu": 1723,
+        "source:staging": 2,
+        "tpot_fail": 35,
+        "ttft_fail": 23
+      },
+      "repeat_32_plus": {
+        "joint_fail": 9,
+        "native_load_and_joint_fail": 9,
+        "native_load_invoked": 138,
+        "requests": 206,
+        "source:file": 136,
+        "source:gpu": 68,
+        "source:staging": 2,
+        "tpot_fail": 5,
+        "ttft_fail": 5
+      },
+      "repeat_8_to_31": {
+        "joint_fail": 28,
+        "native_load_and_joint_fail": 3,
+        "native_load_invoked": 155,
+        "requests": 1123,
+        "source:file": 155,
+        "source:gpu": 968,
+        "tpot_fail": 24,
+        "ttft_fail": 4
+      }
+    },
+    "owners": 4,
+    "requests": 4000
+  },
+  "kind": "d1034_native_host_capacity_evidence_v1",
+  "limitations": [
+    "Post-acquisition snapshots are observations, not a continuous native cache history.",
+    "Demand reuse distance is admission-ordered and omits proactive touches and mutations.",
+    "No counterfactual hit count, avoided latency, SLO gain or causal attribution is inferred.",
+    "Measured nonregistered occupancy is not a future bound; startup/live byte checks remain required.",
+    "More HOST entries can increase state-observation cost; only the complete replay tests the tradeoff."
+  ],
+  "max_cpu_only_entries_after": 1,
+  "max_registered_bytes_before": 431226880,
+  "n_correct": null,
+  "native_cpu_only_requests": 0,
+  "native_sources": {
+    "file": 991,
+    "gpu": 3005,
+    "staging": 4
+  },
+  "new_gpu_runs": 0,
+  "passed": true,
+  "post_acquisition_cpu_occupancy": {
+    "1": 3,
+    "2": 4,
+    "3": 3,
+    "4": 3,
+    "5": 3,
+    "7": 2,
+    "8": 5,
+    "9": 2,
+    "10": 1,
+    "11": 2,
+    "12": 4,
+    "13": 7,
+    "14": 2,
+    "15": 3,
+    "17": 7,
+    "18": 6,
+    "19": 5,
+    "20": 5,
+    "21": 3,
+    "22": 8,
+    "23": 7,
+    "24": 1,
+    "25": 16,
+    "26": 10,
+    "27": 1,
+    "28": 5,
+    "29": 6,
+    "30": 3,
+    "31": 5,
+    "32": 3868
+  },
+  "ranking_eligible": false,
+  "request_table": {
+    "bytes": 643592,
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1034_native_host_capacity/requests.csv",
+    "sha256": "56a1b9fba594b37073f257df163226381dca7a49e6f98e73056f28ff5183c41b"
+  },
+  "source_refs": [
+    {
+      "bytes": 287843682,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1033_20261103/d1033_3b_startup_memory_w2_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1033_3b_startup_memory_w2_full.json",
+      "sha256": "1eeeb5f8613ab5baaf5b02df9df84de10ffb4aed61da09795656db91c346c6fd"
+    },
+    {
+      "bytes": 233041,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1033_3b_startup_memory_w2/completion/stages/diagnosis.json",
+      "sha256": "788ab9cdc82503399229cb3e8005af5041c938568e9cadc43b12fd33d09ac758"
+    },
+    {
+      "bytes": 2348420,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1033_3b_startup_memory_w2/completion/stages/requests.csv",
+      "sha256": "a6dac0a3b336225101da1a1bc5ef38db8848772648f70f9e369d21d2e170d39b"
+    },
+    {
+      "bytes": 2748,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1033_3b_startup_memory_w2/completion/profile_bindings.json",
+      "sha256": "4214473b2c26bd7a5465de28cdec596eb9a0c60a55ae011c08e311962abd19db"
+    },
+    {
+      "bytes": 6162,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261103_d1033_3b_startup_memory_w2.yaml",
+      "sha256": "992e1244e98093ba47a038fdb000939ef356b29300babd8181bbe251ad2e2f34"
+    },
+    {
+      "bytes": 1439334,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json",
+      "sha256": "bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275"
+    },
+    {
+      "bytes": 151448,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "3abcd9d766a7dc1c780244d8eedaac8440815aa85c0e45c6d9b81ef2cf35a070"
+    }
+  ],
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1033_20261103/d1033_3b_startup_memory_w2_full"
+}

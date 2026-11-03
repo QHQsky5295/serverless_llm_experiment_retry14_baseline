@@ -4257,6 +4257,7 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         'native_fixed_output_graph_slot_specialization_length_transfer_v1',
         'native_fixed_output_reachable_lora_length_transfer_v1',
         'native_fixed_output_startup_memory_length_transfer_v1',
+        'native_fixed_output_host_capacity_length_transfer_v1',
         'native_fixed_output_private_host_length_transfer_v1')
     fields = {'kind', 'audit', 'model', 'window_s'}
     if transfer:
@@ -4272,6 +4273,7 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
             'native_fixed_output_graph_slot_specialization_length_transfer_v1',
             'native_fixed_output_reachable_lora_length_transfer_v1',
             'native_fixed_output_startup_memory_length_transfer_v1',
+            'native_fixed_output_host_capacity_length_transfer_v1',
             'native_fixed_output_private_host_length_transfer_v1')):
         raise ValueError('unknown completed-length initialization binding')
     window = binding['window_s']
@@ -4312,7 +4314,9 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         file_transfer = binding['kind'] == 'native_fixed_output_file_demand_length_transfer_v1'
         metadata_transfer = binding['kind'] == 'native_fixed_output_metadata_length_transfer_v1'
         graph_transfer = binding['kind'] == 'native_fixed_output_graph_length_transfer_v1'
-        memory_transfer = binding['kind'] == 'native_fixed_output_startup_memory_length_transfer_v1'
+        host_capacity_transfer = binding['kind'] == 'native_fixed_output_host_capacity_length_transfer_v1'
+        memory_transfer = (binding['kind'] == 'native_fixed_output_startup_memory_length_transfer_v1'
+                           or host_capacity_transfer)
         reachable_transfer = (binding['kind'] == 'native_fixed_output_reachable_lora_length_transfer_v1'
                               or memory_transfer)
         specialization_transfer = (binding['kind'] == 'native_fixed_output_graph_slot_specialization_length_transfer_v1'
@@ -4356,6 +4360,16 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
                     raise ValueError('fixed-output graph slot transfer capacity differs')
                 permitted.add('max_loras')
                 numeric_changes = {'max_loras': changes.get('max_loras', {})}
+            if host_capacity_transfer:
+                # Prescribed output lengths do not become new latency samples.
+                # Retain the changed CPU-cache configuration in timing identity.
+                source_cpu, target_cpu = (source_identity.get('max_cpu_loras'),
+                                           identity.get('max_cpu_loras'))
+                if (any(type(n) is not int or n <= 0 for n in (source_cpu, target_cpu))
+                        or not source_cpu < target_cpu or identity['max_loras'] > target_cpu):
+                    raise ValueError('fixed-output native HOST capacity transfer differs')
+                permitted.add('max_cpu_loras')
+                numeric_changes['max_cpu_loras'] = changes.get('max_cpu_loras', {})
             if specialization_transfer:
                 # Reuse prescribed completed lengths, never kernel timings.
                 # Active-LoRA specialization changes the native graph/grid;

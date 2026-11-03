@@ -1278,6 +1278,159 @@ def diagnose_decode_overlap(stage_audit: Path, output: Path):
         counts=stage['counts'])))
 
 
+def native_host_capacity_bound(*, budget, nonregistered_observed, resident_max,
+                               transient_max, universe):
+    """Invert the existing two-workspace reservation; not an online policy.
+
+    The observed nonregistered maximum is a conservative development input,
+    not a bound on future allocator overhead. Actual startup/allocation checks
+    remain authoritative. No benefit, future demand or SLO threshold is used.
+    """
+    values = (budget, resident_max, transient_max, universe)
+    if (any(type(x) is not int or x <= 0 for x in values)
+            or type(nonregistered_observed) is not int or nonregistered_observed < 0):
+        raise ValueError('positive integer capacities and observed overhead required')
+    peak = resident_max + transient_max
+    available = budget - nonregistered_observed - 2 * peak
+    entries = min(universe, max(0, available // resident_max))
+    return dict(candidate_cpu_entries=entries, budget_bytes=budget,
+        observed_nonregistered_bytes=nonregistered_observed,
+        resident_upper_bytes_per_entry=resident_max, transient_upper_bytes=transient_max,
+        demand_and_proactive_workspace_bytes=2 * peak, static_universe=universe,
+        projected_upper_bytes=nonregistered_observed + entries * resident_max + 2 * peak,
+        future_overhead_bounded=False, live_allocation_checks_required=True)
+
+
+def diagnose_native_host_capacity(raw: Path, stage_audit: Path, config: Path, output: Path):
+    """D1034: actual native HOST occupancy and sources, from retained requests.
+
+    Reuse the sealed stage table and existing streaming reader. This does not
+    reconstruct native LRU order, simulate additional hits, or predict SLO.
+    """
+    import ijson
+    import yaml
+    if output.exists():
+        raise FileExistsError(output)
+    stage = read(stage_audit)
+    if (stage['kind'] != 'd716_all_request_stage_diagnosis_v1' or stage['passed'] is not True
+            or stage['counts']['n'] != 4000 or Path(stage['source_run']) != raw
+            or stage['max_stage_identity_error_ms'] > 1):
+        raise ValueError('complete matching stage audit required')
+    table = Path(stage['request_table']['path'])
+    if digest(table) != stage['request_table']['sha256']:
+        raise ValueError('sealed stage table changed')
+    result_paths = list(raw.glob('experiment_results_full*.json'))
+    if len(result_paths) != 1:
+        raise ValueError('one retained request result required')
+    result = result_paths[0]
+    sealed_sources = {s['path']: s['sha256'] for s in stage['source_refs']}
+    if sealed_sources.get(str(result)) != digest(result):
+        raise ValueError('raw result differs from sealed stage source')
+    cfg = yaml.safe_load(config.read_text())['model']
+    # Bind to the already audited execution, not an arbitrary capacity YAML.
+    bindings_path = stage_audit.parent.parent / 'profile_bindings.json'
+    bindings = read(bindings_path)
+    if bindings['passed'] is not True or not any(
+            s['path'] == str(config) and s['sha256'] == digest(config)
+            for s in bindings['source_refs']):
+        raise ValueError('configuration lacks matching execution/profile evidence')
+    content = Path(cfg['artifact_content_manifest_path'])
+    content_data = read(content)
+    universe = len(content_data['artifacts'])
+    contract = cfg['ieee_native_host_workspace']
+    with table.open() as handle:
+        stages = {r['request_id']: r for r in csv.DictReader(handle)}
+    rows, seen = [], set()
+    occupancy, sources = collections.Counter(), collections.Counter()
+    with result.open('rb') as handle:
+        for request in ijson.items(handle, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+            rid = request['request_id']
+            if rid in seen or rid not in stages:
+                raise ValueError('unique full request identities required')
+            seen.add(rid)
+            s = stages[rid]
+            r = request['gpu_reference_evidence']['receipt']
+            snapshot = r['post_load_source_snapshot']
+            allocation = r['host_allocation']['before']
+            before = allocation['before']
+            cpu = snapshot['registered_cpu_adapter_ids']
+            gpu = [x for x in snapshot['slot_adapter_ids'] if x is not None]
+            if (r['acquired'] is not True or r['owner_id'] != s['owner']
+                    or r['lora_name'] != s['adapter_id'] or request['adapter_id'] != s['adapter_id']
+                    or r['worker_pid'] != int(s['worker_pid'])
+                    or r['clock_id'] != stage['clock_id'] or snapshot['clock_id'] != r['clock_id']
+                    or snapshot['owner_id'] != r['owner_id']
+                    or snapshot['complete_for_native_caches'] is not True
+                    or len(cpu) != len(set(cpu)) or len(cpu) > cfg['max_cpu_loras']
+                    or len(gpu) != len(set(gpu)) or not set(gpu) <= set(cpu)
+                    or len(snapshot['slot_adapter_ids']) != cfg['max_loras']
+                    or allocation['tensor_budget_bytes'] != cfg['ieee_native_host_tensor_budget_bytes']
+                    or allocation['admitted'] is not True
+                    or any(type(r[k]) is not bool for k in
+                           ('cpu_registered_before_load', 'gpu_resident_before_load', 'native_load_invoked'))):
+                raise ValueError('native request/owner/capacity evidence differs')
+            registered = before['registered_pinned_storage_bytes'] + before['registered_pageable_storage_bytes']
+            accounted = before['accounted_tensor_bytes']
+            if (any(type(x) is not int or x < 0 for x in (registered, accounted))
+                    or registered > accounted):
+                raise ValueError('observed native HOST accounting is inconsistent')
+            incoming = allocation['contract']
+            if incoming is not None and (
+                    incoming['resident_pinned_upper_bytes'] > contract['max_resident_pinned_bytes']
+                    or incoming['transient_tensor_upper_bytes'] > contract['max_transient_tensor_bytes']):
+                raise ValueError('observed allocation exceeds frozen artifact workspace')
+            row = dict(request_id=rid, ordinal=int(s['ordinal']), owner=s['owner'],
+                adapter_id=s['adapter_id'], admitted=float(s['admitted']),
+                native_source=r['source_tier_before_acquisition'],
+                native_load_invoked=r['native_load_invoked'],
+                cpu_hit=r['cpu_registered_before_load'], gpu_hit=r['gpu_resident_before_load'],
+                cpu_entries_after=len(cpu), gpu_entries_after=len(gpu),
+                cpu_only_entries_after=len(set(cpu) - set(gpu)),
+                registered_bytes_before=registered, accounted_bytes_before=accounted,
+                nonregistered_bytes_before=accounted-registered,
+                ttft_pass=s['ttft_pass'] == 'True', tpot_pass=s['tpot_pass'] == 'True',
+                joint_pass=s['joint_pass'] == 'True',
+                admission_to_acquired_ms=float(s['admission_to_acquired_ms']))
+            rows.append(row)
+            occupancy[len(cpu)] += 1
+            sources[row['native_source']] += 1
+    if (len(seen) != 4000 or seen != set(stages)
+            or any(sum(r[k] for r in rows) != stage['counts'][k]
+                   for k in ('ttft_pass', 'tpot_pass', 'joint_pass'))):
+        raise ValueError('full source counts differ')
+    rows.sort(key=lambda r: r['ordinal'])
+    bound = native_host_capacity_bound(budget=cfg['ieee_native_host_tensor_budget_bytes'],
+        nonregistered_observed=max(r['nonregistered_bytes_before'] for r in rows),
+        resident_max=contract['max_resident_pinned_bytes'],
+        transient_max=contract['max_transient_tensor_bytes'], universe=universe)
+    report = dict(kind='d1034_native_host_capacity_evidence_v1', passed=True,
+        source_run=str(raw), counts=stage['counts'], configured_cpu_entries=cfg['max_cpu_loras'],
+        configured_gpu_slots=cfg['max_loras'], post_acquisition_cpu_occupancy=dict(occupancy),
+        native_sources=dict(sources),
+        cpu_capacity_reached_requests=sum(r['cpu_entries_after'] == cfg['max_cpu_loras'] for r in rows),
+        native_cpu_only_requests=sum(r['native_source'] == 'host' for r in rows),
+        max_cpu_only_entries_after=max(r['cpu_only_entries_after'] for r in rows),
+        max_registered_bytes_before=max(r['registered_bytes_before'] for r in rows),
+        demand_reuse=demand_reuse_groups(rows), capacity_derivation=bound,
+        new_gpu_runs=0, n_correct=stage['n_correct'], ranking_eligible=False,
+        source_refs=[ref(x) for x in (result, stage_audit, table, bindings_path, config, content, Path(__file__))],
+        limitations=[
+            'Post-acquisition snapshots are observations, not a continuous native cache history.',
+            'Demand reuse distance is admission-ordered and omits proactive touches and mutations.',
+            'No counterfactual hit count, avoided latency, SLO gain or causal attribution is inferred.',
+            'Measured nonregistered occupancy is not a future bound; startup/live byte checks remain required.',
+            'More HOST entries can increase state-observation cost; only the complete replay tests the tradeoff.',
+        ])
+    output.mkdir(parents=True, exist_ok=False)
+    write_exclusive_csv(output / 'requests.csv', rows)
+    report['request_table'] = ref(output / 'requests.csv')
+    with (output / 'diagnosis.json').open('x') as handle:
+        json.dump(report, handle, indent=2, sort_keys=True, allow_nan=False)
+        handle.write('\n')
+    print(json.dumps({k: report[k] for k in ('counts', 'native_sources',
+        'cpu_capacity_reached_requests', 'max_registered_bytes_before', 'capacity_derivation')}, indent=2))
+
+
 def demand_reuse_groups(rows):
     """D1018: admission-ordered demand distances, NOT native LRU misses.
 
@@ -2225,6 +2378,7 @@ if __name__ == "__main__":
     parser.add_argument('--diagnose-routing-retries', type=Path)
     parser.add_argument('--diagnose-decode-overlap', type=Path)
     parser.add_argument('--diagnose-demand-reuse', type=Path)
+    parser.add_argument('--diagnose-native-host-capacity', type=Path)
     parser.add_argument('--diagnose-native-startup', type=Path)
     parser.add_argument('--compare-native-compile-factors', type=Path)
     parser.add_argument('--reference-compile-factors', type=Path)
@@ -2244,7 +2398,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.include_route_prefetch and args.diagnose_remote_preparation is None:
         parser.error('--include-route-prefetch requires --diagnose-remote-preparation')
-    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.audit_profile_bindings, args.diagnose_common_slo, args.diagnose_routing_retries, args.diagnose_decode_overlap, args.diagnose_demand_reuse, args.diagnose_native_startup, args.diagnose_remote_preparation, args.diagnose_prefetch_control, args.compare_stage_audits, args.compare_native_compile_factors)) != 1:
+    if sum(x is not None for x in (args.calibrate_control_lower, args.reevaluate_common_slo, args.audit_closed_outcome, args.audit_profile_bindings, args.diagnose_common_slo, args.diagnose_routing_retries, args.diagnose_decode_overlap, args.diagnose_demand_reuse, args.diagnose_native_host_capacity, args.diagnose_native_startup, args.diagnose_remote_preparation, args.diagnose_prefetch_control, args.compare_stage_audits, args.compare_native_compile_factors)) != 1:
         parser.error('select exactly one offline analysis mode')
     if args.compare_native_compile_factors is not None:
         if args.reference_compile_factors is None or args.candidate_compile_factors is None:
@@ -2256,6 +2410,11 @@ if __name__ == "__main__":
             parser.error('--stage-audit and --worker-log are required for --diagnose-native-startup')
         diagnose_native_startup(args.stage_audit.resolve(),
             [x.resolve() for x in args.worker_log], args.diagnose_native_startup.resolve())
+    elif args.diagnose_native_host_capacity is not None:
+        if args.stage_audit is None or args.config is None:
+            parser.error('--stage-audit and --config are required for --diagnose-native-host-capacity')
+        diagnose_native_host_capacity(args.raw.resolve(), args.stage_audit.resolve(),
+            args.config.resolve(), args.diagnose_native_host_capacity.resolve())
     elif args.diagnose_demand_reuse is not None:
         if args.stage_audit is None:
             parser.error('--stage-audit is required for --diagnose-demand-reuse')

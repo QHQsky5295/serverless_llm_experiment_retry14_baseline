@@ -229,9 +229,16 @@ class DedicatedPhysicalOwner(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'UUID/containment'):
             owner.confirm_workers(workers)
         workers[0]['device_uuid'] = 'GPU-0'
+        workers[0]['startup_memory'] = {'status': 'hit', 'producer': {'pid': 7}}
         self.census.process_identity = lambda _: {'pid': 10}
         with patch('faaslora.metrics.metrics_collector._open_pidfd', return_value=9876):
             owner.confirm_workers(workers)
+        observed = owner.events[-1]['workers'][0]
+        self.assertEqual(observed['startup_memory'], workers[0]['startup_memory'])
+        workers[0]['startup_memory']['producer']['pid'] = 99
+        self.assertEqual(observed['startup_memory']['producer']['pid'], 7)
+        journal = json.loads(owner.journal.read_text().splitlines()[-1])
+        self.assertEqual(journal['workers'][0]['startup_memory']['producer']['pid'], 7)
         poller = Mock()
         poller.poll.return_value = [(9876, select.POLLIN)]
         with patch('select.poll', return_value=poller):

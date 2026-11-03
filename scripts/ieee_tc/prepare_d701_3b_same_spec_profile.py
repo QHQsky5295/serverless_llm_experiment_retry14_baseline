@@ -174,7 +174,7 @@ def main() -> None:
 def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str,
                         *, private_host: bool = False, slot_only: bool = False,
                         active_lora: bool = False, reachable_lora: bool = False,
-                        startup_memory: bool = False) -> None:
+                        startup_memory: bool = False, host_capacity: Path | None = None) -> None:
     """Reuse D701 cases, not times, under explicit graph/CPU-construction changes."""
     if out.exists():
         raise FileExistsError(f"append-only preparation exists: {out}")
@@ -186,6 +186,29 @@ def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str,
     new_config = yaml.safe_load(config_path.read_text())
     model_key = 'llama32_3b_main_modelscope'
     comparison_config = copy.deepcopy(new_config)
+    cpu_change = None
+    if host_capacity is not None:
+        from scripts.ieee_tc.audit_d703_3b_full import native_host_capacity_bound
+        capacity_report = read(host_capacity)
+        bound = capacity_report['capacity_derivation']
+        expected_bound = native_host_capacity_bound(budget=bound['budget_bytes'],
+            nonregistered_observed=bound['observed_nonregistered_bytes'],
+            resident_max=bound['resident_upper_bytes_per_entry'],
+            transient_max=bound['transient_upper_bytes'], universe=bound['static_universe'])
+        target_model = comparison_config['model_profiles'][model_key]['model']
+        source_cpu = old_config['model_profiles'][model_key]['model']['max_cpu_loras']
+        workspace = target_model['ieee_native_host_workspace']
+        if (not startup_memory or capacity_report['passed'] is not True
+                or capacity_report['kind'] != 'd1034_native_host_capacity_evidence_v1'
+                or expected_bound != bound or capacity_report['configured_cpu_entries'] != source_cpu
+                or target_model['max_cpu_loras'] != bound['candidate_cpu_entries']
+                or not source_cpu < target_model['max_cpu_loras']
+                or target_model['ieee_native_host_tensor_budget_bytes'] != bound['budget_bytes']
+                or workspace['max_resident_pinned_bytes'] != bound['resident_upper_bytes_per_entry']
+                or workspace['max_transient_tensor_bytes'] != bound['transient_upper_bytes']):
+            raise ValueError('native HOST capacity candidate must use its observed budget derivation')
+        cpu_change = dict(source=source_cpu, target=target_model['max_cpu_loras'])
+        target_model['max_cpu_loras'] = source_cpu
     if startup_memory:
         from faaslora.experiment.startup_memory_plan import POLICY as MEMORY_POLICY
         if (not reachable_lora or comparison_config['model_profiles'][model_key]['model'].pop(
@@ -194,6 +217,8 @@ def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str,
     changed = copy.deepcopy(comparison_config)
     graph = changed['model_profiles'][model_key]['model'].pop('compilation_config')
     changes = {'compilation_config': dict(source=None, target=graph)}
+    if cpu_change is not None:
+        changes['max_cpu_loras'] = cpu_change
     if startup_memory:
         changes['ieee_startup_memory_policy'] = dict(source=None, target=MEMORY_POLICY)
     if reachable_lora:
@@ -231,7 +256,8 @@ def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str,
     spec = copy.deepcopy(original)
     spec.pop('full_development_contract')
     spec['admission_initialization'].update(
-        kind=('native_fixed_output_startup_memory_length_transfer_v1' if startup_memory else
+        kind=('native_fixed_output_host_capacity_length_transfer_v1' if host_capacity is not None else
+              'native_fixed_output_startup_memory_length_transfer_v1' if startup_memory else
               'native_fixed_output_reachable_lora_length_transfer_v1' if reachable_lora else
               'native_fixed_output_graph_slot_specialization_length_transfer_v1' if active_lora else
               'native_fixed_output_graph_slot_length_transfer_v1' if slot_only else
@@ -300,6 +326,19 @@ def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str,
         spec['derivation']['kind'] = 'same_spec_exact_startup_memory_rebind_v1'
         spec['derivation']['startup_memory_parent_config'] = dict(
             path=str(parent_path), sha256=digest(parent_path))
+    if host_capacity is not None:
+        parent_path = ROOT / 'configs/ieee_tc/20261103_d1031_3b_startup_memory_source.yaml'
+        candidate = copy.deepcopy(new_config)
+        candidate['model_profiles'][model_key]['model']['max_cpu_loras'] = cpu_change['source']
+        if candidate != yaml.safe_load(parent_path.read_text()):
+            raise ValueError('native HOST candidate changes more than CPU entry capacity')
+        spec['purpose'] = 'same_cases_fresh_native_timings_after_budget_derived_cpu_capacity_change'
+        spec['derivation']['kind'] = 'same_spec_native_host_capacity_rebind_v1'
+        spec['derivation']['host_capacity_parent_config'] = dict(
+            path=str(parent_path), sha256=digest(parent_path))
+        spec['derivation']['host_capacity_evidence'] = dict(
+            path=str(host_capacity), sha256=digest(host_capacity))
+        spec['derivation']['host_capacity_bound'] = copy.deepcopy(bound)
     cfg = copy.deepcopy(new_config['model_profiles'][model_key]['model'])
     cfg.update(generation_contract='fixed_length_greedy_v1',
         canonical_prompt_renderer='role_lines_v1', max_input_len=759,
@@ -355,17 +394,23 @@ if __name__ == "__main__":
     parser.add_argument('--rebind-active-lora-config', type=Path)
     parser.add_argument('--rebind-reachable-lora-config', type=Path)
     parser.add_argument('--rebind-startup-memory-config', type=Path)
+    parser.add_argument('--rebind-host-capacity-config', type=Path)
+    parser.add_argument('--host-capacity-evidence', type=Path)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--raw-directory', type=Path)
     parser.add_argument('--campaign')
     args = parser.parse_args()
     selected_config = (args.rebind_graph_config or args.rebind_private_host_config
                        or args.rebind_slot_config or args.rebind_active_lora_config
-                       or args.rebind_reachable_lora_config or args.rebind_startup_memory_config)
+                       or args.rebind_reachable_lora_config or args.rebind_startup_memory_config
+                       or args.rebind_host_capacity_config)
     if sum(bool(x) for x in (args.rebind_graph_config, args.rebind_private_host_config,
                             args.rebind_slot_config, args.rebind_active_lora_config,
-                            args.rebind_reachable_lora_config, args.rebind_startup_memory_config)) > 1:
+                            args.rebind_reachable_lora_config, args.rebind_startup_memory_config,
+                            args.rebind_host_capacity_config)) > 1:
         parser.error('choose one configuration rebind')
+    if bool(args.rebind_host_capacity_config) != bool(args.host_capacity_evidence):
+        parser.error('HOST capacity rebind requires its evidence, and vice versa')
     if selected_config:
         if not all((args.output, args.raw_directory, args.campaign)):
             parser.error('graph rebind requires output, raw-directory and campaign')
@@ -373,11 +418,15 @@ if __name__ == "__main__":
                             args.raw_directory.resolve(), args.campaign,
                             private_host=bool(args.rebind_private_host_config),
                             slot_only=bool(args.rebind_slot_config or args.rebind_active_lora_config
-                                           or args.rebind_reachable_lora_config or args.rebind_startup_memory_config),
+                                           or args.rebind_reachable_lora_config or args.rebind_startup_memory_config
+                                           or args.rebind_host_capacity_config),
                             active_lora=bool(args.rebind_active_lora_config or args.rebind_reachable_lora_config
-                                             or args.rebind_startup_memory_config),
-                            reachable_lora=bool(args.rebind_reachable_lora_config or args.rebind_startup_memory_config),
-                            startup_memory=bool(args.rebind_startup_memory_config))
+                                             or args.rebind_startup_memory_config or args.rebind_host_capacity_config),
+                            reachable_lora=bool(args.rebind_reachable_lora_config or args.rebind_startup_memory_config
+                                                or args.rebind_host_capacity_config),
+                            startup_memory=bool(args.rebind_startup_memory_config or args.rebind_host_capacity_config),
+                            host_capacity=(args.host_capacity_evidence.resolve(strict=True)
+                                           if args.host_capacity_evidence else None))
     else:
         if any((args.output, args.raw_directory, args.campaign)):
             parser.error('output overrides require rebind-graph-config')

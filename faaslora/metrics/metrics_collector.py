@@ -10,6 +10,7 @@ import threading
 import math
 import os
 import json
+import copy
 import uuid
 import fcntl
 import select
@@ -549,9 +550,16 @@ class PhysicalGPUAllocation:
                     os.close(fd)
                     raise RuntimeError('native worker birth changed during pidfd acquisition')
                 self._worker_pidfds[pid] = fd
-            self._append('native_workers', census=sample,
-                         workers=[{k: w[k] for k in ('device_uuid', 'pid', 'worker_rank')}
-                                  for w in workers])
+            # Keep an optional startup-memory receipt from this actual worker.
+            # It is observational only: no cache verdict is inferred from the
+            # producer file and no new admission/physical-release rule is added.
+            observed = []
+            for worker in workers:
+                row = {k: worker[k] for k in ('device_uuid', 'pid', 'worker_rank')}
+                if 'startup_memory' in worker:
+                    row['startup_memory'] = copy.deepcopy(worker['startup_memory'])
+                observed.append(row)
+            self._append('native_workers', census=sample, workers=observed)
             self._native_workers_confirmed = True
 
     async def wait_workers(self, *, timeout_s):

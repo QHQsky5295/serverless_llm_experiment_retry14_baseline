@@ -1653,6 +1653,49 @@ class MeasuredAdmissionInitializer(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'correct native completion'):
             self.derive(model_config=candidate)
 
+    def host_capacity_transfer_fixture(self):
+        candidate = self.slot_transfer_fixture()
+        candidate.update(specialize_active_lora=True,
+            ieee_lora_capture_policy='scheduler_reachable_active_lora_v1',
+            ieee_startup_memory_policy='exact_native_startup_memory_v1', max_cpu_loras=110)
+        self.binding['kind'] = 'native_fixed_output_host_capacity_length_transfer_v1'
+        for key in ('specialize_active_lora', 'ieee_lora_capture_policy', 'ieee_startup_memory_policy'):
+            self.binding['model_config_changes'][key] = dict(source=None, target=candidate[key])
+        self.binding['model_config_changes']['max_cpu_loras'] = dict(source=32, target=110)
+        return candidate
+
+    def test_host_capacity_preserves_only_completed_lengths(self):
+        from types import SimpleNamespace
+        from faaslora.experiment.instance_pool import FrozenServiceProfiles
+        candidate = self.host_capacity_transfer_fixture()
+        profile, evidence = self.derive(model_config=candidate)
+        self.assertEqual(profile['profile_means'], [20., 40.])
+        self.assertFalse(evidence['length_transfer']['timing_samples_transferred'])
+        self.assertFalse(evidence['length_transfer']['numerical_correctness_qualified'])
+        parent = dict(candidate, max_cpu_loras=32)
+        with self.assertRaisesRegex(ValueError, 'runtime configuration differs'):
+            FrozenServiceProfiles.validate_runtime(SimpleNamespace(
+                model_config_json=json.dumps(FrozenServiceProfiles.model_identity(parent), sort_keys=True),
+                model_identity=FrozenServiceProfiles.model_identity), candidate)
+        for change in ({'max_cpu_loras': 32}, {'max_cpu_loras': True}, {'max_num_seqs': 16},
+                       {'runtime_concurrency_cap': 16}, {'generation_contract': 'natural_stop'}):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                self.derive(model_config=dict(candidate, **change))
+        self.binding['kind'] = 'native_fixed_output_startup_memory_length_transfer_v1'
+        with self.assertRaises(ValueError):
+            self.derive(model_config=candidate)
+
+    def test_host_capacity_rejects_undeclared_change_and_incomplete_source(self):
+        candidate = self.host_capacity_transfer_fixture()
+        self.binding['model_config_changes']['max_cpu_loras']['target'] = 109
+        with self.assertRaises(ValueError):
+            self.derive(model_config=candidate)
+        self.binding['model_config_changes']['max_cpu_loras']['target'] = 110
+        self.run['requests'][1]['actual_tokens'] = 9
+        self.bind()
+        with self.assertRaisesRegex(ValueError, 'correct native completion'):
+            self.derive(model_config=candidate)
+
     def test_graph_transfer_rejects_natural_stop_on_both_sides(self):
         candidate = self.graph_transfer_fixture()
         for cfg in (self.cfg, self.run['model_config'], self.entry['model_config'], candidate):
