@@ -226,3 +226,27 @@ D810外部18点仍复用，不恢复HydraServe/Loquetier基础适配。3B当前�
 独立数值正确性、完整外部对比、A1–A5、S1–S13、CE/Pareto、审稿/设计文档、
 图表及最终V2集成全部保留，完整目标active。先封存备份，再在测量外恢复必要
 磁盘余量；旧结果、工件、负载、环境和用户文件不覆盖。
+
+### 14:18备份和测量后存储维护
+
+结果检查点ff76171bc0184de81632851b679468ea95865e86已经推送且ls-remote
+核验origin/retry14_continuous_queue_v2与faaslora_origin/
+backup/d1033-startup-memory-w2-outcome-20261103。25份指定文档/curated文件，
+staged allowlist、diff、23项bundle SHA、10项completion SHA、两个collector
+快照语法和凭据模式检查通过。复用已完成47项相关测试，不重跑未改动生产
+代码的GPU/CPU资格。用户manifest与EXECUTION_STATUS始终未暂存；备份不
+冒充历史分歧FaaSLoRA V2最终集成，不force push。
+
+只在完整性能运行结束、GPU及全部资源释放、分析封存后，复用
+compress_closed_main_outcomes.py压缩本次唯一main_outcome.json。
+源475052455 B，SHA02ec17b75b7e75db49ec764e3d5bb353ff91032369b294240fb6ae7f1e2a1770
+与原profile/startup来源seal一致；两次独立gzip解压SHA一致后才移除未压缩
+副本。保留原目录main_outcome.json.gz及compression_receipt.json，需要旧
+路径的reader须显式恢复，旧引用和seal不追改。请求结果JSON、工作点、唯一
+工件、trace、环境、旧投稿和其他项目未动。
+
+回执paper_results/ieee_tc/storage/d1033_closed_outcome_20261103.json；实际
+回收419135488 B，磁盘available160759549952→161178656768 B（约150.11GiB）。
+这是瞬时余量，不代表下次启动必然合格；下一重任务前重新核查。维护在
+aux3/4GiB、swap0、固定CPU、低CPU/I/O优先级执行并退出0，没有完整辅助域
+采样，不虚构其峰值/事件证明。当前无GPU性能实验，后续按上节主线继续。
