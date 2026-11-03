@@ -21,8 +21,21 @@ init engine (profile, create kv cache, warmup model) took 82.56 s (compilation: 
 
 
 class NativeStartupTests(unittest.TestCase):
+    def test_explicit_memory_retains_one_real_capture(self):
+        notice = ('KV Cache as specified by kv_cache_memory_bytes config and '
+                  'skipped memory profiling.\n')
+        warm = LOG.replace('Graph capturing finished in 20 secs, took 0.71 GiB\n', '')
+        result = native_startup_log(warm + notice)
+        self.assertTrue(result['memory_profiling_skipped'])
+        self.assertEqual(result['capture_seconds_rounded'], [17.])
+        for text in (warm, LOG + notice, warm + notice * 2,
+                     (warm + notice).replace('Graph capturing finished in 17 secs, took 0.31 GiB', '')):
+            with self.subTest(text=text[-100:]), self.assertRaises(ValueError):
+                native_startup_log(text)
+
     def test_observed_counts_and_containing_spans(self):
         result = native_startup_log(LOG)
+        self.assertFalse(result['memory_profiling_skipped'])
         self.assertEqual(result['worker_pid'], 123)
         self.assertEqual(result['capture_seconds_rounded'], [20., 17.])
         self.assertEqual(result['init_seconds'], 82.56)

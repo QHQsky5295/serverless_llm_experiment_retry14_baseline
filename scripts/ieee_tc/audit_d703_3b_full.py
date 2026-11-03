@@ -129,8 +129,14 @@ def native_startup_log(text):
                       r'took ([\d.]+) s \(compilation: ([\d.]+) s\)', text)
     captures = re.findall(r'Graph capturing finished in ([\d.]+) secs, '
                          r'took ([\d.]+) GiB', text)
-    if len(init) != 1 or len(captures) != 2:
-        raise ValueError('one engine init and both profiling/real captures required')
+    skipped = len(re.findall(r'KV Cache as specified by kv_cache_memory_bytes config and '
+                             r'skipped memory profiling\.', text))
+    # Explicit native KV memory retains the real service capture, but does not
+    # do the temporary estimation capture. This proves the native branch only;
+    # attributing it to our cache also requires the worker's hit receipt.
+    expected_captures = 1 if skipped == 1 else 2
+    if len(init) != 1 or skipped > 1 or len(captures) != expected_captures:
+        raise ValueError('one engine init and captures matching native memory-profile branch required')
     progress = re.findall(r'Capturing CUDA graphs \(([^)]+)\):\s*100%[^\r\n]*?'
                           r'(\d+)/(\d+)\s*\[', text)
     if any(a != b for _, a, b in progress):
@@ -146,9 +152,10 @@ def native_startup_log(text):
                     'Graph capturing finished', 'init engine (profile,',
                     'torch.compile took', 'Dynamo bytecode transform time',
                     'Using cache directory:', 'saved AOT compiled function',
-                    'loaded AOT compiled function'))]
+                    'loaded AOT compiled function', 'skipped memory profiling.'))]
     return dict(worker_pid=pids.pop(), init_seconds=float(init[0][0]),
         compilation_seconds=float(init[0][1]),
+        memory_profiling_skipped=bool(skipped),
         capture_seconds_rounded=[float(x[0]) for x in captures],
         capture_memory_gib_rounded=[float(x[1]) for x in captures],
         completed_progress_totals=totals, evidence_lines=selected)

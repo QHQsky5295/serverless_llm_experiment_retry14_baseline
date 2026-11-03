@@ -27,3 +27,34 @@ Full 的 loader/admission 身份不同允许首次冷启动，不能复制画像
 两模型同最终版本 W0/W1/W2、独立数值正确性、保留外部基线比较、
 A1–A5、S1–S13、CE/Pareto、两轮审稿与 B1/B2/C1/C2/C3 文档、达标后
 图表和最终 V2 集成全部保留。D810 的基线已完成部分不重开适配。
+
+## 完成，禁止重复本验证
+
+12:48:30 启动，约12:50完成，source commit e01ee413。16/16原生合同通过，
+worker4108335确实命中D1031producer4043841，实际回执和原生跳过估计日志
+一致。KV预算、block池、空闲4409 block及32 LoRA槽全部保持。
+complete startup54693.177062 ms，原生init16.26s/compile0.26s，单次真实
+capture11秒、日志显示0.69GiB。D1031冷画像compile30.52s也不同，因此
+不能把冷/热全部启动差值归因于显存复用，也不把capture日志当精确峰值。
+
+93个资源样本，service peak5757472768 B、host最小105836855296 B；
+high/max/OOM/kill、服务swap、foreign compute及逃逸均0。物理GPU占用
+78.5752496943秒，完整release、service scope及workspace移除通过。
+16次客户端真实传输37185660 B，发布归档/内容核验通过，无请求打包；
+本最小验证不宣称额外双端逐条审计已完成。完整W2仍要求双端核查。
+
+缓存原文件SHA保持b708cc9f11c4a4169340bd17b60253f42c56c42b7d61d3be2b88f0f281662e39。
+4个worker小文件归档逐成员与原件一致，完整出处在completion.json。
+实际engine-memory身份相同；原始model_config仅观测元数据
+safetensors_mem_available_bytes不同（109662965760→109634867200），
+不能把原始字典说成逐字节相同。没有为命中删除此策略的任何身份因子。
+
+旧collector收尾仍出现_retire_ieee_host_budget协程未await的警告；独立
+native release、物理allocation和workspace检查均通过，保留原日志，不隐去。
+纯离线汇总第一次用了无numpy的系统Python、第二次误要求观测元数据相同，
+均在输出前停止；改用既有环境并显式报告唯一元数据差异。没有GPU重跑。
+Full配置草拟一次遇manifest字段名KeyError，也未生成输出，已按实际字段修正。
+
+47测试通过（6既有警告、5.02秒）；分析器只为原生明确skip分支接受一次
+真实capture，其他仍保持原约束。D1033实际strict loader验证160/96类通过，
+只14处预期配置差异。下一步直接唯一新键完整W2，见D1033文档。

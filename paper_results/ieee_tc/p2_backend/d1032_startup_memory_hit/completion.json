@@ -1,0 +1,121 @@
+{
+  "bad_native_contract": 0,
+  "cache_record": {
+    "path": "/home/qhq/.cache/vllm/exact_native_startup_memory_v1/8bd69d64f4e40a53966d7588f08a549f5eb040ecaa7539ec6e64e40c46e444bd.json",
+    "sha256": "b708cc9f11c4a4169340bd17b60253f42c56c42b7d61d3be2b88f0f281662e39"
+  },
+  "client_content_verified": true,
+  "cold_source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1031_20261103/source2.json",
+    "sha256": "5692ed94561443a1f0a3a3360e73e1568a1b5a941ed349e52a78b930e6017fd1"
+  },
+  "cold_warm_latency_difference_is_not_single_factor": true,
+  "full_performance_result": false,
+  "independent_numerical_correctness_qualified": false,
+  "kind": "d1032_startup_memory_native_hit_validation_v1",
+  "known_cleanup_warning": "existing _retire_ieee_host_budget coroutine not awaited; independent release and workspace checks pass",
+  "kv": {
+    "kv_bytes_per_block": 1835008,
+    "kv_pool_allocation_bytes": 8092385280,
+    "kv_tokens_per_block": 16,
+    "kv_unreserved_free_blocks": 4409
+  },
+  "launch": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1032_20261103/source1_launch.json",
+    "sha256": "f1cba8d566b8d650d7242eb322af4289e23a9428a38528640830842cdb82a463"
+  },
+  "lora_pool_bytes": 1825046528,
+  "lora_slots": 32,
+  "native_startup": {
+    "capture_memory_gib_rounded": [
+      0.69
+    ],
+    "capture_seconds_rounded": [
+      11
+    ],
+    "compilation_seconds": 0.26,
+    "completed_progress_totals": {
+      "FULL": [
+        24
+      ],
+      "PIECEWISE": [
+        66
+      ]
+    },
+    "evidence_lines": [
+      "(EngineCore pid=4108335) INFO 11-03 12:49:09 [gpu_worker.py:441] Using V2 Model Runner",
+      "(EngineCore pid=4108335) INFO 11-03 12:49:23 [monitor.py:53] torch.compile took 0.26 s in total",
+      "(EngineCore pid=4108335) INFO 11-03 12:49:24 [gpu_worker.py:559] Initial free memory 23.29 GiB, reserved 7.54 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.",
+      "(EngineCore pid=4108335) INFO 11-03 12:49:35 [model_runner.py:1066] Graph capturing finished in 11 secs, took 0.69 GiB",
+      "(EngineCore pid=4108335) INFO 11-03 12:49:36 [core.py:372] init engine (profile, create kv cache, warmup model) took 16.26 s (compilation: 0.26 s)"
+    ],
+    "init_seconds": 16.26,
+    "memory_profiling_skipped": true,
+    "worker_pid": 4108335
+  },
+  "observed_metadata_difference": {
+    "safetensors_mem_available_bytes": {
+      "cold": 109662965760,
+      "hit": 109634867200
+    }
+  },
+  "passed": true,
+  "physical_gpu_seconds": 78.57524969428778,
+  "profile_workspaces_removed": true,
+  "released": true,
+  "remote_bytes": 37185660,
+  "remote_transfers": 16,
+  "requests": 16,
+  "resource": {
+    "escaped_samples": 0,
+    "foreign_compute_samples": 0,
+    "host_min_available_bytes": 105836855296,
+    "memory_events_max": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "samples": 93,
+    "service_peak_bytes": 5757472768,
+    "swap_max_bytes": 0
+  },
+  "same_effective_engine_memory_identity": true,
+  "source_run": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1032_20261103/source1.json",
+    "sha256": "1d080bd3bd659340ee95c2a4db510fe91237f979f75943d801cb118e636316eb"
+  },
+  "source_spec": {
+    "path": "paper_results/ieee_tc/p2_backend/d1032_startup_memory_hit/source_spec.json",
+    "sha256": "215f6d7f0f9bd7c3874f2a7a019196226604bf70725be89102999553e88ee9dd"
+  },
+  "startup_latency_ms": 54693.17706208676,
+  "startup_memory": {
+    "actual_kv_cache_memory_bytes": 8092388312,
+    "cache_path": "/home/qhq/.cache/vllm/exact_native_startup_memory_v1/8bd69d64f4e40a53966d7588f08a549f5eb040ecaa7539ec6e64e40c46e444bd.json",
+    "fingerprint": "8bd69d64f4e40a53966d7588f08a549f5eb040ecaa7539ec6e64e40c46e444bd",
+    "free_memory_bytes": 25003687936,
+    "kv_cache_memory_bytes": 8092388312,
+    "policy": "exact_native_startup_memory_v1",
+    "producer": {
+      "pid": 4043841,
+      "time_ns": 1793679840995198700
+    },
+    "requested_memory_bytes": 18213151704,
+    "status": "hit"
+  },
+  "tests": {
+    "passed": 47,
+    "seconds": 5.02,
+    "warnings": 6
+  },
+  "timing_profile_exported": false,
+  "worker_archive": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1032_20261103/source1_worker_logs.tar.gz",
+    "sha256": "d5bb6b88e12206bf6cb139d093eeaeb0143de3cde0aeca596cd9b0e56af19462"
+  },
+  "worker_log": {
+    "path": "/tmp/faaslora_worker_2738m3wj/worker.log",
+    "sha256": "2c518a14f77ac5fb1fd0a93a15a7e7d61014db771eb6b302a5280c97bec788e2"
+  }
+}
