@@ -1,0 +1,65 @@
+{
+  "passed": true,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_dirty_unchanged": true,
+  "unchanged_first_service_tests_reused": 4,
+  "prelaunch_tests_reused": 2,
+  "new_gpu_runs": 0,
+  "timing_contract_passed": true,
+  "timing_violations": 0,
+  "timing_unknown": 0,
+  "completed_auxiliary_paths_removed": [
+    {
+      "unit": "primelora-tc-aux-1dc78b46f6d4a5b8700185265ab52435.scope",
+      "invocation_id": "233dd16e57084800806127a7e232690f",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-1dc78b46f6d4a5b8700185265ab52435.scope",
+      "inode": 38895485
+    },
+    {
+      "unit": "primelora-tc-aux-e854503c03aaebc0fdc8e5c664d27e43.scope",
+      "invocation_id": "54dfca6ca91647aabf62014831b10a44",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-e854503c03aaebc0fdc8e5c664d27e43.scope",
+      "inode": 38896317
+    },
+    {
+      "unit": "primelora-tc-aux-0a969be478bf317d1846568b550b6c3a.scope",
+      "invocation_id": "9493c7311acb46429757623a4153bb7a",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-0a969be478bf317d1846568b550b6c3a.scope",
+      "inode": 38896596
+    }
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1050_20261104/first_service_tests.json",
+      "sha256": "5a3b750cd406481adcf9e7a1c628d24753472367bcccd57c55245b5cac9f02a2",
+      "bytes": 700
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1054_3b_delayed_handoff_w1/comparison/manifest.json",
+      "sha256": "7e616f3d4c8b62d9b9afa8369a57fb63811d3b01c33cde5e708a0f2d78879ede",
+      "bytes": 2997
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1054_3b_delayed_handoff_w1/timing/manifest.json",
+      "sha256": "f1589c685a0c4e67db9c33de0851daaadb258efeb542e93e37dac509e24ac219",
+      "bytes": 4458
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1054_3b_delayed_handoff_w1/completion/manifest.json",
+      "sha256": "f74bf3de7fa4dce6240a06ec7e8ff326ed2444e6c437029f518fb022697dbddd",
+      "bytes": 2260
+    }
+  ],
+  "planned_destinations": [
+    "origin/retry14_continuous_queue_v2",
+    "faaslora_origin/backup/d1054-delayed-handoff-20261104"
+  ],
+  "full_faaslora_v2_integrated": false
+}

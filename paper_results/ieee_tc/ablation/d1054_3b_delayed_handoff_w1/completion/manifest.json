@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1054_3b_delayed_handoff_w1/completion/closure.json",
+      "sha256": "7bcf1e2415fe2cbecdb59e7b436cef27f2dd6d8eacdd401f55e589def5f072e4",
+      "bytes": 2894
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1054_3b_delayed_handoff_w1/completion/collect_closed_evidence.py.snapshot",
+      "sha256": "a1099fade6e0506250e5d0c1ec58ebaf24631294b476758a4010f79cab650ec6",
+      "bytes": 6148
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1054_3b_delayed_handoff_w1/completion/delivery_and_resources.json",
+      "sha256": "df5b34134f9f540e8789dce14475960128b22f25502d95e037c952ed63ecca48",
+      "bytes": 15504
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1054_3b_delayed_handoff_w1/completion/full4000.json",
+      "sha256": "851ec05b4f90ea852870c4f4411ebc60ee066e621f65f6ebaee9f1dd2ac1968b",
+      "bytes": 49237
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1054_3b_delayed_handoff_w1/completion/native_descriptor.json",
+      "sha256": "1843a732c56ce22067b90bcce45571961a0b77d3f4871b1f6839b84b6691992f",
+      "bytes": 574
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1054_3b_delayed_handoff_w1/completion/profile_bindings.json",
+      "sha256": "a7ddb405253353153fd8d1e62035e06b42d9830fe4dc15fbd53f8480f303cc3a",
+      "bytes": 2731
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1054_3b_delayed_handoff_w1/completion/stages/diagnosis.json",
+      "sha256": "0e6d13f7f00cba64222d899929652e61d2f37eec77dfc333dd8185026bb0640b",
+      "bytes": 250820
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1054_3b_delayed_handoff_w1/completion/stages/requests.csv",
+      "sha256": "b17e293bf5c303cabb57a17982689bca07d3615fa8c84b92810afece343eaf55",
+      "bytes": 2338980
+    }
+  ]
+}

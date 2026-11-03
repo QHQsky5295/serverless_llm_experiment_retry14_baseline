@@ -1,0 +1,209 @@
+"""D1054: reuse sealed metric projections and epoch analysis; no new GPU run."""
+import collections
+import csv
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import ijson
+import yaml
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+BASE = ROOT/'paper_results/ieee_tc/ablation/d1054_3b_delayed_handoff_w1'
+OUT = BASE/'comparison'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.check_d299_full_context import sealed_matrix_row, matched_relative_observation
+from scripts.ieee_tc.audit_d389_scaleup_handoff_labels import activation_first_services
+
+def read(path): return json.loads(path.read_text())
+def ref(path): return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False); f.write('\n')
+
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+assert os.sched_getaffinity(0) == {2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'], text=True).strip()
+assert p.check_plan() == 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+qualification = read(BASE/'prelaunch/qualification.json')
+configs = [yaml.safe_load((ROOT/'configs/ieee_tc'/n).read_text()) for n in (
+    '20261104_d1047_3b_event_busy_time_w1.yaml','20261104_d1054_3b_delayed_handoff_w1.yaml')]
+for c in configs:
+    del c['experiment']['output_dir']; del c['storage']['nvme_cache_dir']; del c['storage']['host_cache_dir']
+for config in configs:
+    assert 'coordination_enabled' not in config['resource_coordination']
+assert configs[0]['resource_coordination']['ieee_handoff_policy'] == 'full'
+assert configs[1]['resource_coordination']['ieee_handoff_policy'] == 'delayed'
+configs[1]['resource_coordination']['ieee_handoff_policy'] = 'full'
+assert configs[0] == configs[1]
+slo = ROOT/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json'
+references = ROOT/'paper_results/ieee_tc/main_comparison/d657_3b_references/resident_references.json'
+budget = read(references)['W1']['B_gpu_seconds']
+source_refs = [ref(slo), ref(references), ref(BASE/'prelaunch/qualification.json')]
+metrics, requests, mechanisms, stages = {}, {}, {}, {}
+for variant, runid, completion in (
+    ('Full','D1047',ROOT/'paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion'),
+    ('DelayedHandoff','D1054',BASE/'completion')):
+    for entry in read(completion/'manifest.json')['files']:
+        assert p.digest(Path(entry['path'])) == entry['sha256']
+    audit = read(completion/'full4000.json')
+    closed = read(completion/'delivery_and_resources.json')
+    assert closed['passed'] and closed['all_allocations_released']
+    result_ref = next(r for r in audit['source_refs'] if Path(r['path']).name.startswith('experiment_results_full'))
+    result = Path(result_ref['path'])
+    assert p.digest(result) == result_ref['sha256']
+    run = result.parent
+    launch = read(run/'launch.json')
+    assert launch['pass'] and launch['native_gpu_context_release_confirmed']
+    clock = launch['external_replay']['clock_id']
+    with (completion/'stages/requests.csv').open() as f: stage = list(csv.DictReader(f))
+    assert len(stage) == len({r['request_id'] for r in stage}) == 4000
+    row = sealed_matrix_row(dict(audit=audit, source_plan=launch['external_replay']['plan'],
+        native_output_token_total=sum(int(r['output_tokens']) for r in stage)),
+        source_kind='prime_full_audit', system='PrimeLoRA', run=runid, workload='W1', slo_sha=p.digest(slo))
+    row.update(variant=variant, n_correct=None, formal_ranking_eligible=False,
+        budget_gpu_seconds=budget, within_budget=row['physical_gpu_seconds']<=budget,
+        remote=closed['remote'], physical_allocations=closed['physical_allocation_count'],
+        scale_up_events=closed['control']['completed_scale_up_events'],
+        scale_down_events=closed['control']['scale_down_events'])
+    metrics[variant] = row
+    stages[variant] = dict(count=4000, mean_ms={key:sum(float(r[key]) for r in stage)/4000 for key in (
+        'arrival_to_admission_ms','admission_to_acquired_ms','executable_to_engine_ms',
+        'engine_entry_to_queue_ms','native_engine_queue_ms','native_prefill_ms')},
+        dispatch_tiers=dict(collections.Counter(r['tier'] for r in stage)))
+    projected, dispatches = {}, []
+    with result.open('rb') as f:
+        for r in ijson.items(f,'detailed_results.tc_ieee_full.requests.item',use_float=True):
+            n, e = r['native_token_timing'], r['external_arrival_timing']
+            rid = r['request_id']; assert rid not in projected and r['success']
+            projected[rid] = dict(adapter=r['adapter_id'], prompt=r['canonical_prompt_sha256'],
+                prompt_tokens_sha=n['native_prompt_token_ids_sha256'], source_item_sha=e['source_item_sha256'],
+                target=r['requested_completion_tokens'], actual=r['completion_tokens'],
+                generation=r['generation_contract'], output_sha=r['completion_token_ids_sha256'])
+            dispatches.append(dict(request_id=rid, instance_id=r['instance_id'],
+                adapter_id=r['adapter_id'], readiness_tier_before_dispatch=r['readiness_tier_before_dispatch'],
+                clock_id=n['native_clock_id'], dispatch_monotonic_s=n['native_dispatch_monotonic_s'],
+                first_token_monotonic_s=n['native_first_token_monotonic_s'],
+                arrival_monotonic_s=e['planned_arrival_s'], success=r['success']))
+    assert len(projected) == 4000
+    requests[variant] = projected
+    outcome = run/'launch.launch/physical_deployment/main_outcome.json'
+    with outcome.open('rb') as f:
+        activations = list(ijson.items(f,'mechanism_events._ieee_activations.item',use_float=True))
+    mechanism = dict(activations=activations,
+        first_services=activation_first_services(activations,dispatches,clock_id=clock), plans={})
+    for key in ('_ieee_file_preparation_plans','_ieee_gpu_preparation_plans',
+                '_ieee_native_host_preparations','_ieee_residency_epochs'):
+        count, reasons, states, handoff = 0, collections.Counter(), collections.Counter(), []
+        admission_records = []
+        with outcome.open('rb') as f:
+            for plan in ijson.items(f,'mechanism_events.'+key+'.item',use_float=True):
+                count += 1; reasons[plan.get('trigger_reason','not_recorded')] += 1
+                states[plan.get('state','not_recorded')] += 1
+                if key == '_ieee_gpu_preparation_plans':
+                    expected = False  # Both retain Full's soft admission.
+                    assert type(plan['capacity_only']) is bool and plan['capacity_only'] is expected
+                    activation_kind = None
+                    if plan.get('activation_id') is not None:
+                        activation_kind = next(a['category'] for a in activations
+                            if a['activation_id'] == plan['activation_id'])
+                    for attempt in plan['attempts']:
+                        receipt = attempt.get('receipt')
+                        entry = dict(plan_id=plan['plan_id'], attempt_id=attempt['attempt_id'],
+                            trigger_reason=plan['trigger_reason'], activation_kind=activation_kind,
+                            target_replica=plan['target_replica'], capacity_only=expected,
+                            attempt_state=attempt['state'], receipt_present=receipt is not None,
+                            receipt_reason=None, resource_admission_evaluated=False,
+                            native_load_invoked=None, actual_admit=None,
+                            observed_soft_headroom_deficit=None, decision=None)
+                        if receipt is not None:
+                            if 'capacity_only' in receipt:
+                                assert receipt['capacity_only'] is expected
+                            entry['receipt_reason'] = receipt.get('reason')
+                            entry['native_load_invoked'] = receipt.get('native_load_invoked')
+                            evaluated = receipt.get('proactive_admission_evaluated')
+                            assert evaluated in (None, False, True)
+                            entry['resource_admission_evaluated'] = evaluated is True
+                            if evaluated is True:
+                                decision = receipt['admission']
+                                assert type(decision['admit']) is bool
+                                entry['actual_admit'] = decision['admit']
+                                entry['decision'] = {k:decision[k] for k in (
+                                    'reason','effective_capacity_bytes','physical_increment_bytes',
+                                    'predicted_kv_bytes','batch_pressure','load_pressure')}
+                                entry['observed_soft_headroom_deficit'] = (
+                                    decision['proposal']['footprint_bytes'] > decision['effective_capacity_bytes'])
+                                if expected:
+                                    assert decision['reason'] != 'defer_effective_capacity'
+                        admission_records.append(entry)
+                if plan.get('trigger_reason') == 'handoff':
+                    handoff.append({k:plan[k] for k in ('plan_id','target_replica','activation_id',
+                        'trigger_reason','capacity_only','objective_sha256','planning_sha256','state','started_at','finished_at',
+                        ) if k in plan})
+        mechanism['plans'][key] = dict(count=count,reasons=dict(reasons),states=dict(states),handoff_records=handoff)
+        if key == '_ieee_gpu_preparation_plans':
+            mechanism['proactive_admission'] = dict(
+                policy_flag=False, plan_count=count,
+                attempt_count=len(admission_records), attempts=admission_records,
+                receipt_reasons=dict(collections.Counter(r['receipt_reason'] or 'not_recorded' for r in admission_records)),
+                typed_decisions=sum(r['resource_admission_evaluated'] for r in admission_records),
+                decision_reasons=dict(collections.Counter(r['decision']['reason']
+                    for r in admission_records if r['decision'] is not None)),
+                observed_soft_headroom_deficits=sum(r['observed_soft_headroom_deficit'] is True for r in admission_records),
+                caveat='Attempt receipts, not unique physical loads. Same-state soft-headroom deficits are observations, not counterfactual TTFT or proof of saved time.')
+    expected_policy = 'full' if variant == 'Full' else 'delayed'
+    assert all(a['policy'] == expected_policy for a in activations)
+    mechanism['activation_policy_contract'] = dict(expected=expected_policy,
+        actual_counts=dict(collections.Counter(a['policy'] for a in activations)))
+    mechanisms[variant] = mechanism
+    source_refs += [ref(path) for path in (completion/'full4000.json', completion/'delivery_and_resources.json',
+        completion/'manifest.json',completion/'stages/requests.csv',result,outcome,run/'launch.json')]
+    print(json.dumps(dict(variant=variant,counts=row['counts'],gpu_seconds=row['physical_gpu_seconds'],
+        activations=len(activations),plan_counts={k:v['count'] for k,v in mechanism['plans'].items()})),flush=True)
+assert metrics['Full']['source_plan'] == metrics['DelayedHandoff']['source_plan']
+assert requests['Full'].keys() == requests['DelayedHandoff'].keys()
+output_changes = []
+for rid, a in requests['Full'].items():
+    b = requests['DelayedHandoff'][rid]
+    assert {k:v for k,v in a.items() if k!='output_sha'} == {k:v for k,v in b.items() if k!='output_sha'}
+    assert a['actual'] == a['target'] and a['generation']=='fixed_length_greedy_v1'
+    if a['output_sha'] != b['output_sha']: output_changes.append(dict(request_id=rid,Full=a['output_sha'],DelayedHandoff=b['output_sha']))
+OUT.mkdir(parents=True,exist_ok=False)
+report = dict(kind='d1054_full_delayed_handoff_w1_observation_v1',results=metrics,
+    Full_relative_to_DelayedHandoff=matched_relative_observation(metrics['Full'],metrics['DelayedHandoff']),
+    mean_stage_differences_ms={k:stages['Full']['mean_ms'][k]-stages['DelayedHandoff']['mean_ms'][k]
+        for k in stages['Full']['mean_ms']}, stages=stages,
+    matched_input_requests=4000,exact_output_hash_count=4000-len(output_changes),output_hash_changes=output_changes,
+    same_configuration_except_handoff_timing_and_paths=True,confidence_interval=None,
+    n_correct=None,independent_holdout=False,independent_numerical_proof=False,formal_ranking_eligible=False,
+    source_refs=source_refs,plan_sha256=p.check_plan(),
+    metric_protocol_sha256=p.digest(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+    single_run_sha256=p.digest(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md'),
+    caveats=['Single source42 development observation per configuration; no CI or global-optimum claim.',
+        'All-zero-update 3B pool cannot distinguish nonzero LoRA arithmetic; raw n_correct remains unknown.',
+        'Natural closed-loop activations/targets may differ. This is not controlled same-candidate S3 or same-plan A2/A4.',
+        'Plan registration started_at is not movement start; delayed timing needs queue subscriptions and actual native/transfer receipts. Coalesced earlier work is not owned by every subscriber.',
+        'Output hash differences are retained for audit, not interpreted as correctness failures or silently discarded.'])
+save(OUT/'comparison.json',report); save(OUT/'mechanisms.json',mechanisms)
+with (OUT/'metrics.csv').open('x',newline='') as f:
+    w=csv.writer(f,lineterminator='\n'); w.writerow(['variant','offered','joint_good','joint_slo',
+        'gpu_seconds','gpu_seconds_per_offered','mean_ttft_ms','p95_ttft_ms','mean_tpot_ms','p95_tpot_ms',
+        'mean_e2e_ms','remote_transfers','wire_bytes'])
+    for variant,r in metrics.items():
+        m=r['metrics'];w.writerow([variant,4000,r['counts']['joint_pass'],r['joint_slo'],r['physical_gpu_seconds'],
+            r['gpu_seconds_per_offered_request'],m['ttft_ms']['mean'],m['ttft_ms']['p95_type1'],
+            m['tpot_ms']['mean'],m['tpot_ms']['p95_type1'],m['e2e_ms']['mean'],r['remote']['transfers'],r['remote']['wire_bytes']])
+with (OUT/'compare.py.snapshot').open('x') as f: f.write(Path(__file__).read_text())
+save(OUT/'manifest.json',dict(passed=True,identity=identity,resources=p.cgroup_snapshot(group),
+    analysis_sources=[ref(Path(__file__)),ref(ROOT/'scripts/ieee_tc/audit_d389_scaleup_handoff_labels.py'),
+        ref(ROOT/'scripts/ieee_tc/check_d299_full_context.py')],
+    outputs=[ref(x) for x in sorted(OUT.iterdir()) if x.is_file()]))
+print(json.dumps(dict(passed=True,matched_requests=4000,output_hash_changes=len(output_changes),
+    Full_relative_to_DelayedHandoff=report['Full_relative_to_DelayedHandoff'])),flush=True)

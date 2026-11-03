@@ -1,0 +1,95 @@
+{
+  "passed": true,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1054_3b_delayed_handoff_w1/comparison/comparison.json",
+      "sha256": "c48e15d64c47e7111cc7ecd3c4ee4afca88a3801cc0e18f8df9cbed260d39998",
+      "bytes": 60027
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1054_3b_delayed_handoff_w1/comparison/mechanisms.json",
+      "sha256": "f6e60e333f9670e221a9ee35ab33586dee1ca2c11defd529229206e5c0159492",
+      "bytes": 1788771
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1054_3b_delayed_handoff_w1/comparison/manifest.json",
+      "sha256": "7e616f3d4c8b62d9b9afa8369a57fb63811d3b01c33cde5e708a0f2d78879ede",
+      "bytes": 2997
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1047_20261104/d1047_3b_event_busy_time_w1_full/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "8a4bc4804fea75a291771fd529d3af76509f921a4d1fff52e2f76e79938aa46a",
+      "bytes": 395251339
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1054_20261104/d1054_3b_delayed_handoff_w1/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "41736312b66f3145c28960ec4f4f8a18aec2ea08ef249dbf7d61225074954ee6",
+      "bytes": 408591847
+    }
+  ],
+  "analysis_script": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1054_20261104/audit_delayed_timing.py",
+    "sha256": "64040339d27f830eb9f46a38213c83e0c40c786acfdb749cab489264da7a2040",
+    "bytes": 13625
+  },
+  "reused_analysis": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1051_20261104/audit.py",
+    "sha256": "96dd7511b9fe221f36b72da3ea9b86204c4f9a6b052f5e30a34b2fa2f9483a15",
+    "bytes": 16612
+  },
+  "implementation_sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "6fa129bbb52da30150725033363a04360a7439fd4df2ee598b864756b9de1e89",
+      "bytes": 1455557
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_manager.py",
+      "sha256": "81304c2580e2516bcfe76cb5db4c1191525a5cf4a1d91095f932e5056877b622",
+      "bytes": 37589
+    }
+  ],
+  "identity": {
+    "unit": "primelora-tc-aux-0a969be478bf317d1846568b550b6c3a.scope",
+    "invocation_id": "9493c7311acb46429757623a4153bb7a",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-0a969be478bf317d1846568b550b6c3a.scope",
+    "inode": 38896596
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-0a969be478bf317d1846568b550b6c3a.scope",
+    "memory.current": 26193920,
+    "memory.peak": 29057024,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 32039061\nuser_usec 30799329\nsystem_usec 1239731\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "outputs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1054_3b_delayed_handoff_w1/timing/audit_delayed_timing.py.snapshot",
+      "sha256": "64040339d27f830eb9f46a38213c83e0c40c786acfdb749cab489264da7a2040",
+      "bytes": 13625
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1054_3b_delayed_handoff_w1/timing/handoff_timing.json",
+      "sha256": "3093e59f298f36808264e2d345197b849b5076f9c48dd77d8b7db9b8afa04d68",
+      "bytes": 1015735
+    }
+  ]
+}

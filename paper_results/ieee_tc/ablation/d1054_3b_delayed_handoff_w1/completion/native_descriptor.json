@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "requests": 4000,
+  "kinds": {
+    "fresh_native_tensor_descriptor_v1": 4000
+  },
+  "library_sha256_counts": {
+    "b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044": 4000
+  },
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1054_20261104/d1054_3b_delayed_handoff_w1/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1054_3b_delayed_handoff_w1.json",
+    "sha256": "8ee4073a40efc33e8f0fe9a33fc86520fdde82e67c0156a6dd9aa6d6dd927dab",
+    "bytes": 290133670
+  }
+}
