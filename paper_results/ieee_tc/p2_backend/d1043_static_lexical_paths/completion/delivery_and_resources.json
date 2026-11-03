@@ -1,0 +1,300 @@
+{
+  "kind": "d713_closed_delivery_and_control_context_v1",
+  "passed": true,
+  "native_metric_audit": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/completion/full4000.json",
+    "sha256": "ccc43a4dc1f8f3a9233a6efcfe90a0652b58abcfaf470364ae4772d0beafee90",
+    "bytes": 76140
+  },
+  "terminal_meta": {
+    "run_completed": true,
+    "error": null,
+    "cleanup_errors": [],
+    "measurement_errors": []
+  },
+  "control": {
+    "scale_down_events": 5,
+    "scale_up_event_log": [
+      {
+        "timestamp": 1793707548.779732,
+        "event_type": "physical_scale_up",
+        "reason": "ieee_max_score_above_one",
+        "current_instances": 1,
+        "target_instances": 2,
+        "actual_instances": 2,
+        "request_index": 1,
+        "instance_id": "ieee-activation-f9e8742f58ac4c9684dd4969d2efaecc",
+        "device_id": 1,
+        "runtime_kind": "dedicated",
+        "queue_visible_request_count": 1,
+        "submitted_request_count": 1,
+        "completed_request_count": 1,
+        "arrived_request_count": 1,
+        "activation_id": "ieee-activation-f9e8742f58ac4c9684dd4969d2efaecc",
+        "activation_kind": "natural_scaleout",
+        "handoff_plan_sha256": "30a8dbfdfffa7babd532ab6289c96beff5d61c8c8eb6eb7370dfe63b20dc2781",
+        "engine_activation_ms": 40341.23585280031,
+        "preparation_state": "completed",
+        "activation_submission_sequence": 0,
+        "pending_scale_up_instances_at_submit": 0,
+        "submission_request_index": 1,
+        "submission_timestamp": 1793707548.779724
+      },
+      {
+        "timestamp": 1793707550.0241868,
+        "event_type": "physical_scale_up",
+        "reason": "ieee_max_score_above_one",
+        "current_instances": 1,
+        "target_instances": 3,
+        "actual_instances": 3,
+        "request_index": 2,
+        "instance_id": "ieee-activation-8ea4fc2a606444fcae1399ced3bacd67",
+        "device_id": 2,
+        "runtime_kind": "dedicated",
+        "queue_visible_request_count": 2,
+        "submitted_request_count": 2,
+        "completed_request_count": 2,
+        "arrived_request_count": 2,
+        "activation_id": "ieee-activation-8ea4fc2a606444fcae1399ced3bacd67",
+        "activation_kind": "natural_scaleout",
+        "handoff_plan_sha256": "317b22072117711fdffc60e9a25d222c0c236d89bbf4a53fcdc7a34925fd707b",
+        "engine_activation_ms": 39494.44805830717,
+        "preparation_state": "pending",
+        "activation_submission_sequence": 1,
+        "pending_scale_up_instances_at_submit": 1,
+        "submission_request_index": 2,
+        "submission_timestamp": 1793707550.0241807
+      },
+      {
+        "timestamp": 1793708278.6056886,
+        "event_type": "physical_scale_up",
+        "reason": "ieee_forecast_horizon_capacity",
+        "current_instances": 1,
+        "target_instances": 2,
+        "actual_instances": 2,
+        "request_index": 602,
+        "instance_id": "ieee-activation-8b5beb02754b409cba3d4ae694922041",
+        "device_id": 1,
+        "runtime_kind": "dedicated",
+        "queue_visible_request_count": 602,
+        "submitted_request_count": 602,
+        "completed_request_count": 593,
+        "arrived_request_count": 602,
+        "activation_id": "ieee-activation-8b5beb02754b409cba3d4ae694922041",
+        "activation_kind": "natural_scaleout",
+        "handoff_plan_sha256": "1019eb024c7e8fc216b0cde0902c0f37de4d731c9af8731c11d891e5ef57ca91",
+        "engine_activation_ms": 40753.234297037125,
+        "preparation_state": "pending",
+        "activation_submission_sequence": 2,
+        "pending_scale_up_instances_at_submit": 0,
+        "submission_request_index": 602,
+        "submission_timestamp": 1793708278.6056824
+      },
+      {
+        "timestamp": 1793708281.0361133,
+        "event_type": "physical_scale_up",
+        "reason": "ieee_max_score_above_one",
+        "current_instances": 1,
+        "target_instances": 3,
+        "actual_instances": 3,
+        "request_index": 620,
+        "instance_id": "ieee-activation-5f530b4a4cc04738905eb8ebcafc1dba",
+        "device_id": 2,
+        "runtime_kind": "dedicated",
+        "queue_visible_request_count": 620,
+        "submitted_request_count": 620,
+        "completed_request_count": 602,
+        "arrived_request_count": 620,
+        "activation_id": "ieee-activation-5f530b4a4cc04738905eb8ebcafc1dba",
+        "activation_kind": "natural_scaleout",
+        "handoff_plan_sha256": "c98cc408a6bee6fbe75ef4bcb9c610760414d90d6909e0674bc1d9a67aa96eef",
+        "engine_activation_ms": 39125.02349773422,
+        "preparation_state": "pending",
+        "activation_submission_sequence": 3,
+        "pending_scale_up_instances_at_submit": 1,
+        "submission_request_index": 620,
+        "submission_timestamp": 1793708281.0360997
+      },
+      {
+        "timestamp": 1793708615.0332782,
+        "event_type": "physical_scale_up",
+        "reason": "ieee_max_score_above_one",
+        "current_instances": 2,
+        "target_instances": 3,
+        "actual_instances": 3,
+        "request_index": 992,
+        "instance_id": "ieee-activation-82b2acad93574e0eb3680ad667cbde19",
+        "device_id": 2,
+        "runtime_kind": "dedicated",
+        "queue_visible_request_count": 992,
+        "submitted_request_count": 992,
+        "completed_request_count": 969,
+        "arrived_request_count": 992,
+        "activation_id": "ieee-activation-82b2acad93574e0eb3680ad667cbde19",
+        "activation_kind": "natural_scaleout",
+        "handoff_plan_sha256": "8bb1de4248c8cb42bcc6d669234562fb833593710b9f3249bfed39c1b14ecca7",
+        "engine_activation_ms": 40124.055698979646,
+        "preparation_state": "pending",
+        "activation_submission_sequence": 4,
+        "pending_scale_up_instances_at_submit": 0,
+        "submission_request_index": 992,
+        "submission_timestamp": 1793708615.0332677
+      },
+      {
+        "timestamp": 1793711223.6509998,
+        "event_type": "physical_scale_up",
+        "reason": "ieee_max_score_above_one",
+        "current_instances": 2,
+        "target_instances": 3,
+        "actual_instances": 3,
+        "request_index": 3810,
+        "instance_id": "ieee-activation-189b66184e94499f99a64cc1d8106224",
+        "device_id": 2,
+        "runtime_kind": "dedicated",
+        "queue_visible_request_count": 3810,
+        "submitted_request_count": 3810,
+        "completed_request_count": 3806,
+        "arrived_request_count": 3810,
+        "activation_id": "ieee-activation-189b66184e94499f99a64cc1d8106224",
+        "activation_kind": "natural_scaleout",
+        "handoff_plan_sha256": "2e50d9c82d4d5937fb68e419b07810cb5771aa2910f802c943a7f4c6cc32e1ab",
+        "engine_activation_ms": 39761.49641396478,
+        "preparation_state": "pending",
+        "activation_submission_sequence": 5,
+        "pending_scale_up_instances_at_submit": 0,
+        "submission_request_index": 3810,
+        "submission_timestamp": 1793711223.6509826
+      }
+    ],
+    "completed_scale_up_events": 6,
+    "scale_down_event_log": [
+      {
+        "event_type": "physical_scale_down",
+        "instance_id": "ieee-activation-f9e8742f58ac4c9684dd4969d2efaecc",
+        "device_id": 1,
+        "reason": "ieee_forecast_capacity_release",
+        "observed_monotonic_s": 3214854.252913181,
+        "withdrawn_monotonic_s": 3214854.253243359,
+        "drained_monotonic_s": 3214854.270767788,
+        "released_monotonic_s": 3214862.533209163,
+        "quarantine_requested": false,
+        "control_event_index": 77
+      },
+      {
+        "event_type": "physical_scale_down",
+        "instance_id": "ieee-activation-8ea4fc2a606444fcae1399ced3bacd67",
+        "device_id": 2,
+        "reason": "ieee_forecast_capacity_release",
+        "observed_monotonic_s": 3215440.131485597,
+        "withdrawn_monotonic_s": 3215440.131733736,
+        "drained_monotonic_s": 3215440.936380245,
+        "released_monotonic_s": 3215450.29058283,
+        "quarantine_requested": false,
+        "control_event_index": 363
+      },
+      {
+        "event_type": "physical_scale_down",
+        "instance_id": "ieee-activation-5f530b4a4cc04738905eb8ebcafc1dba",
+        "device_id": 2,
+        "reason": "ieee_forecast_capacity_release",
+        "observed_monotonic_s": 3215611.068887701,
+        "withdrawn_monotonic_s": 3215611.069410696,
+        "drained_monotonic_s": 3215611.171794389,
+        "released_monotonic_s": 3215620.276434386,
+        "quarantine_requested": false,
+        "control_event_index": 446
+      },
+      {
+        "event_type": "physical_scale_down",
+        "instance_id": "ieee-activation-82b2acad93574e0eb3680ad667cbde19",
+        "device_id": 2,
+        "reason": "ieee_forecast_capacity_release",
+        "observed_monotonic_s": 3215913.364517123,
+        "withdrawn_monotonic_s": 3215913.364824549,
+        "drained_monotonic_s": 3215913.434328788,
+        "released_monotonic_s": 3215921.966127125,
+        "quarantine_requested": false,
+        "control_event_index": 593
+      },
+      {
+        "event_type": "physical_scale_down",
+        "instance_id": "ieee-activation-189b66184e94499f99a64cc1d8106224",
+        "device_id": 2,
+        "reason": "ieee_forecast_capacity_release",
+        "observed_monotonic_s": 3218530.970605921,
+        "withdrawn_monotonic_s": 3218530.970742809,
+        "drained_monotonic_s": 3218530.97467384,
+        "released_monotonic_s": 3218539.759850868,
+        "quarantine_requested": false,
+        "control_event_index": 1857
+      }
+    ]
+  },
+  "physical_allocation_count": 7,
+  "all_allocations_released": true,
+  "remote": {
+    "transfers": 505,
+    "wire_bytes": 1172100920,
+    "all_server_client_ids_bytes_hashes_match": true,
+    "request_time_packing": false,
+    "observation_mode": "existing_unmonitored",
+    "monitoring_limitation": "No continuous remote CPU/interference monitor; existing service was not restarted/stopped for this replay."
+  },
+  "resources": {
+    "events": {
+      "watchdog_ready": 1,
+      "resource_sample": 4047,
+      "gpu_terminal_census": 1,
+      "service_domain_gone": 1
+    },
+    "memory_events_max": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    },
+    "service_peak_bytes": 33856888832,
+    "max_swap_bytes": 0,
+    "min_host_available_bytes": 92929642496,
+    "min_free_disk_bytes": 146789253120
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1043_20261103/d1043_3b_static_lexical_paths_w2_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1043_3b_static_lexical_paths_w2_full.json",
+      "sha256": "421b6e100490ea05ad20f281e0a7b6c51d0b0cf9d20f4c4191a431f8974f752e",
+      "bytes": 290826351
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1043_20261103/d1043_3b_static_lexical_paths_w2_full/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "7c37e65ccee64ca218a268ca9e7b979ef6dccd750a6842abeb7da22ee9b304be",
+      "bytes": 506548474
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1043_20261103/remote_transfers.jsonl",
+      "sha256": "f85ffb954193d42057ea851a01636e7003c87ec8179fe7c149a7d6bb453f42e1",
+      "bytes": 422972
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1043_20261103/d1043_3b_static_lexical_paths_w2_full/launch.launch/watchdog.jsonl",
+      "sha256": "ec91731a60d2d3105012c72db94e71bd368b8323f5bf3ab6461f02d9262389d3",
+      "bytes": 24470122
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1043_20261103/remote_health.json",
+      "sha256": "991c3f7183a828eba15699c465029bd7b032fa7e0982ae7de4a53f5488b3aae2",
+      "bytes": 367
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "3abcd9d766a7dc1c780244d8eedaac8440815aa85c0e45c6d9b81ef2cf35a070",
+      "bytes": 151448
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261103_d1043_3b_static_lexical_paths_w2.yaml",
+      "sha256": "db7cc5ec4be64465e8715e5a6f584712d7fe8bea5878846511e61b626c8375aa",
+      "bytes": 6199
+    }
+  ]
+}

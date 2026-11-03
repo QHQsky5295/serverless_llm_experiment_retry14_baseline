@@ -1,0 +1,54 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/completion/closure.json",
+      "sha256": "d009258e3058ae1bc35ef0a870d632da955245b47249b1745aaa81ad59aae08f",
+      "bytes": 2884
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/completion/collect_closed_evidence.py.snapshot",
+      "sha256": "9df348b14f53c8e330370a20fada102cb8ef5849edc860f42a4a6492c9fe62d2",
+      "bytes": 6304
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/completion/delivery_and_resources.json",
+      "sha256": "a6ff5b8a61f07092dfc559d0960b5f95c389eafc70a699eb23f964ab1cd2fc3f",
+      "bytes": 12381
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/completion/full4000.json",
+      "sha256": "ccc43a4dc1f8f3a9233a6efcfe90a0652b58abcfaf470364ae4772d0beafee90",
+      "bytes": 76140
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/completion/native_descriptor.json",
+      "sha256": "2007e578e84fab084b502280f0b24f863e2bd4895751c2e638b87f6ed8e2729c",
+      "bytes": 594
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/completion/paired_d1033/diagnosis.json",
+      "sha256": "0b1e86cb6a2c75b3d1db9f07d11665a1ea0bd815fc38404f50521c3304a5bb4b",
+      "bytes": 259703
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/completion/paired_d1033/paired_requests.csv",
+      "sha256": "c03fc527324e3f3aad4cc3008698938f1a40a3583e10154c69eceed48c30e502",
+      "bytes": 1230227
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/completion/profile_bindings.json",
+      "sha256": "124f53e7a1e8d44c25d7219d0743dbad1a1fc5e12cf7de39094fde93b7b89b05",
+      "bytes": 2777
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/completion/stages/diagnosis.json",
+      "sha256": "1861bd23376ecc5449741e2de8390ee2aac8d91e86eb1c6eb1ac248a07c82772",
+      "bytes": 244275
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/completion/stages/requests.csv",
+      "sha256": "b8855847745c39c62fdd145d3dea11d9b3a3166c3d5e2b2522d9a092c3b113c3",
+      "bytes": 2343197
+    }
+  ]
+}
