@@ -1,0 +1,44 @@
+{
+  "kind": "lossless_closed_outcome_compression_v1",
+  "created_unix": 1793669096.8206427,
+  "before": {
+    "available_bytes": 160499531776
+  },
+  "after": {
+    "available_bytes": 160906543104
+  },
+  "entries": [
+    {
+      "run": "d1020_20261102/d1020_3b_gpu_slots32_w2_full",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1020_20261102/d1020_3b_gpu_slots32_w2_full/launch.launch/physical_deployment/main_outcome.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1020_20261102/d1020_3b_gpu_slots32_w2_full/launch.launch/physical_deployment/main_outcome.json.gz",
+      "source_sha256": "397fdbf75829f52d9e0af6bec56aaa697a7f0d529e12d03bb5405c49ae74e2c7",
+      "audit_sha256": null,
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 103304469,
+        "size": 461493934,
+        "mtime_ns": 1793629064665463259,
+        "ctime_ns": 1793629064665463259,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 901368
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "0b910335e80ceff6b32555687a2d10b4837f9051dff7d89ea4636408b3ec1875",
+      "archive_sha256": "68c3465dbbeb36c07417bb207ac1d0b6ffdbcaca6ad00a2904b32467255e2292",
+      "archive_bytes": 54356188,
+      "archive_allocated_bytes": 54362112,
+      "first_roundtrip_sha256": "397fdbf75829f52d9e0af6bec56aaa697a7f0d529e12d03bb5405c49ae74e2c7",
+      "second_roundtrip_sha256": "397fdbf75829f52d9e0af6bec56aaa697a7f0d529e12d03bb5405c49ae74e2c7",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 407138304
+    }
+  ],
+  "caveat": "Current source is preserved exactly in gzip. audit_sha256 mismatches are provenance caveats and are not promoted to reusable result identity.",
+  "protected": "weights, traces, adapter pools, environments, code and curated files unchanged.",
+  "source_archive_round_trip_verified": true
+}

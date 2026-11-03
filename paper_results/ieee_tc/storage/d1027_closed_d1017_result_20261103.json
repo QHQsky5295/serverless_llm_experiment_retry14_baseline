@@ -1,0 +1,44 @@
+{
+  "kind": "lossless_closed_outcome_compression_v1",
+  "created_unix": 1793669125.7479444,
+  "before": {
+    "available_bytes": 160906420224
+  },
+  "after": {
+    "available_bytes": 161160982528
+  },
+  "entries": [
+    {
+      "run": "d1017_20261102/d1017_3b_restored_fresh_descriptor_w2",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1017_20261102/d1017_3b_restored_fresh_descriptor_w2/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1017_3b_restored_fresh_descriptor_w2.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1017_20261102/d1017_3b_restored_fresh_descriptor_w2/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1017_3b_restored_fresh_descriptor_w2.json.gz",
+      "source_sha256": "eaa83764ddb9e364c33d8f33734b667a7cf07dca2b640b34ee566812eddcf0b6",
+      "audit_sha256": null,
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 103303654,
+        "size": 304679717,
+        "mtime_ns": 1793619830548827627,
+        "ctime_ns": 1793619830548827627,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 595088
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "c12e6550b7c18d96bd719fc9dbd684acb580f766e12cf2033d669821b66e8685",
+      "archive_sha256": "fd7dea2ec5594b1efe1722a5934b15a4e5522682b5fbacea85430726d69f40ad",
+      "archive_bytes": 50093250,
+      "archive_allocated_bytes": 50098176,
+      "first_roundtrip_sha256": "eaa83764ddb9e364c33d8f33734b667a7cf07dca2b640b34ee566812eddcf0b6",
+      "second_roundtrip_sha256": "eaa83764ddb9e364c33d8f33734b667a7cf07dca2b640b34ee566812eddcf0b6",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 254586880
+    }
+  ],
+  "caveat": "Current source is preserved exactly in gzip. audit_sha256 mismatches are provenance caveats and are not promoted to reusable result identity.",
+  "protected": "weights, traces, adapter pools, environments, code and curated files unchanged.",
+  "source_archive_round_trip_verified": true
+}
