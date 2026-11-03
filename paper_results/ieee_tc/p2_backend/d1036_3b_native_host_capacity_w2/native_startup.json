@@ -1,0 +1,856 @@
+{
+  "kind": "d1023_native_startup_diagnosis_v1",
+  "passed": true,
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full",
+  "workers": [
+    {
+      "worker_pid": 250500,
+      "init_seconds": 74.29,
+      "compilation_seconds": 30.93,
+      "memory_profiling_skipped": false,
+      "capture_seconds_rounded": [
+        16.0,
+        12.0
+      ],
+      "capture_memory_gib_rounded": [
+        0.56,
+        0.27
+      ],
+      "completed_progress_totals": {
+        "PIECEWISE": [
+          66
+        ],
+        "FULL": [
+          2,
+          24
+        ]
+      },
+      "evidence_lines": [
+        "(EngineCore pid=250500) INFO 11-03 15:06:26 [gpu_worker.py:441] Using V2 Model Runner",
+        "(EngineCore pid=250500) INFO 11-03 15:06:45 [backends.py:1094] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/e08c19082b/rank_0_0/backbone for vLLM's torch.compile",
+        "(EngineCore pid=250500) INFO 11-03 15:06:45 [backends.py:1155] Dynamo bytecode transform time: 11.32 s",
+        "(EngineCore pid=250500) INFO 11-03 15:07:05 [decorators.py:719] saved AOT compiled function to /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/abee840e54b2dcd728a3c33771d26fb481aecacdf10b872375cdc9f3bee8ff05/rank_0_0/model",
+        "(EngineCore pid=250500) INFO 11-03 15:07:05 [monitor.py:53] torch.compile took 30.93 s in total",
+        "(EngineCore pid=250500) INFO 11-03 15:07:28 [model_runner.py:1066] Graph capturing finished in 16 secs, took 0.56 GiB",
+        "(EngineCore pid=250500) INFO 11-03 15:07:44 [model_runner.py:1066] Graph capturing finished in 12 secs, took 0.27 GiB",
+        "(EngineCore pid=250500) INFO 11-03 15:07:46 [core.py:372] init engine (profile, create kv cache, warmup model) took 74.29 s (compilation: 30.93 s)"
+      ],
+      "lease_id": "7aca5af1b9e544868bb98de09d2d38c7",
+      "native_worker_bound_s": 3196915.399638153,
+      "gpu_uuid": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_84lo5fya_engine_dead_1793693580/worker.log",
+        "sha256": "f071e83de53b5faf03caf9e5f824b09d04ba896bdb25524a83f74329bb9675d7",
+        "bytes": 28963
+      }
+    },
+    {
+      "worker_pid": 253814,
+      "init_seconds": 17.17,
+      "compilation_seconds": 0.3,
+      "memory_profiling_skipped": true,
+      "capture_seconds_rounded": [
+        11.0
+      ],
+      "capture_memory_gib_rounded": [
+        0.69
+      ],
+      "completed_progress_totals": {
+        "PIECEWISE": [
+          66
+        ],
+        "FULL": [
+          24
+        ]
+      },
+      "evidence_lines": [
+        "(EngineCore pid=253814) INFO 11-03 15:07:41 [gpu_worker.py:441] Using V2 Model Runner",
+        "(EngineCore pid=253814) INFO 11-03 15:07:49 [monitor.py:53] torch.compile took 0.30 s in total",
+        "(EngineCore pid=253814) INFO 11-03 15:07:50 [gpu_worker.py:559] Initial free memory 23.29 GiB, reserved 7.54 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.",
+        "(EngineCore pid=253814) INFO 11-03 15:08:02 [model_runner.py:1066] Graph capturing finished in 11 secs, took 0.69 GiB",
+        "(EngineCore pid=253814) INFO 11-03 15:08:03 [core.py:372] init engine (profile, create kv cache, warmup model) took 17.17 s (compilation: 0.30 s)"
+      ],
+      "lease_id": "4a32f18e7b1742f2b4e95b63df3613a4",
+      "native_worker_bound_s": 3196933.061977289,
+      "gpu_uuid": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_07pbhnui_engine_dead_1793691140/worker.log",
+        "sha256": "164ed0c2926e08a4914440b43d889e3a14245560356f0b749309fef43009c40c",
+        "bytes": 21920
+      }
+    },
+    {
+      "worker_pid": 253937,
+      "init_seconds": 16.96,
+      "compilation_seconds": 0.31,
+      "memory_profiling_skipped": true,
+      "capture_seconds_rounded": [
+        11.0
+      ],
+      "capture_memory_gib_rounded": [
+        0.69
+      ],
+      "completed_progress_totals": {
+        "PIECEWISE": [
+          66
+        ],
+        "FULL": [
+          24
+        ]
+      },
+      "evidence_lines": [
+        "(EngineCore pid=253937) INFO 11-03 15:07:44 [gpu_worker.py:441] Using V2 Model Runner",
+        "(EngineCore pid=253937) INFO 11-03 15:07:52 [monitor.py:53] torch.compile took 0.31 s in total",
+        "(EngineCore pid=253937) INFO 11-03 15:07:53 [gpu_worker.py:559] Initial free memory 23.29 GiB, reserved 7.54 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.",
+        "(EngineCore pid=253937) INFO 11-03 15:08:05 [model_runner.py:1066] Graph capturing finished in 11 secs, took 0.69 GiB",
+        "(EngineCore pid=253937) INFO 11-03 15:08:06 [core.py:372] init engine (profile, create kv cache, warmup model) took 16.96 s (compilation: 0.31 s)"
+      ],
+      "lease_id": "f467e306db4742fea0a44d521679ad87",
+      "native_worker_bound_s": 3196935.476589857,
+      "gpu_uuid": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_kdgxfxia_engine_dead_1793689747/worker.log",
+        "sha256": "64989089c1b5f31b103eaf5273829bb232308c8578d420946a9cc5bd3147098b",
+        "bytes": 21416
+      }
+    },
+    {
+      "worker_pid": 284190,
+      "init_seconds": 17.05,
+      "compilation_seconds": 0.28,
+      "memory_profiling_skipped": true,
+      "capture_seconds_rounded": [
+        11.0
+      ],
+      "capture_memory_gib_rounded": [
+        0.69
+      ],
+      "completed_progress_totals": {
+        "PIECEWISE": [
+          66
+        ],
+        "FULL": [
+          24
+        ]
+      },
+      "evidence_lines": [
+        "(EngineCore pid=284190) INFO 11-03 15:19:27 [gpu_worker.py:441] Using V2 Model Runner",
+        "(EngineCore pid=284190) INFO 11-03 15:19:35 [monitor.py:53] torch.compile took 0.28 s in total",
+        "(EngineCore pid=284190) INFO 11-03 15:19:36 [gpu_worker.py:559] Initial free memory 23.29 GiB, reserved 7.54 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.",
+        "(EngineCore pid=284190) INFO 11-03 15:19:48 [model_runner.py:1066] Graph capturing finished in 11 secs, took 0.69 GiB",
+        "(EngineCore pid=284190) INFO 11-03 15:19:49 [core.py:372] init engine (profile, create kv cache, warmup model) took 17.05 s (compilation: 0.28 s)"
+      ],
+      "lease_id": "6c9310176b1d48fd886a006e101396ef",
+      "native_worker_bound_s": 3197638.661090175,
+      "gpu_uuid": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_bfrnhijf_engine_dead_1793690451/worker.log",
+        "sha256": "d3a4197f1e5b8ef84ae6cce22b4862227eb6209fc3d623706edafb3d351b063d",
+        "bytes": 21511
+      }
+    },
+    {
+      "worker_pid": 298486,
+      "init_seconds": 17.15,
+      "compilation_seconds": 0.3,
+      "memory_profiling_skipped": true,
+      "capture_seconds_rounded": [
+        11.0
+      ],
+      "capture_memory_gib_rounded": [
+        0.69
+      ],
+      "completed_progress_totals": {
+        "PIECEWISE": [
+          66
+        ],
+        "FULL": [
+          24
+        ]
+      },
+      "evidence_lines": [
+        "(EngineCore pid=298486) INFO 11-03 15:24:56 [gpu_worker.py:441] Using V2 Model Runner",
+        "(EngineCore pid=298486) INFO 11-03 15:25:04 [monitor.py:53] torch.compile took 0.30 s in total",
+        "(EngineCore pid=298486) INFO 11-03 15:25:05 [gpu_worker.py:559] Initial free memory 23.29 GiB, reserved 7.54 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.",
+        "(EngineCore pid=298486) INFO 11-03 15:25:17 [model_runner.py:1066] Graph capturing finished in 11 secs, took 0.69 GiB",
+        "(EngineCore pid=298486) INFO 11-03 15:25:18 [core.py:372] init engine (profile, create kv cache, warmup model) took 17.15 s (compilation: 0.30 s)"
+      ],
+      "lease_id": "b4b7b38ee6704087bc7fc97ad7408abe",
+      "native_worker_bound_s": 3197967.810359754,
+      "gpu_uuid": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_zst3fudo_engine_dead_1793690851/worker.log",
+        "sha256": "feb5d1b2cc0b89f2a4909f0a34ba6d74385eab86ec1739ef8a01fc7ffed7e774",
+        "bytes": 21509
+      }
+    },
+    {
+      "worker_pid": 313713,
+      "init_seconds": 17.01,
+      "compilation_seconds": 0.27,
+      "memory_profiling_skipped": true,
+      "capture_seconds_rounded": [
+        11.0
+      ],
+      "capture_memory_gib_rounded": [
+        0.69
+      ],
+      "completed_progress_totals": {
+        "PIECEWISE": [
+          66
+        ],
+        "FULL": [
+          24
+        ]
+      },
+      "evidence_lines": [
+        "(EngineCore pid=313713) INFO 11-03 15:30:55 [gpu_worker.py:441] Using V2 Model Runner",
+        "(EngineCore pid=313713) INFO 11-03 15:31:03 [monitor.py:53] torch.compile took 0.27 s in total",
+        "(EngineCore pid=313713) INFO 11-03 15:31:04 [gpu_worker.py:559] Initial free memory 23.29 GiB, reserved 7.54 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.",
+        "(EngineCore pid=313713) INFO 11-03 15:31:16 [model_runner.py:1066] Graph capturing finished in 11 secs, took 0.69 GiB",
+        "(EngineCore pid=313713) INFO 11-03 15:31:17 [core.py:372] init engine (profile, create kv cache, warmup model) took 17.01 s (compilation: 0.27 s)"
+      ],
+      "lease_id": "8eef8ed450c54a6885073d674f1471f6",
+      "native_worker_bound_s": 3198327.068485249,
+      "gpu_uuid": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_hki86l2x_engine_dead_1793691403/worker.log",
+        "sha256": "493c92a79f3e8657d418803c587d6233260ea8a51a91da175eeda94577d57fbd",
+        "bytes": 21266
+      }
+    },
+    {
+      "worker_pid": 325146,
+      "init_seconds": 16.82,
+      "compilation_seconds": 0.28,
+      "memory_profiling_skipped": true,
+      "capture_seconds_rounded": [
+        11.0
+      ],
+      "capture_memory_gib_rounded": [
+        0.69
+      ],
+      "completed_progress_totals": {
+        "PIECEWISE": [
+          66
+        ],
+        "FULL": [
+          24
+        ]
+      },
+      "evidence_lines": [
+        "(EngineCore pid=325146) INFO 11-03 15:35:18 [gpu_worker.py:441] Using V2 Model Runner",
+        "(EngineCore pid=325146) INFO 11-03 15:35:26 [monitor.py:53] torch.compile took 0.28 s in total",
+        "(EngineCore pid=325146) INFO 11-03 15:35:27 [gpu_worker.py:559] Initial free memory 23.29 GiB, reserved 7.54 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.",
+        "(EngineCore pid=325146) INFO 11-03 15:35:39 [model_runner.py:1066] Graph capturing finished in 11 secs, took 0.69 GiB",
+        "(EngineCore pid=325146) INFO 11-03 15:35:40 [core.py:372] init engine (profile, create kv cache, warmup model) took 16.82 s (compilation: 0.28 s)"
+      ],
+      "lease_id": "a39759cbfaef445dad62bf67275dfe38",
+      "native_worker_bound_s": 3198589.561753451,
+      "gpu_uuid": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_9_lvwc8w_engine_dead_1793691771/worker.log",
+        "sha256": "80de2e3e62b7af0b09e55a99533a3e388a2d5d26a9b5eb5711b16224631a3839",
+        "bytes": 21824
+      }
+    },
+    {
+      "worker_pid": 340890,
+      "init_seconds": 17.21,
+      "compilation_seconds": 0.29,
+      "memory_profiling_skipped": true,
+      "capture_seconds_rounded": [
+        11.0
+      ],
+      "capture_memory_gib_rounded": [
+        0.69
+      ],
+      "completed_progress_totals": {
+        "PIECEWISE": [
+          66
+        ],
+        "FULL": [
+          24
+        ]
+      },
+      "evidence_lines": [
+        "(EngineCore pid=340890) INFO 11-03 15:41:25 [gpu_worker.py:441] Using V2 Model Runner",
+        "(EngineCore pid=340890) INFO 11-03 15:41:33 [monitor.py:53] torch.compile took 0.29 s in total",
+        "(EngineCore pid=340890) INFO 11-03 15:41:34 [gpu_worker.py:559] Initial free memory 23.29 GiB, reserved 7.54 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.",
+        "(EngineCore pid=340890) INFO 11-03 15:41:46 [model_runner.py:1066] Graph capturing finished in 11 secs, took 0.69 GiB",
+        "(EngineCore pid=340890) INFO 11-03 15:41:47 [core.py:372] init engine (profile, create kv cache, warmup model) took 17.21 s (compilation: 0.29 s)"
+      ],
+      "lease_id": "a43b69078d4049dbbed25245c5a135f0",
+      "native_worker_bound_s": 3198957.374839073,
+      "gpu_uuid": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_y8cmhsif_engine_dead_1793692282/worker.log",
+        "sha256": "0ae28387a2f84a06be3baa4b593960bd78f9511e8a40614d51c60df136070d3d",
+        "bytes": 21825
+      }
+    },
+    {
+      "worker_pid": 362779,
+      "init_seconds": 17.86,
+      "compilation_seconds": 0.44,
+      "memory_profiling_skipped": true,
+      "capture_seconds_rounded": [
+        11.0
+      ],
+      "capture_memory_gib_rounded": [
+        0.69
+      ],
+      "completed_progress_totals": {
+        "PIECEWISE": [
+          66
+        ],
+        "FULL": [
+          24
+        ]
+      },
+      "evidence_lines": [
+        "(EngineCore pid=362779) INFO 11-03 15:49:57 [gpu_worker.py:441] Using V2 Model Runner",
+        "(EngineCore pid=362779) INFO 11-03 15:50:07 [monitor.py:53] torch.compile took 0.44 s in total",
+        "(EngineCore pid=362779) INFO 11-03 15:50:08 [gpu_worker.py:559] Initial free memory 23.29 GiB, reserved 7.54 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.",
+        "(EngineCore pid=362779) INFO 11-03 15:50:20 [model_runner.py:1066] Graph capturing finished in 11 secs, took 0.69 GiB",
+        "(EngineCore pid=362779) INFO 11-03 15:50:22 [core.py:372] init engine (profile, create kv cache, warmup model) took 17.86 s (compilation: 0.44 s)"
+      ],
+      "lease_id": "23302b0879c24ac88711c9df94e8f8ad",
+      "native_worker_bound_s": 3199471.196620742,
+      "gpu_uuid": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_zsr9rymo_engine_dead_1793692564/worker.log",
+        "sha256": "2d7dfc165cdb02a98a4a914eb8cc990de5b5e3bcb384327ef67c49e335809a6a",
+        "bytes": 21824
+      }
+    },
+    {
+      "worker_pid": 367989,
+      "init_seconds": 16.96,
+      "compilation_seconds": 0.44,
+      "memory_profiling_skipped": true,
+      "capture_seconds_rounded": [
+        11.0
+      ],
+      "capture_memory_gib_rounded": [
+        0.69
+      ],
+      "completed_progress_totals": {
+        "PIECEWISE": [
+          66
+        ],
+        "FULL": [
+          24
+        ]
+      },
+      "evidence_lines": [
+        "(EngineCore pid=367989) INFO 11-03 15:51:57 [gpu_worker.py:441] Using V2 Model Runner",
+        "(EngineCore pid=367989) INFO 11-03 15:52:08 [monitor.py:53] torch.compile took 0.44 s in total",
+        "(EngineCore pid=367989) INFO 11-03 15:52:09 [gpu_worker.py:559] Initial free memory 23.29 GiB, reserved 7.54 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.",
+        "(EngineCore pid=367989) INFO 11-03 15:52:21 [model_runner.py:1066] Graph capturing finished in 11 secs, took 0.69 GiB",
+        "(EngineCore pid=367989) INFO 11-03 15:52:22 [core.py:372] init engine (profile, create kv cache, warmup model) took 16.96 s (compilation: 0.44 s)"
+      ],
+      "lease_id": "3def660df0d247519395bef3b0513b98",
+      "native_worker_bound_s": 3199591.961807571,
+      "gpu_uuid": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_0nu86df5_engine_dead_1793692406/worker.log",
+        "sha256": "66f5ece8adbe583f25a7f6d22469d81d5be9fd6c5bbe0ea553d614cf448c4bd5",
+        "bytes": 21737
+      }
+    },
+    {
+      "worker_pid": 379607,
+      "init_seconds": 17.4,
+      "compilation_seconds": 0.28,
+      "memory_profiling_skipped": true,
+      "capture_seconds_rounded": [
+        11.0
+      ],
+      "capture_memory_gib_rounded": [
+        0.69
+      ],
+      "completed_progress_totals": {
+        "PIECEWISE": [
+          66
+        ],
+        "FULL": [
+          24
+        ]
+      },
+      "evidence_lines": [
+        "(EngineCore pid=379607) INFO 11-03 15:56:27 [gpu_worker.py:441] Using V2 Model Runner",
+        "(EngineCore pid=379607) INFO 11-03 15:56:35 [monitor.py:53] torch.compile took 0.28 s in total",
+        "(EngineCore pid=379607) INFO 11-03 15:56:36 [gpu_worker.py:559] Initial free memory 23.29 GiB, reserved 7.54 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.",
+        "(EngineCore pid=379607) INFO 11-03 15:56:49 [model_runner.py:1066] Graph capturing finished in 11 secs, took 0.69 GiB",
+        "(EngineCore pid=379607) INFO 11-03 15:56:50 [core.py:372] init engine (profile, create kv cache, warmup model) took 17.40 s (compilation: 0.28 s)"
+      ],
+      "lease_id": "072df0fec4cb47239f907febf13d1c8a",
+      "native_worker_bound_s": 3199859.402526769,
+      "gpu_uuid": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_et0nt13n_engine_dead_1793692673/worker.log",
+        "sha256": "8bf1895806157cac57bf6b181ebaf62e97c3d8dd25ad931a5247c064c0dccbba",
+        "bytes": 21824
+      }
+    },
+    {
+      "worker_pid": 379746,
+      "init_seconds": 17.11,
+      "compilation_seconds": 0.29,
+      "memory_profiling_skipped": true,
+      "capture_seconds_rounded": [
+        11.0
+      ],
+      "capture_memory_gib_rounded": [
+        0.69
+      ],
+      "completed_progress_totals": {
+        "PIECEWISE": [
+          66
+        ],
+        "FULL": [
+          24
+        ]
+      },
+      "evidence_lines": [
+        "(EngineCore pid=379746) INFO 11-03 15:56:31 [gpu_worker.py:441] Using V2 Model Runner",
+        "(EngineCore pid=379746) INFO 11-03 15:56:39 [monitor.py:53] torch.compile took 0.29 s in total",
+        "(EngineCore pid=379746) INFO 11-03 15:56:40 [gpu_worker.py:559] Initial free memory 23.29 GiB, reserved 7.54 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.",
+        "(EngineCore pid=379746) INFO 11-03 15:56:52 [model_runner.py:1066] Graph capturing finished in 11 secs, took 0.69 GiB",
+        "(EngineCore pid=379746) INFO 11-03 15:56:54 [core.py:372] init engine (profile, create kv cache, warmup model) took 17.11 s (compilation: 0.29 s)"
+      ],
+      "lease_id": "6b388e2278494eb29a858f50bb413b1c",
+      "native_worker_bound_s": 3199863.232166414,
+      "gpu_uuid": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_6syyvsjj_engine_dead_1793692965/worker.log",
+        "sha256": "2fd0398a1939feb49459a1aad8dbda87347fd1fd9f7395981f51d9b9f096d2ef",
+        "bytes": 21729
+      }
+    },
+    {
+      "worker_pid": 401415,
+      "init_seconds": 16.5,
+      "compilation_seconds": 0.28,
+      "memory_profiling_skipped": true,
+      "capture_seconds_rounded": [
+        11.0
+      ],
+      "capture_memory_gib_rounded": [
+        0.69
+      ],
+      "completed_progress_totals": {
+        "PIECEWISE": [
+          66
+        ],
+        "FULL": [
+          24
+        ]
+      },
+      "evidence_lines": [
+        "(EngineCore pid=401415) INFO 11-03 16:04:59 [gpu_worker.py:441] Using V2 Model Runner",
+        "(EngineCore pid=401415) INFO 11-03 16:05:07 [monitor.py:53] torch.compile took 0.28 s in total",
+        "(EngineCore pid=401415) INFO 11-03 16:05:08 [gpu_worker.py:559] Initial free memory 23.29 GiB, reserved 7.54 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.",
+        "(EngineCore pid=401415) INFO 11-03 16:05:19 [model_runner.py:1066] Graph capturing finished in 11 secs, took 0.69 GiB",
+        "(EngineCore pid=401415) INFO 11-03 16:05:21 [core.py:372] init engine (profile, create kv cache, warmup model) took 16.50 s (compilation: 0.28 s)"
+      ],
+      "lease_id": "57fd7c2fe79b454ea43ca3f0182d18fa",
+      "native_worker_bound_s": 3200370.157663707,
+      "gpu_uuid": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_7n4kopzz_engine_dead_1793693579/worker.log",
+        "sha256": "749dbd65efb977d3887fc04bd47bb33189080d3685719bbad64597be9f573a3e",
+        "bytes": 21165
+      }
+    }
+  ],
+  "all_request_counts": {
+    "n": 4000,
+    "ttft_pass": 3563,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3686,
+    "joint_pass": 3320
+  },
+  "first_observed_admission_s": 3196917.186064698,
+  "groups": {
+    "ordinal_0_24": {
+      "n": 25,
+      "ttft_pass": 0,
+      "tpot_pass": 25,
+      "joint_pass": 0,
+      "violation_groups": {
+        "ttft_only": 25
+      },
+      "dominant_stages_of_ttft_fail": {
+        "arrival_to_admission_ms": 25
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 25,
+          "mean": 26310.232003908604,
+          "p50_type1": 21350.408371072263,
+          "p95_type1": 53305.03052473068
+        },
+        "tpot_ms": {
+          "count": 25,
+          "mean": 18.726072856031326,
+          "p50_type1": 19.065251462526767,
+          "p95_type1": 20.360579836009027
+        },
+        "dispatch_window_wait_ms": {
+          "count": 25,
+          "mean": 25514.972923155874,
+          "p50_type1": 21089.643366169184,
+          "p95_type1": 52114.6691320464
+        }
+      }
+    },
+    "ordinal_25_99": {
+      "n": 75,
+      "ttft_pass": 73,
+      "tpot_pass": 75,
+      "joint_pass": 73,
+      "violation_groups": {
+        "ttft_only": 2,
+        "pass": 73
+      },
+      "dominant_stages_of_ttft_fail": {
+        "arrival_to_admission_ms": 2
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 75,
+          "mean": 614.51963622123,
+          "p50_type1": 257.2485036216676,
+          "p95_type1": 886.159501504153
+        },
+        "tpot_ms": {
+          "count": 75,
+          "mean": 13.54267548647653,
+          "p50_type1": 13.179768654791747,
+          "p95_type1": 16.5113438279597
+        },
+        "dispatch_window_wait_ms": {
+          "count": 75,
+          "mean": 285.9769419953227,
+          "p50_type1": 17.119247931987047,
+          "p95_type1": 31.815247144550085
+        }
+      }
+    },
+    "ordinal_100_499": {
+      "n": 400,
+      "ttft_pass": 397,
+      "tpot_pass": 381,
+      "joint_pass": 379,
+      "violation_groups": {
+        "pass": 379,
+        "tpot_only": 18,
+        "both": 1,
+        "ttft_only": 2
+      },
+      "dominant_stages_of_ttft_fail": {
+        "arrival_to_admission_ms": 1,
+        "executable_to_engine_ms": 1,
+        "admission_to_acquired_ms": 1
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 400,
+          "mean": 569.1142575419508,
+          "p50_type1": 444.64679248631,
+          "p95_type1": 1313.100662548095
+        },
+        "tpot_ms": {
+          "count": 400,
+          "mean": 16.735895255206717,
+          "p50_type1": 14.364942121697036,
+          "p95_type1": 30.994004181896646
+        },
+        "dispatch_window_wait_ms": {
+          "count": 400,
+          "mean": 23.978427565889433,
+          "p50_type1": 18.20890326052904,
+          "p95_type1": 64.77976124733686
+        }
+      }
+    },
+    "ordinal_500_3999": {
+      "n": 3500,
+      "ttft_pass": 3093,
+      "tpot_pass": 3205,
+      "joint_pass": 2868,
+      "violation_groups": {
+        "pass": 2868,
+        "ttft_only": 337,
+        "tpot_only": 225,
+        "both": 70
+      },
+      "dominant_stages_of_ttft_fail": {
+        "admission_to_acquired_ms": 200,
+        "arrival_to_admission_ms": 190,
+        "engine_entry_to_queue_ms": 7,
+        "executable_to_engine_ms": 10
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 3500,
+          "mean": 1094.609050001683,
+          "p50_type1": 740.4343937523663,
+          "p95_type1": 3094.784169457853
+        },
+        "tpot_ms": {
+          "count": 3500,
+          "mean": 19.791905630900605,
+          "p50_type1": 15.409414031926323,
+          "p95_type1": 42.64366861852799
+        },
+        "dispatch_window_wait_ms": {
+          "count": 3500,
+          "mean": 101.79162202535996,
+          "p50_type1": 19.66064516454935,
+          "p95_type1": 293.2304171845317
+        }
+      }
+    },
+    "arrived_before_first_observed_admission": {
+      "n": 24,
+      "ttft_pass": 0,
+      "tpot_pass": 24,
+      "joint_pass": 0,
+      "violation_groups": {
+        "ttft_only": 24
+      },
+      "dominant_stages_of_ttft_fail": {
+        "arrival_to_admission_ms": 24
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 24,
+          "mean": 26969.93666004467,
+          "p50_type1": 21350.408371072263,
+          "p95_type1": 53305.03052473068
+        },
+        "tpot_ms": {
+          "count": 24,
+          "mean": 18.813025286234648,
+          "p50_type1": 19.065251462526767,
+          "p95_type1": 20.360579836009027
+        },
+        "dispatch_window_wait_ms": {
+          "count": 24,
+          "mean": 26149.754295106202,
+          "p50_type1": 21089.643366169184,
+          "p95_type1": 52114.6691320464
+        }
+      }
+    },
+    "arrived_after_first_observed_admission": {
+      "n": 3976,
+      "ttft_pass": 3563,
+      "tpot_pass": 3662,
+      "joint_pass": 3320,
+      "violation_groups": {
+        "ttft_only": 342,
+        "pass": 3320,
+        "tpot_only": 243,
+        "both": 71
+      },
+      "dominant_stages_of_ttft_fail": {
+        "arrival_to_admission_ms": 194,
+        "executable_to_engine_ms": 11,
+        "admission_to_acquired_ms": 201,
+        "engine_entry_to_queue_ms": 7
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 3976,
+          "mean": 1035.0461949184873,
+          "p50_type1": 683.1015981733799,
+          "p95_type1": 2995.9930879995227
+        },
+        "tpot_ms": {
+          "count": 3976,
+          "mean": 19.36578664141139,
+          "p50_type1": 15.181633469182998,
+          "p95_type1": 41.32493095034186
+        },
+        "dispatch_window_wait_ms": {
+          "count": 3976,
+          "mean": 99.99762041275474,
+          "p50_type1": 19.367297179996967,
+          "p95_type1": 275.4011107608676
+        }
+      }
+    }
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/completion/stages/diagnosis.json",
+      "sha256": "69c2e481365197bc6435e1aa3ee0cf7c28aa701ab672cfa4ab34cd045313af3d",
+      "bytes": 274512
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/completion/stages/requests.csv",
+      "sha256": "328c13ba1b13eee6fd8a35cd3f818314b23b772b49ec698e3fb3a81394e6b43d",
+      "bytes": 2369113
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/completion/full4000.json",
+      "sha256": "b7f27040204f3bcab539dc9a67bc54d25a9b8be1aba99075b3ef82f6cc75ea16",
+      "bytes": 202965
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_deployment/physical_resource_summary.json",
+      "sha256": "3d6206452f7c1098a93fea5c83edee9591d53c9bace58440c58ae42516d60c64",
+      "bytes": 6273
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "3abcd9d766a7dc1c780244d8eedaac8440815aa85c0e45c6d9b81ef2cf35a070",
+      "bytes": 151448
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/072df0fec4cb47239f907febf13d1c8a.jsonl",
+      "sha256": "d1a6dfbfdec6e0d7baa4cd28f02458918ece2c6b0b42f91bb082d81cd80a78e3",
+      "bytes": 17657
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/23302b0879c24ac88711c9df94e8f8ad.jsonl",
+      "sha256": "f559e61f11660c03e1fd2cd249f86939a2301031f17a9c16dfa120cfa250e0b7",
+      "bytes": 17655
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/3def660df0d247519395bef3b0513b98.jsonl",
+      "sha256": "a534ddffd48d6fe2130006bf43415e2a9163c85befb5f0a352cf0f8b8d49c408",
+      "bytes": 18203
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/4a32f18e7b1742f2b4e95b63df3613a4.jsonl",
+      "sha256": "b3d47b6b5e594ee15fb4bcecd8dbf6465c4aac675cdd45fde9b5d6d3f01d8f86",
+      "bytes": 17655
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/57fd7c2fe79b454ea43ca3f0182d18fa.jsonl",
+      "sha256": "a2b3094a6e6c9f0bca6d41f58273238e1c09c32c17ed4677a1f4ec2642d96232",
+      "bytes": 16020
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/6b388e2278494eb29a858f50bb413b1c.jsonl",
+      "sha256": "17c89586c821045912c3c4c2be217ddd093937ba313e9419c2f8b671741c64c9",
+      "bytes": 17110
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/6c9310176b1d48fd886a006e101396ef.jsonl",
+      "sha256": "2cf607dc9a03e11a77eeaae6a8392b12b4b11824c82302ca5d8a9700ad1c3076",
+      "bytes": 18204
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/7aca5af1b9e544868bb98de09d2d38c7.jsonl",
+      "sha256": "85d1a26f4246c3d524588f932e572870fd760593233899db54759b6a6f12fdbb",
+      "bytes": 15951
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/8eef8ed450c54a6885073d674f1471f6.jsonl",
+      "sha256": "88eee50337a1d3fe7608d7f8c453cd3d196740533b7a022b5bb7d2e8a598654f",
+      "bytes": 18201
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/a39759cbfaef445dad62bf67275dfe38.jsonl",
+      "sha256": "5ddd710afe33a43b8b61fdaef0c09469392e327995036e3f3e5a93c794163858",
+      "bytes": 18199
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/a43b69078d4049dbbed25245c5a135f0.jsonl",
+      "sha256": "8a322b890a9eb546150e38ac264bc15b6301aa5445b957537f9f16c2dd31b09f",
+      "bytes": 18203
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/b4b7b38ee6704087bc7fc97ad7408abe.jsonl",
+      "sha256": "0a0d7cdd7bda79fc57b0da115192f553e0e149981e7415e644dec16d2435f0e0",
+      "bytes": 18205
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/f467e306db4742fea0a44d521679ad87.jsonl",
+      "sha256": "2f27f4d17224e756c479c51b4321c6c3e363c4ec0268ac799c1ea1424b116e7a",
+      "bytes": 17657
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_kdgxfxia_engine_dead_1793689747/worker.log",
+      "sha256": "64989089c1b5f31b103eaf5273829bb232308c8578d420946a9cc5bd3147098b",
+      "bytes": 21416
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_bfrnhijf_engine_dead_1793690451/worker.log",
+      "sha256": "d3a4197f1e5b8ef84ae6cce22b4862227eb6209fc3d623706edafb3d351b063d",
+      "bytes": 21511
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_zst3fudo_engine_dead_1793690851/worker.log",
+      "sha256": "feb5d1b2cc0b89f2a4909f0a34ba6d74385eab86ec1739ef8a01fc7ffed7e774",
+      "bytes": 21509
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_07pbhnui_engine_dead_1793691140/worker.log",
+      "sha256": "164ed0c2926e08a4914440b43d889e3a14245560356f0b749309fef43009c40c",
+      "bytes": 21920
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_hki86l2x_engine_dead_1793691403/worker.log",
+      "sha256": "493c92a79f3e8657d418803c587d6233260ea8a51a91da175eeda94577d57fbd",
+      "bytes": 21266
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_9_lvwc8w_engine_dead_1793691771/worker.log",
+      "sha256": "80de2e3e62b7af0b09e55a99533a3e388a2d5d26a9b5eb5711b16224631a3839",
+      "bytes": 21824
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_y8cmhsif_engine_dead_1793692282/worker.log",
+      "sha256": "0ae28387a2f84a06be3baa4b593960bd78f9511e8a40614d51c60df136070d3d",
+      "bytes": 21825
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_0nu86df5_engine_dead_1793692406/worker.log",
+      "sha256": "66f5ece8adbe583f25a7f6d22469d81d5be9fd6c5bbe0ea553d614cf448c4bd5",
+      "bytes": 21737
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_zsr9rymo_engine_dead_1793692564/worker.log",
+      "sha256": "2d7dfc165cdb02a98a4a914eb8cc990de5b5e3bcb384327ef67c49e335809a6a",
+      "bytes": 21824
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_et0nt13n_engine_dead_1793692673/worker.log",
+      "sha256": "8bf1895806157cac57bf6b181ebaf62e97c3d8dd25ad931a5247c064c0dccbba",
+      "bytes": 21824
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_6syyvsjj_engine_dead_1793692965/worker.log",
+      "sha256": "2fd0398a1939feb49459a1aad8dbda87347fd1fd9f7395981f51d9b9f096d2ef",
+      "bytes": 21729
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_7n4kopzz_engine_dead_1793693579/worker.log",
+      "sha256": "749dbd65efb977d3887fc04bd47bb33189080d3685719bbad64597be9f573a3e",
+      "bytes": 21165
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_84lo5fya_engine_dead_1793693580/worker.log",
+      "sha256": "f071e83de53b5faf03caf9e5f824b09d04ba896bdb25524a83f74329bb9675d7",
+      "bytes": 28963
+    }
+  ],
+  "n_correct": null,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "limitations": [
+    "Native log durations are rounded and not GPU-kernel time.",
+    "Profiling capture and real capture are sequential; neither is added to the containing init span.",
+    "Progress totals are descriptor counts, not a sum over duplicated tqdm lines or low-level graph nodes.",
+    "Wall-clock native log timestamps are not subtracted from monotonic request timestamps.",
+    "First observed admission is an observed request boundary, not engine-ready or a causal counterfactual.",
+    "All 4000 requests and all allocated workers retained; no latency subtraction or simulated SLO gain."
+  ]
+}

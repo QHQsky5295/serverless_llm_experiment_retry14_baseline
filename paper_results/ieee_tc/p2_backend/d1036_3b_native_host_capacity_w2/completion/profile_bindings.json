@@ -1,0 +1,59 @@
+{
+  "kind": "d719_full_profile_binding_audit_v1",
+  "passed": true,
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full",
+  "n": 4000,
+  "tiers": {
+    "nvme": 344,
+    "remote": 488,
+    "gpu": 2926,
+    "host": 242
+  },
+  "service_classes": 125,
+  "preparation_classes": 75,
+  "numerical_correctness_qualified": false,
+  "ranking_eligible": false,
+  "performance_execution": false,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1036_3b_native_host_capacity_w2_full.json",
+      "sha256": "209a7cf5e8cc220606d88fdf4f994469a0ba8865df3b00bb7ceed8141e2526f6",
+      "bytes": 410314409
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "8db06780094841d91f72acce6874c7ae1495281ff7a0a835c0eb28bdb5f7fc80",
+      "bytes": 599819016
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/completion/full4000.json",
+      "sha256": "b7f27040204f3bcab539dc9a67bc54d25a9b8be1aba99075b3ef82f6cc75ea16",
+      "bytes": 202965
+    },
+    {
+      "path": "configs/ieee_tc/20261103_d1036_3b_native_host_capacity_w2.yaml",
+      "sha256": "f5435ebc10ca2e77cd14c3cb193a0e0afc0d6ce7c6260876a041d132e9cc746e",
+      "bytes": 6198
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1035_3b_native_host_capacity_profile/export/service.json",
+      "sha256": "b1fca5b24c7ef91087851a744fa5b3cae038194df016a3a080ef0e20c184ebb1",
+      "bytes": 449135
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1035_3b_native_host_capacity_profile/export/preparation.json",
+      "sha256": "9849e90fd1b1a160baec3ee2e9be582d3b0aecb499f65787524e7f14083a5348",
+      "bytes": 6492053
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1035_3b_native_host_capacity_profile/export/manifest.json",
+      "sha256": "c33175472fcc6739193808cdc7ffdbda4930693e6b297631efb28f3af9e409a7",
+      "bytes": 117380
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "3abcd9d766a7dc1c780244d8eedaac8440815aa85c0e45c6d9b81ef2cf35a070",
+      "bytes": 151448
+    }
+  ]
+}

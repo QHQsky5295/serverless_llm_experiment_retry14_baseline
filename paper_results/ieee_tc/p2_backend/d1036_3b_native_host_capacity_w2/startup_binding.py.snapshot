@@ -1,0 +1,98 @@
+from pathlib import Path
+import json,csv,hashlib,subprocess,tarfile,ijson,re,sys
+sys.path.insert(0,str(Path.cwd()))
+from scripts.ieee_tc.audit_d703_3b_full import diagnose_native_startup,native_startup_log
+root=Path.cwd()
+raw=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103')
+run=raw/'d1036_3b_native_host_capacity_w2_full'
+out=root/'paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2'
+def digest(p):
+ h=hashlib.sha256()
+ with p.open('rb') as f:
+  for b in iter(lambda:f.read(4194304),b''):h.update(b)
+ return h.hexdigest()
+def ref(p):return dict(path=str(p),sha256=digest(p),bytes=p.stat().st_size)
+outcome=run/'launch.launch/physical_deployment/main_outcome.json'
+with outcome.open('rb') as h: acts=list(ijson.items(h,'mechanism_events._ieee_activations.item',use_float=True))
+rows=list(csv.DictReader((out/'completion/stages/requests.csv').open()))
+# Reuse the existing complete-log parser; retain duplicate preserved copies.
+log_paths=[Path(p)/'worker.log' for p in re.findall(r'preserved dedicated worker workdir: (\S+)',(run/'launch.launch/service.log').read_text())]
+by_pid={}; duplicate_logs=[]
+for log_path in log_paths:
+ parsed=native_startup_log(log_path.read_text())
+ pid=parsed['worker_pid']
+ if pid in by_pid:
+  assert parsed==native_startup_log(by_pid[pid].read_text())
+  duplicate_logs.append(dict(worker_pid=pid,path=str(log_path)))
+ else: by_pid[pid]=log_path
+# Reuse the already successful 13-worker audit; do not overwrite its seal.
+assert digest(out/'native_startup.json')=='37974b076e4d2cbffb69340b485c7616ac7ff03bdb4865a5678f00c5c694c393'
+startup=json.loads((out/'native_startup.json').read_text())
+physical=json.loads((run/'launch.launch/physical_deployment/summary.json').read_text())
+receipts={}; journal_paths=[]
+for item in physical['allocation_journals']:
+ journal=Path(item['path']);assert digest(journal)==item['sha256']
+ journal_paths.append(journal)
+ for event in map(json.loads,journal.read_text().splitlines()):
+  if event['event']=='native_workers':
+   for worker in event['workers']:
+    pid=worker['pid'];assert pid not in receipts
+    receipts[pid]=dict(lease_id=event['lease_id'],owner_id=event['owner_id'],receipt=worker['startup_memory'])
+assert len(acts)==len(startup['workers'])==13
+bound=[]
+for w in startup['workers']:
+ requests=[r for r in rows if int(r['worker_pid'])==w['worker_pid']]
+ replicas={r['replica'] for r in requests}; owners={r['owner'] for r in requests}
+ assert len(replicas)==len(owners)==1
+ a,=[a for a in acts if a['activation_id'] in replicas]
+ assert a['native_owner_id'] in owners and a['category'] in ('initial','natural_scaleout','controlled')
+ witness=receipts[w['worker_pid']]
+ # Physical lease owner and native adapter-reference owner are distinct namespaces.
+ # The unique native PID/lease join above and the request-owner/activation join
+ # above bind both without falsely requiring the owner strings to be equal.
+ assert witness['lease_id']==w['lease_id']
+ memory=witness['receipt']
+ assert memory['policy']=='exact_native_startup_memory_v1'
+ assert memory['actual_kv_cache_memory_bytes']==8096582616
+ assert memory['fingerprint']=='26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544'
+ assert (memory['status']=='hit')==w['memory_profiling_skipped']
+ if memory['status']=='hit': assert memory['producer']['pid']==250500
+ else: assert memory['status']=='miss' and memory['publication']=='created' and w['worker_pid']==250500
+ bound.append(dict(worker_pid=w['worker_pid'],lease_id=w['lease_id'],activation_id=a['activation_id'],
+  physical_owner_id=witness['owner_id'],native_owner_id=a['native_owner_id'],
+  category=a['category'],state=a['state'],request_count=len(requests),
+  engine_activation_ms=1000*(a['engine_ready_at']-a['trigger_at']),
+  native_init_seconds=w['init_seconds'],compilation_seconds=w['compilation_seconds'],
+  memory_profiling_skipped=w['memory_profiling_skipped'],
+  exact_startup_memory_receipt=memory,
+  limitation='Native init is a substage of activation; do not add overlapping durations.'))
+cache=Path('/home/qhq/.cache/vllm/exact_native_startup_memory_v1/26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544.json')
+plan=json.loads(cache.read_text())
+assert plan['producer']['pid']==250500
+files=[Path(w['source']['path']) for w in startup['workers']]+[cache]
+archive=raw/'native_startup_logs_and_record.tar.gz'
+assert not archive.exists()
+args=['tar','-czf',str(archive)]
+for p in files:args+=['-C',str(p.parent),p.name if p==cache else str(p)]
+# Absolute source arguments are stripped by tar; verify every archived payload.
+subprocess.run(args,check=True,stdout=subprocess.DEVNULL)
+members=[]
+with tarfile.open(archive,'r:gz') as t:
+ for m in t.getmembers():
+  f=t.extractfile(m); data=f.read()
+  original=next(p for p in files if m.name==str(p).lstrip('/') or m.name==p.name)
+  sha=hashlib.sha256(data).hexdigest();assert sha==digest(original)
+  members.append(dict(name=m.name,source=ref(original),sha256=sha))
+assert len(members)==len(files)==14
+report=dict(kind='d1036_startup_native_category_binding_v1',passed=True,workers=bound,
+ structured_full_receipt_available=True,numerical_correctness_qualified=False,ranking_eligible=False,
+ post_run_cache_record=dict(source=ref(cache),producer=plan['producer'],fingerprint=plan['fingerprint'],
+ actual_successful_producer_kv_budget_bytes=plan['kv_cache_memory_bytes'],free_memory_baseline=plan['free_memory_baseline'],
+ limitation='Immutable post-run producer record, not a persisted consumer hit receipt.'),
+ source_refs=[ref(p) for p in [outcome,out/'native_startup.json',out/'completion/stages/requests.csv',Path(__file__),*journal_paths]],
+ duplicate_preserved_logs=duplicate_logs,
+ archive=ref(archive),members=members)
+with (out/'startup_binding.json').open('x') as handle:
+ json.dump(report,handle,indent=2,allow_nan=False);handle.write('\n')
+with (out/'startup_binding.py.snapshot').open('x') as handle: handle.write(Path(__file__).read_text())
+print(json.dumps(dict(passed=True,workers=len(bound),status_counts={status:sum(w['exact_startup_memory_receipt']['status']==status for w in bound) for status in ('hit','miss')},archive=ref(archive))))

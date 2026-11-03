@@ -1,0 +1,623 @@
+{
+  "kind": "d1036_startup_native_category_binding_v1",
+  "passed": true,
+  "workers": [
+    {
+      "worker_pid": 250500,
+      "lease_id": "7aca5af1b9e544868bb98de09d2d38c7",
+      "activation_id": "ieee-activation-e7471f9b34f84082b57ce96832a21cde",
+      "physical_owner_id": "7aca5af1b9e544868bb98de09d2d38c7",
+      "native_owner_id": "6979b69f5f5c4314a187001f5fcbb2dd",
+      "category": "initial",
+      "state": "runtime_ready",
+      "request_count": 1377,
+      "engine_activation_ms": 109460.26194794104,
+      "native_init_seconds": 74.29,
+      "compilation_seconds": 30.93,
+      "memory_profiling_skipped": false,
+      "exact_startup_memory_receipt": {
+        "actual_kv_cache_memory_bytes": 8096582616,
+        "cache_path": "/home/qhq/.cache/vllm/exact_native_startup_memory_v1/26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544.json",
+        "fingerprint": "26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544",
+        "free_memory_bytes": 25003687936,
+        "policy": "exact_native_startup_memory_v1",
+        "publication": "created",
+        "requested_memory_bytes": 18213151704,
+        "status": "miss"
+      },
+      "limitation": "Native init is a substage of activation; do not add overlapping durations."
+    },
+    {
+      "worker_pid": 253814,
+      "lease_id": "4a32f18e7b1742f2b4e95b63df3613a4",
+      "activation_id": "ieee-activation-4ed69de44bf24ec6ac92613def054a6e",
+      "physical_owner_id": "4a32f18e7b1742f2b4e95b63df3613a4",
+      "native_owner_id": "b764a7020e584dd886253f1b15c9c1d0",
+      "category": "natural_scaleout",
+      "state": "runtime_ready",
+      "request_count": 694,
+      "engine_activation_ms": 38640.3605081141,
+      "native_init_seconds": 17.17,
+      "compilation_seconds": 0.3,
+      "memory_profiling_skipped": true,
+      "exact_startup_memory_receipt": {
+        "actual_kv_cache_memory_bytes": 8096582616,
+        "cache_path": "/home/qhq/.cache/vllm/exact_native_startup_memory_v1/26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544.json",
+        "fingerprint": "26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544",
+        "free_memory_bytes": 25003687936,
+        "kv_cache_memory_bytes": 8096582616,
+        "policy": "exact_native_startup_memory_v1",
+        "producer": {
+          "pid": 250500,
+          "time_ns": 1793689665880607199
+        },
+        "requested_memory_bytes": 18213151704,
+        "status": "hit"
+      },
+      "limitation": "Native init is a substage of activation; do not add overlapping durations."
+    },
+    {
+      "worker_pid": 253937,
+      "lease_id": "f467e306db4742fea0a44d521679ad87",
+      "activation_id": "ieee-activation-930c7f7a5c684b508c3a5967e32ec28a",
+      "physical_owner_id": "f467e306db4742fea0a44d521679ad87",
+      "native_owner_id": "01ccbebe2af145ef92058581467dbdca",
+      "category": "natural_scaleout",
+      "state": "runtime_ready",
+      "request_count": 6,
+      "engine_activation_ms": 39006.65852986276,
+      "native_init_seconds": 16.96,
+      "compilation_seconds": 0.31,
+      "memory_profiling_skipped": true,
+      "exact_startup_memory_receipt": {
+        "actual_kv_cache_memory_bytes": 8096582616,
+        "cache_path": "/home/qhq/.cache/vllm/exact_native_startup_memory_v1/26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544.json",
+        "fingerprint": "26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544",
+        "free_memory_bytes": 25003687936,
+        "kv_cache_memory_bytes": 8096582616,
+        "policy": "exact_native_startup_memory_v1",
+        "producer": {
+          "pid": 250500,
+          "time_ns": 1793689665880607199
+        },
+        "requested_memory_bytes": 18213151704,
+        "status": "hit"
+      },
+      "limitation": "Native init is a substage of activation; do not add overlapping durations."
+    },
+    {
+      "worker_pid": 284190,
+      "lease_id": "6c9310176b1d48fd886a006e101396ef",
+      "activation_id": "ieee-activation-1077b3870a384497828dbdfd634a7d30",
+      "physical_owner_id": "6c9310176b1d48fd886a006e101396ef",
+      "native_owner_id": "17cd1b376acd4b998e6c48d50990f9b8",
+      "category": "natural_scaleout",
+      "state": "runtime_ready",
+      "request_count": 30,
+      "engine_activation_ms": 40120.385815855116,
+      "native_init_seconds": 17.05,
+      "compilation_seconds": 0.28,
+      "memory_profiling_skipped": true,
+      "exact_startup_memory_receipt": {
+        "actual_kv_cache_memory_bytes": 8096582616,
+        "cache_path": "/home/qhq/.cache/vllm/exact_native_startup_memory_v1/26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544.json",
+        "fingerprint": "26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544",
+        "free_memory_bytes": 25003687936,
+        "kv_cache_memory_bytes": 8096582616,
+        "policy": "exact_native_startup_memory_v1",
+        "producer": {
+          "pid": 250500,
+          "time_ns": 1793689665880607199
+        },
+        "requested_memory_bytes": 18213151704,
+        "status": "hit"
+      },
+      "limitation": "Native init is a substage of activation; do not add overlapping durations."
+    },
+    {
+      "worker_pid": 298486,
+      "lease_id": "b4b7b38ee6704087bc7fc97ad7408abe",
+      "activation_id": "ieee-activation-020be1a49e224980869b1732cabceac5",
+      "physical_owner_id": "b4b7b38ee6704087bc7fc97ad7408abe",
+      "native_owner_id": "952514f621fc42eca41d0c4b4034e423",
+      "category": "natural_scaleout",
+      "state": "runtime_ready",
+      "request_count": 67,
+      "engine_activation_ms": 39355.00565171242,
+      "native_init_seconds": 17.15,
+      "compilation_seconds": 0.3,
+      "memory_profiling_skipped": true,
+      "exact_startup_memory_receipt": {
+        "actual_kv_cache_memory_bytes": 8096582616,
+        "cache_path": "/home/qhq/.cache/vllm/exact_native_startup_memory_v1/26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544.json",
+        "fingerprint": "26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544",
+        "free_memory_bytes": 25003687936,
+        "kv_cache_memory_bytes": 8096582616,
+        "policy": "exact_native_startup_memory_v1",
+        "producer": {
+          "pid": 250500,
+          "time_ns": 1793689665880607199
+        },
+        "requested_memory_bytes": 18213151704,
+        "status": "hit"
+      },
+      "limitation": "Native init is a substage of activation; do not add overlapping durations."
+    },
+    {
+      "worker_pid": 313713,
+      "lease_id": "8eef8ed450c54a6885073d674f1471f6",
+      "activation_id": "ieee-activation-84257ac3a44a42798daa77ce0fab4733",
+      "physical_owner_id": "8eef8ed450c54a6885073d674f1471f6",
+      "native_owner_id": "924b8322d264459db1a22264b10ff55b",
+      "category": "natural_scaleout",
+      "state": "runtime_ready",
+      "request_count": 279,
+      "engine_activation_ms": 39721.80830175057,
+      "native_init_seconds": 17.01,
+      "compilation_seconds": 0.27,
+      "memory_profiling_skipped": true,
+      "exact_startup_memory_receipt": {
+        "actual_kv_cache_memory_bytes": 8096582616,
+        "cache_path": "/home/qhq/.cache/vllm/exact_native_startup_memory_v1/26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544.json",
+        "fingerprint": "26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544",
+        "free_memory_bytes": 25003687936,
+        "kv_cache_memory_bytes": 8096582616,
+        "policy": "exact_native_startup_memory_v1",
+        "producer": {
+          "pid": 250500,
+          "time_ns": 1793689665880607199
+        },
+        "requested_memory_bytes": 18213151704,
+        "status": "hit"
+      },
+      "limitation": "Native init is a substage of activation; do not add overlapping durations."
+    },
+    {
+      "worker_pid": 325146,
+      "lease_id": "a39759cbfaef445dad62bf67275dfe38",
+      "activation_id": "ieee-activation-f371cd411dfd42da8edf7d7e32925005",
+      "physical_owner_id": "a39759cbfaef445dad62bf67275dfe38",
+      "native_owner_id": "2f161fd147f84509aeb505bd7fd3b4f8",
+      "category": "natural_scaleout",
+      "state": "runtime_ready",
+      "request_count": 364,
+      "engine_activation_ms": 39919.49262889102,
+      "native_init_seconds": 16.82,
+      "compilation_seconds": 0.28,
+      "memory_profiling_skipped": true,
+      "exact_startup_memory_receipt": {
+        "actual_kv_cache_memory_bytes": 8096582616,
+        "cache_path": "/home/qhq/.cache/vllm/exact_native_startup_memory_v1/26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544.json",
+        "fingerprint": "26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544",
+        "free_memory_bytes": 25003687936,
+        "kv_cache_memory_bytes": 8096582616,
+        "policy": "exact_native_startup_memory_v1",
+        "producer": {
+          "pid": 250500,
+          "time_ns": 1793689665880607199
+        },
+        "requested_memory_bytes": 18213151704,
+        "status": "hit"
+      },
+      "limitation": "Native init is a substage of activation; do not add overlapping durations."
+    },
+    {
+      "worker_pid": 340890,
+      "lease_id": "a43b69078d4049dbbed25245c5a135f0",
+      "activation_id": "ieee-activation-0469e285b2dc446b93a75c064f06a8b5",
+      "physical_owner_id": "a43b69078d4049dbbed25245c5a135f0",
+      "native_owner_id": "9e8411a5afda4da186454d79c4334bcf",
+      "category": "natural_scaleout",
+      "state": "runtime_ready",
+      "request_count": 451,
+      "engine_activation_ms": 39466.71348018572,
+      "native_init_seconds": 17.21,
+      "compilation_seconds": 0.29,
+      "memory_profiling_skipped": true,
+      "exact_startup_memory_receipt": {
+        "actual_kv_cache_memory_bytes": 8096582616,
+        "cache_path": "/home/qhq/.cache/vllm/exact_native_startup_memory_v1/26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544.json",
+        "fingerprint": "26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544",
+        "free_memory_bytes": 25003687936,
+        "kv_cache_memory_bytes": 8096582616,
+        "policy": "exact_native_startup_memory_v1",
+        "producer": {
+          "pid": 250500,
+          "time_ns": 1793689665880607199
+        },
+        "requested_memory_bytes": 18213151704,
+        "status": "hit"
+      },
+      "limitation": "Native init is a substage of activation; do not add overlapping durations."
+    },
+    {
+      "worker_pid": 362779,
+      "lease_id": "23302b0879c24ac88711c9df94e8f8ad",
+      "activation_id": "ieee-activation-2a7d14ab95d24d3f8ad9d5f7238f5d35",
+      "physical_owner_id": "23302b0879c24ac88711c9df94e8f8ad",
+      "native_owner_id": "500fcaecccc14eb59343ec0f374eb040",
+      "category": "natural_scaleout",
+      "state": "runtime_ready",
+      "request_count": 206,
+      "engine_activation_ms": 42333.29583890736,
+      "native_init_seconds": 17.86,
+      "compilation_seconds": 0.44,
+      "memory_profiling_skipped": true,
+      "exact_startup_memory_receipt": {
+        "actual_kv_cache_memory_bytes": 8096582616,
+        "cache_path": "/home/qhq/.cache/vllm/exact_native_startup_memory_v1/26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544.json",
+        "fingerprint": "26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544",
+        "free_memory_bytes": 25003687936,
+        "kv_cache_memory_bytes": 8096582616,
+        "policy": "exact_native_startup_memory_v1",
+        "producer": {
+          "pid": 250500,
+          "time_ns": 1793689665880607199
+        },
+        "requested_memory_bytes": 18213151704,
+        "status": "hit"
+      },
+      "limitation": "Native init is a substage of activation; do not add overlapping durations."
+    },
+    {
+      "worker_pid": 367989,
+      "lease_id": "3def660df0d247519395bef3b0513b98",
+      "activation_id": "ieee-activation-4b5b6e860af1404db2c483c264ac08ec",
+      "physical_owner_id": "3def660df0d247519395bef3b0513b98",
+      "native_owner_id": "e6c19a2f277345118c3eb20b6b475bce",
+      "category": "natural_scaleout",
+      "state": "runtime_ready",
+      "request_count": 19,
+      "engine_activation_ms": 43416.481303051114,
+      "native_init_seconds": 16.96,
+      "compilation_seconds": 0.44,
+      "memory_profiling_skipped": true,
+      "exact_startup_memory_receipt": {
+        "actual_kv_cache_memory_bytes": 8096582616,
+        "cache_path": "/home/qhq/.cache/vllm/exact_native_startup_memory_v1/26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544.json",
+        "fingerprint": "26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544",
+        "free_memory_bytes": 25003687936,
+        "kv_cache_memory_bytes": 8096582616,
+        "policy": "exact_native_startup_memory_v1",
+        "producer": {
+          "pid": 250500,
+          "time_ns": 1793689665880607199
+        },
+        "requested_memory_bytes": 18213151704,
+        "status": "hit"
+      },
+      "limitation": "Native init is a substage of activation; do not add overlapping durations."
+    },
+    {
+      "worker_pid": 379607,
+      "lease_id": "072df0fec4cb47239f907febf13d1c8a",
+      "activation_id": "ieee-activation-f900b7f9cf154930afa2afc384205a94",
+      "physical_owner_id": "072df0fec4cb47239f907febf13d1c8a",
+      "native_owner_id": "32163bd243ba4123802f73b7894b6a26",
+      "category": "natural_scaleout",
+      "state": "runtime_ready",
+      "request_count": 34,
+      "engine_activation_ms": 40993.79145586863,
+      "native_init_seconds": 17.4,
+      "compilation_seconds": 0.28,
+      "memory_profiling_skipped": true,
+      "exact_startup_memory_receipt": {
+        "actual_kv_cache_memory_bytes": 8096582616,
+        "cache_path": "/home/qhq/.cache/vllm/exact_native_startup_memory_v1/26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544.json",
+        "fingerprint": "26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544",
+        "free_memory_bytes": 25003687936,
+        "kv_cache_memory_bytes": 8096582616,
+        "policy": "exact_native_startup_memory_v1",
+        "producer": {
+          "pid": 250500,
+          "time_ns": 1793689665880607199
+        },
+        "requested_memory_bytes": 18213151704,
+        "status": "hit"
+      },
+      "limitation": "Native init is a substage of activation; do not add overlapping durations."
+    },
+    {
+      "worker_pid": 379746,
+      "lease_id": "6b388e2278494eb29a858f50bb413b1c",
+      "activation_id": "ieee-activation-76cad52a25a44a819ee40ff223e3accf",
+      "physical_owner_id": "6b388e2278494eb29a858f50bb413b1c",
+      "native_owner_id": "43b989dde3a043bb874a1f146861a365",
+      "category": "natural_scaleout",
+      "state": "runtime_ready",
+      "request_count": 204,
+      "engine_activation_ms": 50410.1651199162,
+      "native_init_seconds": 17.11,
+      "compilation_seconds": 0.29,
+      "memory_profiling_skipped": true,
+      "exact_startup_memory_receipt": {
+        "actual_kv_cache_memory_bytes": 8096582616,
+        "cache_path": "/home/qhq/.cache/vllm/exact_native_startup_memory_v1/26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544.json",
+        "fingerprint": "26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544",
+        "free_memory_bytes": 25003687936,
+        "kv_cache_memory_bytes": 8096582616,
+        "policy": "exact_native_startup_memory_v1",
+        "producer": {
+          "pid": 250500,
+          "time_ns": 1793689665880607199
+        },
+        "requested_memory_bytes": 18213151704,
+        "status": "hit"
+      },
+      "limitation": "Native init is a substage of activation; do not add overlapping durations."
+    },
+    {
+      "worker_pid": 401415,
+      "lease_id": "57fd7c2fe79b454ea43ca3f0182d18fa",
+      "activation_id": "ieee-activation-d414f148832e42c384d491e708263300",
+      "physical_owner_id": "57fd7c2fe79b454ea43ca3f0182d18fa",
+      "native_owner_id": "09447ac9ad4b4dbaa1bc20a30eead847",
+      "category": "natural_scaleout",
+      "state": "runtime_ready",
+      "request_count": 269,
+      "engine_activation_ms": 37978.73559733853,
+      "native_init_seconds": 16.5,
+      "compilation_seconds": 0.28,
+      "memory_profiling_skipped": true,
+      "exact_startup_memory_receipt": {
+        "actual_kv_cache_memory_bytes": 8096582616,
+        "cache_path": "/home/qhq/.cache/vllm/exact_native_startup_memory_v1/26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544.json",
+        "fingerprint": "26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544",
+        "free_memory_bytes": 25003687936,
+        "kv_cache_memory_bytes": 8096582616,
+        "policy": "exact_native_startup_memory_v1",
+        "producer": {
+          "pid": 250500,
+          "time_ns": 1793689665880607199
+        },
+        "requested_memory_bytes": 18213151704,
+        "status": "hit"
+      },
+      "limitation": "Native init is a substage of activation; do not add overlapping durations."
+    }
+  ],
+  "structured_full_receipt_available": true,
+  "numerical_correctness_qualified": false,
+  "ranking_eligible": false,
+  "post_run_cache_record": {
+    "source": {
+      "path": "/home/qhq/.cache/vllm/exact_native_startup_memory_v1/26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544.json",
+      "sha256": "2392340f6f2e39a5d4c73fe335249ddfe893ea7db3d7e04c6c2edf1171986dd4",
+      "bytes": 4392
+    },
+    "producer": {
+      "pid": 250500,
+      "time_ns": 1793689665880607199
+    },
+    "fingerprint": "26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544",
+    "actual_successful_producer_kv_budget_bytes": 8096582616,
+    "free_memory_baseline": 25003687936,
+    "limitation": "Immutable post-run producer record, not a persisted consumer hit receipt."
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "8db06780094841d91f72acce6874c7ae1495281ff7a0a835c0eb28bdb5f7fc80",
+      "bytes": 599819016
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/native_startup.json",
+      "sha256": "37974b076e4d2cbffb69340b485c7616ac7ff03bdb4865a5678f00c5c694c393",
+      "bytes": 41150
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/completion/stages/requests.csv",
+      "sha256": "328c13ba1b13eee6fd8a35cd3f818314b23b772b49ec698e3fb3a81394e6b43d",
+      "bytes": 2369113
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/startup_binding.py",
+      "sha256": "af15f83c8a53a158666ddfdd8655ee0a071c10a77299361fe94851dabeb562b3",
+      "bytes": 6200
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/072df0fec4cb47239f907febf13d1c8a.jsonl",
+      "sha256": "d1a6dfbfdec6e0d7baa4cd28f02458918ece2c6b0b42f91bb082d81cd80a78e3",
+      "bytes": 17657
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/23302b0879c24ac88711c9df94e8f8ad.jsonl",
+      "sha256": "f559e61f11660c03e1fd2cd249f86939a2301031f17a9c16dfa120cfa250e0b7",
+      "bytes": 17655
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/3def660df0d247519395bef3b0513b98.jsonl",
+      "sha256": "a534ddffd48d6fe2130006bf43415e2a9163c85befb5f0a352cf0f8b8d49c408",
+      "bytes": 18203
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/4a32f18e7b1742f2b4e95b63df3613a4.jsonl",
+      "sha256": "b3d47b6b5e594ee15fb4bcecd8dbf6465c4aac675cdd45fde9b5d6d3f01d8f86",
+      "bytes": 17655
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/57fd7c2fe79b454ea43ca3f0182d18fa.jsonl",
+      "sha256": "a2b3094a6e6c9f0bca6d41f58273238e1c09c32c17ed4677a1f4ec2642d96232",
+      "bytes": 16020
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/6b388e2278494eb29a858f50bb413b1c.jsonl",
+      "sha256": "17c89586c821045912c3c4c2be217ddd093937ba313e9419c2f8b671741c64c9",
+      "bytes": 17110
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/6c9310176b1d48fd886a006e101396ef.jsonl",
+      "sha256": "2cf607dc9a03e11a77eeaae6a8392b12b4b11824c82302ca5d8a9700ad1c3076",
+      "bytes": 18204
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/7aca5af1b9e544868bb98de09d2d38c7.jsonl",
+      "sha256": "85d1a26f4246c3d524588f932e572870fd760593233899db54759b6a6f12fdbb",
+      "bytes": 15951
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/8eef8ed450c54a6885073d674f1471f6.jsonl",
+      "sha256": "88eee50337a1d3fe7608d7f8c453cd3d196740533b7a022b5bb7d2e8a598654f",
+      "bytes": 18201
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/a39759cbfaef445dad62bf67275dfe38.jsonl",
+      "sha256": "5ddd710afe33a43b8b61fdaef0c09469392e327995036e3f3e5a93c794163858",
+      "bytes": 18199
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/a43b69078d4049dbbed25245c5a135f0.jsonl",
+      "sha256": "8a322b890a9eb546150e38ac264bc15b6301aa5445b957537f9f16c2dd31b09f",
+      "bytes": 18203
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/b4b7b38ee6704087bc7fc97ad7408abe.jsonl",
+      "sha256": "0a0d7cdd7bda79fc57b0da115192f553e0e149981e7415e644dec16d2435f0e0",
+      "bytes": 18205
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full/launch.launch/physical_allocations/f467e306db4742fea0a44d521679ad87.jsonl",
+      "sha256": "2f27f4d17224e756c479c51b4321c6c3e363c4ec0268ac799c1ea1424b116e7a",
+      "bytes": 17657
+    }
+  ],
+  "duplicate_preserved_logs": [
+    {
+      "worker_pid": 250500,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_84lo5fya_engine_dead_1793693652/worker.log"
+    }
+  ],
+  "archive": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/native_startup_logs_and_record.tar.gz",
+    "sha256": "41559f44f0a3475f8957ad2bd3a3cca57ca3c6b84037d2afff8546f8e14b65a6",
+    "bytes": 21427
+  },
+  "members": [
+    {
+      "name": "home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_84lo5fya_engine_dead_1793693580/worker.log",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_84lo5fya_engine_dead_1793693580/worker.log",
+        "sha256": "f071e83de53b5faf03caf9e5f824b09d04ba896bdb25524a83f74329bb9675d7",
+        "bytes": 28963
+      },
+      "sha256": "f071e83de53b5faf03caf9e5f824b09d04ba896bdb25524a83f74329bb9675d7"
+    },
+    {
+      "name": "home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_07pbhnui_engine_dead_1793691140/worker.log",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_07pbhnui_engine_dead_1793691140/worker.log",
+        "sha256": "164ed0c2926e08a4914440b43d889e3a14245560356f0b749309fef43009c40c",
+        "bytes": 21920
+      },
+      "sha256": "164ed0c2926e08a4914440b43d889e3a14245560356f0b749309fef43009c40c"
+    },
+    {
+      "name": "home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_kdgxfxia_engine_dead_1793689747/worker.log",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_kdgxfxia_engine_dead_1793689747/worker.log",
+        "sha256": "64989089c1b5f31b103eaf5273829bb232308c8578d420946a9cc5bd3147098b",
+        "bytes": 21416
+      },
+      "sha256": "64989089c1b5f31b103eaf5273829bb232308c8578d420946a9cc5bd3147098b"
+    },
+    {
+      "name": "home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_bfrnhijf_engine_dead_1793690451/worker.log",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_bfrnhijf_engine_dead_1793690451/worker.log",
+        "sha256": "d3a4197f1e5b8ef84ae6cce22b4862227eb6209fc3d623706edafb3d351b063d",
+        "bytes": 21511
+      },
+      "sha256": "d3a4197f1e5b8ef84ae6cce22b4862227eb6209fc3d623706edafb3d351b063d"
+    },
+    {
+      "name": "home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_zst3fudo_engine_dead_1793690851/worker.log",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_zst3fudo_engine_dead_1793690851/worker.log",
+        "sha256": "feb5d1b2cc0b89f2a4909f0a34ba6d74385eab86ec1739ef8a01fc7ffed7e774",
+        "bytes": 21509
+      },
+      "sha256": "feb5d1b2cc0b89f2a4909f0a34ba6d74385eab86ec1739ef8a01fc7ffed7e774"
+    },
+    {
+      "name": "home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_hki86l2x_engine_dead_1793691403/worker.log",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_hki86l2x_engine_dead_1793691403/worker.log",
+        "sha256": "493c92a79f3e8657d418803c587d6233260ea8a51a91da175eeda94577d57fbd",
+        "bytes": 21266
+      },
+      "sha256": "493c92a79f3e8657d418803c587d6233260ea8a51a91da175eeda94577d57fbd"
+    },
+    {
+      "name": "home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_9_lvwc8w_engine_dead_1793691771/worker.log",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_9_lvwc8w_engine_dead_1793691771/worker.log",
+        "sha256": "80de2e3e62b7af0b09e55a99533a3e388a2d5d26a9b5eb5711b16224631a3839",
+        "bytes": 21824
+      },
+      "sha256": "80de2e3e62b7af0b09e55a99533a3e388a2d5d26a9b5eb5711b16224631a3839"
+    },
+    {
+      "name": "home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_y8cmhsif_engine_dead_1793692282/worker.log",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_y8cmhsif_engine_dead_1793692282/worker.log",
+        "sha256": "0ae28387a2f84a06be3baa4b593960bd78f9511e8a40614d51c60df136070d3d",
+        "bytes": 21825
+      },
+      "sha256": "0ae28387a2f84a06be3baa4b593960bd78f9511e8a40614d51c60df136070d3d"
+    },
+    {
+      "name": "home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_zsr9rymo_engine_dead_1793692564/worker.log",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_zsr9rymo_engine_dead_1793692564/worker.log",
+        "sha256": "2d7dfc165cdb02a98a4a914eb8cc990de5b5e3bcb384327ef67c49e335809a6a",
+        "bytes": 21824
+      },
+      "sha256": "2d7dfc165cdb02a98a4a914eb8cc990de5b5e3bcb384327ef67c49e335809a6a"
+    },
+    {
+      "name": "home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_0nu86df5_engine_dead_1793692406/worker.log",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_0nu86df5_engine_dead_1793692406/worker.log",
+        "sha256": "66f5ece8adbe583f25a7f6d22469d81d5be9fd6c5bbe0ea553d614cf448c4bd5",
+        "bytes": 21737
+      },
+      "sha256": "66f5ece8adbe583f25a7f6d22469d81d5be9fd6c5bbe0ea553d614cf448c4bd5"
+    },
+    {
+      "name": "home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_et0nt13n_engine_dead_1793692673/worker.log",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_et0nt13n_engine_dead_1793692673/worker.log",
+        "sha256": "8bf1895806157cac57bf6b181ebaf62e97c3d8dd25ad931a5247c064c0dccbba",
+        "bytes": 21824
+      },
+      "sha256": "8bf1895806157cac57bf6b181ebaf62e97c3d8dd25ad931a5247c064c0dccbba"
+    },
+    {
+      "name": "home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_6syyvsjj_engine_dead_1793692965/worker.log",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_6syyvsjj_engine_dead_1793692965/worker.log",
+        "sha256": "2fd0398a1939feb49459a1aad8dbda87347fd1fd9f7395981f51d9b9f096d2ef",
+        "bytes": 21729
+      },
+      "sha256": "2fd0398a1939feb49459a1aad8dbda87347fd1fd9f7395981f51d9b9f096d2ef"
+    },
+    {
+      "name": "home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_7n4kopzz_engine_dead_1793693579/worker.log",
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_7n4kopzz_engine_dead_1793693579/worker.log",
+        "sha256": "749dbd65efb977d3887fc04bd47bb33189080d3685719bbad64597be9f573a3e",
+        "bytes": 21165
+      },
+      "sha256": "749dbd65efb977d3887fc04bd47bb33189080d3685719bbad64597be9f573a3e"
+    },
+    {
+      "name": "26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544.json",
+      "source": {
+        "path": "/home/qhq/.cache/vllm/exact_native_startup_memory_v1/26ee0438ab50cf4a5d98ea2f3fcd584152f243bf2b89bcde316d401917dee544.json",
+        "sha256": "2392340f6f2e39a5d4c73fe335249ddfe893ea7db3d7e04c6c2edf1171986dd4",
+        "bytes": 4392
+      },
+      "sha256": "2392340f6f2e39a5d4c73fe335249ddfe893ea7db3d7e04c6c2edf1171986dd4"
+    }
+  ]
+}

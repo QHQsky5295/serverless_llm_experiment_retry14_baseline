@@ -1,0 +1,104 @@
+{
+  "kind": "d1036_closed_w2_analysis_bundle_v1",
+  "source_commit": "da3ff76978745e5a6a2ff5a9d724e7bac9f29a87",
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1036_20261103/d1036_3b_native_host_capacity_w2_full",
+  "status": "completed_development_nonfeasible_rejected",
+  "n": 4000,
+  "joint_pass": 3320,
+  "observed_latency_feasible": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "source_trace_seed": 42,
+  "confidence_interval": null,
+  "structured_full_startup_receipt_available": true,
+  "independent_integrity_review": "not_performed",
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/completion/closure.json",
+      "sha256": "a9ba9d80de6683bb7d9872ff5deae66cc6cbbad140f89466531a8e7b3f7788f1",
+      "bytes": 2884
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/completion/collect_closed_evidence.py.snapshot",
+      "sha256": "df3916898dae85570542f7879d71ee47e47b87b78ddd00ea493f088d28295fb6",
+      "bytes": 5679
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/completion/delivery_and_resources.json",
+      "sha256": "dcdb36aa0513a2e8cde42f289a0d923d3695de5db7d4e6abc52306f0090d108f",
+      "bytes": 21823
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/completion/full4000.json",
+      "sha256": "b7f27040204f3bcab539dc9a67bc54d25a9b8be1aba99075b3ef82f6cc75ea16",
+      "bytes": 202965
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/completion/manifest.json",
+      "sha256": "6bc1bdb0a607cf51790f1c4a4eb934413cf58856ef12f18cb6b5156ca1dd03b2",
+      "bytes": 2911
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/completion/native_descriptor.json",
+      "sha256": "01176ddb21f8141dff76bc7f3edd3534cb904733c6f00ca2cbbe4b9f7952c9d5",
+      "bytes": 594
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/completion/paired_d1033/diagnosis.json",
+      "sha256": "18508440a5a6c29fa49c2d84313b1312bda866f41a1bb4811509c9af89ccfead",
+      "bytes": 249460
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/completion/paired_d1033/paired_requests.csv",
+      "sha256": "a75e6ed36892c25ba5c422579ae02e3b14cd066c0cd2f2c228a476dd637386d4",
+      "bytes": 1226713
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/completion/profile_bindings.json",
+      "sha256": "f7f519c584ccfcd7b3575973094df2b907962ebe2c0300fbd15ebb42e7dcf8e4",
+      "bytes": 2646
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/completion/stages/diagnosis.json",
+      "sha256": "69c2e481365197bc6435e1aa3ee0cf7c28aa701ab672cfa4ab34cd045313af3d",
+      "bytes": 274512
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/completion/stages/requests.csv",
+      "sha256": "328c13ba1b13eee6fd8a35cd3f818314b23b772b49ec698e3fb3a81394e6b43d",
+      "bytes": 2369113
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/native_host_capacity/diagnosis.json",
+      "sha256": "241944eb9273c4f353bdaeb25f3f0713f6636fc3b64f026c5d9b43d3b5d4b657",
+      "bytes": 6743
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/native_host_capacity/requests.csv",
+      "sha256": "0bd136118c35506805d609182081e3139edc002421e97febe214cdb116c8ea5c",
+      "bytes": 652889
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/native_startup.json",
+      "sha256": "37974b076e4d2cbffb69340b485c7616ac7ff03bdb4865a5678f00c5c694c393",
+      "bytes": 41150
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/startup_binding.json",
+      "sha256": "091d1b8b9b004ab006ee3df9627831e8262ba79d845664767ca9ab2143a3e0c5",
+      "bytes": 31168
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1036_3b_native_host_capacity_w2/startup_binding.py.snapshot",
+      "sha256": "af15f83c8a53a158666ddfdd8655ee0a071c10a77299361fe94851dabeb562b3",
+      "bytes": 6200
+    }
+  ],
+  "limitations": [
+    "Known-workload single development observation; no independent holdout, CI or significance claim.",
+    "CPU capacity and its newly measured initialization profiles changed together; not an isolated causal estimate of one runtime operation.",
+    "No independent numerical-correctness closure or continuous remote CPU/interference monitor.",
+    "Physical lease owner and native adapter-reference owner are different namespaces, joined through native PID, lease and request/activation evidence.",
+    "The observed post-run capacity bound of 109 is not a new candidate and does not prove a live allocation violation."
+  ]
+}
