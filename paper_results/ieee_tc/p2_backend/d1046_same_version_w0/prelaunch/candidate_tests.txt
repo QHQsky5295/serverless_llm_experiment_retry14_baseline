@@ -1,0 +1,36 @@
+test_default_and_explicit_w2_keep_original_mapping (tests.test_ieee_tc_d456_diagnostic_contract.D1046FullScenarioSelection.test_default_and_explicit_w2_keep_original_mapping) ... ok
+test_frozen_serving_configuration_only_changes_exclusive_paths (tests.test_ieee_tc_d456_diagnostic_contract.D1046FullScenarioSelection.test_frozen_serving_configuration_only_changes_exclusive_paths) ... ok
+test_unknown_workload_rejected (tests.test_ieee_tc_d456_diagnostic_contract.D1046FullScenarioSelection.test_unknown_workload_rejected) ... ok
+test_w0_w1_remove_inherited_rotation (tests.test_ieee_tc_d456_diagnostic_contract.D1046FullScenarioSelection.test_w0_w1_remove_inherited_rotation) ... ok
+test_coverage_preserves_source_and_matches_existing_http_derivation (tests.test_ieee_tc_external_replay.FrozenViews.test_coverage_preserves_source_and_matches_existing_http_derivation) ... ok
+test_integrated_prefix_needs_explicit_scope_and_retains_full_source_identity (tests.test_ieee_tc_external_replay.FrozenViews.test_integrated_prefix_needs_explicit_scope_and_retains_full_source_identity) ... ok
+test_invalid_trace_or_transform_rejected (tests.test_ieee_tc_external_replay.FrozenViews.test_invalid_trace_or_transform_rejected) ... ok
+test_prefix_and_rate_are_declared_views_not_new_input (tests.test_ieee_tc_external_replay.FrozenViews.test_prefix_and_rate_are_declared_views_not_new_input) ... ok
+test_sort_identity_and_content_hash_without_rewriting_source (tests.test_ieee_tc_external_replay.FrozenViews.test_sort_identity_and_content_hash_without_rewriting_source) ... ok
+test_w1_exact_phase_formula_not_service_drain (tests.test_ieee_tc_external_replay.FrozenViews.test_w1_exact_phase_formula_not_service_drain) ... ok
+test_changed_pool_or_source_never_reuses_frozen_map (tests.test_ieee_tc_external_replay.FrozenRotationViews.test_changed_pool_or_source_never_reuses_frozen_map) ... ok
+test_integrated_service_prefix_uses_the_same_full_rotation_entries (tests.test_ieee_tc_external_replay.FrozenRotationViews.test_integrated_service_prefix_uses_the_same_full_rotation_entries) ... <frozen importlib._bootstrap>:488: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+<frozen importlib._bootstrap>:488: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+W1103 23:20:56.332000 1436224 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:55: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  class InferenceRequest(BaseModel):
+/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:77: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  class InferenceResponse(BaseModel):
+/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:99: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  class SystemStatusResponse(BaseModel):
+/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:123: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  class PreloadingRequest(BaseModel):
+ok
+test_integrated_service_uses_the_same_derived_adapter_and_prompt (tests.test_ieee_tc_external_replay.FrozenRotationViews.test_integrated_service_uses_the_same_derived_adapter_and_prompt) ... ok
+test_launcher_accepts_nonformal_w2_prefix_but_not_formal_before_resources (tests.test_ieee_tc_external_replay.FrozenRotationViews.test_launcher_accepts_nonformal_w2_prefix_but_not_formal_before_resources) ... ok
+test_launcher_rejects_invalid_w2_before_any_resource_or_service_operation (tests.test_ieee_tc_external_replay.FrozenRotationViews.test_launcher_rejects_invalid_w2_before_any_resource_or_service_operation) ... ok
+test_rehashed_but_incorrect_map_is_rejected (tests.test_ieee_tc_external_replay.FrozenRotationViews.test_rehashed_but_incorrect_map_is_rejected) ... ok
+test_rotation_preserves_each_rank_prompt_target_arrival_and_source (tests.test_ieee_tc_external_replay.FrozenRotationViews.test_rotation_preserves_each_rank_prompt_target_arrival_and_source) ... ok
+test_w2_prefix_is_exact_projection_after_complete_map_validation (tests.test_ieee_tc_external_replay.FrozenRotationViews.test_w2_prefix_is_exact_projection_after_complete_map_validation) ... ok
+test_w2_rejects_missing_map_invalid_prefix_rate_or_conflicting_profile (tests.test_ieee_tc_external_replay.FrozenRotationViews.test_w2_rejects_missing_map_invalid_prefix_rate_or_conflicting_profile) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 22.236s
+
+OK
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute

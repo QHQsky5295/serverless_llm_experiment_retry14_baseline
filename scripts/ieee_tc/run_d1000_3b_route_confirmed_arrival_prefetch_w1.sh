@@ -30,9 +30,19 @@ export VLLM_CACHE_ROOT=/home/qhq/.cache/vllm
 export FAASLORA_PYTHON=/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python
 export FAASLORA_TC_QUALIFICATION=1
 export FAASLORA_TC_EXTERNAL_REPLAY=1
-export FAASLORA_TC_REPLAY_PROFILE=W2
-export FAASLORA_TC_ADAPTER_MAP="$ROOT/paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json"
-export FAASLORA_TC_ADAPTER_MAP_SHA256=28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23
+# Select an already defined frozen view; never change the serving configuration.
+# Historical callers remain W2. W0/W1 must not inherit W2's adapter rotation.
+export FAASLORA_TC_REPLAY_PROFILE="${FAASLORA_D1000_WORKLOAD:-W2}"
+case "$FAASLORA_TC_REPLAY_PROFILE" in
+  W0|W1)
+    unset FAASLORA_TC_ADAPTER_MAP FAASLORA_TC_ADAPTER_MAP_SHA256
+    ;;
+  W2)
+    export FAASLORA_TC_ADAPTER_MAP="$ROOT/paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json"
+    export FAASLORA_TC_ADAPTER_MAP_SHA256=28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23
+    ;;
+  *) echo 'Unknown frozen full-workload view' >&2; exit 2 ;;
+esac
 export FAASLORA_SHARED_TRACE_PATH=/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json
 export FAASLORA_SHARED_ADAPTER_SUBSET_PATH="${FAASLORA_SHARED_TRACE_PATH%_trace.json}_adapter_subset.json"
 export FAASLORA_TRACE_ROLE=exploratory

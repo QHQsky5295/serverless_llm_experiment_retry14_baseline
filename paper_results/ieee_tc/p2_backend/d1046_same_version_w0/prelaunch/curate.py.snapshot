@@ -1,0 +1,87 @@
+"""D1046 same-version W0; reuse D1045 qualification, no new serving policy."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import yaml
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d1046_same_version_w0/prelaunch'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, allow_nan=False)
+        handle.write('\n')
+
+identity = p.scope_identity(p.cg_path().name)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+tests = read(RAW/'candidate_tests.json')
+assert tests['passed'] and tests['returncode'] == 0
+assert 'Ran 19 tests' in (RAW/'candidate_tests.txt').read_text()
+for name, sha in tests['sources'].items(): assert p.digest(ROOT/name) == sha, name
+prior_path=ROOT/'paper_results/ieee_tc/p2_backend/d1045_event_busy_time/prelaunch/qualification.json'
+prior=read(prior_path)
+assert prior['passed'] and prior['tests']==65
+reused_service_sources=('faaslora/coordination/autoscaler.py','scripts/run_all_experiments.py',
+                       'tests/test_ieee_tc_launch.py','tests/test_ieee_tc_control_profile_analysis.py')
+for name in reused_service_sources: assert p.digest(ROOT/name)==prior['sources'][name]
+from faaslora.datasets.workload_generator import FrozenReplayPlan
+metric_path=ROOT/'paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/full4000.json'
+assert p.digest(metric_path)=='5da67242cf1ad257b6a5f4bb44aa50ef4d2398d096807b624de07d1d7f3188c2'
+trace=read(metric_path)['replay_plan']['source_path']
+known=ROOT/'paper_results/ieee_tc/main_comparison/d810_available_3b/comparison.json'
+common=read(known)['common_workload_identities']
+views={}
+for workload in ('W0','W1'):
+    plan=FrozenReplayPlan.load(trace,profile=workload)
+    view=plan.identity()
+    assert view['count']==view['source_count']==4000
+    for key in ('source_sha256','view_sha256'): assert view[key]==common[workload][key]
+    views[workload]=view
+before = yaml.safe_load((ROOT/'configs/ieee_tc/20261103_d1045_3b_event_busy_time_w2.yaml').read_text())
+after = yaml.safe_load((ROOT/'configs/ieee_tc/20261103_d1046_3b_event_busy_time_w0.yaml').read_text())
+changed = []
+for section, key in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'), ('storage', 'host_cache_dir')]:
+    assert before[section][key] != after[section][key]
+    changed.append(dict(section=section, key=key, parent=before[section][key], candidate=after[section][key]))
+    after[section][key] = before[section][key]
+assert before == after
+protected = p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))
+assert protected['pass'] and protected['entry_count'] == 147
+user = {'configs/generated/lora_manifest_1000.json':'3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df',
+        'docs/ieee_tc/EXECUTION_STATUS.md':'41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374'}
+assert all(p.digest(ROOT/name) == sha for name, sha in user.items())
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'], text=True).strip()
+closed = []
+for name in ('candidate_tests.json',):
+    record = read(RAW/name)
+    assert not Path(record['identity']['path']).exists(), name
+    closed.append(record['identity'])
+OUT.mkdir(parents=True, exist_ok=False)
+for name in ('candidate_tests.txt', 'candidate_tests.json'):
+    with (OUT/name).open('xb') as handle: handle.write((RAW/name).read_bytes())
+for name in ('check.py', 'curate.py'):
+    with (OUT/(name+'.snapshot')).open('xb') as handle: handle.write((RAW/name).read_bytes())
+sources = list(dict.fromkeys(list(tests['sources'])+list(reused_service_sources))) + [
+    'scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh',
+    'configs/ieee_tc/20261103_d1046_3b_event_busy_time_w0.yaml',
+    'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md', 'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md',
+    'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json']
+save(OUT/'qualification.json', dict(passed=True, tests=19, performance_result=False,
+    parent_commit='9024419cd38314454c3899548ce2ad6558c74a8d',
+    reused_service_tests=65, reused_qualification_sha256=p.digest(prior_path),
+    workload='W0', frozen_views=views, baseline_comparison_sha256=p.digest(known),
+    identity=identity, resources=p.cgroup_snapshot(p.cg_path()), closed_scopes=closed,
+    protected=protected, user_protected=user, plan_sha256=p.check_plan(), config_changes=changed,
+    sources={name:p.digest(ROOT/name) for name in sources},
+    observation='reservation_events_v1',
+    limitations=['CPU semantic evidence only', 'independent numerical correctness remains unknown',
+        'Same D1045 serving configuration; workload coverage is not an optimization',
+        'No new performance result; known development trace remains non-holdout']))
+save(OUT/'manifest.json', dict(files=[dict(path=str(x.relative_to(ROOT)), sha256=p.digest(x))
+    for x in sorted(OUT.iterdir()) if x.is_file()]))
+print(json.dumps(dict(passed=True, tests=65, protected=protected)))

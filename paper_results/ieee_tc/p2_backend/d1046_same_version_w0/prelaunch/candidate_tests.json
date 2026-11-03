@@ -1,0 +1,40 @@
+{
+  "passed": true,
+  "returncode": 0,
+  "identity": {
+    "unit": "primelora-tc-aux-9648646463a14a1ba01da831d1046001.scope",
+    "invocation_id": "1c60d466331a4579aba0e811751e7afc",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-9648646463a14a1ba01da831d1046001.scope",
+    "inode": 38710892
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-9648646463a14a1ba01da831d1046001.scope",
+    "memory.current": 310063104,
+    "memory.peak": 884301824,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 27092443\nuser_usec 24392595\nsystem_usec 2699848\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "sources": {
+    "faaslora/coordination/autoscaler.py": "893715c0656f57354484265ff4df55a3e3f76875555859e1bc8c0140a018b6fc",
+    "scripts/run_all_experiments.py": "2fc01049d41700a0f4b86d0994cacf5bb775fc58ae59c2e78af1ea2fe487b90c",
+    "scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh": "d3d847e41d0491b5021109435657fc63f98300a76f2d6c521b7975e91e6d5811",
+    "tests/test_ieee_tc_d456_diagnostic_contract.py": "5616dd54136aee610337435cd3aa877a05ed5ed6f5a8deea98d24285b738152a",
+    "tests/test_ieee_tc_external_replay.py": "c13ad09f585b370cd202778556b0d873e721eb5bf5d804825fc80cc5f71cd89d"
+  },
+  "wrapper_sha256": "8afd2d9aca9d6b4fe619011200be185fd743905b9b79521eb694ebfc2c8e1dc4"
+}

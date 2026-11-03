@@ -195,6 +195,49 @@ class D519DiagnosticContract(unittest.TestCase):
         self.assertIn('FAASLORA_TC_CORE_TIMING=host_spans_v1', wrapper)
 
 
+class D1046FullScenarioSelection(unittest.TestCase):
+    def test_frozen_serving_configuration_only_changes_exclusive_paths(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261103_d1045_3b_event_busy_time_w2.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261103_d1046_3b_event_busy_time_w0.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            self.assertNotEqual(old[section].pop(field), new[section].pop(field))
+        self.assertEqual(old, new)
+        self.assertEqual(new['workload']['total_requests'], 4000)
+
+    def selection(self, workload):
+        runner = (ROOT/'scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh').read_text()
+        block = re.search(r'^export FAASLORA_TC_REPLAY_PROFILE=.*?^esac', runner, re.M | re.S).group(0)
+        command = block + '\nexec "$1" -c \'import json,os; print(json.dumps({k:v for k,v in os.environ.items() if k.startswith("FAASLORA_TC_")}))\''
+        env = {'PATH': os.environ['PATH'], 'ROOT': str(ROOT),
+               'FAASLORA_TC_ADAPTER_MAP': 'inherited-w2-map',
+               'FAASLORA_TC_ADAPTER_MAP_SHA256': 'inherited-w2-sha'}
+        if workload is not None:
+            env['FAASLORA_D1000_WORKLOAD'] = workload
+        return subprocess.run(['bash', '-eu', '-c', command, 'view-test', sys.executable],
+                              env=env, capture_output=True, text=True)
+
+    def test_default_and_explicit_w2_keep_original_mapping(self):
+        for workload in (None, '', 'W2'):
+            result = self.selection(workload)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(json.loads(result.stdout), {
+                'FAASLORA_TC_REPLAY_PROFILE': 'W2',
+                'FAASLORA_TC_ADAPTER_MAP': str(ROOT/'paper_results/ieee_tc/inputs/20261018_3b_w2_adapter_map_v1.json'),
+                'FAASLORA_TC_ADAPTER_MAP_SHA256': '28c97dc7c1ffcbad49801ec19bec2a9c4cf9c4915c88a7e5163e223ece315e23'})
+
+    def test_w0_w1_remove_inherited_rotation(self):
+        for workload in ('W0', 'W1'):
+            result = self.selection(workload)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(json.loads(result.stdout), {'FAASLORA_TC_REPLAY_PROFILE': workload})
+
+    def test_unknown_workload_rejected(self):
+        result = self.selection('W9')
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(result.stdout, '')
+
+
 class D1042LocalFileDiagnosticContract(unittest.TestCase):
     def test_parent_policy_only_exclusive_paths_change(self):
         old = yaml.safe_load((ROOT/'configs/ieee_tc/20261103_d1033_3b_startup_memory_w2.yaml').read_text())

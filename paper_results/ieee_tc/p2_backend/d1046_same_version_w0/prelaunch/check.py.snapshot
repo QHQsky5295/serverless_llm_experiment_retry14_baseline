@@ -1,0 +1,37 @@
+"""D1046 reuses the bounded test wrapper; only frozen scenario selection changes."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+mode = sys.argv[1]
+assert mode == 'candidate'
+identity = p.scope_identity(p.cg_path().name)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+tests = ['tests.test_ieee_tc_d456_diagnostic_contract.D1046FullScenarioSelection',
+         'tests.test_ieee_tc_external_replay.FrozenViews',
+         'tests.test_ieee_tc_external_replay.FrozenRotationViews']
+with (RAW/f'{mode}_tests.txt').open('x') as log:
+    result = subprocess.run([sys.executable, '-B', '-m', 'unittest', *tests, '-v'],
+        cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
+resources = p.cgroup_snapshot(p.cg_path())
+assert resources['memory.high'] == 3*p.GIB and resources['memory.max'] == 4*p.GIB
+assert resources['memory.swap.max'] == 0
+with (RAW/f'{mode}_tests.json').open('x') as handle:
+    json.dump(dict(passed=result.returncode==0, returncode=result.returncode,
+        identity=identity, resources=resources,
+        sources={name:p.digest(ROOT/name) for name in (
+            'faaslora/coordination/autoscaler.py', 'scripts/run_all_experiments.py',
+            'scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh',
+            'tests/test_ieee_tc_d456_diagnostic_contract.py', 'tests/test_ieee_tc_external_replay.py')},
+        wrapper_sha256=p.digest(Path(__file__))), handle, indent=2)
+raise SystemExit(result.returncode)
