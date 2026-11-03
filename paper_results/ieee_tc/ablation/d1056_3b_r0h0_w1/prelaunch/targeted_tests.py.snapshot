@@ -1,0 +1,58 @@
+"""D1056: reuse focused load-only/no-handoff tests and check their combined runner configuration."""
+import hashlib
+import json
+import os
+from pathlib import Path
+import sys
+import time
+import unittest
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+identity = p.scope_identity(p.cg_path().name)
+assert os.sched_getaffinity(0) == {2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert (p.cg_path()/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (p.cg_path()/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (p.cg_path()/'memory.swap.max').read_text().strip() == '0'
+names = [
+    'tests.test_ieee_tc_service_routing.LoadOnlyRoutingContract',
+    'tests.test_ieee_tc_service_routing.FrozenMeasuredInitialization.test_load_only_keeps_owned_runner_and_measured_profile_identity',
+    'tests.test_ieee_tc_transfer_pressure.ActivationPreparation.test_no_handoff_activates_without_any_preparation_entry',
+    'tests.test_ieee_tc_launch.IEEEInitialDeployment.test_no_handoff_still_activates_when_preload_disabled',
+    'tests.test_ieee_tc_launch.IEEEActualControl.test_no_handoff_still_runs_actual_ready_residency_without_duplicate_epoch',
+    'tests.test_ieee_tc_request_lifecycle.SelectedSourceAdmissionIntegration.test_ablation_routes_keep_selected_source_reference_and_release_contract',
+]
+class CombinedConfiguration(unittest.TestCase):
+    def test_owned_load_no_handoff_retains_hierarchy_and_soft_admission(self):
+        from tests.test_ieee_tc_service_routing import FrozenMeasuredInitialization
+        fixture = FrozenMeasuredInitialization()
+        fixture.setUp()
+        self.addCleanup(fixture.doCleanups)
+        runner = fixture.runner(coord_changes=dict(
+            ieee_selection_strategy='load_only', ieee_handoff_policy='no_handoff'))
+        self.assertEqual(runner.router.selection_contract()['strategy'], 'load_only')
+        self.assertEqual(runner.router.policy, 'ieee_confirmed')
+        self.assertEqual(runner._ieee_handoff_policy, 'no_handoff')
+        self.assertTrue(runner._coordination_enabled)
+        self.assertTrue(runner._hierarchical_residency_enabled)
+suite = unittest.defaultTestLoader.loadTestsFromNames(names)
+suite.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(CombinedConfiguration))
+start = time.monotonic()
+with (RAW/'targeted_tests.txt').open('x') as stream:
+    result = unittest.TextTestRunner(stream=stream, verbosity=2).run(suite)
+report = dict(passed=result.wasSuccessful(), exit_code=0 if result.wasSuccessful() else 1,
+    tests_run=result.testsRun, tests=names + ['CombinedConfiguration.test_owned_load_no_handoff_retains_hierarchy_and_soft_admission'], elapsed_s=time.monotonic()-start,
+    test_sources={name: p.digest(ROOT/name) for name in (
+        'tests/test_ieee_tc_service_routing.py', 'tests/test_ieee_tc_request_lifecycle.py',
+        'tests/test_ieee_tc_transfer_pressure.py', 'tests/test_ieee_tc_launch.py')},
+    pool_source_sha256=p.digest(ROOT/'faaslora/experiment/instance_pool.py'),
+    runner_sha256=p.digest(ROOT/'scripts/run_all_experiments.py'),
+    identity=identity, resources=p.cgroup_snapshot(p.cg_path()),
+    performance_test=False, code_changed=False)
+with (RAW/'targeted_tests.json').open('x') as out:
+    json.dump(report,out,indent=2);out.write('\n')
+print(json.dumps(report),flush=True)
+sys.exit(report['exit_code'])

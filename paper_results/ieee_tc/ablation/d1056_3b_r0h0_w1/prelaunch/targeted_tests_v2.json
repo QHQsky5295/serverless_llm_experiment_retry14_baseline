@@ -1,0 +1,53 @@
+{
+  "passed": true,
+  "exit_code": 0,
+  "tests_run": 12,
+  "tests": [
+    "tests.test_ieee_tc_service_routing.LoadOnlyRoutingContract",
+    "tests.test_ieee_tc_service_routing.FrozenMeasuredInitialization.test_load_only_keeps_owned_runner_and_measured_profile_identity",
+    "tests.test_ieee_tc_transfer_pressure.ActivationPreparation.test_no_handoff_activates_without_any_preparation_entry",
+    "tests.test_ieee_tc_launch.IEEEInitialDeployment.test_no_handoff_still_activates_when_preload_disabled",
+    "tests.test_ieee_tc_launch.IEEEActualControl.test_no_handoff_still_runs_actual_ready_residency_without_duplicate_epoch",
+    "tests.test_ieee_tc_request_lifecycle.SelectedSourceAdmissionIntegration.test_ablation_routes_keep_selected_source_reference_and_release_contract",
+    "CombinedConfiguration.test_owned_load_no_handoff_retains_hierarchy_and_soft_admission"
+  ],
+  "elapsed_s": 16.483374839648604,
+  "test_sources": {
+    "tests/test_ieee_tc_service_routing.py": "ca07ca5e9a613fd2f13db666ef333fde1ca1092f8707234102ab11fa769c2e0b",
+    "tests/test_ieee_tc_request_lifecycle.py": "5c9164d3657ab542ef9cbf91cfa308de794935d990c3ff3d7045317a99ac7ab2",
+    "tests/test_ieee_tc_transfer_pressure.py": "dc2b13ee638c55639d93173643d9058152be90da3a2450b5a6bdf109e905634c",
+    "tests/test_ieee_tc_launch.py": "db0f32da9aa2a3001f940bc2f26219642ac12cac06a295a605ba50a2d36ef0e0"
+  },
+  "pool_source_sha256": "a684ae63f14c9673b3cf9b6bd348904e1f260edfeb1b285f1e4d2d65f4bfad16",
+  "runner_sha256": "6fa129bbb52da30150725033363a04360a7439fd4df2ee598b864756b9de1e89",
+  "identity": {
+    "unit": "primelora-tc-aux-8d1a04e00aa6484484785a06e47d471d.scope",
+    "invocation_id": "6b8514d7aee24e88a91a29b58811cd81",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-8d1a04e00aa6484484785a06e47d471d.scope",
+    "inode": 38927367
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-8d1a04e00aa6484484785a06e47d471d.scope",
+    "memory.current": 2834735104,
+    "memory.peak": 2834735104,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=30\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=30",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 45233359\nuser_usec 38112581\nsystem_usec 7120777\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "performance_test": false,
+  "code_changed": false
+}
