@@ -264,3 +264,33 @@ Full或绘图。下一步先安全压缩/清理已闭合可恢复证据，恢复
 当前不能把启动阶段删除、改阈值、改负载或因已知差26条而筛同配置重复。
 保留全部后续模型/场景、独立数值正确性、基线比较、A1–A5、S1–S13、CE及
 论文设计/审稿文档和最终V2交付范围；不恢复已闭合的HydraServe基础适配。
+
+### 11:32备份与测量后必要存储维护已完成
+
+结果检查点0cdc99fc8a4e153fe4cc4b172bc240949ef257ec已推送并ls-remote核验：
+origin/retry14_continuous_queue_v2，以及faaslora_origin的
+backup/d1029-reachable-lora-w2-outcome-20261103。21份指定文档/curated文件，
+diff、19项整体bundle SHA、10项completion SHA、collector语法与暂存凭据模式
+检查通过，用户修改未暂存。FaaSLoRA backup是可回退备份，不冒称分歧V2最终
+集成；未force push。本次没有生产机制改动，因此未重复D1028的CPU/GPU资格。
+
+完整比较结束后，复用compress_closed_main_outcomes.py，仅压缩D1022、D1027
+两个已closed/released的main_outcome.json；运行结果JSON、当前D1029全部raw、
+权重、负载、配置、环境和其他项目不动。压缩前与已有profile-binding seal
+核对原SHA，逐文件检查活动引用；两次独立解压SHA与原SHA一致后，才移除
+未压缩副本。保留同目录main_outcome.json.gz和compression_receipt.json，
+需要原路径时可从归档完整恢复；旧来源引用和旧seal不追改。
+
+回执：paper_results/ieee_tc/storage/d1029_closed_d1022_d1027_outcomes_20261103.json。
+实际回收813350912B，available由160377487360B至161190809600B（约150.12GiB）。
+这是文件系统余量快照，不保证下次启动仍满足门槛；下次重任务前重新读回。
+维护scope为primelora-tc-aux-d1029a1200004f07989c33a15f848012.scope，CPU固定、
+3/4GiB、swap0、低I/O优先级；peak144572416B，high/max/OOM/kill/swap均0，
+退出0。147项旧保护再次通过。没有新GPU任务或全盘重复扫描。
+
+只读日志还确认：D1028画像初始AOT键为9bc8f69a03d6ac74e3c559d001593a595e94f891440416e2de32251d24ec1834，
+D1029 Full为68ad0d2bf035a619bf29b8cb2414f19d9e233505bd689c702446302309f13ff5；
+两者分别实际编译30.86/31.08秒。这里只登记待解释的实际差异，不把哈希不同
+直接判为实现错误，也没有据此实施预热/缓存替换或另一次回放。后续先对照
+历史与官方vLLM配置/缓存身份代码确认其必要性，再结合稳态失约选择唯一候选。
+完整目标保持active，当前无运行中的实验；下一步不是重新启动D1029。
