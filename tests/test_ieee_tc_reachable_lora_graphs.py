@@ -107,9 +107,12 @@ def test_native_worker_uses_super_once_then_changes_only_runner_cases():
     parent.assert_not_called()
 
 
-def test_engine_passes_public_worker_without_replacing_loader_extension():
+@pytest.mark.parametrize('memory', [False, True])
+def test_engine_passes_public_worker_without_replacing_loader_extension(memory):
     cfg = model_config(ieee_backbone_loader='fastsafetensors_affinity_preserving_v1',
                        safetensors_load_strategy='auto')
+    if memory:
+        cfg['ieee_startup_memory_policy'] = 'exact_native_startup_memory_v1'
     engine = runner_module.InferenceEngine(cfg, {})
     args = Mock(side_effect=lambda **kw: NS(**kw))
     native = object()
@@ -123,3 +126,7 @@ def test_engine_passes_public_worker_without_replacing_loader_extension():
     assert kw['additional_config']['ieee_tc_lora_capture_policy'] == POLICY
     assert kw['max_loras'] == 32 and kw['max_num_seqs'] == 8
     assert args.call_count == 1
+    if memory:
+        contract = kw['additional_config']['ieee_tc_startup_memory']
+        assert contract['engine_arguments']['load_format'] == kw['load_format']
+        assert 'ieee_tc_startup_memory' not in contract['engine_arguments']['additional_config']

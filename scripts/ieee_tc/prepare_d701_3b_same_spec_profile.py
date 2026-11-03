@@ -173,7 +173,8 @@ def main() -> None:
 
 def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str,
                         *, private_host: bool = False, slot_only: bool = False,
-                        active_lora: bool = False, reachable_lora: bool = False) -> None:
+                        active_lora: bool = False, reachable_lora: bool = False,
+                        startup_memory: bool = False) -> None:
     """Reuse D701 cases, not times, under explicit graph/CPU-construction changes."""
     if out.exists():
         raise FileExistsError(f"append-only preparation exists: {out}")
@@ -183,10 +184,18 @@ def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str,
         raise ValueError('original same-spec preparation changed')
     old_config = yaml.safe_load(CONFIG.read_text())
     new_config = yaml.safe_load(config_path.read_text())
-    changed = copy.deepcopy(new_config)
     model_key = 'llama32_3b_main_modelscope'
+    comparison_config = copy.deepcopy(new_config)
+    if startup_memory:
+        from faaslora.experiment.startup_memory_plan import POLICY as MEMORY_POLICY
+        if (not reachable_lora or comparison_config['model_profiles'][model_key]['model'].pop(
+                'ieee_startup_memory_policy') != MEMORY_POLICY):
+            raise ValueError('startup memory candidate requires the qualified reachable worker')
+    changed = copy.deepcopy(comparison_config)
     graph = changed['model_profiles'][model_key]['model'].pop('compilation_config')
     changes = {'compilation_config': dict(source=None, target=graph)}
+    if startup_memory:
+        changes['ieee_startup_memory_policy'] = dict(source=None, target=MEMORY_POLICY)
     if reachable_lora:
         from faaslora.experiment.reachable_lora_graphs import POLICY
         if not active_lora or changed['model_profiles'][model_key]['model'].pop('ieee_lora_capture_policy') != POLICY:
@@ -222,7 +231,8 @@ def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str,
     spec = copy.deepcopy(original)
     spec.pop('full_development_contract')
     spec['admission_initialization'].update(
-        kind=('native_fixed_output_reachable_lora_length_transfer_v1' if reachable_lora else
+        kind=('native_fixed_output_startup_memory_length_transfer_v1' if startup_memory else
+              'native_fixed_output_reachable_lora_length_transfer_v1' if reachable_lora else
               'native_fixed_output_graph_slot_specialization_length_transfer_v1' if active_lora else
               'native_fixed_output_graph_slot_length_transfer_v1' if slot_only else
               'native_fixed_output_private_host_length_transfer_v1' if private_host
@@ -250,7 +260,7 @@ def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str,
         if slot_only:
             parent_config = ROOT / 'configs/ieee_tc/20261022_d724_3b_graph_native.yaml'
             parent = yaml.safe_load(parent_config.read_text())
-            candidate = copy.deepcopy(new_config)
+            candidate = copy.deepcopy(comparison_config)
             candidate['model_profiles'][model_key]['model']['max_loras'] = source_slots
             if active_lora:
                 candidate['model_profiles'][model_key]['model'].pop('specialize_active_lora')
@@ -262,7 +272,7 @@ def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str,
                 path=str(parent_config), sha256=digest(parent_config))
     if active_lora:
         parent_path = ROOT / 'configs/ieee_tc/20261102_d1019_3b_gpu_slot_source.yaml'
-        candidate = copy.deepcopy(new_config)
+        candidate = copy.deepcopy(comparison_config)
         candidate['model_profiles'][model_key]['model'].pop('specialize_active_lora')
         if reachable_lora:
             candidate['model_profiles'][model_key]['model'].pop('ieee_lora_capture_policy')
@@ -274,13 +284,21 @@ def rebind_graph_config(config_path: Path, out: Path, raw: Path, campaign: str,
             path=str(parent_path), sha256=digest(parent_path))
     if reachable_lora:
         parent_path = ROOT / 'configs/ieee_tc/20261102_d1021_3b_active_lora_source.yaml'
-        candidate = copy.deepcopy(new_config)
+        candidate = copy.deepcopy(comparison_config)
         candidate['model_profiles'][model_key]['model'].pop('ieee_lora_capture_policy')
         if candidate != yaml.safe_load(parent_path.read_text()):
             raise ValueError('reachable capture candidate changes more than active-LoRA capture cases')
         spec['purpose'] = 'same_cases_fresh_native_timings_after_reachable_lora_capture_change'
         spec['derivation']['kind'] = 'same_spec_reachable_lora_capture_rebind_v1'
         spec['derivation']['reachable_capture_parent_config'] = dict(
+            path=str(parent_path), sha256=digest(parent_path))
+    if startup_memory:
+        parent_path = ROOT / 'configs/ieee_tc/20261103_d1028_3b_reachable_lora_source.yaml'
+        if comparison_config != yaml.safe_load(parent_path.read_text()):
+            raise ValueError('startup memory candidate changes more than memory-profile reuse')
+        spec['purpose'] = 'same_cases_fresh_native_timings_with_exact_startup_memory_reuse'
+        spec['derivation']['kind'] = 'same_spec_exact_startup_memory_rebind_v1'
+        spec['derivation']['startup_memory_parent_config'] = dict(
             path=str(parent_path), sha256=digest(parent_path))
     cfg = copy.deepcopy(new_config['model_profiles'][model_key]['model'])
     cfg.update(generation_contract='fixed_length_greedy_v1',
@@ -336,16 +354,17 @@ if __name__ == "__main__":
     parser.add_argument('--rebind-slot-config', type=Path)
     parser.add_argument('--rebind-active-lora-config', type=Path)
     parser.add_argument('--rebind-reachable-lora-config', type=Path)
+    parser.add_argument('--rebind-startup-memory-config', type=Path)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--raw-directory', type=Path)
     parser.add_argument('--campaign')
     args = parser.parse_args()
     selected_config = (args.rebind_graph_config or args.rebind_private_host_config
                        or args.rebind_slot_config or args.rebind_active_lora_config
-                       or args.rebind_reachable_lora_config)
+                       or args.rebind_reachable_lora_config or args.rebind_startup_memory_config)
     if sum(bool(x) for x in (args.rebind_graph_config, args.rebind_private_host_config,
                             args.rebind_slot_config, args.rebind_active_lora_config,
-                            args.rebind_reachable_lora_config)) > 1:
+                            args.rebind_reachable_lora_config, args.rebind_startup_memory_config)) > 1:
         parser.error('choose one configuration rebind')
     if selected_config:
         if not all((args.output, args.raw_directory, args.campaign)):
@@ -354,9 +373,11 @@ if __name__ == "__main__":
                             args.raw_directory.resolve(), args.campaign,
                             private_host=bool(args.rebind_private_host_config),
                             slot_only=bool(args.rebind_slot_config or args.rebind_active_lora_config
-                                           or args.rebind_reachable_lora_config),
-                            active_lora=bool(args.rebind_active_lora_config or args.rebind_reachable_lora_config),
-                            reachable_lora=bool(args.rebind_reachable_lora_config))
+                                           or args.rebind_reachable_lora_config or args.rebind_startup_memory_config),
+                            active_lora=bool(args.rebind_active_lora_config or args.rebind_reachable_lora_config
+                                             or args.rebind_startup_memory_config),
+                            reachable_lora=bool(args.rebind_reachable_lora_config or args.rebind_startup_memory_config),
+                            startup_memory=bool(args.rebind_startup_memory_config))
     else:
         if any((args.output, args.raw_directory, args.campaign)):
             parser.error('output overrides require rebind-graph-config')

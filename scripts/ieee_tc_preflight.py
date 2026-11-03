@@ -4256,6 +4256,7 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         'native_fixed_output_graph_slot_length_transfer_v1',
         'native_fixed_output_graph_slot_specialization_length_transfer_v1',
         'native_fixed_output_reachable_lora_length_transfer_v1',
+        'native_fixed_output_startup_memory_length_transfer_v1',
         'native_fixed_output_private_host_length_transfer_v1')
     fields = {'kind', 'audit', 'model', 'window_s'}
     if transfer:
@@ -4270,6 +4271,7 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
             'native_fixed_output_graph_slot_length_transfer_v1',
             'native_fixed_output_graph_slot_specialization_length_transfer_v1',
             'native_fixed_output_reachable_lora_length_transfer_v1',
+            'native_fixed_output_startup_memory_length_transfer_v1',
             'native_fixed_output_private_host_length_transfer_v1')):
         raise ValueError('unknown completed-length initialization binding')
     window = binding['window_s']
@@ -4310,7 +4312,9 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         file_transfer = binding['kind'] == 'native_fixed_output_file_demand_length_transfer_v1'
         metadata_transfer = binding['kind'] == 'native_fixed_output_metadata_length_transfer_v1'
         graph_transfer = binding['kind'] == 'native_fixed_output_graph_length_transfer_v1'
-        reachable_transfer = binding['kind'] == 'native_fixed_output_reachable_lora_length_transfer_v1'
+        memory_transfer = binding['kind'] == 'native_fixed_output_startup_memory_length_transfer_v1'
+        reachable_transfer = (binding['kind'] == 'native_fixed_output_reachable_lora_length_transfer_v1'
+                              or memory_transfer)
         specialization_transfer = (binding['kind'] == 'native_fixed_output_graph_slot_specialization_length_transfer_v1'
                                    or reachable_transfer)
         graph_slot_transfer = (binding['kind'] == 'native_fixed_output_graph_slot_length_transfer_v1'
@@ -4366,6 +4370,12 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
                         or identity.get('ieee_lora_capture_policy') != POLICY):
                     raise ValueError('fixed-output reachable LoRA capture transfer differs')
                 permitted.add('ieee_lora_capture_policy')
+            if memory_transfer:
+                from faaslora.experiment.startup_memory_plan import POLICY
+                if ('ieee_startup_memory_policy' in source_identity
+                        or identity.get('ieee_startup_memory_policy') != POLICY):
+                    raise ValueError('fixed-output startup memory transfer differs')
+                permitted.add('ieee_startup_memory_policy')
             if private_host_transfer:
                 # This transfers completed prescribed token counts, never
                 # timings. CPU construction changes the strict timing identity.

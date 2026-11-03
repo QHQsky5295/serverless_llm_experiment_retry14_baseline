@@ -3930,6 +3930,11 @@ class InferenceEngine:
             if executor_backend is not None:
                 kwargs["distributed_executor_backend"] = executor_backend
 
+            from faaslora.experiment.startup_memory_plan import engine_memory_contract
+            memory_contract = engine_memory_contract(self.model_cfg, kwargs)
+            if memory_contract is not None:
+                kwargs['additional_config']['ieee_tc_startup_memory'] = memory_contract
+
             prev_visible = os.environ.get("CUDA_VISIBLE_DEVICES")
             if visible_devices is not None:
                 os.environ["CUDA_VISIBLE_DEVICES"] = visible_devices
