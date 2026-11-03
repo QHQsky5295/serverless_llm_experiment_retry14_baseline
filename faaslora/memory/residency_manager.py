@@ -297,6 +297,9 @@ class LocalSourceReferences:
             raise ValueError('HOST/NVMe owners require distinct nonoverlapping roots')
         self.owner_id = uuid.uuid4().hex
         self.lock = threading.RLock()
+        if os.environ.get('FAASLORA_TC_FILE_OWNER_TIMING') == 'local_lock_spans_v1':
+            from .file_state_process import diagnostic_local_file_lock
+            self.lock = diagnostic_local_file_lock(self.lock, self.owner_id)
         self.leases = {}
         self.released = set()
         self.materializations = {}

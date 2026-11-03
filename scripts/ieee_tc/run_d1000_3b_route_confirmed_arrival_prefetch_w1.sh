@@ -80,6 +80,20 @@ case "${FAASLORA_D1000_NATIVE_PROFILE:-}" in
   *) echo 'Unknown native diagnostic observer' >&2; exit 2 ;;
 esac
 
+case "${FAASLORA_D1000_LOCAL_FILE_PROFILE:-}" in
+  '') ;;
+  local_lock_spans_v1)
+    # Observe the parent's actual in-process file owner, without native profiling.
+    test "${FAASLORA_D1000_PREFIX_COUNT:-}" = 1000
+    test -z "${FAASLORA_D1000_NATIVE_PROFILE:-}"
+    export FAASLORA_FILE_STATE_PROCESS=0
+    export FAASLORA_TC_FILE_OWNER_TIMING=local_lock_spans_v1
+    unset FAASLORA_TC_CORE_TIMING FAASLORA_TC_CORE_STEP_TIMING
+    unset FAASLORA_TC_HOST_INVENTORY_TIMING
+    ;;
+  *) echo 'Unknown local file diagnostic observer' >&2; exit 2 ;;
+esac
+
 exec bash scripts/run_all_experiments_user_scope.sh \
   --config "$CONFIG" \
   --scenario tc_ieee_full --full-stack

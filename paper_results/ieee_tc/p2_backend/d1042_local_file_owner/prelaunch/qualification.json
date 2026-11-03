@@ -1,0 +1,72 @@
+{
+  "passed": true,
+  "tests": [
+    "tests.test_ieee_tc_file_owner_timing_journal",
+    "tests.test_ieee_tc_d456_diagnostic_contract.D1042LocalFileDiagnosticContract",
+    "tests.test_ieee_tc_d456_diagnostic_contract.D1040NativeDescriptorDiagnosticContract"
+  ],
+  "exit_code": 0,
+  "previous_nonexperiment_launch_errors": [
+    "missing_effective_affinity",
+    "wrong_unit_type"
+  ],
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "user_protected": {
+    "configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "docs/ieee_tc/EXECUTION_STATUS.md": "41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "identity": {
+    "unit": "primelora-tc-test-7c9124c41042403e8c04f4fae9b793e8.scope",
+    "invocation_id": "8b6c531b3157418f8c49f8c474498530",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-7c9124c41042403e8c04f4fae9b793e8.scope",
+    "inode": 38594072
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-7c9124c41042403e8c04f4fae9b793e8.scope",
+    "memory.current": 310722560,
+    "memory.peak": 1197457408,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=7\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=7",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 19235954\nuser_usec 16705828\nsystem_usec 2530125\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "affinity": [
+    2,
+    3,
+    26,
+    27
+  ],
+  "sources": {
+    "faaslora/memory/file_state_process.py": "67c602276aba1376728a801ffb25249a393d85ec6c01ea71b17ba465353e36ae",
+    "faaslora/memory/residency_manager.py": "8420ab94fb150365782af93bd04e9102a7ade6412c0a8aac7d40990356e4d55d",
+    "scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh": "a52d665c935016ad40eb2ee73dce101bb772062686bafdbe8f458efa189f0533",
+    "tests/test_ieee_tc_file_owner_timing_journal.py": "efa42481cd7f36cf7501eb0d2575931e731b874505eafdaaeca7cc2c5c322c48",
+    "tests/test_ieee_tc_d456_diagnostic_contract.py": "f956739cf1e5eb4d074f92b1925dd8a683c00b557f3f452116a40e5244cda7d7",
+    "configs/ieee_tc/20261103_d1042_3b_local_file_prefix1000.yaml": "2851aaa9806ea8e68e53fbd2656ec1cf02ff4c1d1c1a76161e13a1fa25bbd52a",
+    "docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+  },
+  "new_gpu_experiments": 0,
+  "production_policy_changed": false
+}

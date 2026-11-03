@@ -1,0 +1,12 @@
+Nov 03 19:13:17 dhu-PowerEdge-T640 systemd[2552]: primelora-d1042-tests2.service: Failed to add memory inotify watch descriptor for control group /user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d1042-tests2.service: No space left on device
+Nov 03 19:13:17 dhu-PowerEdge-T640 systemd[2552]: Started /usr/bin/taskset -c 2,3,26,27 /home/qhq/anaconda3/envs/LLM/bin/python -B /home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1042_20261103/prepare.py.
+Nov 03 19:13:19 dhu-PowerEdge-T640 taskset[834741]: Traceback (most recent call last):
+Nov 03 19:13:19 dhu-PowerEdge-T640 taskset[834741]:   File "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1042_20261103/prepare.py", line 15, in <module>
+Nov 03 19:13:19 dhu-PowerEdge-T640 taskset[834741]:     identity = p.scope_identity(p.cg_path().name)
+Nov 03 19:13:19 dhu-PowerEdge-T640 taskset[834741]:                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 03 19:13:19 dhu-PowerEdge-T640 taskset[834741]:   File "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py", line 786, in scope_identity
+Nov 03 19:13:19 dhu-PowerEdge-T640 taskset[834741]:     raise ValueError('not an owned TC service/test UUID scope')
+Nov 03 19:13:19 dhu-PowerEdge-T640 taskset[834741]: ValueError: not an owned TC service/test UUID scope
+Nov 03 19:13:19 dhu-PowerEdge-T640 systemd[2552]: primelora-d1042-tests2.service: Main process exited, code=exited, status=1/FAILURE
+Nov 03 19:13:19 dhu-PowerEdge-T640 systemd[2552]: primelora-d1042-tests2.service: Failed with result 'exit-code'.
+Nov 03 19:13:19 dhu-PowerEdge-T640 systemd[2552]: primelora-d1042-tests2.service: Consumed 2.392s CPU time.

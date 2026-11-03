@@ -26,6 +26,7 @@ import os
 from pathlib import Path
 import pickle
 import shutil
+import sys
 import threading
 import time
 import uuid
@@ -264,11 +265,14 @@ class FileStateTimingJournal:
         self.error = None
         self.closed = self.truncated = False
         self.lock = threading.Lock()
+        local = metadata.get('observation_mode') == 'local_lock_spans_v1'
         self._write(dict(metadata, event='file_owner_timing_journal_v1',
                          max_bytes=max_bytes, max_records=max_records,
                          formal_performance_result=False, observer_overhead_included=True,
-                         parent_observed_is_first_join_not_pipe_receive=True,
-                         worker_cpu_is_process_cpu_not_additive=True,
+                         parent_observed_is_first_join_not_pipe_receive=not local,
+                         worker_cpu_is_process_cpu_not_additive=not local,
+                         local_lock_intervals_include_scheduling=local,
+                         local_thread_cpu_excludes_parallel_hash_readers=local,
                          command_arguments_and_results_retained=False))
         if self.error is not None:
             stream.close()
@@ -284,15 +288,20 @@ class FileStateTimingJournal:
             self.error = exc
 
     def observe(self, receipt):
+        self._observe_row(dict(event='file_owner_command', sequence=receipt['sequence'],
+            owner_id=receipt['owner_id'], worker_pid=receipt['pid'],
+            ok=receipt['ok'], timing=receipt['diagnostic_timing']))
+
+    def observe_local_lock(self, row):
+        self._observe_row(dict(row, event='file_owner_local_lock'))
+
+    def _observe_row(self, row):
         begin = time.monotonic_ns()
         with self.lock:
             if self.closed:
                 raise RuntimeError('file-owner observation after diagnostic close')
             self.observed += 1
             if self.error is None and not self.truncated:
-                row = dict(event='file_owner_command', sequence=receipt['sequence'],
-                           owner_id=receipt['owner_id'], worker_pid=receipt['pid'],
-                           ok=receipt['ok'], timing=receipt['diagnostic_timing'])
                 size = len((json.dumps(row, separators=(',', ':')) + '\n').encode())
                 if (self.records >= self.max_records
                         or self.bytes_written + size + self.RESERVE_BYTES > self.max_bytes):
@@ -319,11 +328,12 @@ class FileStateTimingJournal:
             raise error
 
 
-def _diagnostic_file_journal():
+def _diagnostic_file_journal(*, local_owner_id=None):
     flag = os.environ.get('FAASLORA_TC_FILE_OWNER_TIMING')
     if flag in (None, '0'):
         return None
-    if flag != 'command_spans_v1':
+    expected = 'local_lock_spans_v1' if local_owner_id is not None else 'command_spans_v1'
+    if flag != expected:
         raise ValueError('unsupported file-owner diagnostic')
     from ..clock import local_monotonic_clock_id
     from ..utils.logger import diagnostic_service_receipt
@@ -333,13 +343,118 @@ def _diagnostic_file_journal():
     if directory.is_symlink():
         raise ValueError('file-owner diagnostic directory must not be a symlink')
     ticks = int(Path('/proc/self/stat').read_text().rsplit(') ', 1)[1].split()[19])
-    stream = (directory / f'{os.getpid()}-{ticks}.jsonl').open('xb', buffering=0)
+    suffix = '' if local_owner_id is None else '-'+local_owner_id
+    stream = (directory / f'{os.getpid()}-{ticks}{suffix}.jsonl').open('xb', buffering=0)
     journal = FileStateTimingJournal(stream, dict(pid=os.getpid(), start_ticks=ticks,
         cgroup=str(actual), clock_id=local_monotonic_clock_id(),
         replay_scope=replay['replay_scope'],
-        diagnostic_prefix_count=replay['diagnostic_prefix_count']))
+        diagnostic_prefix_count=replay['diagnostic_prefix_count'],
+        observation_mode=expected, local_owner_id=local_owner_id))
     atexit.register(journal.close, raise_error=False)
     return journal
+
+
+class DiagnosticFileRLock:
+    """Observe the existing local owner's RLock, not a new synchronization rule.
+
+    Every successful acquire has its matching release. Nested spans are retained
+    with parent IDs; totals must use interval unions, not sum overlapping spans.
+    The acquire interval includes lock contention, OS scheduling and GIL return.
+    Caller-thread CPU excludes SHA reader threads. Process CPU is deliberately
+    not attributed to this lock: other controller threads may be running too.
+    Only code locations and four bounded logical IDs are copied from the caller;
+    frames, arguments, results, paths, weights and exception messages are not kept.
+    """
+
+    def __init__(self, lock, owner_id, journal):
+        self._lock, self.owner_id, self.journal = lock, owner_id, journal
+        self._state = threading.Lock()
+        self._stacks = {}
+        self._submitted = 0
+
+    def _acquire(self, args, kwargs, frame):
+        context = dict(operation=frame.f_code.co_name,
+                       caller_file=Path(frame.f_code.co_filename).name,
+                       caller_line=frame.f_lineno)
+        local = frame.f_locals
+        identifiers = {name: local[name] for name in
+            ('transfer_id', 'adapter_id', 'lease_id', 'plan_id')
+            if type(local.get(name)) is str and len(local[name]) <= 160}
+        del local, frame
+        ident = threading.get_ident()
+        with self._state:
+            self._submitted += 1
+            stack = self._stacks.get(ident, ())
+            row = dict(context, identifiers=identifiers, sequence=self._submitted,
+                parent_sequence=stack[-1]['sequence'] if stack else None,
+                depth=len(stack), owner_id=self.owner_id, pid=os.getpid(),
+                thread_ident=ident, native_thread_id=threading.get_native_id(),
+                clock='host_monotonic_ns', acquired=False, error_type=None)
+        row['attempt_started_ns'] = time.monotonic_ns()
+        row['attempt_thread_cpu_ns'] = time.thread_time_ns()
+        try:
+            acquired = self._lock.acquire(*args, **kwargs)
+        except BaseException as exc:
+            row.update(ended_ns=time.monotonic_ns(),
+                       ended_thread_cpu_ns=time.thread_time_ns(),
+                       error_type=type(exc).__name__)
+            self.journal.observe_local_lock(row)
+            raise
+        row.update(acquired=acquired, acquired_ns=time.monotonic_ns(),
+                   acquired_thread_cpu_ns=time.thread_time_ns())
+        if acquired:
+            with self._state:
+                self._stacks.setdefault(ident, []).append(row)
+        else:
+            row.update(ended_ns=row['acquired_ns'],
+                       ended_thread_cpu_ns=row['acquired_thread_cpu_ns'])
+            self.journal.observe_local_lock(row)
+        return acquired
+
+    def acquire(self, *args, **kwargs):
+        return self._acquire(args, kwargs, sys._getframe(1))
+
+    def __enter__(self):
+        return self._acquire((), {}, sys._getframe(1))
+
+    def _release(self, error_type):
+        # Do not emit while holding the owner lock at the outermost depth.
+        # Nested emission remains inside the parent interval and is not hidden.
+        ended_ns, ended_cpu_ns = time.monotonic_ns(), time.thread_time_ns()
+        self._lock.release()  # Preserve non-owner/unbalanced release errors.
+        ident = threading.get_ident()
+        with self._state:
+            row = self._stacks[ident].pop()
+            if not self._stacks[ident]:
+                del self._stacks[ident]
+        row.update(ended_ns=ended_ns, ended_thread_cpu_ns=ended_cpu_ns,
+                   error_type=error_type)
+        self.journal.observe_local_lock(row)
+
+    def release(self):
+        self._release(None)
+
+    def __exit__(self, exc_type, exc, traceback):
+        self._release(None if exc_type is None else exc_type.__name__)
+
+    def _is_owned(self):
+        return self._lock._is_owned()
+
+    def close(self, *, raise_error=True):
+        with self._state:
+            # A footer with submitted != observed is explicitly incomplete.
+            submitted = self._submitted
+        self.journal.close(submitted_commands=submitted, raise_error=raise_error)
+
+
+def diagnostic_local_file_lock(lock, owner_id):
+    """No import/observer on the default path; only explicit local diagnostics."""
+    journal = _diagnostic_file_journal(local_owner_id=owner_id)
+    if journal is None:
+        return lock
+    observed = DiagnosticFileRLock(lock, owner_id, journal)
+    atexit.register(observed.close, raise_error=False)
+    return observed
 
 
 class FileStateCall:

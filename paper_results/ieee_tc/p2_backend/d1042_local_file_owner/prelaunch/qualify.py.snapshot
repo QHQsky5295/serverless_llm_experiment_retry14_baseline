@@ -1,0 +1,63 @@
+"""D1042 source/measurement qualification; preserve every earlier launcher outcome."""
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d1042_local_file_owner/prelaunch'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+identity = p.scope_identity(p.cg_path().name)
+OUT.mkdir(parents=True, exist_ok=False)
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, allow_nan=False)
+        handle.write('\n')
+tests = ['tests.test_ieee_tc_file_owner_timing_journal',
+         'tests.test_ieee_tc_d456_diagnostic_contract.D1042LocalFileDiagnosticContract',
+         'tests.test_ieee_tc_d456_diagnostic_contract.D1040NativeDescriptorDiagnosticContract']
+with (OUT/'tests.txt').open('x') as handle:
+    result = subprocess.run([sys.executable, '-B', '-m', 'unittest', *tests, '-v'],
+        cwd=ROOT, stdout=handle, stderr=subprocess.STDOUT)
+assert result.returncode == 0
+for unit in ('primelora-d1042-tests1', 'primelora-d1042-tests2'):
+    log = subprocess.check_output(['journalctl', '--user', '-u', unit,
+        '--no-pager', '-n', '40'], text=True)
+    with (OUT/(unit+'.txt')).open('x') as handle:
+        handle.write(log)
+    status = subprocess.check_output(['systemctl', '--user', 'show', unit,
+        '-p', 'ActiveState', '-p', 'SubState'], text=True)
+    assert 'ActiveState=inactive' in status and 'SubState=dead' in status
+for name in ('tests1.txt', 'tests1.json', 'prepare.py'):
+    with (OUT/name).open('xb') as handle:
+        handle.write((RAW/name).read_bytes())
+protected = p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))
+assert protected['pass'] and protected['entry_count'] == 147
+user = {'configs/generated/lora_manifest_1000.json': '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df',
+        'docs/ieee_tc/EXECUTION_STATUS.md': '41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374'}
+assert all(p.digest(ROOT/name) == sha for name, sha in user.items())
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+resources = p.cgroup_snapshot(p.cg_path())
+assert resources['memory.high'] == 3*p.GIB and resources['memory.max'] == 4*p.GIB
+assert not any(resources['memory.events'].values()) and resources['memory.swap.current'] == 0
+sources = ['faaslora/memory/file_state_process.py', 'faaslora/memory/residency_manager.py',
+    'scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh',
+    'tests/test_ieee_tc_file_owner_timing_journal.py', 'tests/test_ieee_tc_d456_diagnostic_contract.py',
+    'configs/ieee_tc/20261103_d1042_3b_local_file_prefix1000.yaml',
+    'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md', 'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md']
+save(OUT/'qualification.json', dict(passed=True, tests=tests, exit_code=result.returncode,
+    previous_nonexperiment_launch_errors=['missing_effective_affinity', 'wrong_unit_type'],
+    plan_sha256=p.check_plan(), user_protected=user, protected=protected,
+    identity=identity, resources=resources, affinity=sorted(os.sched_getaffinity(0)),
+    sources={name:p.digest(ROOT/name) for name in sources},
+    new_gpu_experiments=0, production_policy_changed=False))
+with (OUT/'qualify.py.snapshot').open('xb') as handle:
+    handle.write(Path(__file__).read_bytes())
+save(OUT/'manifest.json', dict(files=[dict(path=str(x.relative_to(ROOT)), sha256=p.digest(x))
+    for x in sorted(OUT.iterdir()) if x.is_file()]))

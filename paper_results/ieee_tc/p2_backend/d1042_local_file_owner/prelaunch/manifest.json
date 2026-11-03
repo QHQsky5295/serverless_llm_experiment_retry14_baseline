@@ -1,0 +1,36 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1042_local_file_owner/prelaunch/prepare.py",
+      "sha256": "e9748b450513ee251f3ea82cb3aab5ddc69a05b5d3143cb9045c623cf43c0aa4"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1042_local_file_owner/prelaunch/primelora-d1042-tests1.txt",
+      "sha256": "135b3d41adf1a6132c31bb3c4f7e1e404dfa083b00fc34f91005abcdc9356569"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1042_local_file_owner/prelaunch/primelora-d1042-tests2.txt",
+      "sha256": "99ffb73cb7a4d0404ccfd21874e5f0d4f226ea64cdacba8635d642e6f6ac5ad3"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1042_local_file_owner/prelaunch/qualification.json",
+      "sha256": "b9ad2d5154d45db6ebaec8f1916c0ad6decfda6f2f3677ea3110eeb6dd267f5a"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1042_local_file_owner/prelaunch/qualify.py.snapshot",
+      "sha256": "b5d8bb2fe12239cb5eb4ce11f56dac2d74f233eb4aae6d69d53a34a988573090"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1042_local_file_owner/prelaunch/tests.txt",
+      "sha256": "66092860f4b542730f32bdf95abc2ebd774cb5d39ee4c9c6e49cf640e008fe6d"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1042_local_file_owner/prelaunch/tests1.json",
+      "sha256": "73d4c87b05b87ce663fcc515382138ddff1eace0885d707055219dbbc06a468b"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1042_local_file_owner/prelaunch/tests1.txt",
+      "sha256": "28a5ec6b9f83b98df6cc03fdf4c6e814e4240c759124c03638626d25841d9d51"
+    }
+  ]
+}

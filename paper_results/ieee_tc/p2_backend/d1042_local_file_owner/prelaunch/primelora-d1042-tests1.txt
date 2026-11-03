@@ -1,0 +1,10 @@
+Nov 03 19:12:46 dhu-PowerEdge-T640 systemd[2552]: primelora-d1042-tests1.service: Failed to add memory inotify watch descriptor for control group /user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d1042-tests1.service: No space left on device
+Nov 03 19:12:46 dhu-PowerEdge-T640 systemd[2552]: Started /home/qhq/anaconda3/envs/LLM/bin/python -B /home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1042_20261103/prepare.py.
+Nov 03 19:12:49 dhu-PowerEdge-T640 python[833382]: Traceback (most recent call last):
+Nov 03 19:12:49 dhu-PowerEdge-T640 python[833382]:   File "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1042_20261103/prepare.py", line 13, in <module>
+Nov 03 19:12:49 dhu-PowerEdge-T640 python[833382]:     assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+Nov 03 19:12:49 dhu-PowerEdge-T640 python[833382]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 03 19:12:49 dhu-PowerEdge-T640 python[833382]: AssertionError
+Nov 03 19:12:53 dhu-PowerEdge-T640 systemd[2552]: primelora-d1042-tests1.service: Main process exited, code=exited, status=1/FAILURE
+Nov 03 19:12:53 dhu-PowerEdge-T640 systemd[2552]: primelora-d1042-tests1.service: Failed with result 'exit-code'.
+Nov 03 19:12:53 dhu-PowerEdge-T640 systemd[2552]: primelora-d1042-tests1.service: Consumed 8.046s CPU time.

@@ -195,6 +195,42 @@ class D519DiagnosticContract(unittest.TestCase):
         self.assertIn('FAASLORA_TC_CORE_TIMING=host_spans_v1', wrapper)
 
 
+class D1042LocalFileDiagnosticContract(unittest.TestCase):
+    def test_parent_policy_only_exclusive_paths_change(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261103_d1033_3b_startup_memory_w2.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261103_d1042_3b_local_file_prefix1000.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            self.assertNotEqual(old[section].pop(field), new[section].pop(field))
+        self.assertEqual(old, new)
+        self.assertFalse(new.get('memory', {}).get('file_state_process', False))
+        self.assertEqual(new['workload']['total_requests'], 4000)
+
+    def selection(self, mode, native='', count='1000'):
+        runner = (ROOT/'scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh').read_text()
+        block = re.search(r'^case "\$\{FAASLORA_D1000_LOCAL_FILE_PROFILE:-\}" in\n.*?^esac',
+                          runner, re.M | re.S).group(0)
+        command = block + '\nexec "$1" -c \'import json,os; print(json.dumps({k:v for k,v in os.environ.items() if k.startswith("FAASLORA_TC_")}))\''
+        return subprocess.run(['bash', '-eu', '-c', command, 'local-file-test', sys.executable],
+            env={'PATH': os.environ['PATH'], 'FAASLORA_D1000_LOCAL_FILE_PROFILE': mode,
+                 'FAASLORA_D1000_NATIVE_PROFILE': native, 'FAASLORA_D1000_PREFIX_COUNT': count},
+            capture_output=True, text=True)
+
+    def test_opt_in_exports_local_not_process_timing_and_excludes_other_profiler(self):
+        result = self.selection('local_lock_spans_v1')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout),
+                         {'FAASLORA_TC_FILE_OWNER_TIMING': 'local_lock_spans_v1'})
+        self.assertNotEqual(self.selection('local_lock_spans_v1', native='host_spans_v1').returncode, 0)
+        self.assertNotEqual(self.selection('local_lock_spans_v1', count='4000').returncode, 0)
+
+    def test_default_unchanged_unknown_mode_fails(self):
+        result = self.selection('')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), {})
+        self.assertEqual(self.selection('wrong').returncode, 2)
+
+
 class D1040NativeDescriptorDiagnosticContract(unittest.TestCase):
     def test_parent_policy_only_exclusive_paths_change(self):
         old = yaml.safe_load((ROOT/'configs/ieee_tc/20261103_d1033_3b_startup_memory_w2.yaml').read_text())
