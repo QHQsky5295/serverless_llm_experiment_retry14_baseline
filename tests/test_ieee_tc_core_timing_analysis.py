@@ -6,7 +6,161 @@ import tempfile
 import unittest
 
 from scripts.analyze_control_path_overhead import (summarize_core_host_spans,
-    core_interval_overlap, analyze_core_host_timing)
+    core_interval_overlap, analyze_core_host_timing, summarize_local_file_lock_spans,
+    analyze_local_file_lock_timing, join_local_publication_spans)
+
+
+class LocalFileLockAnalysis(unittest.TestCase):
+    @staticmethod
+    def fixture():
+        def row(seq, parent, operation, a, b, c, cpu, acquired=True, thread=9):
+            value = dict(event='file_owner_local_lock', sequence=seq, parent_sequence=parent,
+                depth=0 if parent is None else 1, operation=operation,
+                caller_file='owner.py', caller_line=1, identifiers={'adapter_id':'a'},
+                owner_id='owner', pid=7, thread_ident=thread, native_thread_id=thread,
+                clock='host_monotonic_ns', acquired=acquired, error_type=None,
+                attempt_started_ns=a, ended_ns=c,
+                attempt_thread_cpu_ns=cpu[0], ended_thread_cpu_ns=cpu[2])
+            if acquired:
+                value.update(acquired_ns=b, acquired_thread_cpu_ns=cpu[1])
+            return value
+        return [row(2, 1, 'snapshot', 3, 4, 9, (2,3,5)),
+            row(3, 1, 'try_read', 10, None, 12, (6,None,7), acquired=False),
+            row(1, None, 'publish', 0, 2, 20, (0,1,10)),
+            row(4, None, 'snapshot', 18, 21, 25, (0,1,3), thread=11),
+            dict(event='file_owner_timing_end_v1', owner_closed=False, records=4,
+                submitted_commands=4, observed_receipts=4, truncated=False, observer_ns=2)]
+
+    def test_exact_nonadditive_hold_acquisition_and_exclusive_partition(self):
+        rows = self.fixture(); before = copy.deepcopy(rows)
+        result = summarize_local_file_lock_spans(rows)
+        self.assertEqual(rows, before)
+        self.assertTrue(result['complete'])
+        self.assertFalse(result['owner_closed'])
+        self.assertFalse(result['causal_attribution_established'])
+        by_id = {r['sequence']:r for r in result['records']}
+        self.assertEqual(by_id[1]['hold_ns'], 18)
+        self.assertEqual(by_id[1]['exclusive_hold_ns'], 10)
+        self.assertEqual(by_id[1]['exclusive_thread_cpu_ns'], 5)
+        self.assertEqual(by_id[3]['acquisition_ns'], 2)
+        self.assertEqual(result['index']['hold']['total_ns'], 22)
+        self.assertEqual(result['index']['acquisition']['total_ns'], 8)
+        self.assertEqual(core_interval_overlap(result['index']['hold'], 19, 23), 3)
+        group = next(g for g in result['groups'] if g['scope']=='all_inclusive' and g['operation']=='snapshot')
+        self.assertEqual(group['hold_ns']['p95_type1_ms'], 5/1e6)
+        root = next(g for g in result['groups'] if g['scope']=='root_only' and g['operation']=='snapshot')
+        self.assertEqual(root['count'], 1)
+
+    def test_missing_close_and_truncation_are_not_zero_or_complete(self):
+        result = summarize_local_file_lock_spans(self.fixture()[:-1])
+        self.assertFalse(result['complete'])
+        self.assertIsNone(result['truncated'])
+        self.assertIsNone(result['observer_ns'])
+        rows = self.fixture()
+        rows = [rows[0], dict(rows[-1], records=1, truncated=True)]
+        result = summarize_local_file_lock_spans(rows)
+        self.assertFalse(result['complete'])
+        self.assertEqual(result['orphan_sequence_ids'], [2])
+        self.assertFalse(result['records'][0]['exclusive_complete'])
+
+    def test_incomplete_submitted_acquisition_is_retained(self):
+        rows = self.fixture(); rows[-1]['submitted_commands'] = 5
+        result = summarize_local_file_lock_spans(rows)
+        self.assertFalse(result['complete'])
+        self.assertEqual(result['observation_count'], 4)
+
+    def test_close_counts_identity_and_parent_errors_are_rejected(self):
+        changes = [lambda r:r[-1].update(records=3),
+            lambda r:r[-1].update(observed_receipts=5),
+            lambda r:r[0].update(sequence=True),
+            lambda r:r[0].update(parent_sequence=9),
+            lambda r:r[0].update(thread_ident=99),
+            lambda r:r[0].update(depth=0),
+            lambda r:r[0].update(owner_id='other'),
+            lambda r:r[0].update(ended_ns=21),
+            lambda r:r[0].update(acquired_ns=2),
+            lambda r:r[0].update(acquired_thread_cpu_ns=9),
+            lambda r:r[0].update(identifiers={'unknown':'payload'}),
+            lambda r:r[0].update(clock='walltime'),
+            lambda r:r[3].update(acquired_ns=19)]
+        for change in changes:
+            with self.subTest(change=change):
+                rows = self.fixture(); change(rows)
+                with self.assertRaises(ValueError):
+                    summarize_local_file_lock_spans(rows)
+        with self.assertRaises(ValueError):
+            summarize_local_file_lock_spans(self.fixture()+[self.fixture()[0]])
+
+    def test_emission_order_does_not_invent_cross_thread_order(self):
+        rows = self.fixture()
+        shuffled = [rows[3], rows[0], rows[1], rows[2], rows[-1]]
+        self.assertEqual(summarize_local_file_lock_spans(rows),
+                         summarize_local_file_lock_spans(shuffled))
+
+    def test_failed_acquire_typed_error_is_counted_without_hold(self):
+        rows = self.fixture(); rows[1]['error_type'] = 'ValueError'
+        result = summarize_local_file_lock_spans(rows)
+        group = next(g for g in result['groups'] if g['operation'] == 'try_read')
+        self.assertEqual((group['acquired'], group['raised']), (0,1))
+        self.assertEqual(group['hold_ns']['sum_ms'], 0)
+
+    def test_local_file_audit_binds_header_to_launch_and_writes_fresh_output(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            journals = root/'diagnostic_file_owner'
+            journals.mkdir()
+            owner = '/sys/fs/cgroup/test-local-owner.scope'
+            header = dict(event='file_owner_timing_journal_v1', pid=7, start_ticks=11,
+                local_owner_id='owner', cgroup=owner, clock_id='clock',
+                observation_mode='local_lock_spans_v1', formal_performance_result=False,
+                observer_overhead_included=True, local_lock_intervals_include_scheduling=True,
+                local_thread_cpu_excludes_parallel_hash_readers=True,
+                replay_scope='diagnostic_prefix_v1', diagnostic_prefix_count=2)
+            journal = journals/'7-11-owner.jsonl'
+            journal.write_text(''.join(json.dumps(row)+'\n' for row in [header]+self.fixture()))
+            receipt = root/'receipt.json'
+            receipt.write_text(json.dumps(dict(allow_exec=True, service_identity=dict(path=owner),
+                external_replay=dict(replay_scope='diagnostic_prefix_v1', diagnostic_prefix_count=2))))
+            deployment = root/'deployment.json'
+            deployment.write_text(json.dumps(dict(clock_id='clock', plan=dict(count=2))))
+            summary, records, indexes = analyze_local_file_lock_timing(journals, receipt, deployment, root/'output')
+            self.assertEqual(summary['complete_owners'], 1)
+            self.assertEqual(summary['observation_count'], 4)
+            self.assertTrue((root/'output/lock_spans.csv').is_file())
+            self.assertEqual(len(summary['sources']), 4)
+            self.assertEqual(indexes['7-11-owner']['hold']['total_ns'], 22)
+            with self.assertRaises(FileExistsError):
+                analyze_local_file_lock_timing(journals, receipt, deployment, root/'output')
+            header['clock_id'] = 'different-clock'
+            journal.write_text(''.join(json.dumps(row)+'\n' for row in [header]+self.fixture()))
+            with self.assertRaisesRegex(ValueError, 'identity/clock'):
+                analyze_local_file_lock_timing(journals, receipt, deployment, root/'wrong')
+            self.assertFalse((root/'wrong').exists())
+
+    def test_publication_joins_exact_transfer_and_owner_not_adapter_or_time(self):
+        rows = self.fixture()
+        rows[2]['operation'] = 'publish_transfer'
+        rows[2]['identifiers']['transfer_id'] = 'transfer'
+        spans = summarize_local_file_lock_spans(rows)['records']
+        transfer = dict(transfer_id='transfer', artifact_id='a', state='published',
+            loading_clock_id='clock', confirmed_file_publication=dict(owner_id='owner'),
+            extraction_completed_monotonic_s=0., published_monotonic_s=23e-9)
+        joined, = join_local_publication_spans([transfer], spans, clock_id='clock')
+        self.assertEqual(joined['status'], 'joined')
+        self.assertEqual(joined['hold_ms'], 18/1e6)
+        self.assertAlmostEqual(sum(joined[k] for k in ('before_lock_attempt_ms',
+            'acquisition_ms','hold_ms','after_lock_release_edge_ms')), joined['publication_envelope_ms'])
+        unjoined, = join_local_publication_spans([dict(transfer, transfer_id='other')], spans, clock_id='clock')
+        self.assertEqual(unjoined['status'], 'unjoined')
+        self.assertNotIn('hold_ms', unjoined)
+        with self.assertRaises(ValueError):
+            join_local_publication_spans([transfer, transfer], spans, clock_id='clock')
+        with self.assertRaises(ValueError):
+            join_local_publication_spans([transfer], spans, clock_id='wrong')
+        with self.assertRaises(ValueError):
+            join_local_publication_spans([dict(transfer, published_monotonic_s=17e-9)], spans, clock_id='clock')
+        with self.assertRaises(ValueError):
+            join_local_publication_spans([dict(transfer, confirmed_file_publication=dict(owner_id='other'))], spans, clock_id='clock')
 
 
 def events():

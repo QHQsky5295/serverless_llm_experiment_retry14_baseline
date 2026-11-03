@@ -1,0 +1,79 @@
+{
+  "passed": true,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "formal_performance_result": false,
+  "includes_observer_overhead": true,
+  "native_contract_requests": 1000,
+  "observations_complete": 44567,
+  "production_policy_changed_during_collection": false,
+  "observer_changed_during_collection": false,
+  "source_commit": "5df5addec6046c3ce7d2597e94eaea0996d57dd7",
+  "local_file_owner_measured": true,
+  "native_core_profiling": false,
+  "protected_files_unchanged": 147,
+  "service_path_removed": true,
+  "work_caches_empty": true,
+  "remote_existing_service_reused": true,
+  "identity": {
+    "unit": "primelora-tc-aux-a018ba49932b4f4d976b5b08f47eba21.scope",
+    "invocation_id": "e3b822faee7246098ade687a1b2dcb0a",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-a018ba49932b4f4d976b5b08f47eba21.scope",
+    "inode": 38605858
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-a018ba49932b4f4d976b5b08f47eba21.scope",
+    "memory.current": 514744320,
+    "memory.peak": 517107712,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 8832107\nuser_usec 7454466\nsystem_usec 1377640\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "disk_available_bytes": 163565617152,
+  "caveats": [
+    "File-owner hold/acquisition spans are not GPU kernel durations or counterfactual removable delay.",
+    "Per-request overlaps are not additive service wall time; groups differ in output lengths.",
+    "Diagnostic prefix is not a full 4000-request performance point.",
+    "Independent numerical correctness remains unknown."
+  ],
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102_attempt2/curate.py",
+      "sha256": "32631efadc158e52251bb6b96b11b0e966e8feb41b83f3a0ad01faf0dae8591f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "3abcd9d766a7dc1c780244d8eedaac8440815aa85c0e45c6d9b81ef2cf35a070"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1042_20261103/analyze.py",
+      "sha256": "0d47fec70349173f2fca273ba1888b762fc4394875b831bbe502110fe8e30d94"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/analyze.py",
+      "sha256": "31c5576dc1c1ae75e596ee99f6d809fc2e68dae784724f4243a4a4da6e9d1c2e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1042_20261103/d1042_3b_local_file_prefix1000/launch.json",
+      "sha256": "c70df321126a27c9694b3938cef683dd5396476064cb24f6e56038a91110d3db"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1042_20261103/remote_transfers.jsonl",
+      "sha256": "31891577aeff1578a4f2b11924cb01baf18d02f0070bb16b1d1855f80b00fb54"
+    }
+  ]
+}

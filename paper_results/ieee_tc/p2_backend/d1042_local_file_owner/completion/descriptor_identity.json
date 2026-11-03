@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "requests": 1000,
+  "worker_receipts": {
+    "848705": 934,
+    "851057": 1062,
+    "850938": 10
+  },
+  "source_commit": "5df5addec6046c3ce7d2597e94eaea0996d57dd7"
+}

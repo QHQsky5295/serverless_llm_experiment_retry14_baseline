@@ -1,0 +1,248 @@
+{
+  "transfer_states": {
+    "published": 146
+  },
+  "association_status": {
+    "joined": 146
+  },
+  "transfers": {
+    "count": 146,
+    "metrics": {
+      "acquisition_ms": {
+        "count": 146,
+        "mean": 2.5739383287671234,
+        "p50_type1": 0.004313,
+        "p95_type1": 1.895295
+      },
+      "after_lock_release_edge_ms": {
+        "count": 146,
+        "mean": 0.6740558287671233,
+        "p50_type1": 0.253149,
+        "p95_type1": 1.168582
+      },
+      "before_lock_attempt_ms": {
+        "count": 146,
+        "mean": 0.2919826917808219,
+        "p50_type1": 0.219347,
+        "p95_type1": 0.52938
+      },
+      "exclusive_hold_ms": {
+        "count": 146,
+        "mean": 100.87082152054795,
+        "p50_type1": 91.576716,
+        "p95_type1": 150.41465
+      },
+      "exclusive_thread_cpu_ms": {
+        "count": 146,
+        "mean": 25.038493568493152,
+        "p50_type1": 18.179771,
+        "p95_type1": 32.426939
+      },
+      "hold_ms": {
+        "count": 146,
+        "mean": 133.23794223972604,
+        "p50_type1": 118.408031,
+        "p95_type1": 193.016301
+      },
+      "hold_thread_cpu_ms": {
+        "count": 146,
+        "mean": 56.4338767739726,
+        "p50_type1": 43.191842,
+        "p95_type1": 77.474825
+      },
+      "publication_envelope_ms": {
+        "count": 146,
+        "mean": 136.7779190890411,
+        "p50_type1": 119.115626,
+        "p95_type1": 219.400042
+      }
+    }
+  },
+  "remote_request_groups": {
+    "all": {
+      "count": 141,
+      "metrics": {
+        "acquisition_ms": {
+          "count": 141,
+          "mean": 2.665080085106383,
+          "p50_type1": 0.004341,
+          "p95_type1": 1.895295
+        },
+        "after_lock_release_edge_ms": {
+          "count": 141,
+          "mean": 0.6780850709219858,
+          "p50_type1": 0.250051,
+          "p95_type1": 1.168582
+        },
+        "before_lock_attempt_ms": {
+          "count": 141,
+          "mean": 0.29440278723404256,
+          "p50_type1": 0.21941,
+          "p95_type1": 0.52938
+        },
+        "exclusive_hold_ms": {
+          "count": 141,
+          "mean": 101.32187657446809,
+          "p50_type1": 91.735515,
+          "p95_type1": 150.41465
+        },
+        "exclusive_thread_cpu_ms": {
+          "count": 141,
+          "mean": 25.132798113475175,
+          "p50_type1": 18.179771,
+          "p95_type1": 32.426939
+        },
+        "hold_ms": {
+          "count": 141,
+          "mean": 133.65154952482268,
+          "p50_type1": 118.736338,
+          "p95_type1": 193.016301
+        },
+        "hold_thread_cpu_ms": {
+          "count": 141,
+          "mean": 56.46447334042553,
+          "p50_type1": 42.691421,
+          "p95_type1": 72.400248
+        },
+        "publication_envelope_ms": {
+          "count": 141,
+          "mean": 137.2891174680851,
+          "p50_type1": 119.367909,
+          "p95_type1": 219.400042
+        },
+        "ttft_ms": {
+          "count": 141,
+          "mean": 1041.0817186447216,
+          "p50_type1": 834.8044739104807,
+          "p95_type1": 1849.0940532647073
+        }
+      }
+    },
+    "ttft_fail": {
+      "count": 4,
+      "metrics": {
+        "acquisition_ms": {
+          "count": 4,
+          "mean": 0.00384825,
+          "p50_type1": 0.003975,
+          "p95_type1": 0.004352
+        },
+        "after_lock_release_edge_ms": {
+          "count": 4,
+          "mean": 0.42255,
+          "p50_type1": 0.424311,
+          "p95_type1": 0.559466
+        },
+        "before_lock_attempt_ms": {
+          "count": 4,
+          "mean": 0.257859,
+          "p50_type1": 0.207742,
+          "p95_type1": 0.397046
+        },
+        "exclusive_hold_ms": {
+          "count": 4,
+          "mean": 105.35132225,
+          "p50_type1": 89.319343,
+          "p95_type1": 123.238714
+        },
+        "exclusive_thread_cpu_ms": {
+          "count": 4,
+          "mean": 25.1410425,
+          "p50_type1": 28.847151,
+          "p95_type1": 32.426939
+        },
+        "hold_ms": {
+          "count": 4,
+          "mean": 253.6513435,
+          "p50_type1": 124.637223,
+          "p95_type1": 635.926471
+        },
+        "hold_thread_cpu_ms": {
+          "count": 4,
+          "mean": 173.425347,
+          "p50_type1": 67.437869,
+          "p95_type1": 545.064126
+        },
+        "publication_envelope_ms": {
+          "count": 4,
+          "mean": 254.33560075,
+          "p50_type1": 125.269627,
+          "p95_type1": 636.698031
+        },
+        "ttft_ms": {
+          "count": 4,
+          "mean": 3897.809711401351,
+          "p50_type1": 2875.6207758560777,
+          "p95_type1": 7902.69914874807
+        }
+      }
+    },
+    "ttft_pass": {
+      "count": 137,
+      "metrics": {
+        "acquisition_ms": {
+          "count": 137,
+          "mean": 2.742780284671533,
+          "p50_type1": 0.004359,
+          "p95_type1": 1.9413
+        },
+        "after_lock_release_edge_ms": {
+          "count": 137,
+          "mean": 0.6855459489051094,
+          "p50_type1": 0.241316,
+          "p95_type1": 1.443597
+        },
+        "before_lock_attempt_ms": {
+          "count": 137,
+          "mean": 0.29546975912408757,
+          "p50_type1": 0.21941,
+          "p95_type1": 0.78642
+        },
+        "exclusive_hold_ms": {
+          "count": 137,
+          "mean": 101.20422852554745,
+          "p50_type1": 91.735515,
+          "p95_type1": 150.745393
+        },
+        "exclusive_thread_cpu_ms": {
+          "count": 137,
+          "mean": 25.132557401459852,
+          "p50_type1": 17.964008,
+          "p95_type1": 33.367431
+        },
+        "hold_ms": {
+          "count": 137,
+          "mean": 130.1479059051095,
+          "p50_type1": 118.408031,
+          "p95_type1": 193.016301
+        },
+        "hold_thread_cpu_ms": {
+          "count": 137,
+          "mean": 53.04955732116788,
+          "p50_type1": 42.603902,
+          "p95_type1": 72.400248
+        },
+        "publication_envelope_ms": {
+          "count": 137,
+          "mean": 133.87170189781023,
+          "p50_type1": 119.115626,
+          "p95_type1": 219.400042
+        },
+        "ttft_ms": {
+          "count": 137,
+          "mean": 957.6736020678858,
+          "p50_type1": 828.0864488333464,
+          "p95_type1": 1567.0330924913287
+        }
+      }
+    }
+  },
+  "unjoined_remote_requests": [
+    {
+      "request_id": "req_00994",
+      "transfer_id": null,
+      "reason": "no_exact_recorded_publication_association"
+    }
+  ],
+  "caution": "Same transfer may serve several requests. Full transfer spans are not clipped to request admission; not additive E2E or removable latency."
+}

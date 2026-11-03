@@ -1,0 +1,75 @@
+{
+  "groups": {
+    "all": {
+      "count": 1000,
+      "metrics": {
+        "any_file_acquisition_overlap_ms": {
+          "count": 1000,
+          "mean": 29.759605379,
+          "p50_type1": 0.120959,
+          "p95_type1": 154.452462
+        },
+        "decode_ms": {
+          "count": 1000,
+          "mean": 1764.511469223,
+          "p50_type1": 1251.679394,
+          "p95_type1": 4065.573164
+        },
+        "file_owner_hold_overlap_ms": {
+          "count": 1000,
+          "mean": 155.698620177,
+          "p50_type1": 70.799893,
+          "p95_type1": 615.766503
+        }
+      }
+    },
+    "tpot_fail": {
+      "count": 28,
+      "metrics": {
+        "any_file_acquisition_overlap_ms": {
+          "count": 28,
+          "mean": 33.87602260714286,
+          "p50_type1": 0.048196,
+          "p95_type1": 231.346588
+        },
+        "decode_ms": {
+          "count": 28,
+          "mean": 364.64060103571427,
+          "p50_type1": 350.63233,
+          "p95_type1": 634.085158
+        },
+        "file_owner_hold_overlap_ms": {
+          "count": 28,
+          "mean": 78.35510717857143,
+          "p50_type1": 12.077571,
+          "p95_type1": 295.92582
+        }
+      }
+    },
+    "tpot_pass": {
+      "count": 972,
+      "metrics": {
+        "any_file_acquisition_overlap_ms": {
+          "count": 972,
+          "mean": 29.641025458847736,
+          "p50_type1": 0.12464,
+          "p95_type1": 154.44467
+        },
+        "decode_ms": {
+          "count": 972,
+          "mean": 1804.8369674835392,
+          "p50_type1": 1307.356078,
+          "p95_type1": 4094.74701
+        },
+        "file_owner_hold_overlap_ms": {
+          "count": 972,
+          "mean": 157.9266226090535,
+          "p50_type1": 71.691428,
+          "p95_type1": 631.031447
+        }
+      }
+    }
+  },
+  "causal_attribution_established": false,
+  "caveat": "Controller file-owner work may overlap asynchronous native GPU decode; overlap is not proven blocking. Hold/acquisition unions overlap and are not additive."
+}

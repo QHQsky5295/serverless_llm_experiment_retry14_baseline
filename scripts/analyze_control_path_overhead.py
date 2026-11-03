@@ -1628,6 +1628,286 @@ def analyze_core_host_timing(directory, receipt_path, deployment_path, windows, 
     return summary
 
 
+def summarize_local_file_lock_spans(events):
+    """Summarize one local owner, retaining incomplete streams and nested work.
+
+    Acquisition includes scheduling/GIL return; caller CPU excludes hash reader
+    threads. Immediate child *envelopes* are subtracted only for exclusive owner
+    work. Journal emission/other observation overhead is not removed. No causal
+    request attribution or counterfactual latency is inferred by this function.
+    """
+    rows, close = {}, None
+    for row in events:
+        if close is not None:
+            raise ValueError('file-owner event after close')
+        if row.get('event') == 'file_owner_timing_end_v1':
+            close = row
+            continue
+        if row.get('event') != 'file_owner_local_lock':
+            raise ValueError('not a local file-owner observation')
+        seq, parent = row['sequence'], row['parent_sequence']
+        if (type(seq) is not int or seq <= 0 or seq in rows
+                or type(row['depth']) is not int or row['depth'] < 0
+                or type(row['acquired']) is not bool
+                or not isinstance(row['operation'], str) or not row['operation']
+                or (parent is not None and (type(parent) is not int or not 0 < parent < seq))):
+            raise ValueError('invalid local lock identity')
+        for key in ('attempt_started_ns', 'attempt_thread_cpu_ns', 'ended_ns',
+                    'ended_thread_cpu_ns', 'pid', 'thread_ident', 'native_thread_id'):
+            if type(row[key]) is not int or row[key] < 0:
+                raise ValueError('invalid local lock clock/identity')
+        if row['clock'] != 'host_monotonic_ns':
+            raise ValueError('unknown local lock clock')
+        for start, finish in (('attempt_started_ns', 'ended_ns'),
+                              ('attempt_thread_cpu_ns', 'ended_thread_cpu_ns')):
+            if row[finish] < row[start]:
+                raise ValueError('reversed local lock span')
+        if row['acquired']:
+            for start, at, finish in (
+                ('attempt_started_ns', 'acquired_ns', 'ended_ns'),
+                ('attempt_thread_cpu_ns', 'acquired_thread_cpu_ns', 'ended_thread_cpu_ns')):
+                if type(row[at]) is not int or not row[start] <= row[at] <= row[finish]:
+                    raise ValueError('invalid acquired lock boundary')
+        if (type(row['identifiers']) is not dict
+                or set(row['identifiers']) - {'adapter_id', 'transfer_id', 'lease_id', 'plan_id'}
+                or any(type(v) is not str or len(v) > 160 for v in row['identifiers'].values())):
+            raise ValueError('invalid local lock correlation IDs')
+        rows[seq] = row
+    if close is not None:
+        for key in ('records', 'observed_receipts', 'submitted_commands', 'observer_ns'):
+            if type(close[key]) is not int or close[key] < 0:
+                raise ValueError('invalid local lock close counter')
+        if (type(close['truncated']) is not bool or close['records'] != len(rows)
+                or not close['records'] <= close['observed_receipts'] <= close['submitted_commands']):
+            raise ValueError('local lock close count mismatch')
+    complete = (close is not None and not close['truncated']
+                and close['records'] == close['observed_receipts'] == close['submitted_commands'])
+    owners = {(r['pid'], r['owner_id']) for r in rows.values()}
+    if len(owners) > 1:
+        raise ValueError('mixed local owners in one stream')
+    orphans = [r['sequence'] for r in rows.values()
+               if r['parent_sequence'] is not None and r['parent_sequence'] not in rows]
+    if complete and (orphans or set(rows) != set(range(1, len(rows)+1))):
+        raise ValueError('closed untruncated local stream has missing spans')
+    children = defaultdict(list)
+    for row in rows.values():
+        parent = rows.get(row['parent_sequence'])
+        if row['parent_sequence'] is None:
+            if row['depth'] != 0:
+                raise ValueError('root lock has nested depth')
+        elif parent is not None:
+            if (not parent['acquired'] or row['depth'] != parent['depth']+1
+                    or any(row[k] != parent[k] for k in ('pid', 'thread_ident', 'native_thread_id'))
+                    or not parent['acquired_ns'] <= row['attempt_started_ns'] <= row['ended_ns'] <= parent['ended_ns']
+                    or not parent['acquired_thread_cpu_ns'] <= row['attempt_thread_cpu_ns'] <= row['ended_thread_cpu_ns'] <= parent['ended_thread_cpu_ns']):
+                raise ValueError('invalid local lock parent relation')
+            children[parent['sequence']].append(row)
+    records = []
+    for seq, row in sorted(rows.items()):
+        nested = sorted(children[seq], key=lambda r:r['attempt_started_ns'])
+        if any(a['ended_ns'] > b['attempt_started_ns'] for a,b in zip(nested, nested[1:])):
+            raise ValueError('overlapping sibling local lock spans')
+        acquired = row['acquired']
+        hold = row['ended_ns']-row['acquired_ns'] if acquired else 0
+        cpu = row['ended_thread_cpu_ns']-row['acquired_thread_cpu_ns'] if acquired else 0
+        own = hold-sum(r['ended_ns']-r['attempt_started_ns'] for r in nested)
+        own_cpu = cpu-sum(r['ended_thread_cpu_ns']-r['attempt_thread_cpu_ns'] for r in nested)
+        if own < 0 or own_cpu < 0:
+            raise ValueError('local lock exclusive partition is negative')
+        records.append(dict(row, acquisition_ns=(row['acquired_ns'] if acquired else row['ended_ns'])-row['attempt_started_ns'],
+            hold_ns=hold, hold_thread_cpu_ns=cpu, exclusive_hold_ns=own,
+            exclusive_thread_cpu_ns=own_cpu, exclusive_complete=complete))
+
+    def interval_index(intervals):
+        merged = []
+        for a,b in sorted(intervals):
+            if b <= a:
+                continue
+            if merged and a <= merged[-1][1]:
+                merged[-1][1] = max(b, merged[-1][1])
+            else:
+                merged.append([a,b])
+        starts, ends, prefix, total = [], [], [], 0
+        for a,b in merged:
+            starts.append(a); ends.append(b); prefix.append(total); total += b-a
+        return dict(starts=starts, ends=ends, prefix=prefix, total_ns=total)
+
+    roots = sorted((r for r in rows.values() if r['parent_sequence'] is None and r['acquired']),
+                   key=lambda r:r['acquired_ns'])
+    if any(a['ended_ns'] > b['acquired_ns'] for a,b in zip(roots, roots[1:])):
+        raise ValueError('exclusive owner root holds overlap')
+    index = dict(hold=interval_index((r['acquired_ns'], r['ended_ns']) for r in rows.values() if r['acquired']),
+        acquisition=interval_index((r['attempt_started_ns'], r['acquired_ns'] if r['acquired'] else r['ended_ns']) for r in rows.values()))
+    def stats(values):
+        values = sorted(values)
+        return dict(count=len(values), sum_ms=sum(values)/1e6,
+            mean_ms=sum(values)/len(values)/1e6 if values else None,
+            p95_type1_ms=values[math.ceil(.95*len(values))-1]/1e6 if values else None,
+            max_ms=values[-1]/1e6 if values else None)
+    groups = []
+    for scope in ('all_inclusive', 'root_only'):
+        selected = [r for r in records if scope == 'all_inclusive' or r['parent_sequence'] is None]
+        for operation in sorted({r['operation'] for r in selected}):
+            group = [r for r in selected if r['operation'] == operation]
+            groups.append(dict(scope=scope, operation=operation, count=len(group),
+                acquired=sum(r['acquired'] for r in group), raised=sum(r['error_type'] is not None for r in group),
+                **{name:stats([r[name] for r in group]) for name in
+                   ('acquisition_ns', 'hold_ns', 'hold_thread_cpu_ns', 'exclusive_hold_ns', 'exclusive_thread_cpu_ns')}))
+    return dict(complete=complete, closed=close is not None, truncated=close['truncated'] if close else None,
+        orphan_sequence_ids=orphans, records=records, groups=groups, index=index,
+        observation_count=len(rows), observer_ns=close['observer_ns'] if close else None,
+        owner_closed=close['owner_closed'] if close else None,
+        caller_cpu_excludes_parallel_hash_readers=True, causal_attribution_established=False)
+
+
+def analyze_local_file_lock_timing(directory, receipt_path, deployment_path, output):
+    """Use the existing audit's fresh-output/provenance contract for local locks."""
+    import hashlib
+    import stat
+    directory, receipt_path, deployment_path, output = map(Path,
+        (directory, receipt_path, deployment_path, output))
+    if output.exists():
+        raise FileExistsError(output)
+    if directory.is_symlink() or directory.resolve() != receipt_path.resolve().parent/'diagnostic_file_owner':
+        raise ValueError('file-owner directory does not belong to launch')
+    receipt = json.loads(receipt_path.read_text())
+    deployment = json.loads(deployment_path.read_text())
+    replay, owner = receipt['external_replay'], Path(receipt['service_identity']['path'])
+    count, clock = replay['diagnostic_prefix_count'], deployment['clock_id']
+    if (receipt.get('allow_exec') is not True or replay['replay_scope'] != 'diagnostic_prefix_v1'
+            or type(count) is not int or count <= 0 or deployment['plan']['count'] != count
+            or owner == Path('/sys/fs/cgroup') or not owner.is_relative_to('/sys/fs/cgroup')):
+        raise ValueError('file-owner diagnostic prefix contract required')
+    paths = sorted(directory.glob('*.jsonl'))
+    if not paths or len(paths) > 256:
+        raise ValueError('invalid local file-owner population')
+    sources, owners, metrics, records, identities, indexes = [], [], [], [], set(), {}
+    for path in paths:
+        before = path.stat()
+        if path.is_symlink() or not stat.S_ISREG(before.st_mode) or before.st_size > 64*1024**2:
+            raise ValueError('bounded regular local file-owner stream required')
+        digest, header, events, partial = hashlib.sha256(), None, [], False
+        with path.open('rb') as stream:
+            while True:
+                line = stream.readline(8193)
+                if not line:
+                    break
+                if len(line) > 8192:
+                    raise ValueError('local file-owner line exceeds bound')
+                digest.update(line)
+                if not line.endswith(b'\n'):
+                    partial = True
+                    break
+                row = json.loads(line)
+                if header is None:
+                    header = row
+                else:
+                    events.append(row)
+                    if len(events) > 200001:
+                        raise ValueError('local file-owner record count exceeds bound')
+        after = path.stat()
+        if (before.st_ino, before.st_size, before.st_mtime_ns) != (after.st_ino, after.st_size, after.st_mtime_ns):
+            raise ValueError('local file-owner source changed during analysis')
+        if (not header or header.get('event') != 'file_owner_timing_journal_v1'
+                or header.get('observation_mode') != 'local_lock_spans_v1'
+                or header.get('formal_performance_result') is not False
+                or header.get('observer_overhead_included') is not True
+                or header.get('local_lock_intervals_include_scheduling') is not True
+                or header.get('local_thread_cpu_excludes_parallel_hash_readers') is not True
+                or header['clock_id'] != clock or header['diagnostic_prefix_count'] != count
+                or header['replay_scope'] != 'diagnostic_prefix_v1'
+                or type(header['pid']) is not int or header['pid'] <= 0
+                or type(header['start_ticks']) is not int or header['start_ticks'] <= 0
+                or path.stem != f"{header['pid']}-{header['start_ticks']}-{header['local_owner_id']}"
+                or not Path(header['cgroup']).is_relative_to(owner)):
+            raise ValueError('local file-owner identity/clock mismatch')
+        identity = (header['pid'], header['start_ticks'], header['local_owner_id'])
+        if identity in identities:
+            raise ValueError('duplicate local file-owner identity')
+        identities.add(identity)
+        result = summarize_local_file_lock_spans(events)
+        result['complete'] = result['complete'] and not partial
+        for row in result['records']:
+            if row['pid'] != header['pid'] or row['owner_id'] != header['local_owner_id']:
+                raise ValueError('local file-owner event differs from header')
+            records.append(dict(process_owner=path.stem, **row))
+        owners.append(dict(process_owner=path.stem, pid=header['pid'], start_ticks=header['start_ticks'],
+            owner_id=header['local_owner_id'], partial_last_line=partial,
+            **{k:result[k] for k in ('complete','closed','truncated','observation_count','observer_ns','owner_closed')},
+            orphan_sequence_ids=result['orphan_sequence_ids'],
+            hold_union_ns=result['index']['hold']['total_ns'], acquisition_union_ns=result['index']['acquisition']['total_ns']))
+        metrics.extend(dict(process_owner=path.stem, **row) for row in result['groups'])
+        indexes[path.stem] = result['index']
+        sources.append(dict(path=str(path.resolve()), bytes=before.st_size, sha256=digest.hexdigest()))
+    for path in (receipt_path, deployment_path, Path(__file__)):
+        sources.append(dict(path=str(path.resolve()), sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
+    summary = dict(kind='diagnostic_local_file_lock_audit_v1', formal_performance_result=False,
+        diagnostic_count=count, clock_id=clock, owners=owners, groups=metrics, sources=sources,
+        complete_owners=sum(row['complete'] for row in owners), owner_count=len(owners),
+        observation_count=len(records), causal_attribution_established=False,
+        caveats=['Acquisition spans include OS/GIL scheduling, not pure mutex contention.',
+            'Inclusive nested holds overlap. Exclusive hold subtracts immediate child envelopes only.',
+            'Caller-thread CPU excludes parallel SHA readers; wall minus caller CPU is not pure I/O.',
+            'Observer overhead remains in this diagnostic and is not subtracted from user latency.',
+            'owner_closed is not local journal completeness or evidence of physical GPU release.',
+            'Different owners/threads and requests can overlap; do not sum them as causal E2E savings.'])
+    output.mkdir(parents=True, exist_ok=False)
+    # A failed acquire may precede the first successful one, or a partial
+    # journal may contain no observations. Keep missing boundaries explicit.
+    fields = list(dict.fromkeys(k for row in records for k in row)) or ['sequence']
+    with (output/'lock_spans.csv').open('x', newline='') as handle:
+        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(records)
+    with (output/'summary.json').open('x') as handle:
+        json.dump(summary, handle, indent=2, allow_nan=False)
+    return summary, records, indexes
+
+
+def join_local_publication_spans(transfers, spans, *, clock_id):
+    """Exact transfer/owner join; never substitute a nearest same-adapter call."""
+    by_id = defaultdict(list)
+    for span in spans:
+        if span['operation'] == 'publish_transfer' and 'transfer_id' in span['identifiers']:
+            by_id[span['identifiers']['transfer_id']].append(span)
+    rows, seen = [], set()
+    for transfer in transfers:
+        tid = transfer['transfer_id']
+        if tid in seen or transfer['loading_clock_id'] != clock_id:
+            raise ValueError('duplicate transfer or publication clock mismatch')
+        seen.add(tid)
+        matches = by_id.get(tid, [])
+        successful = [r for r in matches if r['acquired'] and r['error_type'] is None]
+        row = dict(transfer_id=tid, adapter_id=transfer['artifact_id'], state=transfer['state'],
+            recorded_publish_attempts=len(matches), recorded_successful_publishes=len(successful),
+            status='unjoined', sequence=None)
+        if transfer['state'] != 'published' or not successful:
+            rows.append(row)
+            continue
+        if len(successful) != 1:
+            raise ValueError('ambiguous successful publication span')
+        span = successful[0]
+        if span['owner_id'] != transfer['confirmed_file_publication']['owner_id']:
+            raise ValueError('publication owner differs from transfer receipt')
+        left, right = (round(transfer[k]*1e9) for k in
+                       ('extraction_completed_monotonic_s', 'published_monotonic_s'))
+        a,b,c = (span[k] for k in ('attempt_started_ns','acquired_ns','ended_ns'))
+        # Float seconds in retained transfer receipts are rounded to integer ns.
+        # Two ns covers conversion at this host uptime, not SLO/performance slack.
+        if not left-2 <= a <= b <= c <= right+2:
+            raise ValueError('publication span outside exact transfer envelope')
+        row.update(status='joined', sequence=span['sequence'], depth=span['depth'],
+            native_thread_id=span['native_thread_id'],
+            publication_envelope_ms=(right-left)/1e6,
+            before_lock_attempt_ms=(a-left)/1e6, acquisition_ms=(b-a)/1e6,
+            hold_ms=(c-b)/1e6, after_lock_release_edge_ms=(right-c)/1e6,
+            hold_thread_cpu_ms=span['hold_thread_cpu_ns']/1e6,
+            exclusive_hold_ms=span['exclusive_hold_ns']/1e6,
+            exclusive_thread_cpu_ms=span['exclusive_thread_cpu_ns']/1e6)
+        rows.append(row)
+    return rows
+
+
 def summarize_route_evidence(requests: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
     """Audit request evidence without treating replicated/cumulative fields as RPCs.
 

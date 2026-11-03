@@ -1,0 +1,197 @@
+"""D1042: reuse D723 native request audit; replace core profiling with actual local-owner spans.
+
+This adapter changes campaign paths/count only, with remote delivery kept as a
+separate attempt-level audit. It is not an online policy or a new analyzer.
+"""
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+raw = Path(__file__).resolve().parent
+run = raw/'d1042_3b_local_file_prefix1000'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',
+    '--format=csv,noheader'], text=True).strip()
+launch = json.loads((run/'launch.json').read_text())
+assert launch['pass'] and launch['native_gpu_context_release_confirmed']
+assert launch['service_path_removed']
+assert launch['service_returncode'] == launch['watchdog_returncode'] == launch['replay_returncode'] == 0
+receipt = json.loads((run/'launch.launch/exec_receipt.json').read_text())
+assert not Path(receipt['service_identity']['path']).exists()
+save(raw/'collection.json', dict(passed=True, identity=identity,
+    launch_sha256=p.digest(run/'launch.json'), service_path_removed=True,
+    remote_existing_service_reused=True, remote_service_stopped=False,
+    remote_delivery_status='separate_attempt_audit_pending',
+    remote_resource_monitoring='no_new_remote_monitor_started_for_this_diagnostic'))
+
+template = raw.parent/'d723_20261022/analyze.py'
+assert p.digest(template) == '31c5576dc1c1ae75e596ee99f6d809fc2e68dae784724f4243a4a4da6e9d1c2e'
+source = template.read_text()
+for old, new in (
+    ("RUN=RAW/'3b_step_components100'", "RUN=RAW/'d1042_3b_local_file_prefix1000'"),
+    ('expected_count=100)', 'expected_count=1000)'),
+    ('len(requests)==100\n', 'len(requests)==1000\n'),
+    ('protocol_bound_count=100,', 'protocol_bound_count=1000,'),
+    ("core['complete_request_observations']==100,", "core['complete_request_observations']==1000,"),
+    ('native_bound_count=100,', 'native_bound_count=1000,'),
+):
+    assert old in source, old
+    source = source.replace(old, new)
+start = source.index('server_rows=')
+end = source.index('slo=read(ROOT/', start)
+source = source[:start] + '''delivery_status=dict(status='pending_attempt_level_delivery_audit',
+    attempt_states=dict(collections.Counter(r['state'] for r in transfers)),
+    local_attempts=len(transfers),independent_numerical_correctness_qualified=False,
+    reason='Existing remote process was reused; per-transfer matching is separate, not assumed from HTTP success.')
+save(OUT/'delivery_audit_status.json',delivery_status)
+''' + source[end:]
+source = source.replace('request_time_pack_count=0,',
+    "request_time_pack_count=sum(bool(r.get('remote_pack_performed')) for r in transfers),\n    delivery_audit_status=delivery_status,")
+old = "RAW/'remote_transfers.jsonl',RAW/'remote_monitor.log',Path(__file__),"
+assert old in source
+source = source.replace(old, "RAW/'collection.json',Path(__file__),")
+save(raw/'analysis_template.json', dict(template=str(template), sha256=p.digest(template),
+    derived_request_template_sha256=hashlib.sha256(source.encode()).hexdigest(), count=1000,
+    native_request_metrics_unchanged=True, thresholds_unchanged=True,
+    delivery_assertion_deferred_not_claimed_passed=True))
+
+# D1042 did not enable native core instrumentation. Do not invent missing core
+# observations or reuse D1040's observed timings for this different run.
+start = source.index('incarnations={}')
+end = source.index('resources=[]', start)
+source = source[:start] + """from scripts.analyze_control_path_overhead import analyze_local_file_lock_timing
+files, file_spans, file_indexes = analyze_local_file_lock_timing(
+    E/'diagnostic_file_owner', E/'exec_receipt.json',
+    E/'physical_deployment/deployment.json', OUT/'file_timing')
+assert files['owner_count'] == files['complete_owners'] and files['observation_count'] > 0
+""" + source[end:]
+old = """core_processes=core['processes'],complete_processes=core['complete_processes'],
+    complete_request_observations=core['complete_request_observations'],
+    component_observations_complete=core['processes']==core['complete_processes']
+        and core['complete_request_observations']==1000,"""
+assert old in source
+source = source.replace(old, """file_owner_count=files['owner_count'],
+    complete_file_owners=files['complete_owners'],
+    component_observations_complete=files['complete_owners']==files['owner_count'],""")
+old = """core_processes=core['processes'],
+    complete_processes=core['complete_processes'],complete_requests=core['complete_request_observations']"""
+assert old in source
+source = source.replace(old, """file_owner_count=files['owner_count'],
+    complete_file_owners=files['complete_owners']""")
+
+exec(compile(source, str(template), 'exec'), globals())
+
+# Exact worker descriptor identity is reused from D1040's receipt inspection.
+descriptor_counts = collections.Counter()
+def descriptor(value):
+    if isinstance(value, dict):
+        if 'native_host_descriptor' in value:
+            entry = value['native_host_descriptor']
+            assert entry['kind'] == 'fresh_native_tensor_descriptor_v1'
+            assert entry['sha256'] == 'b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044'
+            assert entry['tensor_state_cached'] is False
+            descriptor_counts[str(value['worker_pid'])] += 1
+        for child in value.values():
+            descriptor(child)
+    elif isinstance(value, list):
+        for child in value:
+            descriptor(child)
+for request in requests:
+    before = sum(descriptor_counts.values())
+    descriptor(request)
+    assert sum(descriptor_counts.values()) > before
+save(OUT/'descriptor_identity.json', dict(passed=True, requests=len(requests),
+    worker_receipts=dict(descriptor_counts), source_commit='5df5addec6046c3ce7d2597e94eaea0996d57dd7'))
+
+from scripts.analyze_control_path_overhead import join_local_publication_spans, core_interval_overlap
+from scripts.ieee_tc.audit_d703_3b_full import (
+    partition_common_slo_request, route_confirmed_preparation_row,
+    route_prefetch_transfer_for_native, write_exclusive_csv)
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+pub_rows = join_local_publication_spans(transfers, file_spans, clock_id=deployment['clock_id'])
+save(OUT/'publication_spans.json', pub_rows)
+transfer_by_id = {t['transfer_id']:t for t in transfers}
+assert len(transfer_by_id) == len(transfers)
+pub_by_id = {r['transfer_id']:r for r in pub_rows if r['status']=='joined'}
+stages = [partition_common_slo_request(r, slo['groups'], clock_id=deployment['clock_id']) for r in requests]
+assert sum(r['joint_pass'] for r in stages) == read(OUT/'common_slo.json')['counts']['joint_pass']
+stage_by_id = {r['request_id']:r for r in stages}
+joined, missing = [], []
+for request in requests:
+    s = stage_by_id[request['request_id']]
+    if s['tier'] != 'remote':
+        continue
+    e = request['gpu_reference_evidence']
+    prep = e.get('preparation_interval') or {}
+    tid = prep.get('remote_transfer_id')
+    if tid is None:
+        route = route_confirmed_preparation_row(request, transfer_by_id)
+        shared = route_prefetch_transfer_for_native(request, route, transfer_by_id)
+        if shared is not None:
+            tid = shared['transfer_id']
+    if tid not in pub_by_id:
+        missing.append(dict(request_id=s['request_id'], transfer_id=tid,
+            reason='no_exact_recorded_publication_association'))
+        continue
+    publication = pub_by_id[tid]
+    assert publication['adapter_id'] == request['adapter_id']
+    joined.append(dict(request_id=s['request_id'], transfer_id=tid, slo_group=s['slo_group'],
+        ttft_pass=s['ttft_pass'], tpot_pass=s['tpot_pass'], ttft_ms=s['ttft_ms'],
+        **{k:v for k,v in publication.items() if k.endswith('_ms')}))
+def summarize(rows):
+    names = sorted({k for r in rows for k in r if k.endswith('_ms')})
+    return dict(count=len(rows), metrics={k:timing_stats([r[k] for r in rows if k in r]) for k in names})
+save(OUT/'publication_summary.json', dict(
+    transfer_states=dict(collections.Counter(t['state'] for t in transfers)),
+    association_status=dict(collections.Counter(r['status'] for r in pub_rows)),
+    transfers=summarize([r for r in pub_rows if r['status']=='joined']),
+    remote_request_groups={name:summarize([r for r in joined if name=='all'
+        or (name=='ttft_fail' and not r['ttft_pass']) or (name=='ttft_pass' and r['ttft_pass'])])
+        for name in ('all','ttft_fail','ttft_pass')},
+    unjoined_remote_requests=missing,
+    caution='Same transfer may serve several requests. Full transfer spans are not clipped to request admission; not additive E2E or removable latency.'))
+write_exclusive_csv(OUT/'remote_request_publications.csv', joined,
+    fieldnames=list(joined[0]) if joined else ['request_id','transfer_id'])
+write_exclusive_csv(OUT/'request_stages.csv', stages)
+# Decode overlap is descriptive only, not a GPU stall or a causal contribution.
+# This registered run has one actual local file owner, verified by its header.
+assert len(file_indexes) == 1
+idx = next(iter(file_indexes.values()))
+overlaps = []
+for stage in stages:
+    a,b = round(stage['first']*1e9),round(stage['last']*1e9)
+    overlaps.append(dict(request_id=stage['request_id'], slo_group=stage['slo_group'],
+        output_tokens=stage['output_tokens'], tpot_pass=stage['tpot_pass'],
+        decode_ms=(b-a)/1e6,
+        file_owner_hold_overlap_ms=core_interval_overlap(idx['hold'],a,b)/1e6,
+        any_file_acquisition_overlap_ms=core_interval_overlap(idx['acquisition'],a,b)/1e6))
+write_exclusive_csv(OUT/'decode_file_overlap.csv', overlaps)
+save(OUT/'decode_file_overlap_summary.json', dict(
+    groups={name:summarize([r for r in overlaps if name=='all'
+        or (name=='tpot_fail' and not r['tpot_pass']) or (name=='tpot_pass' and r['tpot_pass'])])
+        for name in ('all','tpot_fail','tpot_pass')},
+    causal_attribution_established=False,
+    caveat='Controller file-owner work may overlap asynchronous native GPU decode; overlap is not proven blocking. Hold/acquisition unions overlap and are not additive.'))
+
+save(raw/'analysis_execution.json', dict(passed=True, identity=identity,
+    resources=p.cgroup_snapshot(group), script_sha256=p.digest(Path(__file__))))

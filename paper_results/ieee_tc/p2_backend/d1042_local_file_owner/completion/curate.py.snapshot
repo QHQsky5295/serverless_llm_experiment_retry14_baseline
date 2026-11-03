@@ -1,0 +1,56 @@
+"""Reuse D1016's closed-result, remote-ID and protected-file curation."""
+import hashlib
+from pathlib import Path
+
+template = Path(__file__).resolve().parent.parent/'d1016_20261102_attempt2/curate.py'
+assert hashlib.sha256(template.read_bytes()).hexdigest() == '32631efadc158e52251bb6b96b11b0e966e8feb41b83f3a0ad01faf0dae8591f'
+source = template.read_text()
+for old,new in (
+    ('d1016_attempt2_3b_native_prefix1000','d1042_3b_local_file_prefix1000'),
+    ('d1016_current_native_prefix/completion','d1042_local_file_owner/completion'),
+    ('8a60e085434f8ec1d868efc0f8f44b23a9ef1262740cbc846a7e307f9be5d85c',
+     '3abcd9d766a7dc1c780244d8eedaac8440815aa85c0e45c6d9b81ef2cf35a070'),
+):
+    assert old in source
+    source = source.replace(old,new)
+start = source.index("core = read(")
+end = source.index("outcome = ",start)
+source = source[:start] + '''files = read(RAW/'analysis1/file_timing/summary.json')
+for item in files['sources']: assert p.digest(Path(item['path'])) == item['sha256']
+assert files['complete_owners'] == files['owner_count'] == 1
+descriptor = read(RAW/'analysis1/descriptor_identity.json')
+assert descriptor['passed'] and descriptor['requests'] == 1000
+''' + source[end:]
+start = source.index("copies = ")
+end = source.index("for name,path in copies.items():",start)
+source = source[:start] + '''copies = {
+    'native_audit.json':RAW/'analysis1/audit.json',
+    'common_slo.json':RAW/'analysis1/common_slo.json',
+    'file_owner_summary.json':RAW/'analysis1/file_timing/summary.json',
+    'descriptor_identity.json':RAW/'analysis1/descriptor_identity.json',
+    'publication_summary.json':RAW/'analysis1/publication_summary.json',
+    'publication_spans.json':RAW/'analysis1/publication_spans.json',
+    'remote_request_publications.csv':RAW/'analysis1/remote_request_publications.csv',
+    'request_stages.csv':RAW/'analysis1/request_stages.csv',
+    'decode_file_overlap_summary.json':RAW/'analysis1/decode_file_overlap_summary.json',
+    'decode_file_overlap.csv':RAW/'analysis1/decode_file_overlap.csv',
+    'collection.json':RAW/'collection.json',
+    'analysis_execution.json':RAW/'analysis_execution.json',
+    'analysis_template.json':RAW/'analysis_template.json',
+    'analysis_tests.json':RAW/'analysis_tests.json',
+    'analysis_tests.txt':RAW/'analysis_tests.txt',
+    'analyze.py.snapshot':RAW/'analyze.py',
+    'curate.py.snapshot':Path(__file__)}
+''' + source[end:]
+source = source.replace("write_exclusive_csv(OUT/'client_decode_overlaps.csv', client_rows)\n",'')
+source = source.replace("write_exclusive_csv(OUT/'client_overlap_groups.csv', groups)\n",'')
+source = source.replace('observations_complete=1000,',"observations_complete=files['observation_count'],")
+source = source.replace('production_policy_changed=False, observer_changed=False,',
+    "production_policy_changed_during_collection=False, observer_changed_during_collection=False,\n"
+    "    source_commit='5df5addec6046c3ce7d2597e94eaea0996d57dd7',\n"
+    "    local_file_owner_measured=True, native_core_profiling=False,")
+source = source.replace("'Host spans are not GPU kernel durations or counterfactual removable delay.'",
+    "'File-owner hold/acquisition spans are not GPU kernel durations or counterfactual removable delay.'")
+source = source.replace("RAW.parent/'d1016_20261102/analyze.py',", "RAW/'analyze.py',")
+source = source[:source.index('top = sorted(')] + "print(json.dumps(dict(passed=True, delivery_transfers=len(transfers), file_observations=files['observation_count'])))\n"
+exec(compile(source,str(template),'exec'),globals())
