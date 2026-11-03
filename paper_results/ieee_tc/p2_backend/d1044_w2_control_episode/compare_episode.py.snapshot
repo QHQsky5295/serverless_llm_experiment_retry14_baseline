@@ -1,0 +1,43 @@
+"""Same-request episode comparison from already sealed D716 tables."""
+import csv
+import json
+import os
+from pathlib import Path
+import sys
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d1044_w2_control_episode'
+identity=p.scope_identity(p.cg_path().name)
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+summary=json.loads((OUT/'summary.json').read_text())
+episode=summary['reports']['d1043']['release_episodes'][1]
+assert episode['control']['control_index']==363
+ids=episode['pending_interval_request_ids']
+assert len(ids)==len(set(ids))==83
+result={}
+sources=[]
+for name,relative in (('d1033','d1033_3b_startup_memory_w2/completion'),('d1043','d1043_static_lexical_paths/completion')):
+    path=ROOT/'paper_results/ieee_tc/p2_backend'/relative/'stages/requests.csv'
+    stage=json.loads(path.with_name('diagnosis.json').read_text())
+    assert p.digest(path)==stage['request_table']['sha256']
+    with path.open(newline='') as f: rows={r['request_id']:r for r in csv.DictReader(f)}
+    selected=[rows[i] for i in ids]
+    result[name]=dict(n=len(selected),ordinal_range=[min(int(r['ordinal']) for r in selected),max(int(r['ordinal']) for r in selected)],
+        joint_pass=sum(r['joint_pass']=='True' for r in selected),ttft_pass=sum(r['ttft_pass']=='True' for r in selected),
+        tpot_pass=sum(r['tpot_pass']=='True' for r in selected),
+        metrics={k:timing_stats([float(r[k]) for r in selected]) for k in ('ttft_ms','tpot_ms','arrival_to_admission_ms','admission_to_acquired_ms')})
+    sources.append(dict(path=str(path),sha256=p.digest(path)))
+sources.append(dict(path=str(OUT/'summary.json'),sha256=p.digest(OUT/'summary.json')))
+report=dict(reports=result,request_ids=ids,source_refs=sources,
+    causal_attribution_established=False,confidence_interval=None,
+    notes=['Same source request identities, not matched runtime trajectories or a randomized cohort.',
+        'Episode is selected after the full-run regression; no counterfactual success count is claimed.',
+        'The first and second retirement episodes share this pending interval; never add their counts.',
+        'Episodes without a later activation end at the last observed control time and are right-censored.'],
+    auxiliary_identity=identity,auxiliary_resources=p.cgroup_snapshot(p.cg_path()))
+with (OUT/'matched_pending_requests.json').open('x') as f:
+    json.dump(report,f,indent=2,allow_nan=False); f.write('\n')
+with (OUT/'compare_episode.py.snapshot').open('x') as f: f.write(Path(__file__).read_text())
+print(json.dumps(result,indent=2))

@@ -1,0 +1,211 @@
+{
+  "reports": {
+    "d1033": {
+      "n": 83,
+      "ordinal_range": [
+        602,
+        684
+      ],
+      "joint_pass": 78,
+      "ttft_pass": 83,
+      "tpot_pass": 78,
+      "metrics": {
+        "ttft_ms": {
+          "count": 83,
+          "mean": 513.5566250264017,
+          "p50_type1": 389.16385686025023,
+          "p95_type1": 1118.203750345856
+        },
+        "tpot_ms": {
+          "count": 83,
+          "mean": 20.47351596806383,
+          "p50_type1": 17.191152349479644,
+          "p95_type1": 40.12801950254167
+        },
+        "arrival_to_admission_ms": {
+          "count": 83,
+          "mean": 189.33279190706202,
+          "p50_type1": 141.99180714786053,
+          "p95_type1": 487.65397164970636
+        },
+        "admission_to_acquired_ms": {
+          "count": 83,
+          "mean": 67.90381353011871,
+          "p50_type1": 0.0,
+          "p95_type1": 479.1975379921496
+        }
+      }
+    },
+    "d1043": {
+      "n": 83,
+      "ordinal_range": [
+        602,
+        684
+      ],
+      "joint_pass": 24,
+      "ttft_pass": 27,
+      "tpot_pass": 67,
+      "metrics": {
+        "ttft_ms": {
+          "count": 83,
+          "mean": 3111.7777517065406,
+          "p50_type1": 3580.1108391024172,
+          "p95_type1": 5619.014056399465
+        },
+        "tpot_ms": {
+          "count": 83,
+          "mean": 27.657805269822603,
+          "p50_type1": 25.86760325357318,
+          "p95_type1": 49.476034473627806
+        },
+        "arrival_to_admission_ms": {
+          "count": 83,
+          "mean": 2688.9939842162185,
+          "p50_type1": 3079.7132630832493,
+          "p95_type1": 4906.141494400799
+        },
+        "admission_to_acquired_ms": {
+          "count": 83,
+          "mean": 63.66727790649397,
+          "p50_type1": 0.0,
+          "p95_type1": 447.0298062078655
+        }
+      }
+    }
+  },
+  "request_ids": [
+    "req_00602",
+    "req_00603",
+    "req_00604",
+    "req_00605",
+    "req_00606",
+    "req_00607",
+    "req_00608",
+    "req_00609",
+    "req_00610",
+    "req_00611",
+    "req_00612",
+    "req_00613",
+    "req_00614",
+    "req_00615",
+    "req_00616",
+    "req_00617",
+    "req_00618",
+    "req_00619",
+    "req_00620",
+    "req_00621",
+    "req_00622",
+    "req_00623",
+    "req_00624",
+    "req_00625",
+    "req_00626",
+    "req_00627",
+    "req_00628",
+    "req_00629",
+    "req_00630",
+    "req_00631",
+    "req_00632",
+    "req_00633",
+    "req_00634",
+    "req_00635",
+    "req_00636",
+    "req_00637",
+    "req_00638",
+    "req_00639",
+    "req_00640",
+    "req_00641",
+    "req_00642",
+    "req_00643",
+    "req_00644",
+    "req_00645",
+    "req_00646",
+    "req_00647",
+    "req_00648",
+    "req_00649",
+    "req_00650",
+    "req_00651",
+    "req_00652",
+    "req_00653",
+    "req_00654",
+    "req_00655",
+    "req_00656",
+    "req_00657",
+    "req_00658",
+    "req_00659",
+    "req_00660",
+    "req_00661",
+    "req_00662",
+    "req_00663",
+    "req_00664",
+    "req_00665",
+    "req_00666",
+    "req_00667",
+    "req_00668",
+    "req_00669",
+    "req_00670",
+    "req_00671",
+    "req_00672",
+    "req_00673",
+    "req_00674",
+    "req_00675",
+    "req_00676",
+    "req_00677",
+    "req_00678",
+    "req_00679",
+    "req_00680",
+    "req_00681",
+    "req_00682",
+    "req_00683",
+    "req_00684"
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1033_3b_startup_memory_w2/completion/stages/requests.csv",
+      "sha256": "a6dac0a3b336225101da1a1bc5ef38db8848772648f70f9e369d21d2e170d39b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/completion/stages/requests.csv",
+      "sha256": "b8855847745c39c62fdd145d3dea11d9b3a3166c3d5e2b2522d9a092c3b113c3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1044_w2_control_episode/summary.json",
+      "sha256": "8e549805778a4f11efa47ca30eb82eb2740fdecfdd21fee69b6cf5c7563e1bea"
+    }
+  ],
+  "causal_attribution_established": false,
+  "confidence_interval": null,
+  "notes": [
+    "Same source request identities, not matched runtime trajectories or a randomized cohort.",
+    "Episode is selected after the full-run regression; no counterfactual success count is claimed.",
+    "The first and second retirement episodes share this pending interval; never add their counts.",
+    "Episodes without a later activation end at the last observed control time and are right-censored."
+  ],
+  "auxiliary_identity": {
+    "unit": "primelora-tc-aux-9648646463a14a1ba01da831d1044002.scope",
+    "invocation_id": "bdd2bf4692234f409f46ae0defa97980",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-9648646463a14a1ba01da831d1044002.scope",
+    "inode": 38657685
+  },
+  "auxiliary_resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-9648646463a14a1ba01da831d1044002.scope",
+    "memory.current": 322396160,
+    "memory.peak": 326574080,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 2153512\nuser_usec 1877574\nsystem_usec 275937\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  }
+}

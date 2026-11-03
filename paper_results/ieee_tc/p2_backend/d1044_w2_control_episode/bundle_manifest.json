@@ -1,0 +1,113 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1044_w2_control_episode/analyze.py.snapshot",
+      "sha256": "2a5bd85bd224744353f6f42869bdd422856b174369cd270214f935d90ff81d79",
+      "bytes": 7451
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1044_w2_control_episode/backup.py.snapshot",
+      "sha256": "1df764f7ac7cd412a59aaf873d3c2ef93c5e7783e3cd7148130c87c47a6764b7",
+      "bytes": 5134
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1044_w2_control_episode/compare_episode.py.snapshot",
+      "sha256": "af942f9aa3d51663ceb1baa943c4479e91f300bdd8ac9dabb8401ea2290bba8e",
+      "bytes": 2781
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1044_w2_control_episode/d1033_action_records.json",
+      "sha256": "a4c78da11b2df0b356295d6a13ce1a86625dd3a8333b736796ee7e9d1d3273bc",
+      "bytes": 5590
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1044_w2_control_episode/d1033_controls.csv",
+      "sha256": "f83f16aed61da18f61a84063de9c135ac20757744a1c7b0af9c286f12642795b",
+      "bytes": 399153
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1044_w2_control_episode/d1043_action_records.json",
+      "sha256": "3af9982da0cd3815af6d001a893a8146ceab1ec7b561dfcd8d2e531399729b00",
+      "bytes": 12711
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1044_w2_control_episode/d1043_controls.csv",
+      "sha256": "4101d5b860f71ee5c96c6763d4c9d188d146b857e5e31515f0b21277ba11bc68",
+      "bytes": 401738
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1044_w2_control_episode/manifest.json",
+      "sha256": "e2429b649773a3f5557cd91bcef1dade4f1ab9f4ae2c79f45d12c541e2b3616a",
+      "bytes": 1620
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1044_w2_control_episode/matched_pending_requests.json",
+      "sha256": "161b81c69ad5717e127883300972fc3e54cac3133613f726ea170076fc37b9a3",
+      "bytes": 5699
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1044_w2_control_episode/summary.json",
+      "sha256": "8e549805778a4f11efa47ca30eb82eb2740fdecfdd21fee69b6cf5c7563e1bea",
+      "bytes": 269489
+    }
+  ],
+  "source_refs_verified": 23,
+  "source_commit": "2cd5751eb0ea07a310eed99fab5c7bdf5f17e5ad",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_dirty_unchanged": true,
+  "closed_analysis_scopes": [
+    {
+      "unit": "primelora-tc-aux-9648646463a14a1ba01da831d1044001.scope",
+      "state": "LoadState=not-found\nActiveState=inactive\nSubState=dead\n"
+    },
+    {
+      "unit": "primelora-tc-aux-9648646463a14a1ba01da831d1044002.scope",
+      "state": "LoadState=not-found\nActiveState=inactive\nSubState=dead\n"
+    }
+  ],
+  "new_gpu_runs": 0,
+  "production_changes": false,
+  "analysis_checks_passed": true,
+  "existing_source_qualification_tests": 33,
+  "qualification_reused_without_rerun": true,
+  "protocols": {
+    "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+  },
+  "identity": {
+    "unit": "primelora-tc-aux-9648646463a14a1ba01da831d1044003.scope",
+    "invocation_id": "341e57005f134d02b16f65a7039f7fc3",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-9648646463a14a1ba01da831d1044003.scope",
+    "inode": 38663020
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-9648646463a14a1ba01da831d1044003.scope",
+    "memory.current": 311844864,
+    "memory.peak": 328327168,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 3641851\nuser_usec 3183744\nsystem_usec 458107\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  }
+}

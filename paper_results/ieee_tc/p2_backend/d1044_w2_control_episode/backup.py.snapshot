@@ -1,0 +1,90 @@
+"""D1044: reuse explicit-path evidence backup, no production changes."""
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d1044_w2_control_episode'
+DOC = 'docs/ieee_tc/D1044_W2_CONTROL_EPISODE_20261103.md'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path): return json.loads(path.read_text())
+def git(*args): return subprocess.check_output(['git', *args], cwd=ROOT, text=True).strip()
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, allow_nan=False)
+        handle.write('\n')
+
+identity = p.scope_identity(p.cg_path().name)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert git('branch', '--show-current') == 'retry14_continuous_queue_v2'
+assert git('rev-parse', 'HEAD') == '2cd5751eb0ea07a310eed99fab5c7bdf5f17e5ad'
+assert not git('diff', '--cached', '--name-only')
+qualification = read(ROOT/'paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/prelaunch/qualification.json')
+assert qualification['passed'] and qualification['tests'] == 33
+for name, sha in qualification['sources'].items():
+    assert p.digest(ROOT/name) == sha, name
+for name, sha in qualification['user_protected'].items():
+    assert p.digest(ROOT/name) == sha, name
+summary = read(OUT/'summary.json')
+matched = read(OUT/'matched_pending_requests.json')
+assert summary['ranking_eligible'] is False and summary['n_correct'] is None
+assert matched['causal_attribution_established'] is False
+assert [summary['reports'][k]['counts']['n'] for k in ('d1033', 'd1043')] == [4000, 4000]
+assert [matched['reports'][k]['joint_pass'] for k in ('d1033', 'd1043')] == [78, 24]
+assert len(set(matched['request_ids'])) == 83
+refs = summary['source_refs'] + matched['source_refs'] + read(OUT/'manifest.json')['files']
+for row in refs:
+    assert p.digest(Path(row['path'])) == row['sha256'], row['path']
+closed = []
+for report in (summary, matched):
+    unit = report['auxiliary_identity']['unit']
+    state = subprocess.check_output(['systemctl', '--user', 'show', unit,
+        '-p', 'LoadState', '-p', 'ActiveState', '-p', 'SubState'], text=True)
+    assert 'LoadState=not-found' in state and 'ActiveState=inactive' in state, state
+    closed.append(dict(unit=unit, state=state))
+protected = p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))
+assert protected['pass'] and protected['entry_count'] == 147
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+with (OUT/'backup.py.snapshot').open('x') as handle:
+    handle.write(Path(__file__).read_text())
+files = [dict(path=str(path.relative_to(ROOT)), sha256=p.digest(path), bytes=path.stat().st_size)
+         for path in sorted(OUT.iterdir()) if path.is_file()]
+save(OUT/'bundle_manifest.json', dict(files=files,
+    source_refs_verified=len(refs), source_commit=git('rev-parse', 'HEAD'),
+    protected=protected, user_dirty_unchanged=True, closed_analysis_scopes=closed,
+    new_gpu_runs=0, production_changes=False, analysis_checks_passed=True,
+    existing_source_qualification_tests=33, qualification_reused_without_rerun=True,
+    protocols={str(path): p.digest(path) for path in (
+        Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md'),
+        ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',
+        ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md')},
+    identity=identity, resources=p.cgroup_snapshot(p.cg_path())))
+paths = [DOC] + [str(path.relative_to(ROOT)) for path in sorted(OUT.iterdir()) if path.is_file()]
+for name in paths:
+    data = (ROOT/name).read_text()
+    assert not re.search(r'-----BEGIN (?:RSA |OPENSSH |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|Authorization:\s*Bearer\s+\S+', data), name
+git('diff', '--check')
+git('add', '--', *paths)
+assert set(git('diff', '--cached', '--name-only').splitlines()) == set(paths)
+git('diff', '--cached', '--check')
+git('commit', '-m', 'D1044 preserve W2 control observation and matched-request diagnosis')
+head = git('rev-parse', 'HEAD')
+verified = []
+for remote, ref in [('origin', 'refs/heads/retry14_continuous_queue_v2'),
+                    ('faaslora_origin', 'refs/heads/backup/d1044-control-episode-20261103')]:
+    subprocess.run(['git', 'push', remote, 'HEAD:'+ref], cwd=ROOT, check=True)
+    assert git('ls-remote', remote, ref).split()[0] == head
+    verified.append(dict(remote=remote, ref=ref, commit=head))
+for name, sha in qualification['user_protected'].items():
+    assert p.digest(ROOT/name) == sha, name
+save(RAW/'backup.json', dict(passed=True, commit=head, verified=verified, paths=paths,
+    identity=identity, resources=p.cgroup_snapshot(p.cg_path()),
+    user_dirty_unchanged=True, full_faaslora_v2_integrated=False))
+print(json.dumps(dict(passed=True, commit=head, verified=verified)))

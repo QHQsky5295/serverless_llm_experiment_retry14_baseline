@@ -1,0 +1,113 @@
+"""Reuse sealed D716 tables and D997 control-bound helpers; no new replay."""
+import bisect
+import collections
+import csv
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import ijson
+
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/p2_backend/d1044_w2_control_episode'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.analyze_d455_stages import checked_retained_source, control_busy_time_bounds
+from scripts.ieee_tc.audit_d703_3b_full import write_exclusive_csv
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+
+def read(path): return json.loads(path.read_text())
+def ref(path): return dict(path=str(path),sha256=p.digest(path),bytes=path.stat().st_size)
+def save(path,value):
+    with path.open('x') as f:
+        json.dump(value,f,indent=2,allow_nan=False); f.write('\n')
+
+identity=p.scope_identity(p.cg_path().name)
+group=Path(identity['path'])
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+assert (group/'memory.high').read_text().strip()==str(3*p.GIB)
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+OUT.mkdir(parents=True,exist_ok=False)
+reports={}
+refs=[]
+for name,relative in (
+    ('d1033','d1033_3b_startup_memory_w2/completion'),
+    ('d1043','d1043_static_lexical_paths/completion')):
+    base=ROOT/'paper_results/ieee_tc/p2_backend'/relative
+    stage=read(base/'stages/diagnosis.json')
+    metric=read(base/'full4000.json')
+    delivery=read(base/'delivery_and_resources.json')
+    assert stage['passed'] and metric['passed'] and stage['counts']==metric['counts']
+    assert metric['counts']['n']==4000
+    table=Path(stage['request_table']['path'])
+    assert p.digest(table)==stage['request_table']['sha256']
+    with table.open(newline='') as f: rows=list(csv.DictReader(f))
+    assert len(rows)==4000 and [int(r['ordinal']) for r in rows]==list(range(4000))
+    for r in rows:
+        for k in ('ttft_pass','tpot_pass','joint_pass'):
+            assert r[k] in ('True','False'); r[k]=r[k]=='True'
+        r['arrival']=float(r['first'])-float(r['ttft_ms'])/1000
+    run=Path(stage['source_run'])
+    launch=read(run/'launch.json')
+    assert launch['pass'] and launch['service_path_removed'] and launch['native_gpu_context_release_confirmed']
+    t0=launch['external_replay']['replay_t0_s']
+    source=run/'launch.launch/physical_deployment/main_outcome.json'
+    source_ref=next(r for r in delivery['source_refs'] if r['path']==str(source))
+    opener,source_refs=checked_retained_source(source,source_ref['sha256'])
+    with opener() as f:
+        controls=list(ijson.items(f,'mechanism_events._ieee_control_events.item',use_float=True))
+    bound=control_busy_time_bounds(controls,rows)
+    arrivals=[r['arrival'] for r in rows]
+    assert arrivals==sorted(arrivals)
+    def stats(rs):
+        return dict(n=len(rs),joint_pass=sum(r['joint_pass'] for r in rs),
+            ttft_pass=sum(r['ttft_pass'] for r in rs),tpot_pass=sum(r['tpot_pass'] for r in rs),
+            slo_groups=dict(collections.Counter(r['slo_group'] for r in rs)),
+            ttft_fail_dominant_stages=dict(collections.Counter(r['dominant_ttft_stage'] for r in rs if not r['ttft_pass'])),
+            metrics={k:timing_stats([float(r[k]) for r in rs]) for k in
+                ('ttft_ms','tpot_ms','arrival_to_admission_ms','admission_to_acquired_ms','runtime_slot_wait_ms','dispatch_window_wait_ms')})
+    phases=[dict(phase=k,arrival_start_offset_s=rows[k*500]['arrival']-t0,
+        arrival_end_offset_s=rows[(k+1)*500-1]['arrival']-t0,**stats(rows[k*500:(k+1)*500])) for k in range(8)]
+    timeline=[]
+    episodes=[]
+    for i,c in enumerate(controls):
+        obs=c['predictive_observation'] or {}
+        row={k:c[k] for k in ('action','reason','outcome','score','queue_depth','active_requests','ready_instances','pending_instances','p95_ttft_ms','all_low','predictive_target_instances')}
+        row.update(control_index=i,offset_s=c['observed_at']-t0,
+            arrived_by_time=bisect.bisect_right(arrivals,c['observed_at']))
+        row.update({k:obs.get(k) for k in ('arrival_rate_rps','service_rate_rps_per_busy_instance','activation_horizon_s','history_elapsed_s','busy_instance_seconds')})
+        timeline.append(row)
+        if c['action']!='scale_down': continue
+        later=next((x for x in controls[i+1:] if x['outcome']=='activation_scheduled'),None)
+        until=later['observed_at'] if later else controls[-1]['observed_at']
+        physical=next(x for x in delivery['control']['scale_down_event_log'] if x['control_event_index']==i)
+        assert physical['instance_id']==c['target_replica']
+        selected=[r for r in rows if c['observed_at']<=r['arrival']<until]
+        pending_end=next((x for x in controls[i+1:] if later and x['observed_at']>until and x['ready_instances']>later['ready_instances']),None)
+        activation_rows=[r for r in rows if later and pending_end and until<=r['arrival']<pending_end['observed_at']]
+        episodes.append(dict(control=row,physical=physical,
+            next_activation_schedule_offset_s=until-t0 if later else None,
+            first_later_sample_with_more_ready_offset_s=pending_end['observed_at']-t0 if pending_end else None,
+            until_next_activation_schedule=stats(selected),during_observed_pending_interval=stats(activation_rows),
+            affected_request_ids=[r['request_id'] for r in selected],
+            pending_interval_request_ids=[r['request_id'] for r in activation_rows]))
+    write_exclusive_csv(OUT/(name+'_controls.csv'),timeline)
+    save(OUT/(name+'_action_records.json'),[dict(control_index=i,**c) for i,c in enumerate(controls) if c['action']!='no_action'])
+    reports[name]=dict(counts=metric['counts'],phases=phases,busy_bounds=bound,release_episodes=episodes,
+        physical_gpu_seconds=metric['physical_gpu_seconds'],new_performance_runs=0)
+    refs += [ref(x) for x in (base/'full4000.json',base/'stages/diagnosis.json',table,base/'delivery_and_resources.json',run/'launch.json')]+source_refs
+save(OUT/'summary.json',dict(reports=reports,source_refs=refs+[ref(Path(__file__))],
+    classification='retrospective_episode_association',causal_attribution_established=False,
+    n_correct=None,ranking_eligible=False,confidence_interval=None,
+    limitations=['All eight 500-request phases retained. Focus on the second phase follows the observed failure, not an independent hypothesis test.',
+        'Sampled ready transition is not exact engine readiness or a counterfactual latency.',
+        'A request can overlap retirement and activation; these groups are not additive causal contributions.',
+        'Both static lexical paths and D1037 arbitration differ from D1033; this is not a single-factor ablation.'],
+    auxiliary_identity=identity,auxiliary_resources=p.cgroup_snapshot(group)))
+with (OUT/'analyze.py.snapshot').open('x') as f: f.write(Path(__file__).read_text())
+save(OUT/'manifest.json',dict(files=[ref(x) for x in sorted(OUT.iterdir()) if x.is_file()]))
+print(json.dumps(dict(passed=True,output=str(OUT),reports={k:dict(counts=v['counts'],busy_bounds=v['busy_bounds']) for k,v in reports.items()}),indent=2))
