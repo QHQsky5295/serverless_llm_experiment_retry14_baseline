@@ -1,0 +1,215 @@
+"""D1048: reuse D810 aggregation for same-configuration three-workload comparison."""
+import csv
+import hashlib
+import io
+import json
+from pathlib import Path
+
+import os
+import subprocess
+import sys
+from types import SimpleNamespace
+import yaml
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+P = ROOT/'paper_results/ieee_tc'
+OUT = P/'main_comparison/d1048_same_version_3b'
+template = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d810_20261024/analyze.py')
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.check_d299_full_context import sealed_matrix_row
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False); f.write('\n')
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+def resources(): return p.cgroup_snapshot(group)
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+assert (group/'memory.high').read_text().strip()==str(3*p.GIB)
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+assert p.check_plan()=='d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+# This is a bounded small-curated-file CPU aggregation, not a new heavy replay.
+# Do not rerun the old GPU-start gate or the already completed focused tests.
+test_receipt=json.loads((RAW/'tests.json').read_text())
+assert test_receipt['passed'] and test_receipt['count']==24 and test_receipt['green']['exit_code']==0
+tests=SimpleNamespace(testsRun=24)
+head=subprocess.check_output(['git','-C',str(ROOT),'rev-parse','HEAD'],text=True).strip()
+preserved={
+ ROOT/'configs/generated/lora_manifest_1000.json':'3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df',
+ ROOT/'docs/ieee_tc/EXECUTION_STATUS.md':'41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374'}
+for path,sha in preserved.items(): assert p.digest(path)==sha
+seal=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json')
+assert p.verify_seal(seal)['pass']
+source_refs={}
+def sealed(path):
+    data=path.read_bytes()
+    committed=subprocess.check_output(['git','-C',str(ROOT),'show',head+':'+str(path.relative_to(ROOT))])
+    assert data==committed, f'unsealed curated source: {path}'
+    source_refs[str(path)]=hashlib.sha256(data).hexdigest()
+    return json.loads(data)
+config_paths=[ROOT/'configs/ieee_tc'/name for name in (
+ '20261103_d1045_3b_event_busy_time_w2.yaml',
+ '20261103_d1046_3b_event_busy_time_w0.yaml',
+ '20261104_d1047_3b_event_busy_time_w1.yaml')]
+configs=[]
+for path in config_paths:
+    source_refs[str(path)]=p.digest(path)
+    config=yaml.safe_load(path.read_text())
+    del config['experiment']['output_dir']
+    del config['storage']['nvme_cache_dir']
+    del config['storage']['host_cache_dir']
+    configs.append(config)
+assert configs[0]==configs[1]==configs[2]
+from scripts.ieee_tc.check_d299_full_context import matched_relative_observation
+
+slo = P/'protocols/20261017_3b_slo_d648_frozen.json'
+slo_sha = p.digest(slo)
+assert slo_sha == 'd15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8'
+sealed(slo)
+registry = sealed(ROOT/'docs/ieee_tc/BASELINE_PUBLICATION_REGISTRY_20261014.json')
+references = sealed(P/'main_comparison/d657_3b_references/resident_references.json')
+specs = []
+for run,w in [('D653','W0'),('D654','W1'),('D656','W2')]:
+    specs.append(('vLLM',run,w,'native_audit',f'vllm/{run.lower()}_3b_full_{w.lower()}/audit.json'))
+for run,w in [('D764','W0'),('D765','W1'),('D766','W2')]:
+    specs.append(('ServerlessLLM',run,w,'native_audit',f'baseline_audit/{run.lower()}_shared_tokenizer_full_{w.lower()}/audit.json'))
+for run,w,slug in [('D771','W0','full_w0'),('D772','W1','w1'),('D773','W2','w2')]:
+    specs.append(('S-LoRA',run,w,'native_audit',f'baseline_audit/{run.lower()}_slora_3b_{slug}_binding/gpu_full4000/audit_full4000.json'))
+for run,w in [('D800','W0'),('D801','W1'),('D802','W2')]:
+    specs.append(('Loquetier',run,w,'native_audit',f'baseline_audit/{run.lower()}_loquetier_3b_{w.lower()}_result/audit_full4000.json'))
+for run,w,slug in [('D807','W0','full_w0'),('D808','W1','w1'),('D809','W2','w2')]:
+    specs.append(('HydraServe',run,w,'hydra_evaluation',f'baseline_audit/{run.lower()}_hydraserve_3b_{slug}/full_{w.lower()}_evaluation.json'))
+for run,w in [('D794','W1'),('D795','W2')]:
+    specs.append(('dLoRA',run,w,'terminal_native_failure_audit',f'baseline_audit/{run.lower()}_dlora_cancellation_corrected_full_{w.lower()}/audit_full4000_{w.lower()}.json'))
+for run,w,directory in [('D1046','W0','d1046_same_version_w0'),
+                        ('D1047','W1','d1047_same_version_w1'),
+                        ('D1045','W2','d1045_event_busy_time')]:
+    specs.append(('PrimeLoRA',run,w,'prime_full_audit',f'p2_backend/{directory}/completion/full4000.json'))
+
+rows, registration, identities = [], [], {}
+for name,run,w,kind,relative in specs:
+    path = P/relative
+    source = sealed(path)
+    original_source = source
+    if kind == 'prime_full_audit':
+        closed = sealed(path.parent/'delivery_and_resources.json')
+        assert closed['passed'] and closed['all_allocations_released']
+        assert closed['native_metric_audit']['sha256'] == p.digest(path)
+        launch_ref = next(r for r in source['source_refs'] if r['path'].endswith('/launch.json'))
+        launch_path = Path(launch_ref['path'])
+        assert p.digest(launch_path) == launch_ref['sha256']
+        source_refs[str(launch_path)] = launch_ref['sha256']
+        launch = json.loads(launch_path.read_text())
+        request_path = path.parent/'stages/requests.csv'
+        request_data = request_path.read_bytes()
+        assert request_data == subprocess.check_output(['git','-C',str(ROOT),'show',head+':'+str(request_path.relative_to(ROOT))])
+        source_refs[str(request_path)] = hashlib.sha256(request_data).hexdigest()
+        requests = list(csv.DictReader(io.StringIO(request_data.decode())))
+        assert len(requests) == len({r['request_id'] for r in requests}) == 4000
+        assert sum(r['joint_pass']=='True' for r in requests) == source['counts']['joint_pass']
+        source = dict(audit=source, native_output_token_total=sum(int(r['output_tokens']) for r in requests),
+                      source_plan=launch['external_replay']['plan'])
+    row = sealed_matrix_row(source, source_kind=kind, system=name, run=run, workload=w, slo_sha=slo_sha)
+    row['source_ref'] = dict(path=str(path), sha256=source_refs[str(path)], source_kind=kind)
+    if kind == 'hydra_evaluation':
+        preparation = sealed(path.parent/'prepare_result.json')
+        row['source_plan'] = preparation['plan_identity']
+        delivery = sealed(path.parent/'delivery_numerical_audit.json')
+        row['numerical_evidence_scope'] = delivery
+    elif kind == 'prime_full_audit':
+        row['numerical_evidence_scope'] = original_source['note']
+    else:
+        row['numerical_evidence_scope'] = original_source['limitations']
+    plan = row['source_plan']
+    assert plan['count'] == 4000 and plan['profile'] == w
+    key = (plan['source_sha256'],plan['view_sha256'])
+    assert key[0] == '4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d'
+    if w in identities: assert identities[w] == key
+    identities[w] = key
+    if name != 'PrimeLoRA':
+        assert registry['systems'][name]['published'] and registry['systems'][name]['role']=='external_baseline'
+    row.update(status='completed_observation' if row['workload_complete'] else 'terminal_failure_diagnostic',
+               independent_holdout=False, formal_g1_eligible=False, formal_g2_eligible=False,
+               n_correct=None)
+    registration.append(dict(system=name,run=run,workload=w,source_kind=kind,
+                             path=str(path),sha256=source_refs[str(path)]))
+    rows.append(row)
+
+groups = {w:{r['system']:r for r in rows if r['workload']==w} for w in ('W0','W1','W2')}
+names = ('PrimeLoRA','vLLM','S-LoRA','ServerlessLLM','HydraServe','Loquetier','dLoRA')
+assert len(rows)==20 and [len(groups[w]) for w in ('W0','W1','W2')]==[6,7,7]
+missing = {'W0':{'dLoRA':'not_in_approved_scope'},'W1':{},'W2':{}}
+sensitivity, differences = {}, {}
+for w,cohort in groups.items():
+    assert set(cohort)|set(missing[w]) == set(names) and not set(cohort)&set(missing[w])
+    ref = references[w]; resident = cohort['vLLM']
+    assert ref['reference_frozen'] and ref['source_run']==resident['run']
+    assert ref['source_audit_sha256']==resident['source_ref']['sha256']
+    assert ref['U_ref_gpu_seconds']==resident['physical_gpu_seconds']
+    assert ref['Q_ref_p95_ttft_ms']==resident['metrics']['ttft_ms']['p95_type1']
+    for r in cohort.values():
+        r['ratio_to_resident_75pct_budget']=r['physical_gpu_seconds']/ref['B_gpu_seconds']
+        r['budget_within_75pct']=r['physical_gpu_seconds']<=ref['B_gpu_seconds']
+        r['observed_g2_constraints']=(r['observed_protocol_feasible'] and r['budget_within_75pct'])
+    differences[w] = ({name:matched_relative_observation(cohort['PrimeLoRA'],r)
+                       for name,r in cohort.items() if name!='PrimeLoRA'} if 'PrimeLoRA' in cohort else None)
+    sensitivity[w]=[]
+    for q in (.9,.95,.99):
+        eligible=sorted((name for name,r in cohort.items()
+            if r['workload_complete'] and r['counts']['joint_pass']>=q*4000),
+            key=lambda name:(cohort[name]['physical_gpu_seconds'],name))
+        sensitivity[w].append(dict(attainment=q,observed_resource_order=eligible,
+            budget_slices=[dict(fraction=rho,observed_feasible_names=[name for name in eligible
+                if cohort[name]['physical_gpu_seconds']<=rho*ref['U_ref_gpu_seconds']]) for rho in (.5,.75,1.)]))
+report=dict(schema='sealed_same_configuration_3b_matrix_v1',results=groups,missing=missing,references=references,
+    PrimeLoRA_relative_observations=differences,fixed_configuration_sensitivity=sensitivity,
+    same_configuration_except_exclusive_paths=True,new_gpu_runs=0,performance_runs_per_key=1,confidence_interval=None,formal_m1_m2_complete=False,
+    independent_numerical_qualification=False,independent_holdout=False,
+    current_plan_sha256=p.check_plan(),source_checkpoint=head,common_slo_sha256=slo_sha,
+    metric_protocol_sha256=p.digest(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+    single_run_amendment_sha256=p.digest(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md'),
+    common_workload_identities={w:dict(source_sha256=k[0],view_sha256=k[1]) for w,k in identities.items()},
+    source_refs=[dict(path=path,sha256=sha) for path,sha in source_refs.items()],
+    caveats=['Reuse of sealed audits; no new independent full numerical qualification.',
+      'PrimeLoRA D1046 W0/D1047 W1/D1045 W2 share one configuration; only exclusive output/cache paths differ. Old D752/D810 remain preserved.',
+      'dLoRA restricted to W1/W2; failures retained in offered denominator and conditional latency samples.',
+      'Source42 known workload, one observation per key, no independent holdout or CI.',
+      'HydraServe pp1 only; no pipeline/consolidation performance claim.',
+      'Baseline necessary adaptations and native versions retained; no performance search or global-optimum claim.',
+      'Numerical resource references are frozen; independent numerical proof remains explicitly unknown.',
+      'Sensitivity classifies existing points; it is not an optimized Pareto frontier.'])
+OUT.mkdir(parents=True,exist_ok=False)
+with (OUT/'analyze.py.snapshot').open('x') as f: f.write(Path(__file__).read_text())
+save(OUT/'tests.json',test_receipt)
+save(OUT/'source_registration.json',registration)
+save(OUT/'comparison.json',report)
+with (OUT/'metrics.csv').open('x',newline='') as stream:
+    writer=csv.writer(stream,lineterminator='\n')
+    writer.writerow(['workload','system','run','status','offered','binding_valid','failed','joint_good','joint_slo',
+        'gpu_seconds','gpu_seconds_per_offered','mean_ttft_ms','p95_ttft_ms','mean_tpot_ms','p95_tpot_ms',
+        'mean_e2e_ms','ratio_to_75pct_budget','observed_latency_feasible','independent_numerical_proof'])
+    for w in ('W0','W1','W2'):
+        for name in names:
+            if name in missing[w]:
+                writer.writerow([w,name,'',missing[w][name]]+['']*15)
+                continue
+            r=groups[w][name]; m=r['metrics']
+            writer.writerow([w,name,r['run'],r['status'],4000,r['n_binding_valid'],r['n_failed'],r['counts']['joint_pass'],
+                r['joint_slo'],r['physical_gpu_seconds'],r['gpu_seconds_per_offered_request'],m['ttft_ms']['mean'],
+                m['ttft_ms']['p95_type1'],m['tpot_ms']['mean'],m['tpot_ms']['p95_type1'],m['e2e_ms']['mean'],
+                r['ratio_to_resident_75pct_budget'],r['observed_protocol_feasible'],False])
+for path,sha in source_refs.items(): assert p.digest(Path(path))==sha
+for path,sha in preserved.items(): assert p.digest(path)==sha
+protected=p.verify_seal(seal)
+assert protected['pass'] and protected['entry_count']==147
+save(OUT/'manifest.json',dict(passed=True,new_gpu_runs=0,production_changed=False,identity=identity,
+    resources=resources(),protected=protected,preserved={str(k):v for k,v in preserved.items()},
+    source_checkpoint=head,tests=tests.testsRun,source_refs=report['source_refs'],
+    analysis_sources=[dict(path=str(f),sha256=p.digest(f)) for f in (Path(__file__),template,
+        ROOT/'scripts/ieee_tc/check_d299_full_context.py',ROOT/'tests/test_ieee_tc_sealed_matrix.py')],
+    outputs={name:p.digest(OUT/name) for name in ('comparison.json','metrics.csv','source_registration.json')}))
+save(RAW/'analysis_receipt.json',dict(passed=True,scope=identity,resources=resources(),rows=len(rows),tests=tests.testsRun))
+print(json.dumps(dict(passed=True,rows=len(rows),tests=tests.testsRun,resources=resources())))

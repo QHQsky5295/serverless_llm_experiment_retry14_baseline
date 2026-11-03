@@ -135,5 +135,46 @@ class SealedMatrixTests(unittest.TestCase):
         with self.assertRaises(ValueError): sealed_matrix_row(payload, **kwargs)
 
 
+class FullPrimeMatrixTests(unittest.TestCase):
+    def test_full_prime_workload_projection_keeps_observed_values(self):
+        for run, workload, directory in [
+            ('D1046', 'W0', 'd1046_same_version_w0'),
+            ('D1047', 'W1', 'd1047_same_version_w1'),
+            ('D1045', 'W2', 'd1045_event_busy_time')]:
+            with self.subTest(workload=workload):
+                path = P/'p2_backend'/directory/'completion'
+                audit = json.loads((path/'full4000.json').read_text())
+                with (path/'stages/requests.csv').open() as stream:
+                    tokens = sum(int(r['output_tokens']) for r in csv.DictReader(stream))
+                payload = dict(audit=audit, native_output_token_total=tokens,
+                               source_plan=audit['replay_plan'])
+                row = sealed_matrix_row(payload, source_kind='prime_full_audit',
+                    system='PrimeLoRA', run=run, workload=workload,
+                    slo_sha=audit['common_slo_sha256'])
+                self.assertEqual(row['physical_gpu_seconds'], audit['physical_gpu_seconds'])
+                self.assertEqual(row['joint_slo'], audit['joint_slo_fraction'])
+                self.assertEqual(row['native_tokens'], 458224)
+                self.assertEqual(row['metrics'], audit['metrics'])
+                self.assertIsNone(row['raw_n_correct'])
+                self.assertFalse(row['independent_numerical_proof'])
+
+    def test_full_prime_rejects_partial_or_mismatched_workload(self):
+        path = P/'p2_backend/d1047_same_version_w1/completion/full4000.json'
+        audit = json.loads(path.read_text())
+        original = dict(audit=audit, native_output_token_total=458224,
+                        source_plan=copy.deepcopy(audit['replay_plan']))
+        kwargs = dict(source_kind='prime_full_audit', system='PrimeLoRA', run='D1047',
+                      workload='W1', slo_sha=audit['common_slo_sha256'])
+        for key, value in [('full_replay', False), ('workload', 'W2'),
+                           ('numerical_adapter_correctness_qualified', True)]:
+            changed = copy.deepcopy(original)
+            changed['audit'][key] = value
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                sealed_matrix_row(changed, **kwargs)
+        changed = copy.deepcopy(original)
+        changed['source_plan']['view_sha256'] = '0'*64
+        with self.assertRaises(ValueError): sealed_matrix_row(changed, **kwargs)
+
+
 if __name__ == '__main__':
     unittest.main()

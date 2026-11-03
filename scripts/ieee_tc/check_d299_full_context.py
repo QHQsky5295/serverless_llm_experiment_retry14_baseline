@@ -1626,11 +1626,16 @@ def sealed_matrix_row(payload, *, source_kind, system, run, workload, slo_sha):
         u, metrics = source['physical_gpu_seconds'], copy.deepcopy(source['conditional_metrics'])
         unknown, proof = source['n_correct'], source['independent_lora_numerical_correctness']
         plan = source['source_plan']
-    elif source_kind == 'prime_w0_audit':
+    elif source_kind in ('prime_w0_audit', 'prime_full_audit'):
         source = payload['audit']
-        if (workload != 'W0' or source['passed'] is not True or source['full_w0'] is not True
-                or source['common_slo_sha256'] != slo_sha):
-            raise ValueError('complete sealed PrimeLoRA W0 audit required')
+        if source['passed'] is not True or source['common_slo_sha256'] != slo_sha:
+            raise ValueError('complete PrimeLoRA common-SLO audit required')
+        if source_kind == 'prime_w0_audit':
+            if workload != 'W0' or source['full_w0'] is not True:
+                raise ValueError('complete sealed PrimeLoRA W0 audit required')
+        elif (source['full_replay'] is not True or source['workload'] != workload
+                or source['replay_plan'] != payload['source_plan']):
+            raise ValueError('complete scenario-matched PrimeLoRA replay required')
         n = source['counts']['n']
         joint, ttft, tpot = (source['counts'][k] for k in ('joint_pass', 'ttft_pass', 'tpot_pass'))
         # Caller sums the SHA-bound request CSV's measured output_tokens, not
