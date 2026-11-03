@@ -3,6 +3,12 @@
 set -euo pipefail
 ROOT=/home/qhq/serverless_llm_experiment_retry14_baseline
 case "${1:-d298}" in
+  d1032)
+    # Two existing D1031 waves: validate memory-cache hit, not a new profile.
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1032_20261103
+    CONFIG=configs/ieee_tc/20261103_d1031_3b_startup_memory_source.yaml
+    SPEC=paper_results/ieee_tc/p2_backend/d1032_startup_memory_hit/source_spec.json
+    ;;
   d1031)
     # Same 423 cases; exact successful native KV allocation reuse.
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1031_20261103
@@ -171,6 +177,10 @@ if [[ -n "${FAASLORA_D1031_ATTEMPT:-}" ]]; then
   SOURCE_STEM=source2
 fi
 cd "$ROOT"
+# D1032 shares every runtime environment selector with D1031; only the raw
+# directory/spec above differ. Preserve the original execution identity.
+SELECTOR="${1:-d298}"
+[[ "$SELECTOR" != d1032 ]] || set -- d1031
 mkdir -p "$RAW"
 [[ ! -e "$RAW/${SOURCE_STEM}_launch.json" && ! -e "$RAW/$SOURCE_STEM.json" ]] || exit 2
 set -o noclobber
