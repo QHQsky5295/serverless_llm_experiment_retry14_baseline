@@ -1,0 +1,12 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1047_same_version_w1/prelaunch/curate.py.snapshot",
+      "sha256": "d4e36ca17498ef771b47e83007b2f7a35fee0d6b712e632def1410f9c8361a3e"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1047_same_version_w1/prelaunch/qualification.json",
+      "sha256": "1539d442d9083d3061904deb3d5678010c80ac252564bdac0153cc4097fb910d"
+    }
+  ]
+}
