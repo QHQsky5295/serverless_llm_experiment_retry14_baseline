@@ -80,6 +80,26 @@ class StaticPreparationOwner(unittest.TestCase):
         fixture, owner, raw, limits = fixture_case.make()
         return fixture, owner, raw, store.FrozenPreparationDescriptions(raw), limits
 
+    def test_static_candidate_paths_are_not_reconstructed_on_every_snapshot(self):
+        fixture, owner, raw, frozen, limits = self.make()
+        absent = {f'absent-{i}' for i in range(496)}
+        raw.update({aid: dict(raw['a']) for aid in absent})
+        frozen = store.FrozenPreparationDescriptions(raw)
+        expected = owner.preparation_snapshot(manifests=frozen, limits=limits)
+        original = Path.__truediv__
+        joins = []
+        def observed(root, name):
+            if name in absent and root in owner.roots.values():
+                joins.append((str(root), name))
+            return original(root, name)
+        with (patch.object(Path, '__truediv__', observed),
+              patch.object(owner, '_file_inventory', wraps=owner._file_inventory) as scan):
+            actual = owner.preparation_snapshot(manifests=frozen, limits=limits)
+        self.assertEqual(scan.call_count, 1)
+        self.assertEqual(observation.without_capture_times(actual),
+                         observation.without_capture_times(expected))
+        self.assertEqual(len(joins), 0, 'static lexical paths must survive repeated snapshots')
+
     def test_legacy_equivalence_fresh_inventory_and_no_hot_digest(self):
         fixture, owner, raw, frozen, limits = self.make()
         expected = observation.legacy_preparation_snapshot(owner, manifests=raw, limits=limits)
@@ -94,6 +114,17 @@ class StaticPreparationOwner(unittest.TestCase):
         self.assertEqual(observation.without_capture_times(actual), observation.without_capture_times(again))
         self.assertGreater(again['captured_at'], actual['captured_at'])
 
+    def test_static_path_reuse_preserves_current_root_iteration_order(self):
+        fixture, owner, raw, frozen, limits = self.make()
+        owner.preparation_snapshot(manifests=frozen, limits=limits)
+        paths = owner._preparation_target_paths
+        owner.roots = dict(reversed(tuple(owner.roots.items())))
+        actual = owner.preparation_snapshot(manifests=frozen, limits=limits)
+        expected = observation.legacy_preparation_snapshot(owner, manifests=raw, limits=limits)
+        self.assertIs(owner._preparation_target_paths, paths)
+        self.assertEqual(observation.without_capture_times(actual),
+                         observation.without_capture_times(expected))
+
     def test_export_and_templates_cannot_poison_next_snapshot(self):
         fixture, owner, raw, frozen, limits = self.make()
         first = owner.preparation_snapshot(manifests=frozen, limits=limits)
@@ -103,6 +134,10 @@ class StaticPreparationOwner(unittest.TestCase):
         first['budgets']['tiers']['nvme']['remaining_bytes'] = 0
         with self.assertRaises(TypeError):
             owner._preparation_targets['a']['nvme']['footprint_bytes'] = 0
+        with self.assertRaises(TypeError):
+            owner._preparation_target_paths['a']['nvme'] = Path('/invalid')
+        with self.assertRaises(TypeError):
+            owner._preparation_target_paths['a'] = {}
         next_view = owner.preparation_snapshot(manifests=frozen, limits=limits)
         self.assertEqual(observation.without_capture_times(expected), observation.without_capture_times(next_view))
 
@@ -191,21 +226,32 @@ class StaticPreparationOwner(unittest.TestCase):
         unit = os.statvfs(root).f_frsize
         first = owner.preparation_snapshot(manifests=frozen, limits=limits)
         targets = owner._preparation_targets
+        paths = owner._preparation_target_paths
         owner.preparation_snapshot(manifests=store.FrozenPreparationDescriptions(frozen), limits=limits)
         self.assertIs(owner._preparation_targets, targets)  # Content binding, not input address.
+        self.assertIs(owner._preparation_target_paths, paths)
         with patch('os.statvfs', return_value=SimpleNamespace(f_frsize=unit*2)):
             changed = owner.preparation_snapshot(manifests=frozen, limits=limits)
         self.assertEqual(changed['artifacts']['a']['targets']['nvme']['footprint_bytes'],
                          ((4097+2*unit-1)//(2*unit)+1)*(2*unit))
         self.assertIsNot(owner._preparation_targets, targets)
+        self.assertIsNot(owner._preparation_target_paths, paths)
         restored = owner.preparation_snapshot(manifests=frozen, limits=limits)
         self.assertEqual(restored['artifacts'], first['artifacts'])
         owner.roots['nvme'] = root/'replacement'
         moved = owner.preparation_snapshot(manifests=frozen, limits=limits)
         self.assertEqual(moved['artifacts']['a']['targets']['nvme']['path'], str(root/'replacement'/'a'))
+        self.assertEqual(owner._preparation_target_paths['a']['nvme'], root/'replacement'/'a')
         subset = owner.preparation_snapshot(manifests=frozen.select(['a']), limits=limits)
         self.assertEqual(set(subset['artifacts']), {'a'})
         self.assertEqual(set(owner._preparation_targets), {'a'})
+        self.assertEqual(set(owner._preparation_target_paths), {'a'})
+        paths = owner._preparation_target_paths
+        changed_content = store.FrozenPreparationDescriptions({'a': {'one': (1, 'd'*64)}})
+        owner.preparation_snapshot(manifests=changed_content, limits=limits)
+        self.assertIsNot(owner._preparation_target_paths, paths)
+        self.assertEqual(owner._preparation_targets['a']['nvme']['content_sha256'],
+                         changed_content.descriptions['a']['content_sha256'])
         for invalid in (0, -1, True):
             with patch('os.statvfs', return_value=SimpleNamespace(f_frsize=invalid)):
                 with self.assertRaisesRegex(RuntimeError, 'allocation units'):

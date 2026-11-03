@@ -1,0 +1,72 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/prelaunch/candidate_order_tests.json",
+      "sha256": "b87d8e68e8d40282aa8aac50defc2ed36fd7c322a53b4a60e4e48717dc5cee82"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/prelaunch/candidate_order_tests.txt",
+      "sha256": "fef4223324d4df9a0a7d84ddfd913412ae025697f416baf6c871d0224809e88c"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/prelaunch/candidate_tests.json",
+      "sha256": "7707bf2cf29a585d9abdeefd032b69664196de34cae18090ee0f85c1f5c76e8c"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/prelaunch/candidate_tests.txt",
+      "sha256": "cb840995bae928c3b141a8eda80e98bc2d4075480138151ecf6bd30ed31b1421"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/prelaunch/check.py.snapshot",
+      "sha256": "2806ef76c6890f1a135b3ba3d50a3ed393d998622ab96f72d4a688da9fafc90e"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/prelaunch/check_order.py.snapshot",
+      "sha256": "a043bfefbc27a185b1f5b7a9eabccb86f357eac34f6e01ad79762be22b211751"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/prelaunch/compare_order.py.snapshot",
+      "sha256": "190835cdb9882ec7f4fc54cf4e341cd00cef33041372fa9081c6e77f7e429606"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/prelaunch/compare_snapshot.py.snapshot",
+      "sha256": "f5144f81a4d72b9b2281aaada6763a7811451d56c9b14f8d3d8ca0ac98b7a7b6"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/prelaunch/component_attempt1_failure.json",
+      "sha256": "391edae2c170b46f5edfe9f9ba719b2807de0284ac787bc5a852e76ce754c30d"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/prelaunch/component_comparison.json",
+      "sha256": "5c2cd87406c221bcabb56c84d551659a8695c6613210aaf35a091df4f0be0252"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/prelaunch/component_order_comparison.json",
+      "sha256": "d6c3265dec451c0403e4d3b108f9cfcce0cf00aaaf21d4bf750a602ed61be5ec"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/prelaunch/curate.py.snapshot",
+      "sha256": "20112c65a8a7628f25c877a986aa9ada8bf03924e61e3584a0c812b9bb63c728"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/prelaunch/parent_tests.json",
+      "sha256": "6cfa2c2ea7852e524c7de14556464ae396d1dc8175e9af5398ccdf7ef30ae460"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/prelaunch/parent_tests.txt",
+      "sha256": "cec14cdba0a0bed27b572b7f1d7c4bc9ba63d33e5fe0f6cf8ec9328eab1b2610"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/prelaunch/profile_snapshot.py.snapshot",
+      "sha256": "127265cb7770ebb6b1da8e0e9680bed193ea58817852206127cefd3a99b96b5f"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/prelaunch/qualification.json",
+      "sha256": "f064d622dfc7b190a70fcbd2a25f849b116bc3e5195e463c8678b28f69e4cfa0"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/prelaunch/snapshot_profile.json",
+      "sha256": "8a1007916f2481ed79bb53c03f96b10bb9432eb63483cefcfc23751a4ba4862a"
+    }
+  ]
+}

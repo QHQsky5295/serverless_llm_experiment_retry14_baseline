@@ -1,0 +1,38 @@
+{
+  "passed": false,
+  "returncode": 1,
+  "identity": {
+    "unit": "primelora-tc-aux-6e183775db364162a3bca051b1f42a29.scope",
+    "invocation_id": "1b839cfa83004959be32ef13a07f5a5f",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-6e183775db364162a3bca051b1f42a29.scope",
+    "inode": 38613252
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-6e183775db364162a3bca051b1f42a29.scope",
+    "memory.current": 310472704,
+    "memory.peak": 844414976,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 10508281\nuser_usec 8969533\nsystem_usec 1538748\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "sources": {
+    "faaslora/memory/residency_manager.py": "8420ab94fb150365782af93bd04e9102a7ade6412c0a8aac7d40990356e4d55d",
+    "tests/test_ieee_tc_static_preparation.py": "c0e03238d799e12ac8a0763b80ba3f161817b4e559d0de41d2fd381859ee46a2",
+    "tests/test_ieee_tc_file_observation.py": "35cd75d8bd8850aeb0d2ded8e7463b86f959a21e995da907b2612c49bac14564"
+  },
+  "wrapper_sha256": "2806ef76c6890f1a135b3ba3d50a3ed393d998622ab96f72d4a688da9fafc90e"
+}

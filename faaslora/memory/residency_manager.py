@@ -323,6 +323,7 @@ class LocalSourceReferences:
         self._file_change_callbacks = {}
         self._preparation_target_binding = None
         self._preparation_targets = None
+        self._preparation_target_paths = None
         self.source_epoch = 0
 
     def subscribe_file_changes(self, subscriber_id, callback):
@@ -1461,13 +1462,19 @@ class LocalSourceReferences:
                    tuple((tier, str(root), units[tier]) for tier, root in sorted(self.roots.items())))
         if binding != self._preparation_target_binding:
             targets = {}
+            target_paths = {}
             for aid, row in manifests.descriptions.items():
+                # Reuse only immutable lexical paths, never filesystem facts.
+                # A new binding replaces paths and descriptions together.
+                paths = MappingProxyType({tier: self.roots[tier] / aid for tier in units})
+                target_paths[aid] = paths
                 targets[aid] = MappingProxyType({tier: MappingProxyType(dict(
                     tier=tier, representation='verified_regular_file_tree_v1',
                     content_sha256=row['content_sha256'], footprint_bytes=sum(
                         ((size+unit-1)//unit)*unit for size, _ in row['files'].values()),
-                    path=str(self.roots[tier]/aid))) for tier, unit in units.items()})
+                    path=str(paths[tier]))) for tier, unit in units.items()})
             self._preparation_targets = MappingProxyType(targets)
+            self._preparation_target_paths = MappingProxyType(target_paths)
             self._preparation_target_binding = binding
         return self._preparation_targets
 
@@ -1552,8 +1559,8 @@ class LocalSourceReferences:
             for aid, description in manifests.descriptions.items():
                 content = description['content_sha256']
                 sources = []
-                for tier, root in self.roots.items():
-                    path = root / aid
+                for tier in self.roots:
+                    path = self._preparation_target_paths[aid][tier]
                     observation = observations.get(path)
                     if path in self._confirmed_sources:
                         # Missing trees mismatch the published signatures and

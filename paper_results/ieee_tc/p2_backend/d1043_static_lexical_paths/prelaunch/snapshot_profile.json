@@ -1,0 +1,1035 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-d011a3cb024a4f8fb396af24a7896599.scope",
+    "invocation_id": "a2d2024c5d1f44bb84f8971766708ca0",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d011a3cb024a4f8fb396af24a7896599.scope",
+    "inode": 38609813
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d011a3cb024a4f8fb396af24a7896599.scope",
+    "memory.current": 528093184,
+    "memory.peak": 531058688,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 7718121\nuser_usec 6644661\nsystem_usec 1073460\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "wall_ms": [
+    9.771513,
+    9.645572,
+    9.572515
+  ],
+  "fixture": "existing FreshFileObservation.make plus existing 496 absent candidates",
+  "logical_candidates": 500,
+  "confirmed_sources": 7,
+  "performance_result": false,
+  "rows": [
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 1525,
+      "function": "preparation_snapshot",
+      "primitive_calls": 1,
+      "calls": 1,
+      "self_s": 0.0035413780000000004,
+      "cumulative_s": 0.029159181000000003
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'get' of 'dict' objects>",
+      "primitive_calls": 1456,
+      "calls": 1456,
+      "self_s": 0.000640771,
+      "cumulative_s": 0.016585929000000003
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 524,
+      "function": "__hash__",
+      "primitive_calls": 2079,
+      "calls": 2079,
+      "self_s": 0.0013736450000000002,
+      "cumulative_s": 0.016302413
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 484,
+      "function": "_str_normcase",
+      "primitive_calls": 1112,
+      "calls": 1112,
+      "self_s": 0.0014390800000000001,
+      "cumulative_s": 0.014720202000000002
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 437,
+      "function": "__str__",
+      "primitive_calls": 1042,
+      "calls": 1042,
+      "self_s": 0.001812767,
+      "cumulative_s": 0.013327409
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 551,
+      "function": "drive",
+      "primitive_calls": 1079,
+      "calls": 1079,
+      "self_s": 0.001032666,
+      "cumulative_s": 0.010558374
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 407,
+      "function": "_load_parts",
+      "primitive_calls": 1030,
+      "calls": 1030,
+      "self_s": 0.001501427,
+      "cumulative_s": 0.009525708
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 719,
+      "function": "__truediv__",
+      "primitive_calls": 1007,
+      "calls": 1007,
+      "self_s": 0.00042779900000000003,
+      "cumulative_s": 0.006252555000000001
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 711,
+      "function": "joinpath",
+      "primitive_calls": 1007,
+      "calls": 1007,
+      "self_s": 0.000717836,
+      "cumulative_s": 0.005824756
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 380,
+      "function": "with_segments",
+      "primitive_calls": 1014,
+      "calls": 1014,
+      "self_s": 0.0009835900000000001,
+      "cumulative_s": 0.0051374590000000005
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 387,
+      "function": "_parse_path",
+      "primitive_calls": 1030,
+      "calls": 1030,
+      "self_s": 0.002477471,
+      "cumulative_s": 0.004936453
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 1157,
+      "function": "__init__",
+      "primitive_calls": 1037,
+      "calls": 1037,
+      "self_s": 0.000812366,
+      "cumulative_s": 0.003609993
+    },
+    {
+      "file": "<frozen posixpath>",
+      "line": 71,
+      "function": "join",
+      "primitive_calls": 1028,
+      "calls": 1028,
+      "self_s": 0.001676111,
+      "cumulative_s": 0.0028685760000000003
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 358,
+      "function": "__init__",
+      "primitive_calls": 1037,
+      "calls": 1037,
+      "self_s": 0.001736253,
+      "cumulative_s": 0.002797627
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method sys.intern>",
+      "primitive_calls": 4132,
+      "calls": 4132,
+      "self_s": 0.0010403390000000002,
+      "cumulative_s": 0.0010403390000000002
+    },
+    {
+      "file": "<frozen posixpath>",
+      "line": 138,
+      "function": "splitroot",
+      "primitive_calls": 1030,
+      "calls": 1030,
+      "self_s": 0.0007584470000000001,
+      "cumulative_s": 0.0010386120000000002
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.isinstance>",
+      "primitive_calls": 5190,
+      "calls": 5190,
+      "self_s": 0.000784795,
+      "cumulative_s": 0.000784795
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 1121,
+      "function": "inventory",
+      "primitive_calls": 1,
+      "calls": 1,
+      "self_s": 1.5404e-05,
+      "cumulative_s": 0.000780276
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 429,
+      "function": "_format_parsed_parts",
+      "primitive_calls": 1023,
+      "calls": 1023,
+      "self_s": 0.000472843,
+      "cumulative_s": 0.0007719020000000001
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 1138,
+      "function": "_file_inventory",
+      "primitive_calls": 1,
+      "calls": 1,
+      "self_s": 2.7818e-05,
+      "cumulative_s": 0.000760906
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 163,
+      "function": "_local_file_inventory",
+      "primitive_calls": 1,
+      "calls": 1,
+      "self_s": 0.000195665,
+      "cumulative_s": 0.000714862
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 1164,
+      "function": "__new__",
+      "primitive_calls": 1037,
+      "calls": 1037,
+      "self_s": 0.000415355,
+      "cumulative_s": 0.0006307670000000001
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 397,
+      "function": "_file_replacement_capacity_from_inventory",
+      "primitive_calls": 1,
+      "calls": 1,
+      "self_s": 0.00013576200000000002,
+      "cumulative_s": 0.0005109240000000001
+    },
+    {
+      "file": "<frozen posixpath>",
+      "line": 41,
+      "function": "_get_sep",
+      "primitive_calls": 1028,
+      "calls": 1028,
+      "self_s": 0.000302839,
+      "cumulative_s": 0.00046461100000000003
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method posix.fspath>",
+      "primitive_calls": 3093,
+      "calls": 3093,
+      "self_s": 0.000400279,
+      "cumulative_s": 0.000400279
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.any>",
+      "primitive_calls": 505,
+      "calls": 505,
+      "self_s": 0.000275384,
+      "cumulative_s": 0.00038518700000000005
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'split' of 'str' objects>",
+      "primitive_calls": 1037,
+      "calls": 1037,
+      "self_s": 0.00038256900000000003,
+      "cumulative_s": 0.00038256900000000003
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 1474,
+      "function": "_planning_source_observations",
+      "primitive_calls": 1,
+      "calls": 1,
+      "self_s": 0.000114494,
+      "cumulative_s": 0.000364471
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'extend' of 'list' objects>",
+      "primitive_calls": 1018,
+      "calls": 1018,
+      "self_s": 0.000250393,
+      "cumulative_s": 0.000328114
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'startswith' of 'str' objects>",
+      "primitive_calls": 1049,
+      "calls": 1049,
+      "self_s": 0.00030259000000000004,
+      "cumulative_s": 0.00030259000000000004
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'endswith' of 'str' objects>",
+      "primitive_calls": 1028,
+      "calls": 1028,
+      "self_s": 0.00030131600000000004,
+      "cumulative_s": 0.00030131600000000004
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/copy.py",
+      "line": 118,
+      "function": "deepcopy",
+      "primitive_calls": 7,
+      "calls": 147,
+      "self_s": 0.00015471000000000001,
+      "cumulative_s": 0.00029947400000000004
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'join' of 'str' objects>",
+      "primitive_calls": 1023,
+      "calls": 1023,
+      "self_s": 0.000299059,
+      "cumulative_s": 0.000299059
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.len>",
+      "primitive_calls": 2195,
+      "calls": 2195,
+      "self_s": 0.000298986,
+      "cumulative_s": 0.000298986
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/copy.py",
+      "line": 217,
+      "function": "_deepcopy_dict",
+      "primitive_calls": 7,
+      "calls": 7,
+      "self_s": 5.2505000000000006e-05,
+      "cumulative_s": 0.000266908
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'append' of 'list' objects>",
+      "primitive_calls": 1141,
+      "calls": 1141,
+      "self_s": 0.000234385,
+      "cumulative_s": 0.000234385
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.hash>",
+      "primitive_calls": 1021,
+      "calls": 1021,
+      "self_s": 0.000217194,
+      "cumulative_s": 0.000217194
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method __new__ of type object at 0x935960>",
+      "primitive_calls": 1037,
+      "calls": 1037,
+      "self_s": 0.000215412,
+      "cumulative_s": 0.000215412
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 560,
+      "function": "root",
+      "primitive_calls": 1079,
+      "calls": 1079,
+      "self_s": 0.0001844,
+      "cumulative_s": 0.0001844
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'items' of 'mappingproxy' objects>",
+      "primitive_calls": 501,
+      "calls": 501,
+      "self_s": 0.000152318,
+      "cumulative_s": 0.000152318
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 702,
+      "function": "parts",
+      "primitive_calls": 21,
+      "calls": 21,
+      "self_s": 2.8720000000000003e-05,
+      "cumulative_s": 0.00015185600000000002
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 569,
+      "function": "_tail",
+      "primitive_calls": 1051,
+      "calls": 1051,
+      "self_s": 0.000134751,
+      "cumulative_s": 0.000134751
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'items' of 'dict' objects>",
+      "primitive_calls": 516,
+      "calls": 516,
+      "self_s": 0.000115464,
+      "cumulative_s": 0.000115464
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method posix.stat>",
+      "primitive_calls": 48,
+      "calls": 48,
+      "self_s": 0.00010633000000000001,
+      "cumulative_s": 0.00010764900000000001
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.sorted>",
+      "primitive_calls": 11,
+      "calls": 11,
+      "self_s": 2.302e-05,
+      "cumulative_s": 0.00010345800000000001
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 1573,
+      "function": "<genexpr>",
+      "primitive_calls": 507,
+      "calls": 507,
+      "self_s": 8.7645e-05,
+      "cumulative_s": 8.7645e-05
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 234,
+      "function": "<genexpr>",
+      "primitive_calls": 30,
+      "calls": 30,
+      "self_s": 1.5006000000000002e-05,
+      "cumulative_s": 7.772100000000001e-05
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.sum>",
+      "primitive_calls": 24,
+      "calls": 24,
+      "self_s": 3.5373e-05,
+      "cumulative_s": 7.3114e-05
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 254,
+      "function": "totals",
+      "primitive_calls": 3,
+      "calls": 3,
+      "self_s": 1.1893000000000001e-05,
+      "cumulative_s": 6.307200000000001e-05
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 731,
+      "function": "parent",
+      "primitive_calls": 7,
+      "calls": 7,
+      "self_s": 8.914000000000001e-06,
+      "cumulative_s": 5.3963000000000005e-05
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 182,
+      "function": "signature_for",
+      "primitive_calls": 46,
+      "calls": 46,
+      "self_s": 3.9592e-05,
+      "cumulative_s": 5.1758e-05
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 233,
+      "function": "<genexpr>",
+      "primitive_calls": 30,
+      "calls": 30,
+      "self_s": 4.6613e-05,
+      "cumulative_s": 4.6613e-05
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 519,
+      "function": "__eq__",
+      "primitive_calls": 42,
+      "calls": 42,
+      "self_s": 3.0133e-05,
+      "cumulative_s": 4.3656000000000004e-05
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 420,
+      "function": "_from_parsed_parts",
+      "primitive_calls": 7,
+      "calls": 7,
+      "self_s": 6.4270000000000005e-06,
+      "cumulative_s": 4.2825000000000004e-05
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 1420,
+      "function": "_file_budget_from_inventory",
+      "primitive_calls": 1,
+      "calls": 1,
+      "self_s": 2.1553000000000002e-05,
+      "cumulative_s": 3.9099e-05
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 931,
+      "function": "_validated_source",
+      "primitive_calls": 7,
+      "calls": 7,
+      "self_s": 1.2816e-05,
+      "cumulative_s": 2.4971000000000002e-05
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method posix.scandir>",
+      "primitive_calls": 9,
+      "calls": 9,
+      "self_s": 2.4804000000000002e-05,
+      "cumulative_s": 2.4804000000000002e-05
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 531,
+      "function": "__lt__",
+      "primitive_calls": 11,
+      "calls": 11,
+      "self_s": 9.897e-06,
+      "cumulative_s": 2.4009e-05
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.id>",
+      "primitive_calls": 168,
+      "calls": 168,
+      "self_s": 2.2124e-05,
+      "cumulative_s": 2.2124e-05
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 1207,
+      "function": "_settle_file_allocation",
+      "primitive_calls": 23,
+      "calls": 23,
+      "self_s": 1.2544e-05,
+      "cumulative_s": 1.7509e-05
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 1546,
+      "function": "<genexpr>",
+      "primitive_calls": 8,
+      "calls": 8,
+      "self_s": 5.991000000000001e-06,
+      "cumulative_s": 1.5722e-05
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'disable' of '_lsprof.Profiler' objects>",
+      "primitive_calls": 1,
+      "calls": 1,
+      "self_s": 1.5048e-05,
+      "cumulative_s": 1.5048e-05
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/copy.py",
+      "line": 172,
+      "function": "_deepcopy_atomic",
+      "primitive_calls": 140,
+      "calls": 140,
+      "self_s": 1.4146000000000001e-05,
+      "cumulative_s": 1.4146000000000001e-05
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method posix.statvfs>",
+      "primitive_calls": 2,
+      "calls": 2,
+      "self_s": 1.1180000000000001e-05,
+      "cumulative_s": 1.4055e-05
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 257,
+      "function": "<genexpr>",
+      "primitive_calls": 31,
+      "calls": 31,
+      "self_s": 1.0097e-05,
+      "cumulative_s": 1.3627e-05
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 835,
+      "function": "stat",
+      "primitive_calls": 2,
+      "calls": 2,
+      "self_s": 7.890000000000001e-07,
+      "cumulative_s": 1.2887e-05
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 496,
+      "function": "_parts_normcase",
+      "primitive_calls": 22,
+      "calls": 22,
+      "self_s": 9.635e-06,
+      "cumulative_s": 1.2816e-05
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 795,
+      "function": "_host_budget_from_inventory",
+      "primitive_calls": 2,
+      "calls": 2,
+      "self_s": 8.973e-06,
+      "cumulative_s": 1.2448e-05
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.all>",
+      "primitive_calls": 1,
+      "calls": 1,
+      "self_s": 3.8520000000000006e-06,
+      "cumulative_s": 1.1382e-05
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/copy.py",
+      "line": 231,
+      "function": "_keep_alive",
+      "primitive_calls": 7,
+      "calls": 7,
+      "self_s": 7.974e-06,
+      "cumulative_s": 9.980000000000001e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'setdefault' of 'dict' objects>",
+      "primitive_calls": 30,
+      "calls": 30,
+      "self_s": 9.778e-06,
+      "cumulative_s": 9.778e-06
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 577,
+      "function": "anchor",
+      "primitive_calls": 14,
+      "calls": 14,
+      "self_s": 6.897e-06,
+      "cumulative_s": 9.562000000000001e-06
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 1185,
+      "function": "<genexpr>",
+      "primitive_calls": 24,
+      "calls": 24,
+      "self_s": 6.0550000000000005e-06,
+      "cumulative_s": 9.532000000000001e-06
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 1453,
+      "function": "_static_preparation_targets",
+      "primitive_calls": 1,
+      "calls": 1,
+      "self_s": 5.545e-06,
+      "cumulative_s": 9.302e-06
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/storage/http_artifact_store.py",
+      "line": 602,
+      "function": "_verified_file_signature",
+      "primitive_calls": 21,
+      "calls": 21,
+      "self_s": 8.077e-06,
+      "cumulative_s": 8.077e-06
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 266,
+      "function": "<genexpr>",
+      "primitive_calls": 24,
+      "calls": 24,
+      "self_s": 5.3110000000000005e-06,
+      "cumulative_s": 7.530000000000001e-06
+    },
+    {
+      "file": "<frozen importlib._bootstrap>",
+      "line": 645,
+      "function": "parent",
+      "primitive_calls": 3,
+      "calls": 3,
+      "self_s": 4.4430000000000005e-06,
+      "cumulative_s": 6.3930000000000005e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'partition' of 'str' objects>",
+      "primitive_calls": 21,
+      "calls": 21,
+      "self_s": 6.18e-06,
+      "cumulative_s": 6.18e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'pop' of 'list' objects>",
+      "primitive_calls": 23,
+      "calls": 23,
+      "self_s": 5.850000000000001e-06,
+      "cumulative_s": 5.850000000000001e-06
+    },
+    {
+      "file": "<frozen _collections_abc>",
+      "line": 811,
+      "function": "__contains__",
+      "primitive_calls": 7,
+      "calls": 7,
+      "self_s": 3.169e-06,
+      "cumulative_s": 5.518e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method _stat.S_ISDIR>",
+      "primitive_calls": 32,
+      "calls": 32,
+      "self_s": 5.246e-06,
+      "cumulative_s": 5.246e-06
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 260,
+      "function": "<genexpr>",
+      "primitive_calls": 49,
+      "calls": 49,
+      "self_s": 5.105e-06,
+      "cumulative_s": 5.105e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'values' of 'dict' objects>",
+      "primitive_calls": 22,
+      "calls": 22,
+      "self_s": 4.838e-06,
+      "cumulative_s": 4.838e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.hasattr>",
+      "primitive_calls": 23,
+      "calls": 23,
+      "self_s": 4.5550000000000004e-06,
+      "cumulative_s": 4.5550000000000004e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method _stat.S_ISREG>",
+      "primitive_calls": 23,
+      "calls": 23,
+      "self_s": 4.491e-06,
+      "cumulative_s": 4.491e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'add' of 'set' objects>",
+      "primitive_calls": 21,
+      "calls": 21,
+      "self_s": 4.491e-06,
+      "cumulative_s": 4.491e-06
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 583,
+      "function": "name",
+      "primitive_calls": 7,
+      "calls": 7,
+      "self_s": 3.3120000000000002e-06,
+      "cumulative_s": 4.213e-06
+    },
+    {
+      "file": "/home/qhq/anaconda3/envs/LLM/lib/python3.12/pathlib.py",
+      "line": 447,
+      "function": "__fspath__",
+      "primitive_calls": 4,
+      "calls": 4,
+      "self_s": 3.6350000000000003e-06,
+      "cumulative_s": 4.194e-06
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 256,
+      "function": "<genexpr>",
+      "primitive_calls": 31,
+      "calls": 31,
+      "self_s": 3.7360000000000003e-06,
+      "cumulative_s": 3.7360000000000003e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'keys' of 'dict' objects>",
+      "primitive_calls": 14,
+      "calls": 14,
+      "self_s": 3.58e-06,
+      "cumulative_s": 3.58e-06
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 1483,
+      "function": "<genexpr>",
+      "primitive_calls": 3,
+      "calls": 3,
+      "self_s": 2.5400000000000002e-06,
+      "cumulative_s": 3.2180000000000004e-06
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 261,
+      "function": "<genexpr>",
+      "primitive_calls": 31,
+      "calls": 31,
+      "self_s": 3.193e-06,
+      "cumulative_s": 3.193e-06
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/storage/http_artifact_store.py",
+      "line": 79,
+      "function": "__getitem__",
+      "primitive_calls": 7,
+      "calls": 7,
+      "self_s": 2.3490000000000003e-06,
+      "cumulative_s": 2.3490000000000003e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method '__exit__' of 'posix.ScandirIterator' objects>",
+      "primitive_calls": 9,
+      "calls": 9,
+      "self_s": 2.2410000000000002e-06,
+      "cumulative_s": 2.2410000000000002e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'update' of 'set' objects>",
+      "primitive_calls": 1,
+      "calls": 1,
+      "self_s": 1.8900000000000001e-06,
+      "cumulative_s": 2.12e-06
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 1134,
+      "function": "<genexpr>",
+      "primitive_calls": 1,
+      "calls": 1,
+      "self_s": 2.097e-06,
+      "cumulative_s": 2.097e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'count' of 'list' objects>",
+      "primitive_calls": 14,
+      "calls": 14,
+      "self_s": 2.075e-06,
+      "cumulative_s": 2.075e-06
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 1461,
+      "function": "<genexpr>",
+      "primitive_calls": 3,
+      "calls": 3,
+      "self_s": 1.742e-06,
+      "cumulative_s": 1.985e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'rpartition' of 'str' objects>",
+      "primitive_calls": 3,
+      "calls": 3,
+      "self_s": 1.95e-06,
+      "cumulative_s": 1.95e-06
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 413,
+      "function": "<genexpr>",
+      "primitive_calls": 4,
+      "calls": 4,
+      "self_s": 1.5500000000000002e-06,
+      "cumulative_s": 1.5500000000000002e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'update' of 'dict' objects>",
+      "primitive_calls": 2,
+      "calls": 2,
+      "self_s": 1.475e-06,
+      "cumulative_s": 1.475e-06
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 1539,
+      "function": "<genexpr>",
+      "primitive_calls": 3,
+      "calls": 3,
+      "self_s": 1.2360000000000001e-06,
+      "cumulative_s": 1.2360000000000001e-06
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 1423,
+      "function": "<genexpr>",
+      "primitive_calls": 3,
+      "calls": 3,
+      "self_s": 1.128e-06,
+      "cumulative_s": 1.128e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method '__exit__' of '_thread.RLock' objects>",
+      "primitive_calls": 2,
+      "calls": 2,
+      "self_s": 1.003e-06,
+      "cumulative_s": 1.003e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method time.monotonic>",
+      "primitive_calls": 2,
+      "calls": 2,
+      "self_s": 8.81e-07,
+      "cumulative_s": 8.81e-07
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method fromkeys>",
+      "primitive_calls": 1,
+      "calls": 1,
+      "self_s": 8.08e-07,
+      "cumulative_s": 8.08e-07
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.min>",
+      "primitive_calls": 1,
+      "calls": 1,
+      "self_s": 7.46e-07,
+      "cumulative_s": 7.46e-07
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'rstrip' of 'str' objects>",
+      "primitive_calls": 2,
+      "calls": 2,
+      "self_s": 6.25e-07,
+      "cumulative_s": 6.25e-07
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 1436,
+      "function": "<genexpr>",
+      "primitive_calls": 2,
+      "calls": 2,
+      "self_s": 4.51e-07,
+      "cumulative_s": 4.51e-07
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "line": 407,
+      "function": "<genexpr>",
+      "primitive_calls": 1,
+      "calls": 1,
+      "self_s": 2.3000000000000002e-07,
+      "cumulative_s": 2.3000000000000002e-07
+    }
+  ],
+  "source_sha256": "8420ab94fb150365782af93bd04e9102a7ade6412c0a8aac7d40990356e4d55d",
+  "fixture_sha256": "35cd75d8bd8850aeb0d2ded8e7463b86f959a21e995da907b2612c49bac14564",
+  "wrapper_sha256": "127265cb7770ebb6b1da8e0e9680bed193ea58817852206127cefd3a99b96b5f"
+}

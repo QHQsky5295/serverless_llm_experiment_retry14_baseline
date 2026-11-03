@@ -1,0 +1,9 @@
+{
+  "unit": "primelora-tc-aux-745fe52b09884162a6a59963f953ea2b9.scope",
+  "exit_code": 1,
+  "failure": "ValueError: not an owned TC service/test UUID scope",
+  "cause": "launcher UUID had 33 hexadecimal characters instead of required 32",
+  "stage": "scope_identity, before fixture or measurement",
+  "performance_result": false,
+  "action": "correct launcher identifier only; preserve source and measurement rules"
+}

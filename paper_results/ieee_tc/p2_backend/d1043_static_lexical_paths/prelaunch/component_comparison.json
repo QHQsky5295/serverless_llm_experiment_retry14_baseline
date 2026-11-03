@@ -1,0 +1,89 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-745fe52b09884162a6a59963f953ea2b.scope",
+    "invocation_id": "165285500206436e9576cccb7d318894",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-745fe52b09884162a6a59963f953ea2b.scope",
+    "inode": 38614247
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-745fe52b09884162a6a59963f953ea2b.scope",
+    "memory.current": 540086272,
+    "memory.peak": 540086272,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 7599336\nuser_usec 6544845\nsystem_usec 1054491\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "rows": [
+    {
+      "pair": 1,
+      "version": "parent",
+      "wall_ms": 10.946343,
+      "cpu_ms": 10.949248,
+      "first_template_snapshot_ms": 18.639213,
+      "exact_output_match": true
+    },
+    {
+      "pair": 1,
+      "version": "candidate",
+      "wall_ms": 2.990287,
+      "cpu_ms": 2.993883,
+      "first_template_snapshot_ms": 13.141185,
+      "exact_output_match": true
+    },
+    {
+      "pair": 2,
+      "version": "candidate",
+      "wall_ms": 2.608101,
+      "cpu_ms": 2.610905,
+      "first_template_snapshot_ms": 12.203326,
+      "exact_output_match": true
+    },
+    {
+      "pair": 2,
+      "version": "parent",
+      "wall_ms": 9.863563,
+      "cpu_ms": 9.865588,
+      "first_template_snapshot_ms": 16.722989,
+      "exact_output_match": true
+    },
+    {
+      "pair": 3,
+      "version": "parent",
+      "wall_ms": 11.137983,
+      "cpu_ms": 11.113286,
+      "first_template_snapshot_ms": 27.992428,
+      "exact_output_match": true
+    },
+    {
+      "pair": 3,
+      "version": "candidate",
+      "wall_ms": 2.780652,
+      "cpu_ms": 2.783365,
+      "first_template_snapshot_ms": 12.560391,
+      "exact_output_match": true
+    }
+  ],
+  "parent_commit": "0c7779926e8941a48cdc98300d4720bdbb54f0cc",
+  "logical_candidates": 500,
+  "confirmed_sources": 7,
+  "performance_result": false,
+  "fixture": "existing FreshFileObservation with 496 existing-test absent names",
+  "source_sha256": "b3eefd418115a60f6a7bc9fcd2c976dbf0db5e721376583adb0d74e1a57dd5cc",
+  "parent_source_sha256": "8420ab94fb150365782af93bd04e9102a7ade6412c0a8aac7d40990356e4d55d",
+  "wrapper_sha256": "f5144f81a4d72b9b2281aaada6763a7811451d56c9b14f8d3d8ca0ac98b7a7b6"
+}

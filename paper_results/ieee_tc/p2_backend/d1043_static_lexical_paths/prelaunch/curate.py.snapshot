@@ -1,0 +1,74 @@
+"""Reuse D1042 qualification curation; no additional test or performance run."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import yaml
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d1043_static_lexical_paths/prelaunch'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+def read(path): return json.loads(path.read_text())
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, allow_nan=False)
+        handle.write('\n')
+
+identity = p.scope_identity(p.cg_path().name)
+assert os.sched_getaffinity(0) == {2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+tests = read(RAW/'candidate_order_tests.json')
+assert tests['passed'] and tests['returncode'] == 0
+for name,sha in tests['sources'].items(): assert p.digest(ROOT/name) == sha
+component = read(RAW/'component_order_comparison.json')
+assert component['passed'] and component['source_sha256'] == tests['sources']['faaslora/memory/residency_manager.py']
+assert all(row['exact_output_match'] for row in component['rows'])
+assert read(RAW/'parent_tests.json')['returncode'] == 1
+assert '992 != 0' in (RAW/'parent_tests.txt').read_text()
+before = yaml.safe_load((ROOT/'configs/ieee_tc/20261103_d1033_3b_startup_memory_w2.yaml').read_text())
+after = yaml.safe_load((ROOT/'configs/ieee_tc/20261103_d1043_3b_static_lexical_paths_w2.yaml').read_text())
+changed = []
+for section,key in [('experiment','output_dir'),('storage','nvme_cache_dir'),('storage','host_cache_dir')]:
+    assert before[section][key] != after[section][key]
+    changed.append(dict(section=section,key=key,parent=before[section][key],candidate=after[section][key]))
+    after[section][key] = before[section][key]
+assert before == after
+protected = p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))
+assert protected['pass'] and protected['entry_count'] == 147
+user = {'configs/generated/lora_manifest_1000.json':'3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df',
+        'docs/ieee_tc/EXECUTION_STATUS.md':'41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374'}
+assert all(p.digest(ROOT/name) == sha for name,sha in user.items())
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+closed=[]
+for name in ('snapshot_profile.json','parent_tests.json','candidate_tests.json',
+             'candidate_order_tests.json','component_comparison.json','component_order_comparison.json'):
+    record=read(RAW/name)
+    assert not Path(record['identity']['path']).exists(),name
+    closed.append(record['identity'])
+OUT.mkdir(parents=True,exist_ok=False)
+names = ['snapshot_profile.json','parent_tests.txt','parent_tests.json','candidate_tests.txt',
+    'candidate_tests.json','candidate_order_tests.txt','candidate_order_tests.json',
+    'component_comparison.json','component_order_comparison.json','component_attempt1_failure.json']
+for name in names:
+    with (OUT/name).open('xb') as handle: handle.write((RAW/name).read_bytes())
+for name in ('profile_snapshot.py','check.py','check_order.py','compare_snapshot.py','compare_order.py','curate.py'):
+    with (OUT/(name+'.snapshot')).open('xb') as handle: handle.write((RAW/name).read_bytes())
+resources=p.cgroup_snapshot(p.cg_path())
+sources = ['faaslora/memory/residency_manager.py','tests/test_ieee_tc_static_preparation.py',
+    'scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh',
+    'configs/ieee_tc/20261103_d1043_3b_static_lexical_paths_w2.yaml',
+    'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md','docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md',
+    'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json']
+save(OUT/'qualification.json',dict(passed=True,tests=33,performance_result=False,
+    parent_commit='0c7779926e8941a48cdc98300d4720bdbb54f0cc',
+    identity=identity,resources=resources,closed_scopes=closed,protected=protected,
+    user_protected=user,plan_sha256=p.check_plan(),config_changes=changed,
+    sources={name:p.digest(ROOT/name) for name in sources},
+    preliminary_variant='template tier iteration',final_variant='current owner tier iteration',
+    limitations=['tiny fixture only','no independent numerical correctness proof',
+        'existing D1037 arbitration differs from full D1033 parent']))
+save(OUT/'manifest.json',dict(files=[dict(path=str(x.relative_to(ROOT)),sha256=p.digest(x))
+    for x in sorted(OUT.iterdir()) if x.is_file()]))
+print(json.dumps(dict(passed=True,tests=33,protected=protected,resources=resources)))

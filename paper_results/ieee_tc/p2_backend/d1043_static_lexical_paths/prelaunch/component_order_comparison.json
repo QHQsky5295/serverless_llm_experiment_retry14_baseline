@@ -1,0 +1,89 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-58b47567c23f4dadb1d991d84b4e0955.scope",
+    "invocation_id": "06af0503941a410a9edf28f8229c9f01",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-58b47567c23f4dadb1d991d84b4e0955.scope",
+    "inode": 38615279
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-58b47567c23f4dadb1d991d84b4e0955.scope",
+    "memory.current": 539926528,
+    "memory.peak": 539926528,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 7702221\nuser_usec 6641741\nsystem_usec 1060479\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "rows": [
+    {
+      "pair": 1,
+      "version": "parent",
+      "wall_ms": 10.480053,
+      "cpu_ms": 10.484767,
+      "first_template_snapshot_ms": 17.76728,
+      "exact_output_match": true
+    },
+    {
+      "pair": 1,
+      "version": "candidate",
+      "wall_ms": 3.103515,
+      "cpu_ms": 3.10771,
+      "first_template_snapshot_ms": 13.098008,
+      "exact_output_match": true
+    },
+    {
+      "pair": 2,
+      "version": "candidate",
+      "wall_ms": 2.504337,
+      "cpu_ms": 2.507253,
+      "first_template_snapshot_ms": 12.608726,
+      "exact_output_match": true
+    },
+    {
+      "pair": 2,
+      "version": "parent",
+      "wall_ms": 9.70379,
+      "cpu_ms": 9.705762,
+      "first_template_snapshot_ms": 17.432843,
+      "exact_output_match": true
+    },
+    {
+      "pair": 3,
+      "version": "parent",
+      "wall_ms": 9.607512,
+      "cpu_ms": 9.610142,
+      "first_template_snapshot_ms": 27.640102,
+      "exact_output_match": true
+    },
+    {
+      "pair": 3,
+      "version": "candidate",
+      "wall_ms": 2.743632,
+      "cpu_ms": 2.746564,
+      "first_template_snapshot_ms": 12.135511,
+      "exact_output_match": true
+    }
+  ],
+  "parent_commit": "0c7779926e8941a48cdc98300d4720bdbb54f0cc",
+  "logical_candidates": 500,
+  "confirmed_sources": 7,
+  "performance_result": false,
+  "fixture": "existing FreshFileObservation with 496 existing-test absent names",
+  "source_sha256": "ed5374a789ba129d789848f636dbfe20cecb086dc854170e3682ddc32c6b446e",
+  "parent_source_sha256": "8420ab94fb150365782af93bd04e9102a7ade6412c0a8aac7d40990356e4d55d",
+  "wrapper_sha256": "190835cdb9882ec7f4fc54cf4e341cd00cef33041372fa9081c6e77f7e429606"
+}

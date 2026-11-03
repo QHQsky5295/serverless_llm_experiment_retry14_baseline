@@ -1,0 +1,60 @@
+"""Bounded CPU decomposition using the existing 500-candidate tiny fixture.
+
+No adapter pool/trace creation, GPU replay, or production policy modification.
+The fixture is not the live 146-copy cache; timings are component evidence only.
+"""
+import cProfile
+import json
+import os
+from pathlib import Path
+import pstats
+import subprocess
+import sys
+import time
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+from tests.test_ieee_tc_file_observation import FreshFileObservation, without_capture_times
+from faaslora.storage.http_artifact_store import FrozenPreparationDescriptions
+
+identity = p.scope_identity(p.cg_path().name)
+assert os.sched_getaffinity(0) == {2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+case = FreshFileObservation()
+try:
+    fixture,owner,manifests,limits = case.make()
+    # Exact previously used test fixture and candidate expansion, not an input trace.
+    manifests.update({f'absent-{i}':dict(manifests['a']) for i in range(496)})
+    manifests = FrozenPreparationDescriptions(manifests)
+    expected = without_capture_times(owner.preparation_snapshot(manifests=manifests,limits=limits))
+    wall=[]
+    for _ in range(3):
+        start = time.perf_counter_ns()
+        value = owner.preparation_snapshot(manifests=manifests,limits=limits)
+        wall.append((time.perf_counter_ns()-start)/1e6)
+        assert without_capture_times(value) == expected
+    profiler=cProfile.Profile()
+    profiler.enable()
+    value=owner.preparation_snapshot(manifests=manifests,limits=limits)
+    profiler.disable()
+    assert without_capture_times(value)==expected
+    stats=pstats.Stats(profiler)
+    rows=[dict(file=f,line=l,function=n,primitive_calls=cc,calls=nc,self_s=tt,cumulative_s=ct)
+        for (f,l,n),(cc,nc,tt,ct,callers) in stats.stats.items()]
+    rows.sort(key=lambda r:r['cumulative_s'],reverse=True)
+    resource=p.cgroup_snapshot(p.cg_path())
+    assert resource['memory.high']==3*p.GIB and resource['memory.max']==4*p.GIB
+    assert resource['memory.swap.max']==0
+    with (RAW/'snapshot_profile.json').open('x') as out:
+        json.dump(dict(passed=True,identity=identity,resources=resource,wall_ms=wall,
+            fixture='existing FreshFileObservation.make plus existing 496 absent candidates',
+            logical_candidates=len(manifests),confirmed_sources=len(owner._confirmed_sources),
+            performance_result=False,rows=rows,
+            source_sha256=p.digest(ROOT/'faaslora/memory/residency_manager.py'),
+            fixture_sha256=p.digest(ROOT/'tests/test_ieee_tc_file_observation.py'),
+            wrapper_sha256=p.digest(Path(__file__))),out,indent=2)
+    print(json.dumps(dict(passed=True,wall_ms=wall,top=rows[:16])))
+finally:
+    case.doCleanups()

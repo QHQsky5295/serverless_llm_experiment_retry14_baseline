@@ -1,0 +1,21 @@
+W1103 19:56:00.416000 936596 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+test_static_candidate_paths_are_not_reconstructed_on_every_snapshot (tests.test_ieee_tc_static_preparation.StaticPreparationOwner.test_static_candidate_paths_are_not_reconstructed_on_every_snapshot) ... 2026-11-03 19:56:01 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-11-03 19:56:01 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+FAIL
+
+======================================================================
+FAIL: test_static_candidate_paths_are_not_reconstructed_on_every_snapshot (tests.test_ieee_tc_static_preparation.StaticPreparationOwner.test_static_candidate_paths_are_not_reconstructed_on_every_snapshot)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_static_preparation.py", line 101, in test_static_candidate_paths_are_not_reconstructed_on_every_snapshot
+    self.assertEqual(len(joins), 0, 'static lexical paths must survive repeated snapshots')
+AssertionError: 992 != 0 : static lexical paths must survive repeated snapshots
+
+----------------------------------------------------------------------
+Ran 1 test in 0.229s
+
+FAILED (failures=1)
+    remote artifact fetch b: 0.0 MB, 5.6 ms
+    remote artifact fetch c: 0.0 MB, 4.8 ms
+    remote artifact fetch d: 0.0 MB, 8.0 ms
+    remote artifact fetch a: 0.0 MB, 5.9 ms
