@@ -1,0 +1,87 @@
+{
+  "kind": "same_w0_descriptive_scalar_comparison_v1",
+  "passed": true,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d752_3b_dense_alias_validation_full_w0/completion/full4000.json",
+      "sha256": "d87f17d959180ba11d12180e6ba3cddfccf8f16aaafdfd2047ccf9ad46a0dedf",
+      "bytes": 54551
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d752_20261023/3b_dense_alias_validation_full_w0/launch.json",
+      "sha256": "eb11ac7235f3a7e8667d5f2af93ea23ee2492033cf3d939f8ea512c1c0dc1bd5",
+      "bytes": 12220
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1046_same_version_w0/completion/full4000.json",
+      "sha256": "9b7469ceb0aadd941284db3a66a28d62939f416a8703e45caead8912a45280db",
+      "bytes": 31079
+    }
+  ],
+  "replay_plan": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "view_sha256": "0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W0",
+    "rate_scale": 1.0
+  },
+  "changes": {
+    "physical_gpu_seconds": {
+      "reference": 14860.687045203056,
+      "candidate": 7967.349446525332,
+      "candidate_minus_reference": -6893.337598677725,
+      "relative_reduction": 0.4638639907905775
+    },
+    "ttft_ms.mean": {
+      "reference": 604.0233022231841,
+      "candidate": 355.6546860074159,
+      "candidate_minus_reference": -248.36861621576827,
+      "relative_reduction": 0.41119045457619957
+    },
+    "ttft_ms.p95_type1": {
+      "reference": 1546.4216843247414,
+      "candidate": 744.6254063397646,
+      "candidate_minus_reference": -801.7962779849768,
+      "relative_reduction": 0.5184848907076004
+    },
+    "tpot_ms.mean": {
+      "reference": 15.922396937854389,
+      "candidate": 15.364418184041014,
+      "candidate_minus_reference": -0.5579787538133747,
+      "relative_reduction": 0.03504364047644228
+    },
+    "tpot_ms.p95_type1": {
+      "reference": 27.49808764130604,
+      "candidate": 26.32481658032962,
+      "candidate_minus_reference": -1.1732710609764183,
+      "relative_reduction": 0.042667369319675824
+    },
+    "e2e_ms.mean": {
+      "reference": 2407.3327526043868,
+      "candidate": 2016.5438711479073,
+      "candidate_minus_reference": -390.78888145647943,
+      "relative_reduction": 0.1623327232322587
+    },
+    "e2e_ms.p95_type1": {
+      "reference": 5117.529953829944,
+      "candidate": 4325.355837587267,
+      "candidate_minus_reference": -792.174116242677,
+      "relative_reduction": 0.1547961855406076
+    }
+  },
+  "joint_slo": {
+    "reference": 0.95775,
+    "candidate": 0.9785,
+    "difference_percentage_points": 2.0750000000000046
+  },
+  "limitations": [
+    "D752 legacy metric audit lacks replay_plan; same frozen replay is verified from its SHA-bound launch receipt.",
+    "No paired stage output is generated; the first collector failure is retained.",
+    "Multiple serving-version changes, not a single-mechanism causal effect.",
+    "Single known-trace development observation; numerical correctness remains unqualified."
+  ],
+  "n_correct": null,
+  "ranking_eligible": false
+}
