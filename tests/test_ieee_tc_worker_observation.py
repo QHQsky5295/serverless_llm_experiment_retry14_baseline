@@ -1096,12 +1096,18 @@ class WorkerObservationContract(unittest.TestCase):
         worker.model_runner = SimpleNamespace(lora_manager=SimpleNamespace(_adapter_manager=manager()))
         torch = fake_torch()
         torch.__version__ = TorchVersion('2.13.0')
+        worker._ieee_memory_plan = SimpleNamespace(receipt={
+            'status': 'hit', 'kv_cache_memory_bytes': 4123,
+            'producer': {'pid': 17}})
         with patch.object(monitor, 'torch', torch), \
              patch.dict('sys.modules', {'vllm': SimpleNamespace(__version__='0.30.0')}):
             observation = worker.ieee_worker_observation()
         self.assertIs(type(observation['torch_version']), str)
         self.assertIs(type(observation['backend_version']), str)
         self.assertEqual(msgspec.msgpack.decode(msgspec.msgpack.encode(observation)), observation)
+        self.assertEqual(observation['startup_memory'], worker._ieee_memory_plan.receipt)
+        observation['startup_memory']['producer']['pid'] = 99
+        self.assertEqual(worker._ieee_memory_plan.receipt['producer']['pid'], 17)
 
     def test_storage_aliases_count_once_not_by_view_sum(self):
         with patch.object(monitor, 'torch', fake_torch()):

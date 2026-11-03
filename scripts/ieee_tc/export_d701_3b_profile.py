@@ -385,10 +385,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--preparation-directory', type=Path)
     parser.add_argument('--raw-directory', type=Path)
+    parser.add_argument('--source-stem', choices=('source1', 'source2'), default='source1')
     parser.add_argument('--config', type=Path)
     parser.add_argument('--artifact-resource-context', type=Path)
     parser.add_argument('--remote-journal')
     args = parser.parse_args()
+    if args.source_stem != 'source1' and args.raw_directory is None:
+        parser.error('an explicit repair attempt requires its raw directory')
     if bool(args.artifact_resource_context) != bool(args.remote_journal):
         parser.error('artifact resource context and remote journal are required together')
     if args.artifact_resource_context:
@@ -401,7 +404,8 @@ if __name__ == "__main__":
         RAW_DIR = args.raw_directory.resolve(strict=True)
         CONFIG_PATH = args.config.resolve(strict=True)
         SPEC_PATH, PREP_PATH = PREP_DIR/'source_spec.json', PREP_DIR/'prepare.json'
-        RAW_PATH, LAUNCH_PATH = RAW_DIR/'source1.json', RAW_DIR/'source1_launch.json'
+        RAW_PATH = RAW_DIR / f'{args.source_stem}.json'
+        LAUNCH_PATH = RAW_DIR / f'{args.source_stem}_launch.json'
         OUT = PREP_DIR/'export'
         reference = read(SPEC_PATH)['full_development_contract']
         CONTRACT_PATH = Path(reference['path'])

@@ -1,6 +1,8 @@
 # D1031：复用实际成功分配的启动显存画像
 
 2026-11-03。承接 D1030；完整目标 active，主线仍为 3B PrimeLoRA。
+最新：source2 的 423 请求冷画像及严格导出完成，资源关闭。禁止重跑该画像。
+下一步仅做同配置缓存命中最小验证，再接一次新键完整 W2；收益尚未证实。
 本记录替代当前交接位置，不修改用户 dirty 的 EXECUTION_STATUS.md。
 
 ## 依据与边界
@@ -117,6 +119,48 @@ compiler_hash；D1030 两份真实 cache_key_factors 的不同比较仍然成立
 此为具体启动错误的修复，不是更换参数或重新抽样寻找胜出结果。
 修正后 40 passed、19 既有警告，13.56 秒；实际 compiler interface 的编码测试
 通过。原生开关仍关闭，未生成建议容量记录，也未修改底层库。
+
+## source2 完成：冷路径通过，命中收益仍待测
+
+12:21:58 启动第二次尝试，423/423 原生合同完成，0 个长度/终态错误；
+160/160 服务类、96 准备类，415 服务及 332 准备样本，严格 exporter 通过。
+423 次真实远端传输共 981702550 B，客户端/服务端 ID、字节、SHA 全部匹配，
+无请求中打包。旧 source1 的失败没有混入。新 source-stem 参数仅选择真实
+尝试文件，不更名或覆盖失败文件，不降低 exporter 的完整性要求。
+
+物理 GPU 时间 554.351600 s，完整 startup 111581.907222 ms；原生 init
+72.96 s、compile 30.52 s。它是冷画像，不与主 workload 的 TTFT/SLO 混比。
+32 LoRA 槽、池 1825046528 B；原生 KV 预算 8092388312 B，真正 block 池
+8092385280 B，block=1835008 B，unreserved free=4409（不是总 block 数）。
+成功后的缓存记录 producer PID4043841、free baseline=25003687936 B，
+保存实际返回的预算，由原生 block 取整恢复同容量，而非日志建议值。
+
+562 个资源样本：service peak=5744713728 B，host MemAvailable 最小
+105759678464 B；high/max/OOM/kill、服务 swap、外部 compute、逃逸均 0。
+请求 reservation、物理 allocation、native contexts、service scope 和专属
+HOST/NVMe workspaces 均完成释放。无远端服务变更；资源观察仍非连续。
+
+新画像 manifest SHA 96145f17fbced78e5f598d1d816ca623243011df3461db7177ce35b74301677b。
+service SHA 4f364ef488323fb63e568f9e413c6d9105597c5c7a88a470e8d732af44dd8ba5；
+preparation SHA d8d66fcfac1b7c613c01efe53934507cffebe552b0a3c1374022d44941b6a870。
+完整 source/launch/cache/worker 证据见 completion.json；包含冷记录不是命中声明。
+
+画像结束后发现项目 INFO 级 startup 回执未出现在 native log。补入现有
+ieee_worker_observation 的 startup_memory 字段，以记录后续真实 miss/hit，
+不补写本轮原始字段、不改内存指纹或模型/执行路径。该纯回执扩展与原有
+MsgPack、隔离副本测试通过：41 passed、19 既有警告，13.80 秒。
+该扩展发生在 source2 关闭之后，source2 执行身份仍为 132a8adc，不冒称已测。
+
+下一步不重复 423 请求画像或基础模型资格。复用已有 collector/worker 入口，
+仅从同 source spec 取最小既有 wave 验证同配置 cache hit、KV 不变、原生 token
+和释放；不导出短测 timings 为新画像。通过后一次完整 W2。命中条件失败时
+记录实际原因，不删除编译因子/降低 free-memory 门槛或无限追加暖启动。
+
+收尾核验：所有 completion 来源 SHA、worker/cache 小归档逐成员回读一致；
+147 旧保护项零变化、两个用户 dirty SHA 保持不变；D1031 的全部进程/辅助域
+已退出，无 GPU compute。历史 D998 auxiliary scope 虽显示 active，但
+TasksCurrent=0、cgroup populated=0；仅只读核查，未重开任务或改共享服务。
+可用磁盘 161530085376 B。本轮不绘图，不改论文，不做任何 Full 重复。
 
 两模型同版本 W0/W1/W2/G1/G2、独立数值正确性、与保留基线的最终对比、
 A1–A5、S1–S13、CE/Pareto、两轮审稿及 B1/B2/C1/C2/C3 文档、达标后图表和

@@ -1937,6 +1937,9 @@ class IEEEWorkerObservationExtension:
         capture_receipt = getattr(runner, '_ieee_lora_capture_receipt', None)
         if capture_receipt is not None:
             content['lora_capture_policy'] = copy.deepcopy(capture_receipt)
+        startup_plan = getattr(self, '_ieee_memory_plan', None)
+        if startup_plan is not None:
+            content['startup_memory'] = copy.deepcopy(startup_plan.receipt)
         publisher = getattr(self, '_ieee_metadata_publisher', None)
         if publisher is not None:
             content['metadata_publication'] = publisher.snapshot()
