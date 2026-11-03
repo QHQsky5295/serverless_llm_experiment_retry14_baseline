@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "requests": 4000,
+  "kinds": {
+    "fresh_native_tensor_descriptor_v1": 4000
+  },
+  "library_sha256_counts": {
+    "b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044": 4000
+  },
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1033_20261103/d1033_3b_startup_memory_w2_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1033_3b_startup_memory_w2_full.json",
+    "sha256": "1eeeb5f8613ab5baaf5b02df9df84de10ffb4aed61da09795656db91c346c6fd",
+    "bytes": 287843682
+  }
+}

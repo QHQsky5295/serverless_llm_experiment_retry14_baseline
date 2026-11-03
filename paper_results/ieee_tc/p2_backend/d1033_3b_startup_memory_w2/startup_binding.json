@@ -1,0 +1,149 @@
+{
+  "kind": "d1033_startup_native_category_binding_v1",
+  "passed": true,
+  "workers": [
+    {
+      "worker_pid": 4125618,
+      "lease_id": "920999354bdf4b4ea7b19be5f7a604d3",
+      "activation_id": "ieee-activation-19508e49e98f44cfb4103c950842a1a7",
+      "category": "initial",
+      "state": "runtime_ready",
+      "request_count": 2015,
+      "engine_activation_ms": 112125.34159468487,
+      "native_init_seconds": 77.14,
+      "compilation_seconds": 32.66,
+      "memory_profiling_skipped": false,
+      "exact_startup_memory_receipt": null,
+      "limitation": "Full did not persist the structured worker startup-memory receipt; do not infer per-worker hit reason/producer from native skip alone."
+    },
+    {
+      "worker_pid": 4129029,
+      "lease_id": "7981d5a604a04abb9c4c869342f25712",
+      "activation_id": "ieee-activation-9315569601b84bb49e0b13bae25551f3",
+      "category": "natural_scaleout",
+      "state": "runtime_ready",
+      "request_count": 1955,
+      "engine_activation_ms": 37835.32666414976,
+      "native_init_seconds": 16.79,
+      "compilation_seconds": 0.27,
+      "memory_profiling_skipped": true,
+      "exact_startup_memory_receipt": null,
+      "limitation": "Full did not persist the structured worker startup-memory receipt; do not infer per-worker hit reason/producer from native skip alone."
+    },
+    {
+      "worker_pid": 4128955,
+      "lease_id": "d8f03806cba84279918db9eb143aed9f",
+      "activation_id": "ieee-activation-d07f98a887c547c2b6c43893da0975e7",
+      "category": "natural_scaleout",
+      "state": "runtime_ready",
+      "request_count": 7,
+      "engine_activation_ms": 50263.67608271539,
+      "native_init_seconds": 28.22,
+      "compilation_seconds": 0.28,
+      "memory_profiling_skipped": false,
+      "exact_startup_memory_receipt": null,
+      "limitation": "Full did not persist the structured worker startup-memory receipt; do not infer per-worker hit reason/producer from native skip alone."
+    },
+    {
+      "worker_pid": 4173524,
+      "lease_id": "19be0418634f438d9f0d1628dd8b91b7",
+      "activation_id": "ieee-activation-138ed81699b64bd19c13ed497eee7978",
+      "category": "natural_scaleout",
+      "state": "runtime_ready",
+      "request_count": 23,
+      "engine_activation_ms": 41859.053634572774,
+      "native_init_seconds": 17.53,
+      "compilation_seconds": 0.28,
+      "memory_profiling_skipped": true,
+      "exact_startup_memory_receipt": null,
+      "limitation": "Full did not persist the structured worker startup-memory receipt; do not infer per-worker hit reason/producer from native skip alone."
+    }
+  ],
+  "structured_full_receipt_available": false,
+  "numerical_correctness_qualified": false,
+  "ranking_eligible": false,
+  "post_run_cache_record": {
+    "source": {
+      "path": "/home/qhq/.cache/vllm/exact_native_startup_memory_v1/5ad8d20703b33f81bed212492a108f561ebbaf773f8e4eeca9e04b9069f1c94f.json",
+      "sha256": "2599efd20058f4f01459fa8b4f2ee8f0bd64504ce2e149c91a9330e39d9d6886",
+      "bytes": 4392
+    },
+    "producer": {
+      "pid": 4125618,
+      "time_ns": 1793681863222292700
+    },
+    "fingerprint": "5ad8d20703b33f81bed212492a108f561ebbaf773f8e4eeca9e04b9069f1c94f",
+    "actual_successful_producer_kv_budget_bytes": 8096582616,
+    "free_memory_baseline": 25003687936,
+    "limitation": "Immutable post-run producer record, not a persisted consumer hit receipt."
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1033_20261103/d1033_3b_startup_memory_w2_full/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "02ec17b75b7e75db49ec764e3d5bb353ff91032369b294240fb6ae7f1e2a1770",
+      "bytes": 475052455
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1033_3b_startup_memory_w2/native_startup.json",
+      "sha256": "a684292bf9eaddb767d1d720dd329ab07d07fd6002ddb7c1bbe35b9a3ab05da7",
+      "bytes": 17115
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1033_3b_startup_memory_w2/completion/stages/requests.csv",
+      "sha256": "a6dac0a3b336225101da1a1bc5ef38db8848772648f70f9e369d21d2e170d39b",
+      "bytes": 2348420
+    }
+  ],
+  "archive": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1033_20261103/native_startup_logs_and_record.tar.gz",
+    "sha256": "706638a93be8b98b32c4e0f69f4ecf9cc983ed9a2ee189eeaca91fdf37a19b20",
+    "bytes": 12701
+  },
+  "members": [
+    {
+      "name": "tmp/faaslora_worker_esrgsl8f/worker.log",
+      "source": {
+        "path": "/tmp/faaslora_worker_esrgsl8f/worker.log",
+        "sha256": "90327a1ed48bb72243298b9af2cecbdc5ea97794b60865b3edab853084fd7450",
+        "bytes": 27143
+      },
+      "sha256": "90327a1ed48bb72243298b9af2cecbdc5ea97794b60865b3edab853084fd7450"
+    },
+    {
+      "name": "tmp/faaslora_worker_ju4sav_9/worker.log",
+      "source": {
+        "path": "/tmp/faaslora_worker_ju4sav_9/worker.log",
+        "sha256": "453b143f6fa71a49912883fe6077f14c394eaa8da067f2391a3e691c359fb77a",
+        "bytes": 19509
+      },
+      "sha256": "453b143f6fa71a49912883fe6077f14c394eaa8da067f2391a3e691c359fb77a"
+    },
+    {
+      "name": "tmp/faaslora_worker__hn3eabu/worker.log",
+      "source": {
+        "path": "/tmp/faaslora_worker__hn3eabu/worker.log",
+        "sha256": "31ffa8962aa6bd6d07af124b41bd3e0854b1e4cdc7095a34ade3b2828f07b574",
+        "bytes": 26110
+      },
+      "sha256": "31ffa8962aa6bd6d07af124b41bd3e0854b1e4cdc7095a34ade3b2828f07b574"
+    },
+    {
+      "name": "tmp/faaslora_worker_c2y94k2s/worker.log",
+      "source": {
+        "path": "/tmp/faaslora_worker_c2y94k2s/worker.log",
+        "sha256": "a10e27e85105f6365d3a0a7f9f4a4f6b4ee46775c2a5602e01a9de543f98fade",
+        "bytes": 19472
+      },
+      "sha256": "a10e27e85105f6365d3a0a7f9f4a4f6b4ee46775c2a5602e01a9de543f98fade"
+    },
+    {
+      "name": "5ad8d20703b33f81bed212492a108f561ebbaf773f8e4eeca9e04b9069f1c94f.json",
+      "source": {
+        "path": "/home/qhq/.cache/vllm/exact_native_startup_memory_v1/5ad8d20703b33f81bed212492a108f561ebbaf773f8e4eeca9e04b9069f1c94f.json",
+        "sha256": "2599efd20058f4f01459fa8b4f2ee8f0bd64504ce2e149c91a9330e39d9d6886",
+        "bytes": 4392
+      },
+      "sha256": "2599efd20058f4f01459fa8b4f2ee8f0bd64504ce2e149c91a9330e39d9d6886"
+    }
+  ]
+}

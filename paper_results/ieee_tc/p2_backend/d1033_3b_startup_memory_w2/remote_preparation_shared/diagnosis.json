@@ -1,0 +1,426 @@
+{
+  "arrival_preparation": {
+    "file_wait_ms": {
+      "count": 0,
+      "mean": null,
+      "p50_type1": null,
+      "p95_type1": null
+    },
+    "owned_transferred_bytes": null,
+    "owning_requests": 0,
+    "recorded_requests": 0,
+    "states": {},
+    "unique_observed_transfers": 0,
+    "unrecorded_requests": 4000
+  },
+  "association_counts": {
+    "direct_preparation_interval": 8,
+    "route_prefetch_and_native_file_witness": 480
+  },
+  "distinct_request_transfers": 486,
+  "dominant_preparation_stages": {
+    "before_fetch_ms": 41,
+    "extract_verify_ms": 109,
+    "file_publication_envelope_ms": 166,
+    "published_to_native_start_ms": 129,
+    "reserve_receive_write_ms": 43
+  },
+  "groups": {
+    "all": {
+      "metrics": {
+        "admission_to_acquired_ms": {
+          "count": 488,
+          "mean": 1004.7826374753104,
+          "p50_type1": 857.2578360326588,
+          "p95_type1": 2011.1188050359488
+        },
+        "after_last_boundary_ms": {
+          "count": 488,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "before_extract_ms": {
+          "count": 488,
+          "mean": 0.17021018935398,
+          "p50_type1": 0.05814991891384125,
+          "p95_type1": 0.20465301349759102
+        },
+        "before_fetch_ms": {
+          "count": 488,
+          "mean": 68.83454291611818,
+          "p50_type1": 1.985982060432434,
+          "p95_type1": 420.7325913012028
+        },
+        "extract_verify_ms": {
+          "count": 488,
+          "mean": 192.6572896753911,
+          "p50_type1": 165.52829882130027,
+          "p95_type1": 315.3501800261438
+        },
+        "file_publication_envelope_ms": {
+          "count": 488,
+          "mean": 292.2790994119571,
+          "p50_type1": 227.85869985818863,
+          "p95_type1": 983.7263030931354
+        },
+        "headers_ms": {
+          "count": 488,
+          "mean": 1.7119896298533948,
+          "p50_type1": 2.4914657697081566,
+          "p95_type1": 4.069579765200615
+        },
+        "native_load_ms": {
+          "count": 488,
+          "mean": 40.093861410554624,
+          "p50_type1": 37.84553986042738,
+          "p95_type1": 49.08049898222089
+        },
+        "partition_error_ms": {
+          "count": 488,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "published_to_native_start_ms": {
+          "count": 488,
+          "mean": 263.87320957184755,
+          "p50_type1": 190.71212597191334,
+          "p95_type1": 729.3448550626636
+        },
+        "reserve_receive_write_ms": {
+          "count": 488,
+          "mean": 145.16243467023443,
+          "p50_type1": 61.955340672284365,
+          "p95_type1": 767.0613471418619
+        },
+        "ttft_ms": {
+          "count": 488,
+          "mean": 1926.138828832038,
+          "p50_type1": 1424.5139374397695,
+          "p95_type1": 3130.1986323669553
+        }
+      },
+      "n": 488
+    },
+    "ttft_fail": {
+      "metrics": {
+        "admission_to_acquired_ms": {
+          "count": 101,
+          "mean": 1605.5731715376278,
+          "p50_type1": 1598.8689293153584,
+          "p95_type1": 2559.318359941244
+        },
+        "after_last_boundary_ms": {
+          "count": 101,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "before_extract_ms": {
+          "count": 101,
+          "mean": 0.16446292658548545,
+          "p50_type1": 0.0650361180305481,
+          "p95_type1": 0.24745706468820572
+        },
+        "before_fetch_ms": {
+          "count": 101,
+          "mean": 153.99005564648917,
+          "p50_type1": 5.253897048532963,
+          "p95_type1": 805.3754642605782
+        },
+        "extract_verify_ms": {
+          "count": 101,
+          "mean": 237.18860012820303,
+          "p50_type1": 210.1354207843542,
+          "p95_type1": 481.93568689748645
+        },
+        "file_publication_envelope_ms": {
+          "count": 101,
+          "mean": 461.1286435894078,
+          "p50_type1": 313.63933021202683,
+          "p95_type1": 1189.790383912623
+        },
+        "headers_ms": {
+          "count": 101,
+          "mean": 2.2428316792639174,
+          "p50_type1": 2.6956009678542614,
+          "p95_type1": 5.035071633756161
+        },
+        "native_load_ms": {
+          "count": 101,
+          "mean": 41.37523043070837,
+          "p50_type1": 38.00619998946786,
+          "p95_type1": 50.957377068698406
+        },
+        "partition_error_ms": {
+          "count": 101,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "published_to_native_start_ms": {
+          "count": 101,
+          "mean": 412.07509811063954,
+          "p50_type1": 271.7135869897902,
+          "p95_type1": 1265.4444281943142
+        },
+        "reserve_receive_write_ms": {
+          "count": 101,
+          "mean": 297.4082490263304,
+          "p50_type1": 170.11108109727502,
+          "p95_type1": 925.2146198414266
+        },
+        "ttft_ms": {
+          "count": 101,
+          "mean": 4177.876279836908,
+          "p50_type1": 2689.430038444698,
+          "p95_type1": 18378.726120106876
+        }
+      },
+      "n": 101
+    },
+    "ttft_pass": {
+      "metrics": {
+        "admission_to_acquired_ms": {
+          "count": 387,
+          "mean": 847.9871750972895,
+          "p50_type1": 759.2104999348521,
+          "p95_type1": 1698.6997197382152
+        },
+        "after_last_boundary_ms": {
+          "count": 387,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "before_extract_ms": {
+          "count": 387,
+          "mean": 0.17171012098089977,
+          "p50_type1": 0.057087745517492294,
+          "p95_type1": 0.19917218014597893
+        },
+        "before_fetch_ms": {
+          "count": 387,
+          "mean": 46.61049437408338,
+          "p50_type1": 0.0,
+          "p95_type1": 311.40260957181454
+        },
+        "extract_verify_ms": {
+          "count": 387,
+          "mean": 181.03542312310685,
+          "p50_type1": 162.16634213924408,
+          "p95_type1": 285.024621989578
+        },
+        "file_publication_envelope_ms": {
+          "count": 387,
+          "mean": 248.21242250776453,
+          "p50_type1": 207.31113804504275,
+          "p95_type1": 688.1155148148537
+        },
+        "headers_ms": {
+          "count": 387,
+          "mean": 1.5734494567514237,
+          "p50_type1": 2.206206787377596,
+          "p95_type1": 3.6103008314967155
+        },
+        "native_load_ms": {
+          "count": 387,
+          "mean": 39.75944727351191,
+          "p50_type1": 37.82023303210735,
+          "p95_type1": 47.276786994189024
+        },
+        "partition_error_ms": {
+          "count": 387,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "published_to_native_start_ms": {
+          "count": 387,
+          "mean": 225.1951973175375,
+          "p50_type1": 170.47560587525368,
+          "p95_type1": 534.5098627731204
+        },
+        "reserve_receive_write_ms": {
+          "count": 387,
+          "mean": 105.42903092355306,
+          "p50_type1": 55.02399383112788,
+          "p95_type1": 259.6609489992261
+        },
+        "ttft_ms": {
+          "count": 387,
+          "mean": 1338.4760832209477,
+          "p50_type1": 1271.9310894608498,
+          "p95_type1": 2323.2798762619495
+        }
+      },
+      "n": 387
+    }
+  },
+  "joined_remote_requests": 488,
+  "kind": "d1024_shared_remote_preparation_partition_v1",
+  "limitations": [
+    "Conditional selected-replica cohort, not a cross-system causal comparison.",
+    "Receive interval includes reservation and local writes; not pure network latency.",
+    "Publication envelope includes inventory, verification, lock acquisition and rename; not isolated lock wait.",
+    "Clipped joined preparation is descriptive; no hypothetical improved SLO is reported.",
+    "Pre-routing preparation is nested within arrival-to-admission; never add it again to E2E.",
+    "Dispatch tier is not arrival tier; absent early records mean unrecorded, not zero preparation.",
+    "Shared early receipts may refer to the same transfer; global transfer rows count physical bytes once.",
+    "Independent numerical adapter correctness remains unknown.",
+    "Route-prefetch task lifetime can overlap admission and native execution; it is not additive E2E.",
+    "A shared ID/content/file-witness join is temporal evidence, not isolated causal waiting or a profile sample.",
+    "Native-source reuse without an invoked load remains unpartitioned, not a fabricated zero load."
+  ],
+  "outputs": [
+    {
+      "bytes": 116738,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1033_3b_startup_memory_w2/remote_preparation_shared/transfers.csv",
+      "sha256": "607bc7d1f2507060a06882f0a6c52b7b203e631986f3c2cfe4bd0e09d6a9517e"
+    },
+    {
+      "bytes": 183403,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1033_3b_startup_memory_w2/remote_preparation_shared/remote_requests.csv",
+      "sha256": "922c359bcd71f7fa97cf8c57fa8ed9ee36d37e292ebf46c288fb30fb6a76a9be"
+    },
+    {
+      "bytes": 169,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1033_3b_startup_memory_w2/remote_preparation_shared/arrival_preparation.csv",
+      "sha256": "7b1a38b186e2d1acd296541e52f546fc8c0b29b0a6f5434a324e425390a8f552"
+    },
+    {
+      "bytes": 566689,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1033_3b_startup_memory_w2/remote_preparation_shared/route_prefetch.csv",
+      "sha256": "239d3278a95a30c13bf717cfc79c6ccc86a3ea2e853f2a331e0dd0806aa8c27a"
+    }
+  ],
+  "passed": true,
+  "request_population": 4000,
+  "route_prefetch": {
+    "completed_before_admission": 5,
+    "metrics": {
+      "arrival_to_start_ms": {
+        "count": 493,
+        "mean": 281.9602074248916,
+        "p50_type1": 24.81099311262369,
+        "p95_type1": 491.6967647150159
+      },
+      "publication_to_settled_ms": {
+        "count": 493,
+        "mean": 406.79581758791005,
+        "p50_type1": 312.1384959667921,
+        "p95_type1": 1124.7606431134045
+      },
+      "start_to_fetch_ms": {
+        "count": 493,
+        "mean": 170.37351136086377,
+        "p50_type1": 80.05486940965056,
+        "p95_type1": 625.8126311004162
+      },
+      "task_elapsed_ms": {
+        "count": 493,
+        "mean": 1318.0801032893132,
+        "p50_type1": 1176.3777299784124,
+        "p95_type1": 2668.7027579173446
+      }
+    },
+    "owned_transferred_bytes": 1134929897,
+    "owning_requests": 489,
+    "recorded_requests": 4000,
+    "states": {
+      "completed": 493,
+      "skipped": 3507
+    },
+    "unique_observed_transfers": 489,
+    "unrecorded_requests": 0
+  },
+  "selected_remote": 490,
+  "source_refs": [
+    {
+      "bytes": 287843682,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1033_20261103/d1033_3b_startup_memory_w2_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1033_3b_startup_memory_w2_full.json",
+      "sha256": "1eeeb5f8613ab5baaf5b02df9df84de10ffb4aed61da09795656db91c346c6fd"
+    },
+    {
+      "bytes": 475052455,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1033_20261103/d1033_3b_startup_memory_w2_full/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "02ec17b75b7e75db49ec764e3d5bb353ff91032369b294240fb6ae7f1e2a1770"
+    },
+    {
+      "bytes": 2348420,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1033_3b_startup_memory_w2/completion/stages/requests.csv",
+      "sha256": "a6dac0a3b336225101da1a1bc5ef38db8848772648f70f9e369d21d2e170d39b"
+    },
+    {
+      "bytes": 233041,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1033_3b_startup_memory_w2/completion/stages/diagnosis.json",
+      "sha256": "788ab9cdc82503399229cb3e8005af5041c938568e9cadc43b12fd33d09ac758"
+    },
+    {
+      "bytes": 141166,
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "252cd4d06761331e0e787f105b5caccd15040d39ede8a3417583ebebb810511d"
+    }
+  ],
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1033_20261103/d1033_3b_startup_memory_w2_full",
+  "transfers": {
+    "metrics": {
+      "after_publication_ms": {
+        "count": 503,
+        "mean": 112.92774387066869,
+        "p50_type1": 64.13529999554157,
+        "p95_type1": 349.2321320809424
+      },
+      "before_extract_ms": {
+        "count": 503,
+        "mean": 0.20044518979062617,
+        "p50_type1": 0.05905516445636749,
+        "p95_type1": 0.23904023692011833
+      },
+      "extract_verify_ms": {
+        "count": 503,
+        "mean": 197.17119739411277,
+        "p50_type1": 169.6193660609424,
+        "p95_type1": 318.4027592651546
+      },
+      "file_publication_envelope_ms": {
+        "count": 503,
+        "mean": 290.8869528583812,
+        "p50_type1": 227.18684887513518,
+        "p95_type1": 972.5860031321645
+      },
+      "headers_ms": {
+        "count": 503,
+        "mean": 3.4221753174398337,
+        "p50_type1": 2.8070956468582153,
+        "p95_type1": 7.745236624032259
+      },
+      "reserve_receive_write_ms": {
+        "count": 503,
+        "mean": 241.69734529650975,
+        "p50_type1": 151.69237181544304,
+        "p95_type1": 896.7413231730461
+      },
+      "total_ms": {
+        "count": 503,
+        "mean": 846.3058599269028,
+        "p50_type1": 681.7129147239029,
+        "p95_type1": 1777.2473329678178
+      }
+    },
+    "n": 503
+  },
+  "unjoined_remote_requests": [
+    {
+      "reason": "shared_file_preparation_reused",
+      "remote_receipt_present": false,
+      "request_id": "req_00994"
+    },
+    {
+      "reason": "native_source_reused_or_changed_before_loading",
+      "remote_receipt_present": false,
+      "request_id": "req_03012"
+    }
+  ]
+}

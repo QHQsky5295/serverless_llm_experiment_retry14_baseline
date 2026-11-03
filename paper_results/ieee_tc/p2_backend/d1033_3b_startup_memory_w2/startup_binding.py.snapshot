@@ -1,0 +1,56 @@
+from pathlib import Path
+import json,csv,hashlib,subprocess,tarfile,ijson
+root=Path.cwd()
+raw=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1033_20261103')
+run=raw/'d1033_3b_startup_memory_w2_full'
+out=root/'paper_results/ieee_tc/p2_backend/d1033_3b_startup_memory_w2'
+def digest(p):
+ h=hashlib.sha256()
+ with p.open('rb') as f:
+  for b in iter(lambda:f.read(4194304),b''):h.update(b)
+ return h.hexdigest()
+def ref(p):return dict(path=str(p),sha256=digest(p),bytes=p.stat().st_size)
+outcome=run/'launch.launch/physical_deployment/main_outcome.json'
+with outcome.open('rb') as h: acts=list(ijson.items(h,'mechanism_events._ieee_activations.item',use_float=True))
+rows=list(csv.DictReader((out/'completion/stages/requests.csv').open()))
+startup=json.loads((out/'native_startup.json').read_text())
+assert len(acts)==len(startup['workers'])==4
+bound=[]
+for w in startup['workers']:
+ requests=[r for r in rows if int(r['worker_pid'])==w['worker_pid']]
+ replicas={r['replica'] for r in requests}; owners={r['owner'] for r in requests}
+ assert len(replicas)==len(owners)==1
+ a,=[a for a in acts if a['activation_id'] in replicas]
+ assert a['native_owner_id'] in owners and a['category'] in ('initial','natural_scaleout','controlled')
+ bound.append(dict(worker_pid=w['worker_pid'],lease_id=w['lease_id'],activation_id=a['activation_id'],
+  category=a['category'],state=a['state'],request_count=len(requests),
+  engine_activation_ms=1000*(a['engine_ready_at']-a['trigger_at']),
+  native_init_seconds=w['init_seconds'],compilation_seconds=w['compilation_seconds'],
+  memory_profiling_skipped=w['memory_profiling_skipped'],
+  exact_startup_memory_receipt=None,
+  limitation='Full did not persist the structured worker startup-memory receipt; do not infer per-worker hit reason/producer from native skip alone.'))
+cache=Path('/home/qhq/.cache/vllm/exact_native_startup_memory_v1/5ad8d20703b33f81bed212492a108f561ebbaf773f8e4eeca9e04b9069f1c94f.json')
+plan=json.loads(cache.read_text())
+assert plan['producer']['pid']==4125618
+files=[Path(w['source']['path']) for w in startup['workers']]+[cache]
+archive=raw/'native_startup_logs_and_record.tar.gz'
+assert not archive.exists()
+args=['tar','-czf',str(archive)]
+for p in files:args+=['-C',str(p.parent),p.name if p==cache else str(p)]
+# Absolute source arguments are stripped by tar; verify every archived payload.
+subprocess.run(args,check=True,stdout=subprocess.DEVNULL)
+members=[]
+with tarfile.open(archive,'r:gz') as t:
+ for m in t.getmembers():
+  f=t.extractfile(m); data=f.read()
+  original=next(p for p in files if m.name==str(p).lstrip('/') or m.name==p.name)
+  sha=hashlib.sha256(data).hexdigest();assert sha==digest(original)
+  members.append(dict(name=m.name,source=ref(original),sha256=sha))
+assert len(members)==len(files)==5
+print(json.dumps(dict(kind='d1033_startup_native_category_binding_v1',passed=True,workers=bound,
+ structured_full_receipt_available=False,numerical_correctness_qualified=False,ranking_eligible=False,
+ post_run_cache_record=dict(source=ref(cache),producer=plan['producer'],fingerprint=plan['fingerprint'],
+ actual_successful_producer_kv_budget_bytes=plan['kv_cache_memory_bytes'],free_memory_baseline=plan['free_memory_baseline'],
+ limitation='Immutable post-run producer record, not a persisted consumer hit receipt.'),
+ source_refs=[ref(p) for p in [outcome,out/'native_startup.json',out/'completion/stages/requests.csv']],
+ archive=ref(archive),members=members),indent=2))
