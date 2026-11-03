@@ -1,6 +1,6 @@
 # D1028：保持驻留容量的可达 active-LoRA 执行图候选
 
-2026-11-03。当前状态：接入及 30 项 CPU 检查通过，画像输入已准备；尚无新 GPU 结果。
+2026-11-03。当前状态：唯一原生画像完成并严格导出，资源已释放；下一步完整 W2。
 承接已封存 D1027；不覆盖用户修改的 EXECUTION_STATUS.md。完整目标 active。
 
 ## 主线与假设
@@ -87,3 +87,68 @@ kernel、token 轴、32 个槽、请求并发、临时内存估计图释放流�
 
 下一步只启动一次 `bash scripts/ieee_tc/run_d298_capacity_source.sh d1028`，
 使用既有原生画像/资源隔离入口；必要备份后启动，不额外插入短 Full。
+
+## 完成：画像通过，禁止再次启动 D1028
+
+上述测前“下一步”已执行。09:44:01 启动 tmux
+tc-d1028-3b-reachable-profile，09:53 完成。代码检查点
+19b503007fd52eefa02d655beb106ca5398bcc84 已在测量前推送并 ls-remote 核验：
+origin/retry14_continuous_queue_v2 和 faaslora_origin 的
+backup/d1028-reachable-lora-entry-20261103。后者为回退备份，不冒称分歧 V2
+已最终集成，无强推。实际 service 为
+primelora-tc-svc-2d8fb3ca401e43fd919a99634273c5fb.scope，invocation
+b448da03a1c64af5a82d9ff087c918cb；aux 为
+primelora-tc-aux-4d51bb00f8bd43278f0e8d026556fed9.scope。两域均结束。
+运行中直接读取 worker 环境确认三项详细 TC timing 均未启用。
+
+423/423 原生合同完成，0 个计数/终态/reservation 不合格请求。
+09:55 既有 exporter 严格导出 160/160 服务类、96 准备类，415 服务样本、
+332 准备样本；423 次传输、981702550 线上字节与既有远端 journal 逐条匹配
+ID、SHA、sent、字节及无请求打包。无新 trace、工件、重复画像或短 Full。
+
+| 画像观测（不是主实验性能） | D1021 | D1028 |
+|---|---:|---:|
+| 初始化回执秒 | 116.424165 | 112.813955 |
+| 画像物理 GPU-s | 577.996995 | 559.727344 |
+| GPU LoRA 槽 | 32 | 32 |
+| GPU LoRA 池字节 | 1825046528 | 1825046528 |
+| 空闲 KV block | 4269 | 4409 |
+| KV 池字节 | 7835484160 | 8092385280 |
+
+前后 worker 实测回执均为 capture_cases=[0,1,2,4,8,33]、removed=[16,32]，
+token 轴未改。原生日志以同一 PID3665170 绑定：真实服务捕获66/24，内存
+估计捕获66/2；对应进度条整数秒15+0及7+2。init engine为72.16秒，其中
+编译30.86秒，明确保存新 AOT 缓存。不能重复累加 init 内部阶段或重复 tqdm
+完成行，也不能把描述数当 kernel/节点数。少图带来的140个额外KV block
+保留为整个候选的影响；未建立“纯启动时间”单因素因果结论。
+
+568 个资源样本：峰值5795565568 B，主机最低可用106652188672 B，磁盘
+最低161002242048 B；high/max/OOM/kill/swap、foreign/escape、告警和中止
+均为0。actual allocation release、原生GPU上下文清空、工作目录删除及
+service/watchdog返回0独立核验。当前GPU compute为空。
+
+保留既有未 await 的 _retire_ieee_host_budget 警告，不称逻辑协程执行成功；
+物理释放已由独立证据确认。日志保存在 worker_failures 路径是历史保留机制，
+不据目录名把这次 pass=true 的完整画像改判失败。
+
+远端后置只读快照01:54:41Z确认同 PID/clock/cgroup、CPU0–39、memory及
+swap上限max、cpu.max=max 100000、1000/full。资源 before 复用 D1021 的
+15:34:03Z历史快照，明确不是即时/连续监控；不使用旧2/4GiB默认值冒充观测。
+source_on_disk SHA 不变，但不声称已验证运行中加载源码字节。限制写入
+artifact_resource_context.json 和 export manifest，不重启远端或共享服务。
+
+completion.json 记录完整来源及上述数据。source1 SHA
+fb2c6ccb7b5be40a39db162e675cbb95fc77d5383d026ccbba62487edff4fee4；manifest SHA
+83a9c988443ee005ca6586a030a50ea61cee136b797e6cdf111a34c6da2be12f。
+原生日志另存 raw/native_startup_log.tar.gz，SHA
+313b8947e1ca756fb4fcc06912ca0305386ff3fdc4d805ef6bc64b260d338234，解压内容
+SHA4e5eddeae4653ef1227e0f4c431914b7532667756d9564045a5ed3585cfc6d3d与两份
+保留日志一致。未删除原件。147旧结果保护项和两个用户dirty SHA未变。
+
+**下一主线：**新建一个完整3B W2执行键，保持D1027全部控制与输入合同，
+仅加入本capture策略及必要新画像身份。service SHA为
+5d31393cbdfc4e6b32b652e776a0dfb9f076d66539bbdd1e8ab493058e278ef8，preparation SHA为
+fda596df99900379bcfeba8bf91346f14b16b72a8bd394d49d93862dc40bbf20。
+复用run_d1000入口（名字含W1但实际W2）；不设prefix、不新增短Full，不扫描
+执行图或扩缩容参数。D648 SLO/预算不变。当前n_correct仍未知，画像通过
+不等于独立数值正确性、4000请求达标或排名。所有后续范围继续保留，目标active。

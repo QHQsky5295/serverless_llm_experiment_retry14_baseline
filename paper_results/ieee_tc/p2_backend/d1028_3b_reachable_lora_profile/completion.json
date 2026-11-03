@@ -1,0 +1,149 @@
+{
+  "kind": "d1028_reachable_lora_profile_completion_v1",
+  "passed": true,
+  "requests": 423,
+  "n_correct": null,
+  "full_qualified": false,
+  "ranking_eligible": false,
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1028_20261103/source1.json",
+    "sha256": "fb2c6ccb7b5be40a39db162e675cbb95fc77d5383d026ccbba62487edff4fee4"
+  },
+  "launch": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1028_20261103/source1_launch.json",
+    "sha256": "7d0afb044a902bfd1d7b222bd4e4dc17475409d54af56d6b30171b36cbc84e48"
+  },
+  "watchdog": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1028_20261103/source1_launch.launch/watchdog.jsonl",
+    "sha256": "edb75edd4d9a06a46000d469ab01f99bfbcc4f1545001575275caa91855a2342"
+  },
+  "export_manifest": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1028_3b_reachable_lora_profile/export/manifest.json",
+    "sha256": "83a9c988443ee005ca6586a030a50ea61cee136b797e6cdf111a34c6da2be12f"
+  },
+  "source_commit": "19b503007fd52eefa02d655beb106ca5398bcc84",
+  "startup_latency_ms": 112813.95533587784,
+  "physical_gpu_seconds": 559.7273436589167,
+  "pool": {
+    "before": {
+      "lora_capture_policy": {
+        "policy": "scheduler_reachable_active_lora_v1",
+        "native_cases": [
+          0,
+          1,
+          2,
+          4,
+          8,
+          16,
+          32,
+          33
+        ],
+        "capture_cases": [
+          0,
+          1,
+          2,
+          4,
+          8,
+          33
+        ],
+        "removed_cases": [
+          16,
+          32
+        ],
+        "max_loras": 32,
+        "max_num_seqs": 8,
+        "dummy_sentinel": 33,
+        "token_capture_sizes": [
+          1,
+          2,
+          4,
+          8,
+          16,
+          32,
+          64,
+          128,
+          256,
+          512,
+          1024
+        ]
+      },
+      "pool_allocated_bytes": 1825046528,
+      "lora_slots": 32,
+      "slot_capacity_bytes": 57032704,
+      "uniform_slot_layout": true,
+      "kv_tokens_per_block": 16,
+      "kv_bytes_per_block": 1835008,
+      "kv_unreserved_free_blocks": 4409,
+      "kv_pool_allocation_bytes": 8092385280
+    },
+    "after_same_pool_and_kv": true
+  },
+  "resources": {
+    "samples": 568,
+    "memory_peak_bytes": 5795565568,
+    "min_host_available_bytes": 106652188672,
+    "min_disk_free_bytes": 161002242048,
+    "swap_peak_bytes": 0,
+    "memory_events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "foreign_compute_samples": 0,
+    "escaped_owned_samples": 0,
+    "warnings": 0,
+    "aborts": 0
+  },
+  "remote_transfer_count": 423,
+  "wire_bytes": 981702550,
+  "remote_journal_matched": true,
+  "remote_monitor_complete": false,
+  "profile_coverage": {
+    "measured_service_classes": 160,
+    "required_service_classes": 160,
+    "measured_preparation_classes": 96,
+    "preparation_samples": 332,
+    "service_samples": 415,
+    "service_class_domain_covered": true,
+    "missing_service_classes": [],
+    "missing_content_sources": []
+  },
+  "native_startup": {
+    "worker_pid": 3665170,
+    "runner": "V2",
+    "init_engine_seconds": 72.16,
+    "compilation_seconds": 30.86,
+    "memory_estimation_capture": {
+      "PIECEWISE": 66,
+      "FULL": 2
+    },
+    "service_capture": {
+      "PIECEWISE": 66,
+      "FULL": 24
+    },
+    "capture_progress_rounded_seconds": {
+      "memory_estimation_piecewise": 15,
+      "memory_estimation_full": 0,
+      "service_piecewise": 7,
+      "service_full": 2
+    },
+    "source_log": {
+      "path": "/tmp/faaslora_worker_2h5r128g/worker.log",
+      "sha256": "4e5eddeae4653ef1227e0f4c431914b7532667756d9564045a5ed3585cfc6d3d"
+    },
+    "archive": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1028_20261103/native_startup_log.tar.gz",
+      "sha256": "313b8947e1ca756fb4fcc06912ca0305386ff3fdc4d805ef6bc64b260d338234",
+      "entry": "worker.log",
+      "decompressed_content_verified": true
+    },
+    "scope": "Progress descriptions, not CUDA node/kernel counts. No duplicate tqdm completion-row summation."
+  },
+  "warnings": [
+    "Existing unawaited _retire_ieee_host_budget coroutine warning remains; physical release, native exit and removed workspaces are separately verified. No claim that the logical coroutine ran.",
+    "No continuous remote monitoring; before resource snapshot is historical. Prelaunch PID/clock/link and postrelease resource state were checked.",
+    "Startup and profile changes are single development observations, not a controlled causal speedup or Full SLO result."
+  ],
+  "next_action": "One new complete 4000-request 3B W2 key with D1027 controls, scheduler_reachable_active_lora_v1 and these fresh profiles; no additional short Full. Keep frozen D648 SLO and V2 single-run rules."
+}
