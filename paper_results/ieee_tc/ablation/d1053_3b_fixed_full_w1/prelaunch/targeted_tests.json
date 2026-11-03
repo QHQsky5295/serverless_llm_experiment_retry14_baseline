@@ -1,0 +1,20 @@
+{
+  "kind": "transcribed_tool_execution_receipt",
+  "unit": "primelora-tc-aux-2066a9adc7e8460fa240060b06b51053.scope",
+  "tool_session": 13379,
+  "completion_chunk": "1960ce",
+  "result_chunk": "aa97d4",
+  "passed": true,
+  "exit_code": 0,
+  "tests_run": 3,
+  "unittest_elapsed_s": 16.303,
+  "tests": [
+    "tests.test_ieee_tc_launch.IEEEControlContract.test_fixed_four_keeps_reactive_and_forecast_observation_without_resize",
+    "tests.test_ieee_tc_launch.IEEEInitialDeployment.test_first_ready_does_not_wait_for_min_pool_and_pending_keeps_initial_category",
+    "tests.test_ieee_tc_launch.IEEEInitialDeployment.test_actual_initial_preparation_overlaps_init_without_changing_arrival_origin"
+  ],
+  "coverage": ["fixed-four reactive and predictive high/low pressure", "two/four initial owners and pending ownership", "actual preparation overlap preserves arrival origin"],
+  "test_source_sha256": "db0f32da9aa2a3001f940bc2f26219642ac12cac06a295a605ba50a2d36ef0e0",
+  "performance_test": false,
+  "limitations": ["Transcribed tool receipt, not a saved full stdout or sampled memory-peak receipt."]
+}

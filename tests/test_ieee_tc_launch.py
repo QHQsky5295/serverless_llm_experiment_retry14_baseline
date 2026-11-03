@@ -1579,6 +1579,33 @@ class IEEEQuantizationPrebuild(unittest.TestCase):
 
 
 class IEEEControlContract(unittest.TestCase):
+    def test_fixed_four_keeps_reactive_and_forecast_observation_without_resize(self):
+        from faaslora.coordination.autoscaler import IEEEReplicaControl, ScalingAction
+        for predictive in (False, True):
+            for pressure in (False, True):
+                with self.subTest(predictive=predictive, pressure=pressure):
+                    control = IEEEReplicaControl(ieee_control_fixture(), interval_s=1,
+                        min_instances=4, max_instances=4,
+                        predictive_config=(dict(enabled=True, history_window_s=10.,
+                            ewma_beta=.5, allow_forecast_scale_down=True) if predictive else None))
+                    control.observe_ttft('observed', 1001. if pressure else 100., observed_at=4.)
+                    control.low_since = control._forecast_low_since = 0.
+                    forecast = dict(activation_horizon_s=10.,
+                        service_rate_rps_per_busy_instance=10.,
+                        arrival_rate_rps=100. if pressure else .1)
+                    with patch.object(control, '_observe_work', return_value=forecast) as observed:
+                        result = control.evaluate(now=4., queue_depth=100 if pressure else 0,
+                            active_requests=32 if pressure else 0, ready_capacity=32,
+                            ready_instances=4, pending_instances=0,
+                            arrived_request_count=100, completed_request_count=50,
+                            busy_instances=4 if pressure else 0)
+                    self.assertEqual(result['action'], ScalingAction.NO_ACTION)
+                    self.assertEqual(result['target_instances'], 4)
+                    self.assertEqual(result['ttft_sample_count'], 1)
+                    self.assertEqual(observed.call_count, int(predictive))
+                    if predictive:
+                        self.assertEqual(result['predictive_target_instances'], 4)
+
     def make(self):
         from faaslora.coordination.autoscaler import IEEEReplicaControl
         return IEEEReplicaControl(ieee_control_fixture(), interval_s=1, min_instances=1, max_instances=4)
@@ -2413,32 +2440,36 @@ class IEEEInitialDeployment(unittest.TestCase):
         asyncio.run(run())
 
     def test_first_ready_does_not_wait_for_min_pool_and_pending_keeps_initial_category(self):
-        _, _, service, _, engine = self.make('no_handoff')
-        async def run():
-            service.instance_pool.min_instances = 2
-            second_started, release = asyncio.Event(), asyncio.Event()
-            async def activate(*_, reserved_device_id, activation_kind):
-                if reserved_device_id == 1:
-                    second_started.set()
-                    await release.wait()
-                distinct_engine = SimpleNamespace(model_cfg=engine.model_cfg)
-                sid = service.instance_pool.add_instance(distinct_engine, None, owns_engine=False,
-                    device_id=reserved_device_id)
-                return dict(instance_id=sid, activation_kind=activation_kind)
-            service._add_dedicated_instance_slot = AsyncMock(side_effect=activate)
-            await service._start_ieee_initial_deployment()
-            await second_started.wait()
-            self.assertEqual(service.instance_pool.count(), 1)
-            self.assertEqual(service._pending_scale_up_device_ids, {1})
-            await service._ensure_min_instances(True)
-            self.assertEqual(service._add_dedicated_instance_slot.await_count, 2)
-            release.set()
-            await service._wait_for_pending_scale_up_tasks()
-            self.assertEqual(service.instance_pool.count(), 2)
-            self.assertTrue(all(e['activation_kind']=='initial'
-                                for e in service._ieee_initial_deployment['ready_events']))
-            await service._shutdown_instance_pool()
-        asyncio.run(run())
+        for pool_size in (2, 4):
+            with self.subTest(pool_size=pool_size):
+                _, _, service, _, engine = self.make('no_handoff')
+                async def run():
+                    service.instance_pool.min_instances = pool_size
+                    service.instance_pool.max_instances = pool_size
+                    service._available_device_ids.return_value = list(range(pool_size))
+                    second_started, release = asyncio.Event(), asyncio.Event()
+                    async def activate(*_, reserved_device_id, activation_kind):
+                        if reserved_device_id == 1:
+                            second_started.set()
+                            await release.wait()
+                        distinct_engine = SimpleNamespace(model_cfg=engine.model_cfg)
+                        sid = service.instance_pool.add_instance(distinct_engine, None, owns_engine=False,
+                            device_id=reserved_device_id)
+                        return dict(instance_id=sid, activation_kind=activation_kind)
+                    service._add_dedicated_instance_slot = AsyncMock(side_effect=activate)
+                    await service._start_ieee_initial_deployment()
+                    await second_started.wait()
+                    self.assertEqual(service.instance_pool.count(), pool_size-1)
+                    self.assertEqual(service._pending_scale_up_device_ids, {1})
+                    await service._ensure_min_instances(True)
+                    self.assertEqual(service._add_dedicated_instance_slot.await_count, pool_size)
+                    release.set()
+                    await service._wait_for_pending_scale_up_tasks()
+                    self.assertEqual(service.instance_pool.count(), pool_size)
+                    self.assertTrue(all(e['activation_kind']=='initial'
+                                        for e in service._ieee_initial_deployment['ready_events']))
+                    await service._shutdown_instance_pool()
+                asyncio.run(run())
 
     def test_cancel_initial_wait_joins_factory_before_closing_movement_owner(self):
         _, files, service, queue, engine = self.make('no_handoff')

@@ -1,0 +1,139 @@
+{
+  "passed": true,
+  "performance_result": false,
+  "tests": 3,
+  "variant": "FixedFull",
+  "parent_variant": "Full",
+  "raw_scenario": "tc_ieee_full",
+  "parent_result": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/full4000.json",
+    "sha256": "9efa154f7d9322e6ccac94541a7d323064d2bd868ee8642c8245755c42fde6e1",
+    "bytes": 53597
+  },
+  "parent_qualification": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1047_same_version_w1/prelaunch/qualification.json",
+    "sha256": "1539d442d9083d3061904deb3d5678010c80ac252564bdac0153cc4097fb910d",
+    "bytes": 6636
+  },
+  "capacity_flag_wiring_evidence": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/prelaunch_v2/qualification.json",
+    "sha256": "cbc54fed8e5c68c1c1977c9ec65390d876f7305fb0c612a791d8f127414c1951",
+    "bytes": 6729
+  },
+  "config": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261104_d1053_3b_fixed_full_w1.yaml",
+    "sha256": "ed1fab930c9ebc28e810ea29133ec09b45a1a061dce2b9071d712498a5353b13",
+    "bytes": 6155
+  },
+  "config_changes": [
+    {
+      "section": "experiment",
+      "key": "output_dir",
+      "parent": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d1047_20261104/d1047_3b_event_busy_time_w1_full",
+      "candidate": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d1053_20261104/d1053_3b_fixed_full_w1"
+    },
+    {
+      "section": "storage",
+      "key": "nvme_cache_dir",
+      "parent": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d1047_20261104/3b_nvme_event_busy_time_w1",
+      "candidate": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d1053_20261104/3b_nvme_fixed_full_w1"
+    },
+    {
+      "section": "storage",
+      "key": "host_cache_dir",
+      "parent": "/dev/shm/tc-d1047-3b-event-busy-time-w1",
+      "candidate": "/dev/shm/tc-d1053-3b-fixed-full-w1"
+    },
+    {
+      "section": "resource_coordination",
+      "key": "min_instances",
+      "parent": 1,
+      "candidate": 4
+    },
+    {
+      "section": "resource_coordination",
+      "key": "max_instances",
+      "parent": 3,
+      "candidate": 4
+    }
+  ],
+  "unchanged_sources": {
+    "faaslora/coordination/autoscaler.py": "893715c0656f57354484265ff4df55a3e3f76875555859e1bc8c0140a018b6fc",
+    "scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh": "d3d847e41d0491b5021109435657fc63f98300a76f2d6c521b7975e91e6d5811",
+    "tests/test_ieee_tc_d456_diagnostic_contract.py": "5616dd54136aee610337435cd3aa877a05ed5ed6f5a8deea98d24285b738152a",
+    "tests/test_ieee_tc_external_replay.py": "c13ad09f585b370cd202778556b0d873e721eb5bf5d804825fc80cc5f71cd89d",
+    "tests/test_ieee_tc_control_profile_analysis.py": "3ea3e8dc3a5b7ab921c43b5bcf73d633fa097e1c4edbe377d6b7c0f1904d5e06",
+    "configs/ieee_tc/20261103_d1046_3b_event_busy_time_w0.yaml": "65c327292787353d71f1037ee779762982ec384089ebab5f0c028735d867598a",
+    "docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+    "paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json": "d15123570c4a8d830515ca942d1db553c6717ffc1a40ade5c1546d35e2bed9d8",
+    "configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml": "263bdcd6ff255108ddaffdd9ce46898d7f12be15948d7fe3d7ac27d5ea8828d2",
+    "scripts/run_all_experiments.py": "6fa129bbb52da30150725033363a04360a7439fd4df2ee598b864756b9de1e89",
+    "tests/test_ieee_tc_transfer_pressure.py": "dc2b13ee638c55639d93173643d9058152be90da3a2450b5a6bdf109e905634c"
+  },
+  "changed_sources": {
+    "tests/test_ieee_tc_launch.py": "db0f32da9aa2a3001f940bc2f26219642ac12cac06a295a605ba50a2d36ef0e0"
+  },
+  "workload": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "view_sha256": "8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W1",
+    "rate_scale": 1.0
+  },
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "identity": {
+    "unit": "primelora-tc-aux-2066a9adc7e8460fa240060b06b52053.scope",
+    "invocation_id": "465608a7894a4cb4bd3b5368b96cf715",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-2066a9adc7e8460fa240060b06b52053.scope",
+    "inode": 38850536
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-2066a9adc7e8460fa240060b06b52053.scope",
+    "memory.current": 115433472,
+    "memory.peak": 145342464,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 1221416\nuser_usec 1058494\nsystem_usec 162922\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_protected": {
+    "configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "docs/ieee_tc/EXECUTION_STATUS.md": "41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374"
+  },
+  "production_change": null,
+  "test_changes": "Fixed four reactive/forecast control case; initial owner fixture covers two and four members.",
+  "n_correct": null,
+  "independent_numerical_proof": false,
+  "formal_ranking_eligible": false,
+  "limitations": [
+    "Single known-source42 development observation; no CI.",
+    "Display FixedFull; executable scenario remains tc_ieee_full.",
+    "Four initial owners stay resident; preparation and steady state controller remain enabled.",
+    "Actual complete pool, lifecycle, mechanism and native token evidence assessed after run.",
+    "All-zero-update 3B pool and independent numerical correctness limitations retained."
+  ]
+}
