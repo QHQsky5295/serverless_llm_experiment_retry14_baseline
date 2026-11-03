@@ -1,0 +1,20 @@
+{
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1040_diagnostic_descriptor_identity/prelaunch/actual_descriptor_audit.json",
+      "sha256": "5aa7fecf9be4bbc4c97600b668137f384979f0eb5710662dedb40570536716f2"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1040_diagnostic_descriptor_identity/prelaunch/prepare.py.snapshot",
+      "sha256": "f2cd87d98b7078ccd8411e509c54a72356db6db6253fc1069bfcad34914693d8"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1040_diagnostic_descriptor_identity/prelaunch/qualification.json",
+      "sha256": "15953733879e00776c2dc27f9a9ad70bc7964ebdb672506c647e8e661d2a61ee"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1040_diagnostic_descriptor_identity/prelaunch/tests.txt",
+      "sha256": "d0fb80e5c008028b6b398f7da7218199fee5a35dad9f11f7cde7d07550534502"
+    }
+  ]
+}

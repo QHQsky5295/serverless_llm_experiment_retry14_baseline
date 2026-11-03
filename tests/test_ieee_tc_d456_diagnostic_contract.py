@@ -1,6 +1,10 @@
 """D456 is an observation-only path clone of the sealed D371 configuration."""
 from pathlib import Path
+import json
+import os
 import re
+import subprocess
+import sys
 import unittest
 import yaml
 
@@ -189,6 +193,56 @@ class D519DiagnosticContract(unittest.TestCase):
         self.assertIn('export FAASLORA_TC_CORE_STEP_TIMING=v2_components_v1', branch.group(1))
         self.assertIn('unset FAASLORA_TC_CORE_STEP_TIMING', branch.group(2))
         self.assertIn('FAASLORA_TC_CORE_TIMING=host_spans_v1', wrapper)
+
+
+class D1040NativeDescriptorDiagnosticContract(unittest.TestCase):
+    def test_parent_policy_only_exclusive_paths_change(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261103_d1033_3b_startup_memory_w2.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261103_d1040_3b_native_descriptor_prefix1000.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            self.assertNotEqual(old[section].pop(field), new[section].pop(field))
+        self.assertEqual(old, new)
+        self.assertEqual(new['workload']['total_requests'], 4000)
+        self.assertEqual(new['model']['max_cpu_loras'], 32)
+
+    def descriptor_environment(self, selection):
+        runner = (ROOT/'scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh').read_text()
+        block = re.search(r'^case "\$\{FAASLORA_D1000_HOST_DESCRIPTOR:-\}" in\n.*?^esac',
+                          runner, re.M | re.S).group(0)
+        # Exercise exports in a child, not merely the spelling of a shell line.
+        command = block + '\nexec "$1" -c \'import json,os; print(json.dumps({k:v for k,v in os.environ.items() if k.startswith("FAASLORA_IEEE_HOST_")}))\''
+        return subprocess.run(['bash', '-eu', '-c', command, 'descriptor-test', sys.executable],
+            env={'PATH': os.environ['PATH'], 'FAASLORA_D1000_HOST_DESCRIPTOR': selection},
+            capture_output=True, text=True)
+
+    def test_explicit_descriptor_exports_exact_parent_identity_to_child(self):
+        result = self.descriptor_environment('fresh_d747_v1')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), {
+            'FAASLORA_IEEE_HOST_INVENTORY_MODE': 'descriptor',
+            'FAASLORA_IEEE_HOST_DESCRIPTOR_LIBRARY': '/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so',
+            'FAASLORA_IEEE_HOST_DESCRIPTOR_SHA256': 'b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044'})
+
+    def test_default_is_unchanged_and_unknown_selection_fails(self):
+        result = self.descriptor_environment('')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), {})
+        result = self.descriptor_environment('graph')
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(result.stdout, '')
+
+    def test_observer_uses_host_inventory_not_file_process_or_step_profile(self):
+        wrapper = (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text()
+        block = re.search(r'^  d1040_3b_native_descriptor_prefix1000\)(.*?)^    ;;',
+                          wrapper, re.M | re.S).group(1)
+        self.assertIn('/d1040_20261103', block)
+        selected = [line for line in wrapper.splitlines()
+                    if line.startswith('if ') and 'd1040' in line]
+        self.assertEqual(len(selected), 1)
+        self.assertIn('d668_3b_full_w0_prefix1', selected[0])
+        self.assertIn('unset FAASLORA_TC_FILE_OWNER_TIMING', wrapper)
+        self.assertIn('unset FAASLORA_TC_CORE_STEP_TIMING', wrapper)
 
 
 class D1039CurrentFileNativeDiagnosticContract(unittest.TestCase):

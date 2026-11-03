@@ -54,6 +54,18 @@ export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 export VLLM_NO_USAGE_STATS=1
 
+# A diagnostic must select the same executable HOST reader as its parent run.
+# Keep historical/default callers unchanged; record this opt-in in the run key.
+case "${FAASLORA_D1000_HOST_DESCRIPTOR:-}" in
+  '') ;;
+  fresh_d747_v1)
+    export FAASLORA_IEEE_HOST_INVENTORY_MODE=descriptor
+    export FAASLORA_IEEE_HOST_DESCRIPTOR_LIBRARY=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so
+    export FAASLORA_IEEE_HOST_DESCRIPTOR_SHA256=b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044
+    ;;
+  *) echo 'Unknown qualified HOST descriptor' >&2; exit 2 ;;
+esac
+
 if [[ -n "${FAASLORA_D1000_PREFIX_COUNT:-}" ]]; then
   export FAASLORA_TC_DIAGNOSTIC_PREFIX_COUNT="$FAASLORA_D1000_PREFIX_COUNT"
 fi

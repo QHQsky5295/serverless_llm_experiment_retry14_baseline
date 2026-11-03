@@ -1,0 +1,66 @@
+{
+  "passed": true,
+  "runs": [
+    {
+      "run": "d1033",
+      "requests": 4000,
+      "missing": 0,
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1033_20261103/d1033_3b_startup_memory_w2_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1033_3b_startup_memory_w2_full.json.gz",
+        "sha256": "733a85d5f22cb008bed430bc49691c4812228a66a12fc2bc6e9b64bcf136e065"
+      },
+      "worker_receipts": {
+        "4125618": {
+          "fresh_native_tensor_descriptor_v1": 4039
+        },
+        "4129029": {
+          "fresh_native_tensor_descriptor_v1": 3917
+        },
+        "4128955": {
+          "fresh_native_tensor_descriptor_v1": 14
+        },
+        "4173524": {
+          "fresh_native_tensor_descriptor_v1": 46
+        }
+      },
+      "receipts": [
+        {
+          "kind": "fresh_native_tensor_descriptor_v1",
+          "sha256": "b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044",
+          "count": 8016
+        }
+      ]
+    },
+    {
+      "run": "d1039",
+      "requests": 1000,
+      "missing": 0,
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1039_20261103/d1039_3b_file_native_prefix1000/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1039_3b_file_native_prefix1000.json",
+        "sha256": "7dc9a34ae2199df056aaf1e6f9149c224a49988ee6c50ff0cb120e8dc1f3d75f"
+      },
+      "worker_receipts": {
+        "583631": {
+          "python_tensor_descriptor_v1": 1021
+        },
+        "585940": {
+          "python_tensor_descriptor_v1": 933
+        },
+        "586060": {
+          "python_tensor_descriptor_v1": 10
+        },
+        "618154": {
+          "python_tensor_descriptor_v1": 42
+        }
+      },
+      "receipts": [
+        {
+          "kind": "python_tensor_descriptor_v1",
+          "sha256": "",
+          "count": 2006
+        }
+      ]
+    }
+  ],
+  "limitation": "Receipt occurrences are not independent calls; covers request-associated workers only."
+}

@@ -1,0 +1,21 @@
+W1103 18:07:35.927000 682016 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+test_default_is_unchanged_and_unknown_selection_fails (tests.test_ieee_tc_d456_diagnostic_contract.D1040NativeDescriptorDiagnosticContract.test_default_is_unchanged_and_unknown_selection_fails) ... ok
+test_explicit_descriptor_exports_exact_parent_identity_to_child (tests.test_ieee_tc_d456_diagnostic_contract.D1040NativeDescriptorDiagnosticContract.test_explicit_descriptor_exports_exact_parent_identity_to_child) ... ok
+test_observer_uses_host_inventory_not_file_process_or_step_profile (tests.test_ieee_tc_d456_diagnostic_contract.D1040NativeDescriptorDiagnosticContract.test_observer_uses_host_inventory_not_file_process_or_step_profile) ... ok
+test_parent_policy_only_exclusive_paths_change (tests.test_ieee_tc_d456_diagnostic_contract.D1040NativeDescriptorDiagnosticContract.test_parent_policy_only_exclusive_paths_change) ... ok
+test_d1033_policy_only_exclusive_paths_change (tests.test_ieee_tc_d456_diagnostic_contract.D1039CurrentFileNativeDiagnosticContract.test_d1033_policy_only_exclusive_paths_change) ... ok
+test_only_registered_observer_enables_file_and_inventory_timing (tests.test_ieee_tc_d456_diagnostic_contract.D1039CurrentFileNativeDiagnosticContract.test_only_registered_observer_enables_file_and_inventory_timing) ... ok
+test_bad_hash_rejected_before_loading (tests.test_ieee_tc_native_host_descriptor.NativeDescriptorSelection.test_bad_hash_rejected_before_loading) ... ok
+test_graph_entry_is_explicit_and_missing_entry_never_falls_back (tests.test_ieee_tc_native_host_descriptor.NativeDescriptorSelection.test_graph_entry_is_explicit_and_missing_entry_never_falls_back) ... ok
+test_graph_mode_requires_explicit_library (tests.test_ieee_tc_native_host_descriptor.NativeDescriptorSelection.test_graph_mode_requires_explicit_library) ... ok
+test_incomplete_configuration_rejected (tests.test_ieee_tc_native_host_descriptor.NativeDescriptorSelection.test_incomplete_configuration_rejected) ... ok
+test_unconfigured_path_does_not_import_library (tests.test_ieee_tc_native_host_descriptor.NativeDescriptorSelection.test_unconfigured_path_does_not_import_library) ... ok
+test_unknown_mode_rejected (tests.test_ieee_tc_native_host_descriptor.NativeDescriptorSelection.test_unknown_mode_rejected) ... ok
+test_unsupported_abi_has_no_fallback (tests.test_ieee_tc_native_host_descriptor.NativeDescriptorSelection.test_unsupported_abi_has_no_fallback) ... ok
+test_full_runtime_and_requested_graphs_equal (tests.test_ieee_tc_native_host_descriptor.ProductionDescriptorPath.test_full_runtime_and_requested_graphs_equal) ... ok
+test_native_error_is_not_hidden_by_original_path (tests.test_ieee_tc_native_host_descriptor.ProductionDescriptorPath.test_native_error_is_not_hidden_by_original_path) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.109s
+
+OK

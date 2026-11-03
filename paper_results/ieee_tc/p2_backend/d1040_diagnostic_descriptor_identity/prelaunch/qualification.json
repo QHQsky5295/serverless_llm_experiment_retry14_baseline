@@ -1,0 +1,69 @@
+{
+  "passed": true,
+  "tests": [
+    "tests.test_ieee_tc_d456_diagnostic_contract.D1040NativeDescriptorDiagnosticContract",
+    "tests.test_ieee_tc_d456_diagnostic_contract.D1039CurrentFileNativeDiagnosticContract",
+    "tests.test_ieee_tc_native_host_descriptor.NativeDescriptorSelection",
+    "tests.test_ieee_tc_native_host_descriptor.ProductionDescriptorPath"
+  ],
+  "test_exit": 0,
+  "descriptor": {
+    "kind": "fresh_native_tensor_descriptor_v1",
+    "library": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so",
+    "sha256": "b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044",
+    "torch_version": "2.13.0+cu130",
+    "python_abi": "cpython-312",
+    "tensor_state_cached": false
+  },
+  "new_cuda_microtests": 0,
+  "library_rebuilt": false,
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "user_protected": {
+    "configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "docs/ieee_tc/EXECUTION_STATUS.md": "41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "identity": {
+    "unit": "primelora-tc-aux-059a54f2c48b4080b044ed265fa44e11.scope",
+    "invocation_id": "38a0181477ce471fa76a584f8b32a36c",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-059a54f2c48b4080b044ed265fa44e11.scope",
+    "inode": 38561494
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-059a54f2c48b4080b044ed265fa44e11.scope",
+    "memory.current": 301174784,
+    "memory.peak": 316260352,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 7427061\nuser_usec 7047211\nsystem_usec 379849\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "sources": {
+    "scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh": "2eda184723f49064601e74ca6b07b3810ddac45c1859078e4473d2c7cc2495ea",
+    "scripts/ieee_tc/profile_d328_controller_python.sh": "2fb5aa51bec02618946f83d028db0a3aa0c2e72d3d0b319a4c2ffcd1c84b2b48",
+    "tests/test_ieee_tc_d456_diagnostic_contract.py": "0f253cdf63febeae7d486d08e024f866be07e515b5729cacf38c2e5ac91c89b6",
+    "configs/ieee_tc/20261103_d1040_3b_native_descriptor_prefix1000.yaml": "a5ebe34c05d880a97708205bffe7672748be72cd47574b6b8feda0befb53996c",
+    "docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+  }
+}

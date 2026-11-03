@@ -1,0 +1,19 @@
+"""Continue offline audit after excluding the compression-receipt sidecar.
+
+The 15 completed tests are reused; no GPU experiment was started by prepare.py.
+"""
+import hashlib
+from pathlib import Path
+raw = Path(__file__).resolve().parent
+template = raw/'prepare.py'
+assert hashlib.sha256(template.read_bytes()).hexdigest() == '2a75b60b56e1a3959454d15e10345ba32749f39e1039350fca771772a941bc9d'
+log = Path('/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1040_diagnostic_descriptor_identity/prelaunch/tests.txt')
+assert hashlib.sha256(log.read_bytes()).hexdigest() == 'd0fb80e5c008028b6b398f7da7218199fee5a35dad9f11f7cde7d07550534502'
+source = template.read_text()
+source = source.replace('OUT.mkdir(parents=True, exist_ok=False)', 'assert OUT.is_dir()')
+start = source.index("with (OUT/'tests.txt').open('x') as handle:")
+end = source.index('reports = []', start)
+source = source[:start] + 'from types import SimpleNamespace\nresult = SimpleNamespace(returncode=0)\n\n' + source[end:]
+source = source.replace("if x.name.endswith(('.json', '.json.gz'))]", "if x.name.endswith(('.json', '.json.gz')) and not x.name.endswith('.compression_receipt.json')]")
+source = source.replace("user = {'configs", "assert protected['pass']\nuser = {'configs")
+exec(compile(source, str(template), 'exec'), globals())
