@@ -1,0 +1,112 @@
+{
+  "kind": "d1029_closed_full_w2_analysis_bundle_v1",
+  "source_commit": "dd9c271c24790d604037dca9e9f8af19a7d5d51f",
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1029_20261103/d1029_3b_reachable_lora_w2_full",
+  "status": "completed_development_nonfeasible",
+  "n": 4000,
+  "joint_pass": 3774,
+  "observed_latency_feasible": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "source_trace_seed": 42,
+  "confidence_interval": null,
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/completion/closure.json",
+      "sha256": "e5d152f75acec6d6b54408f6ac663b878915349a1e8c6d392e15aa24784ca4a9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/completion/collect_closed_evidence.py.snapshot",
+      "sha256": "b35fdbf6d1ced64ce7231dceee9c6523bc660fe1458567da76c9a0b1b1040fef"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/completion/delivery_and_resources.json",
+      "sha256": "266e544365888580a0173853680fc8941060818d8742f87546375b3cbed24829"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/completion/full4000.json",
+      "sha256": "895793a7f78a00615953ca41dcedc30fe210806ac63965c17e4010b561039fba"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/completion/manifest.json",
+      "sha256": "83f2348be31a78524d46891f89c22cebc7a651b107cf6e10f8ad8168399ca588"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/completion/native_descriptor.json",
+      "sha256": "89983ec664f3e4cb0c3ba67a95d65e0f05304b0fa24f10656c043a76a17aca9c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/completion/paired_d1027/diagnosis.json",
+      "sha256": "02339cd7f852ac0e5afd942561e95ed7406aac5632304ed673baee55ed0aba75"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/completion/paired_d1027/paired_requests.csv",
+      "sha256": "1b6d15d7656df761a718e7a5386afd41a08e8f6e14610187ccd62da8cc0dc126"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/completion/profile_bindings.json",
+      "sha256": "aa5cec0d16d87db65a7142fafdd0ad33d625b2c851ddb437a0c7ab2dc3ac053e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/completion/stages/diagnosis.json",
+      "sha256": "ebd70617bcba0972d00a0a6749610d40ad744e96bd828fd96bf7fc855eb9e698"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/completion/stages/requests.csv",
+      "sha256": "275c714ef55f72102a7a18fb2046ffcc9d5c57818cd818dfea7a3c4094f76f5d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/native_startup.json",
+      "sha256": "016acbf3ac9cf14ff9d913b94a5d69bb7848e9932ec6eff007c2e9093d38fa6c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/paired_d1022/diagnosis.json",
+      "sha256": "bb825c50a62bf627fc2441db06c2532d166be3b9f214b064aaa3856ace661a12"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/paired_d1022/paired_requests.csv",
+      "sha256": "8d9a855760c6e5cb6def25d7f1179959ade7013ffae324b73254b04fcf4da033"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/remote_preparation/arrival_preparation.csv",
+      "sha256": "7b1a38b186e2d1acd296541e52f546fc8c0b29b0a6f5434a324e425390a8f552"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/remote_preparation/diagnosis.json",
+      "sha256": "1d7a406e36b487d2b1e1a526d5fafe4029b6c5b32fc18a278ad434d0c0426a63"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/remote_preparation/remote_requests.csv",
+      "sha256": "be212433fe6217185b60ca0989e8a7f9a297f8785cfa8ff5b957b60afa8db94f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/remote_preparation/route_prefetch.csv",
+      "sha256": "52e5f3b25ce8ef2bd53335d3328e1ebc6056a44147377db15b7cb7f23d7de775"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/remote_preparation/transfers.csv",
+      "sha256": "6e4bbd4c69407dc964888bdfcf83c47d629941717e05d87f0a8446e355029307"
+    }
+  ],
+  "native_startup_archive": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1029_20261103/native_startup_logs.tar.gz",
+    "sha256": "bd77c7b3af3a10563254227e94efedd80e6c27664ccac320655927a447604244",
+    "all_four_members_cmp_verified": true,
+    "original_logs_retained": true
+  },
+  "limitations": [
+    "Initial cold compilation differs from D1027 warm initial compilation; not a pure graph-capture ablation.",
+    "No independent full numerical-correctness closure.",
+    "No continuous remote CPU/interference monitor.",
+    "Known-workload single development observation; no CI or significance claim."
+  ],
+  "analysis_invocation_correction": {
+    "mode": "diagnose_remote_preparation",
+    "first_call_exit_code": 1,
+    "reason": "Absolute versus recorded relative stage path string mismatch.",
+    "csv_sha256_unchanged": "275c714ef55f72102a7a18fb2046ffcc9d5c57818cd818dfea7a3c4094f76f5d",
+    "second_call_exit_code": 0,
+    "no_gpu_rerun": true,
+    "no_source_or_validator_change": true
+  }
+}

@@ -1,0 +1,446 @@
+{
+  "kind": "d1023_native_startup_diagnosis_v1",
+  "passed": true,
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1029_20261103/d1029_3b_reachable_lora_w2_full",
+  "workers": [
+    {
+      "worker_pid": 3730298,
+      "init_seconds": 74.21,
+      "compilation_seconds": 31.08,
+      "capture_seconds_rounded": [
+        17.0,
+        12.0
+      ],
+      "capture_memory_gib_rounded": [
+        0.56,
+        0.27
+      ],
+      "completed_progress_totals": {
+        "PIECEWISE": [
+          66
+        ],
+        "FULL": [
+          2,
+          24
+        ]
+      },
+      "evidence_lines": [
+        "(EngineCore pid=3730298) INFO 11-03 10:11:30 [gpu_worker.py:441] Using V2 Model Runner",
+        "(EngineCore pid=3730298) INFO 11-03 10:11:49 [backends.py:1094] Using cache directory: /home/qhq/.cache/vllm/torch_compile_cache/220adc727a/rank_0_0/backbone for vLLM's torch.compile",
+        "(EngineCore pid=3730298) INFO 11-03 10:11:49 [backends.py:1155] Dynamo bytecode transform time: 11.25 s",
+        "(EngineCore pid=3730298) INFO 11-03 10:12:09 [decorators.py:719] saved AOT compiled function to /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/68ad0d2bf035a619bf29b8cb2414f19d9e233505bd689c702446302309f13ff5/rank_0_0/model",
+        "(EngineCore pid=3730298) INFO 11-03 10:12:09 [monitor.py:53] torch.compile took 31.08 s in total",
+        "(EngineCore pid=3730298) INFO 11-03 10:12:32 [model_runner.py:1066] Graph capturing finished in 17 secs, took 0.56 GiB",
+        "(EngineCore pid=3730298) INFO 11-03 10:12:48 [model_runner.py:1066] Graph capturing finished in 12 secs, took 0.27 GiB",
+        "(EngineCore pid=3730298) INFO 11-03 10:12:49 [core.py:372] init engine (profile, create kv cache, warmup model) took 74.21 s (compilation: 31.08 s)"
+      ],
+      "lease_id": "bf671b1053584d19ad03b99362d26a8c",
+      "native_worker_bound_s": 3179218.975306666,
+      "gpu_uuid": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+      "source": {
+        "path": "/tmp/faaslora_worker_k01e1lja/worker.log",
+        "sha256": "21eb0d96057c91fd91f92512f5de458671946e4bf374be8a83ac600410401e03",
+        "bytes": 26751
+      }
+    },
+    {
+      "worker_pid": 3733573,
+      "init_seconds": 27.59,
+      "compilation_seconds": 0.27,
+      "capture_seconds_rounded": [
+        9.0,
+        11.0
+      ],
+      "capture_memory_gib_rounded": [
+        0.56,
+        0.27
+      ],
+      "completed_progress_totals": {
+        "PIECEWISE": [
+          66
+        ],
+        "FULL": [
+          2,
+          24
+        ]
+      },
+      "evidence_lines": [
+        "(EngineCore pid=3733573) INFO 11-03 10:12:41 [gpu_worker.py:441] Using V2 Model Runner",
+        "(EngineCore pid=3733573) INFO 11-03 10:12:50 [monitor.py:53] torch.compile took 0.27 s in total",
+        "(EngineCore pid=3733573) INFO 11-03 10:13:01 [model_runner.py:1066] Graph capturing finished in 9 secs, took 0.56 GiB",
+        "(EngineCore pid=3733573) INFO 11-03 10:13:13 [model_runner.py:1066] Graph capturing finished in 11 secs, took 0.27 GiB",
+        "(EngineCore pid=3733573) INFO 11-03 10:13:15 [core.py:372] init engine (profile, create kv cache, warmup model) took 27.59 s (compilation: 0.27 s)"
+      ],
+      "lease_id": "fc7b3cec75ec4ee5980328d5e3fe7962",
+      "native_worker_bound_s": 3179244.705010235,
+      "gpu_uuid": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+      "source": {
+        "path": "/tmp/faaslora_worker_wffqt7d9/worker.log",
+        "sha256": "a92d0a3f620948609978b75472ad2701d8834d4680682730d473b6afbd5f828f",
+        "bytes": 25554
+      }
+    },
+    {
+      "worker_pid": 3733669,
+      "init_seconds": 28.81,
+      "compilation_seconds": 0.3,
+      "capture_seconds_rounded": [
+        9.0,
+        11.0
+      ],
+      "capture_memory_gib_rounded": [
+        0.56,
+        0.27
+      ],
+      "completed_progress_totals": {
+        "PIECEWISE": [
+          66
+        ],
+        "FULL": [
+          2,
+          24
+        ]
+      },
+      "evidence_lines": [
+        "(EngineCore pid=3733669) INFO 11-03 10:12:43 [gpu_worker.py:441] Using V2 Model Runner",
+        "(EngineCore pid=3733669) INFO 11-03 10:12:52 [monitor.py:53] torch.compile took 0.30 s in total",
+        "(EngineCore pid=3733669) INFO 11-03 10:13:03 [model_runner.py:1066] Graph capturing finished in 9 secs, took 0.56 GiB",
+        "(EngineCore pid=3733669) INFO 11-03 10:13:15 [model_runner.py:1066] Graph capturing finished in 11 secs, took 0.27 GiB",
+        "(EngineCore pid=3733669) INFO 11-03 10:13:17 [core.py:372] init engine (profile, create kv cache, warmup model) took 28.81 s (compilation: 0.30 s)"
+      ],
+      "lease_id": "7358c68a8c35446aa312c43bd56250e4",
+      "native_worker_bound_s": 3179247.771036106,
+      "gpu_uuid": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+      "source": {
+        "path": "/tmp/faaslora_worker_605m8yig/worker.log",
+        "sha256": "5e3d5ae71e6200b5fb9d923ef829c83d71f37f17376863b6e5085fd936feffa2",
+        "bytes": 25963
+      }
+    },
+    {
+      "worker_pid": 3778337,
+      "init_seconds": 27.57,
+      "compilation_seconds": 0.29,
+      "capture_seconds_rounded": [
+        9.0,
+        11.0
+      ],
+      "capture_memory_gib_rounded": [
+        0.56,
+        0.27
+      ],
+      "completed_progress_totals": {
+        "PIECEWISE": [
+          66
+        ],
+        "FULL": [
+          2,
+          24
+        ]
+      },
+      "evidence_lines": [
+        "(EngineCore pid=3778337) INFO 11-03 10:30:02 [gpu_worker.py:441] Using V2 Model Runner",
+        "(EngineCore pid=3778337) INFO 11-03 10:30:11 [monitor.py:53] torch.compile took 0.29 s in total",
+        "(EngineCore pid=3778337) INFO 11-03 10:30:22 [model_runner.py:1066] Graph capturing finished in 9 secs, took 0.56 GiB",
+        "(EngineCore pid=3778337) INFO 11-03 10:30:34 [model_runner.py:1066] Graph capturing finished in 11 secs, took 0.27 GiB",
+        "(EngineCore pid=3778337) INFO 11-03 10:30:35 [core.py:372] init engine (profile, create kv cache, warmup model) took 27.57 s (compilation: 0.29 s)"
+      ],
+      "lease_id": "72b395c5cf254714a6d695a267a76e29",
+      "native_worker_bound_s": 3180284.929228591,
+      "gpu_uuid": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+      "source": {
+        "path": "/tmp/faaslora_worker_5d7jdcmd/worker.log",
+        "sha256": "48d6aff5b6b3848e67dd99e292f4a8474fc80b63f866c316fd2c37b91bc8fe4a",
+        "bytes": 26238
+      }
+    }
+  ],
+  "all_request_counts": {
+    "n": 4000,
+    "ttft_pass": 3867,
+    "tpot_eligible": 4000,
+    "tpot_pass": 3901,
+    "joint_pass": 3774
+  },
+  "first_observed_admission_s": 3179221.187963338,
+  "groups": {
+    "ordinal_0_24": {
+      "n": 25,
+      "ttft_pass": 0,
+      "tpot_pass": 25,
+      "joint_pass": 0,
+      "violation_groups": {
+        "ttft_only": 25
+      },
+      "dominant_stages_of_ttft_fail": {
+        "arrival_to_admission_ms": 25
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 25,
+          "mean": 30218.91658246517,
+          "p50_type1": 25832.149595953524,
+          "p95_type1": 57497.834629844874
+        },
+        "tpot_ms": {
+          "count": 25,
+          "mean": 18.825921924957793,
+          "p50_type1": 18.82072956162109,
+          "p95_type1": 19.77301717764049
+        },
+        "dispatch_window_wait_ms": {
+          "count": 25,
+          "mean": 29449.84195338562,
+          "p50_type1": 24812.53293901682,
+          "p95_type1": 56128.919487819076
+        }
+      }
+    },
+    "ordinal_25_99": {
+      "n": 75,
+      "ttft_pass": 73,
+      "tpot_pass": 75,
+      "joint_pass": 73,
+      "violation_groups": {
+        "ttft_only": 2,
+        "pass": 73
+      },
+      "dominant_stages_of_ttft_fail": {
+        "arrival_to_admission_ms": 2
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 75,
+          "mean": 728.3100007971128,
+          "p50_type1": 263.4615576826036,
+          "p95_type1": 1293.4562410227954
+        },
+        "tpot_ms": {
+          "count": 75,
+          "mean": 13.580068867930416,
+          "p50_type1": 13.224826811347157,
+          "p95_type1": 17.34741464387015
+        },
+        "dispatch_window_wait_ms": {
+          "count": 75,
+          "mean": 383.76754144827527,
+          "p50_type1": 18.76996597275138,
+          "p95_type1": 153.0089108273387
+        }
+      }
+    },
+    "ordinal_100_499": {
+      "n": 400,
+      "ttft_pass": 400,
+      "tpot_pass": 395,
+      "joint_pass": 395,
+      "violation_groups": {
+        "pass": 395,
+        "tpot_only": 5
+      },
+      "dominant_stages_of_ttft_fail": {},
+      "metrics": {
+        "ttft_ms": {
+          "count": 400,
+          "mean": 417.13934247381985,
+          "p50_type1": 297.8698038496077,
+          "p95_type1": 977.7397699654102
+        },
+        "tpot_ms": {
+          "count": 400,
+          "mean": 15.470766263903485,
+          "p50_type1": 13.974327384037714,
+          "p95_type1": 24.123217817395926
+        },
+        "dispatch_window_wait_ms": {
+          "count": 400,
+          "mean": 20.390077714109793,
+          "p50_type1": 18.11119168996811,
+          "p95_type1": 43.11858769506216
+        }
+      }
+    },
+    "ordinal_500_3999": {
+      "n": 3500,
+      "ttft_pass": 3394,
+      "tpot_pass": 3406,
+      "joint_pass": 3306,
+      "violation_groups": {
+        "pass": 3306,
+        "tpot_only": 88,
+        "both": 6,
+        "ttft_only": 100
+      },
+      "dominant_stages_of_ttft_fail": {
+        "admission_to_acquired_ms": 72,
+        "arrival_to_admission_ms": 34
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 3500,
+          "mean": 593.3218673120385,
+          "p50_type1": 373.45156725496054,
+          "p95_type1": 1885.188850108534
+        },
+        "tpot_ms": {
+          "count": 3500,
+          "mean": 15.761471101005501,
+          "p50_type1": 13.735278650168695,
+          "p95_type1": 27.84260851331055
+        },
+        "dispatch_window_wait_ms": {
+          "count": 3500,
+          "mean": 36.412040944610325,
+          "p50_type1": 18.150338903069496,
+          "p95_type1": 85.35317797213793
+        }
+      }
+    },
+    "arrived_before_first_observed_admission": {
+      "n": 27,
+      "ttft_pass": 0,
+      "tpot_pass": 27,
+      "joint_pass": 0,
+      "violation_groups": {
+        "ttft_only": 27
+      },
+      "dominant_stages_of_ttft_fail": {
+        "arrival_to_admission_ms": 27
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 27,
+          "mean": 29014.77249701404,
+          "p50_type1": 23447.14137399569,
+          "p95_type1": 57497.834629844874
+        },
+        "tpot_ms": {
+          "count": 27,
+          "mean": 18.817105662737003,
+          "p50_type1": 18.82072956162109,
+          "p95_type1": 19.77301717764049
+        },
+        "dispatch_window_wait_ms": {
+          "count": 27,
+          "mean": 28245.72753318137,
+          "p50_type1": 23236.94262187928,
+          "p95_type1": 56128.919487819076
+        }
+      }
+    },
+    "arrived_after_first_observed_admission": {
+      "n": 3973,
+      "ttft_pass": 3867,
+      "tpot_pass": 3874,
+      "joint_pass": 3774,
+      "violation_groups": {
+        "pass": 3774,
+        "tpot_only": 93,
+        "both": 6,
+        "ttft_only": 100
+      },
+      "dominant_stages_of_ttft_fail": {
+        "admission_to_acquired_ms": 72,
+        "arrival_to_admission_ms": 34
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 3973,
+          "mean": 571.4018574839407,
+          "p50_type1": 363.7765171006322,
+          "p95_type1": 1783.4696602076292
+        },
+        "tpot_ms": {
+          "count": 3973,
+          "mean": 15.689541082155921,
+          "p50_type1": 13.752411241990094,
+          "p95_type1": 27.436843351460993
+        },
+        "dispatch_window_wait_ms": {
+          "count": 3973,
+          "mean": 34.73248060386212,
+          "p50_type1": 18.15561717376113,
+          "p95_type1": 77.23993668332696
+        }
+      }
+    }
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/completion/stages/diagnosis.json",
+      "sha256": "ebd70617bcba0972d00a0a6749610d40ad744e96bd828fd96bf7fc855eb9e698",
+      "bytes": 231708
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/completion/stages/requests.csv",
+      "sha256": "275c714ef55f72102a7a18fb2046ffcc9d5c57818cd818dfea7a3c4094f76f5d",
+      "bytes": 2350304
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d1029_3b_reachable_lora_w2/completion/full4000.json",
+      "sha256": "895793a7f78a00615953ca41dcedc30fe210806ac63965c17e4010b561039fba",
+      "bytes": 71777
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1029_20261103/d1029_3b_reachable_lora_w2_full/launch.launch/physical_deployment/physical_resource_summary.json",
+      "sha256": "ea7f87c875efb4576cf0144a38b1387774af81d51dab6acfa31e8b314c6d0c50",
+      "bytes": 2987
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "3cefdc50f1c2f2ee4a6c9d5ad5395ad924d9e369376cbd3608ba3d06848f88b8",
+      "bytes": 137555
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1029_20261103/d1029_3b_reachable_lora_w2_full/launch.launch/physical_allocations/72b395c5cf254714a6d695a267a76e29.jsonl",
+      "sha256": "4d01b36c33039c5f1401d92baf65153e1c31de6d545b244e529e1f3e9d932867",
+      "bytes": 16612
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1029_20261103/d1029_3b_reachable_lora_w2_full/launch.launch/physical_allocations/7358c68a8c35446aa312c43bd56250e4.jsonl",
+      "sha256": "8545d5780613e024332368330702398b629f13a0cc3282564a2b59eabff329a1",
+      "bytes": 17154
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1029_20261103/d1029_3b_reachable_lora_w2_full/launch.launch/physical_allocations/bf671b1053584d19ad03b99362d26a8c.jsonl",
+      "sha256": "a638662994969b4ca6a3214b728a3416d4ee8f800d4ec67f80cecacd1716e48c",
+      "bytes": 15514
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1029_20261103/d1029_3b_reachable_lora_w2_full/launch.launch/physical_allocations/fc7b3cec75ec4ee5980328d5e3fe7962.jsonl",
+      "sha256": "0efe108492dafdedbb0c356f3a00e3ac30a947d450f6067916515d7584e4ce61",
+      "bytes": 17156
+    },
+    {
+      "path": "/tmp/faaslora_worker_k01e1lja/worker.log",
+      "sha256": "21eb0d96057c91fd91f92512f5de458671946e4bf374be8a83ac600410401e03",
+      "bytes": 26751
+    },
+    {
+      "path": "/tmp/faaslora_worker_wffqt7d9/worker.log",
+      "sha256": "a92d0a3f620948609978b75472ad2701d8834d4680682730d473b6afbd5f828f",
+      "bytes": 25554
+    },
+    {
+      "path": "/tmp/faaslora_worker_605m8yig/worker.log",
+      "sha256": "5e3d5ae71e6200b5fb9d923ef829c83d71f37f17376863b6e5085fd936feffa2",
+      "bytes": 25963
+    },
+    {
+      "path": "/tmp/faaslora_worker_5d7jdcmd/worker.log",
+      "sha256": "48d6aff5b6b3848e67dd99e292f4a8474fc80b63f866c316fd2c37b91bc8fe4a",
+      "bytes": 26238
+    }
+  ],
+  "n_correct": null,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "limitations": [
+    "Native log durations are rounded and not GPU-kernel time.",
+    "Profiling capture and real capture are sequential; neither is added to the containing init span.",
+    "Progress totals are descriptor counts, not a sum over duplicated tqdm lines or low-level graph nodes.",
+    "Wall-clock native log timestamps are not subtracted from monotonic request timestamps.",
+    "First observed admission is an observed request boundary, not engine-ready or a causal counterfactual.",
+    "All 4000 requests and all allocated workers retained; no latency subtraction or simulated SLO gain."
+  ]
+}
