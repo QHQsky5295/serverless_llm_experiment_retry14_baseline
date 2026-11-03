@@ -1,0 +1,13 @@
+{
+  "health": {
+    "clock_id": "remote-process-monotonic:b7a04b62f38c4ae6adabb4da5c0fd8dc",
+    "delivery_mode": "prepublished_gzip_v1",
+    "ok": true,
+    "root": "/home/lab14/primelora_remote_artifacts/llama32_3b_a500_v1_modelscope",
+    "time": 1793739850.265933,
+    "timing_contract": "artifact_timing_v2"
+  },
+  "configuration_changed": false,
+  "continuous_remote_monitoring": false,
+  "note": "Existing service reused; same monitoring limitation as D1047/D1053."
+}
