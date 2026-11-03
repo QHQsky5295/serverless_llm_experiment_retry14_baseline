@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -106,6 +107,71 @@ def classify(row: dict[str, Any], plans: list[dict[str, Any]]) -> dict[str, Any]
         "matched_completed_plan": False,
         "plan": None,
     }
+
+
+def activation_first_services(activations, dispatches, *, clock_id):
+    """Join every epoch to its first actual dispatch, not a legacy label.
+
+    ``dispatches`` must be the caller's complete actual-dispatch population,
+    including failures. A missing first token stays missing; an unused epoch
+    stays unused. This does not infer numerical correctness or counterfactuals.
+    Legacy D389 label reconstruction above is unchanged for historical reuse.
+    """
+    def finite(x):
+        return type(x) in (int, float) and math.isfinite(x)
+
+    epochs, grouped, seen = {}, {}, set()
+    for a in activations:
+        aid = a['activation_id']
+        if (not aid or aid in epochs or a['target_replica'] != aid
+                or a['clock_id'] != clock_id
+                or a['category'] not in ('initial', 'natural_scaleout', 'controlled')
+                or not finite(a['trigger_at'])):
+            raise ValueError('unique same-clock categorized activation required')
+        ready = a.get('engine_ready_at')
+        if ready is not None and (not finite(ready) or ready < a['trigger_at']):
+            raise ValueError('invalid engine-ready timestamp')
+        epochs[aid], grouped[aid] = a, []
+    for r in dispatches:
+        rid, aid, dispatch = r['request_id'], r['instance_id'], r['dispatch_monotonic_s']
+        if (not rid or rid in seen or aid not in epochs or r['clock_id'] != clock_id
+                or not finite(dispatch) or type(r['success']) is not bool):
+            raise ValueError('unique actual same-clock dispatch required')
+        seen.add(rid)
+        ready, arrival, first = (epochs[aid].get('engine_ready_at'),
+                                r['arrival_monotonic_s'], r.get('first_token_monotonic_s'))
+        if (ready is None or dispatch < ready or not finite(arrival) or dispatch < arrival
+                or first is not None and (not finite(first) or first < dispatch)
+                or r['success'] and first is None):
+            raise ValueError('invalid dispatch/arrival/first-token ordering')
+        grouped[aid].append(r)
+    records = []
+    for aid, a in epochs.items():
+        rows = grouped[aid]
+        earliest = min((r['dispatch_monotonic_s'] for r in rows), default=None)
+        candidates = [r for r in rows if r['dispatch_monotonic_s'] == earliest]
+        # A tied clock sample cannot identify an actual order: keep ambiguity.
+        first = candidates[0] if len(candidates) == 1 else None
+        token = first.get('first_token_monotonic_s') if first else None
+        ready = a.get('engine_ready_at')
+        records.append(dict(activation_id=aid, category=a['category'], policy=a['policy'],
+            trigger_at=a['trigger_at'], engine_ready_at=ready,
+            engine_activation_ms=1000*(ready-a['trigger_at']) if ready is not None else None,
+            dispatch_count=len(rows), first_dispatch_candidate_ids=[r['request_id'] for r in candidates],
+            first_dispatch_ambiguous=len(candidates)>1, first_request=first,
+            unused=not rows, first_token_observed=token is not None,
+            first_request_ttft_ms=1000*(token-first['arrival_monotonic_s']) if token is not None else None,
+            activation_to_first_token_ms=1000*(token-a['trigger_at']) if token is not None else None))
+    summary = {}
+    for category in ('initial', 'natural_scaleout', 'controlled'):
+        rows = [r for r in records if r['category'] == category]
+        summary[category] = dict(epochs=len(rows), with_dispatch=sum(not r['unused'] for r in rows),
+            with_first_token=sum(r['first_token_observed'] for r in rows),
+            ambiguous_first_dispatch=sum(r['first_dispatch_ambiguous'] for r in rows),
+            unused_rate=sum(r['unused'] for r in rows)/len(rows) if rows else None)
+    return dict(records=records, summary=summary, actual_dispatch_count=len(seen),
+        selection='minimum native dispatch per activation; no success filtering',
+        numerical_correctness_inferred=False)
 
 
 def main() -> None:

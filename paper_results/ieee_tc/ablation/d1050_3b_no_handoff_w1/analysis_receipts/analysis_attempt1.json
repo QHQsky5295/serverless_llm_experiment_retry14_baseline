@@ -1,0 +1,12 @@
+{
+  "kind": "transcribed_tool_execution_receipt",
+  "chunk_id": "2b47be",
+  "session_id": 68314,
+  "exit_code": 1,
+  "error": "KeyError: clock_id",
+  "location": "compare.py:90, native-token timing projection",
+  "cause": "The native timing schema calls this field native_clock_id, unlike activation records' clock_id.",
+  "performance_run_affected": false,
+  "output_directory_created": false,
+  "remedy": "Use the actual native_clock_id field already checked by the retained metric analyzer; no fallback or default clock."
+}

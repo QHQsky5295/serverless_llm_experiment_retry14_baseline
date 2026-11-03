@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1050_3b_no_handoff_w1/completion/closure.json",
+      "sha256": "84f28994305722b7babe6a21a9440e169f810bfa0a822761ab21a3c8db3031af",
+      "bytes": 2859
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1050_3b_no_handoff_w1/completion/collect_closed_evidence.py.snapshot",
+      "sha256": "7d5851d2602a652ae414eaef915fea15479a40a8c22f83b7d9b6dcc9f58c7921",
+      "bytes": 6108
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1050_3b_no_handoff_w1/completion/delivery_and_resources.json",
+      "sha256": "2b92c1ca970780ea9a4944cba6f3402c03c8662f746d617ab4e2399be281dc12",
+      "bytes": 15012
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1050_3b_no_handoff_w1/completion/full4000.json",
+      "sha256": "9b9c73f863a1d309faa0ebb53653e636a41b87d123851b69907408dd023929ee",
+      "bytes": 54101
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1050_3b_no_handoff_w1/completion/native_descriptor.json",
+      "sha256": "d6539a85eff11d74ec06066923607d7c2c3a46822ad4bb561f15d2b5813c9799",
+      "bytes": 564
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1050_3b_no_handoff_w1/completion/profile_bindings.json",
+      "sha256": "af8f002c964f869a7715dcd5a3e1daa896a7fb1296a65b0ae30071fda6bb1a47",
+      "bytes": 2701
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1050_3b_no_handoff_w1/completion/stages/diagnosis.json",
+      "sha256": "e81c732cc10eb012bac2897a1945be77a0ba3a1e292e58b6f63d7733713b939d",
+      "bytes": 249903
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1050_3b_no_handoff_w1/completion/stages/requests.csv",
+      "sha256": "e01f2465b0e7e8888c4f3b79f287dbde6bdf701907057659d931cb7bdecba4a8",
+      "bytes": 2339598
+    }
+  ]
+}
