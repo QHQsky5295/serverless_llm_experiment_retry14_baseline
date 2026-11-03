@@ -1,0 +1,55 @@
+{
+  "passed": true,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_dirty_unchanged": true,
+  "unchanged_first_service_tests_reused": 4,
+  "prelaunch_tests_reused": 100,
+  "new_gpu_runs": 0,
+  "routing_validation_counts": {
+    "Full": 4000,
+    "NoRouting": 4000
+  },
+  "completed_auxiliary_paths_removed": [
+    {
+      "unit": "primelora-tc-aux-71ffae0d7e9349b8a14228ed6a8b27c9.scope",
+      "invocation_id": "2bd57d8c3a9c49a0be32605549ed56b0",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-71ffae0d7e9349b8a14228ed6a8b27c9.scope",
+      "inode": 38923881
+    },
+    {
+      "unit": "primelora-tc-aux-0961a46fdf9643c39d39146e29096050.scope",
+      "invocation_id": "16d95eed60744c2eb0b97aa03b1347bf",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-0961a46fdf9643c39d39146e29096050.scope",
+      "inode": 38924476
+    }
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1050_20261104/first_service_tests.json",
+      "sha256": "5a3b750cd406481adcf9e7a1c628d24753472367bcccd57c55245b5cac9f02a2",
+      "bytes": 700
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1055_3b_no_routing_w1/comparison/manifest.json",
+      "sha256": "521c9d5da823a45d8ff5ffe888b8a7f14f02c4233dfbcdeaf68710f4261a63cc",
+      "bytes": 2979
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1055_3b_no_routing_w1/completion/manifest.json",
+      "sha256": "9e83440e5de7781590f609c36a28bf8664a5cfd8518e5679b2ce7ae381e3c2b8",
+      "bytes": 2795
+    }
+  ],
+  "planned_destinations": [
+    "origin/retry14_continuous_queue_v2",
+    "faaslora_origin/backup/d1055-no-routing-20261104"
+  ],
+  "full_faaslora_v2_integrated": false
+}

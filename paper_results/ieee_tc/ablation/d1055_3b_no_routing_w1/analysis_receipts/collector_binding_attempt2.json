@@ -1,0 +1,10 @@
+{
+  "kind": "offline_collection_binding_error",
+  "unit": "primelora-tc-aux-84badfac048b4ff489dd39d569bb9975.scope",
+  "exit_code": 1,
+  "error": "ValueError: config/run output binding differs",
+  "completed_output": "completion/full4000.json",
+  "completed_output_sha256": "403a20f3ab04f8e10c9796b0eb80f7bffc96bd0c503130819913cac144673010",
+  "cause": "Declared YAML output path ends in _full; the unchanged launcher overrides this with the measured result directory. All three applied path overrides are preserved in result metadata.",
+  "resolution": "Retain frozen config and raw bytes; create an analysis-only effective config from exactly the recorded output/cache overrides. Resume after the pinned metric audit. No metric policy or GPU execution changes."
+}

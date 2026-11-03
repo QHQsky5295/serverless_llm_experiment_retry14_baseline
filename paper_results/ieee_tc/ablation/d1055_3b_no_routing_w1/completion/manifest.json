@@ -1,0 +1,54 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1055_3b_no_routing_w1/completion/closure.json",
+      "sha256": "9e6c8d0587078a5bcd3b0dae1adc5f1d375632df11d5ab0ebe0f7b74c604c12a",
+      "bytes": 2859
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1055_3b_no_routing_w1/completion/collect_closed_evidence.py.snapshot",
+      "sha256": "e3baf9dfc9710c331dfc435d1d6f9cf07b139097ae55cb0eb1d6d322cd18f9fe",
+      "bytes": 8188
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1055_3b_no_routing_w1/completion/delivery_and_resources.json",
+      "sha256": "94521358db47017061cd636efcdcb78bc33903be8725bab431f92fa29244c7c6",
+      "bytes": 16611
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1055_3b_no_routing_w1/completion/effective_config_from_recorded_overrides.yaml",
+      "sha256": "4eff6293875feaaa7c3b519b54b36d6ac8310ca3d783d0a8c7283d0d79a2dd7d",
+      "bytes": 5870
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1055_3b_no_routing_w1/completion/full4000.json",
+      "sha256": "403a20f3ab04f8e10c9796b0eb80f7bffc96bd0c503130819913cac144673010",
+      "bytes": 36757
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1055_3b_no_routing_w1/completion/native_descriptor.json",
+      "sha256": "fd40322639b40e96b015888d77f201086f65b4b0ce4770d6c4bfbecf111469bf",
+      "bytes": 564
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1055_3b_no_routing_w1/completion/output_path_binding.json",
+      "sha256": "e5e5b235796e9066486176cbe006878a37f2c8eb34025d02cb8f77bd45c3e0e9",
+      "bytes": 2546
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1055_3b_no_routing_w1/completion/profile_bindings.json",
+      "sha256": "4bcbb33a472afa18b74efdd2460ea613937589f6f1df0275b7838c2a2d58a2de",
+      "bytes": 2759
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1055_3b_no_routing_w1/completion/stages/diagnosis.json",
+      "sha256": "8d1214a141ce4f4a347862f3758e3651a70fd53c17ad20167be4671308a80cf0",
+      "bytes": 254732
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1055_3b_no_routing_w1/completion/stages/requests.csv",
+      "sha256": "66f2b9921f2cefff381621c32266cdfb7244bc3e55470d9ae827782121357178",
+      "bytes": 2336973
+    }
+  ]
+}

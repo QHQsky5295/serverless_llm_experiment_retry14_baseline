@@ -1,0 +1,10 @@
+{
+  "kind": "offline_collection_launcher_error",
+  "unit": "primelora-tc-aux-d1055-collect-20261104.scope",
+  "exit_code": 1,
+  "error": "ValueError: not an owned TC service/test UUID scope",
+  "cause": "Offline invocation used a descriptive unit name, but the existing scope_identity contract requires a 32-hex identity.",
+  "analysis_outputs_created": false,
+  "gpu_run_affected": false,
+  "resolution": "Reuse unchanged collector with correctly named UUID auxiliary scope; no weakening of scope validation, metric change or GPU rerun."
+}
