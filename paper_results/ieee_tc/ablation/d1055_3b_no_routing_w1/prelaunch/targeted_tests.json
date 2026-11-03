@@ -1,0 +1,47 @@
+{
+  "passed": true,
+  "exit_code": 0,
+  "tests_run": 100,
+  "tests": [
+    "tests.test_ieee_tc_service_routing",
+    "tests.test_ieee_tc_request_lifecycle.SelectedSourceAdmissionIntegration.test_ablation_routes_keep_selected_source_reference_and_release_contract",
+    "tests.test_ieee_tc_request_lifecycle.PredecisionRoutingIntegration"
+  ],
+  "elapsed_s": 9.747994979843497,
+  "test_sources": {
+    "tests/test_ieee_tc_service_routing.py": "ca07ca5e9a613fd2f13db666ef333fde1ca1092f8707234102ab11fa769c2e0b",
+    "tests/test_ieee_tc_request_lifecycle.py": "5c9164d3657ab542ef9cbf91cfa308de794935d990c3ff3d7045317a99ac7ab2"
+  },
+  "pool_source_sha256": "a684ae63f14c9673b3cf9b6bd348904e1f260edfeb1b285f1e4d2d65f4bfad16",
+  "runner_sha256": "6fa129bbb52da30150725033363a04360a7439fd4df2ee598b864756b9de1e89",
+  "identity": {
+    "unit": "primelora-tc-aux-8394bcd7b04c42be9883d533dbc441a1.scope",
+    "invocation_id": "2559c93ba4114c11a6ba9a4462cb80f6",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-8394bcd7b04c42be9883d533dbc441a1.scope",
+    "inode": 38901341
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-8394bcd7b04c42be9883d533dbc441a1.scope",
+    "memory.current": 663015424,
+    "memory.peak": 679133184,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 9966603\nuser_usec 8538808\nsystem_usec 1427794\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "performance_test": false,
+  "code_changed": true
+}

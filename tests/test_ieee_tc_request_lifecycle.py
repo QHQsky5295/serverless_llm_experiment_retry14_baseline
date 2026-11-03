@@ -1360,13 +1360,15 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         slot.engine.generate_prepared.side_effect = generate
         return runner, slot, trace, plan, owner, observed
 
-    def test_locality_route_keeps_selected_source_reference_and_release_contract(self):
+    def test_ablation_routes_keep_selected_source_reference_and_release_contract(self):
         from faaslora.experiment.instance_pool import Router
-        for tier in ('gpu', 'host'):
-            with self.subTest(tier=tier):
+        for strategy, tier in ((s, t) for s in ('gpu_locality', 'load_only')
+                               for t in ('gpu', 'host')):
+            with self.subTest(strategy=strategy, tier=tier):
                 runner, slot, trace, plan, owner, _ = self.build(tier)
                 runner.router = Router(runner.instance_pool, 'ieee_confirmed', service_bin_ms=10.,
-                    ieee_selection_strategy='gpu_locality', locality_load_slack=1)
+                    ieee_selection_strategy=strategy,
+                    locality_load_slack=1 if strategy == 'gpu_locality' else None)
                 result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
                 self.assertTrue(result.success, result.error)
                 self.assertEqual(result.readiness_tier_before_dispatch, tier)

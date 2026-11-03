@@ -1637,8 +1637,10 @@ class Router:
         self.service_bin_ms = service_bin_ms
         # Ownership/feasibility stays on the IEEE path. A placement comparison
         # must not silently switch to legacy activation, accounting or hints.
-        if ieee_selection_strategy not in ('service_bins', 'gpu_locality'):
+        if ieee_selection_strategy not in ('service_bins', 'gpu_locality', 'load_only'):
             raise ValueError('unknown IEEE selection strategy')
+        if ieee_selection_strategy == 'load_only' and policy != 'ieee_confirmed':
+            raise ValueError('load-only selection requires owned IEEE snapshots')
         if ieee_selection_strategy == 'gpu_locality':
             if policy != 'ieee_confirmed':
                 raise ValueError('GPU-locality selection requires owned IEEE snapshots')
@@ -1923,8 +1925,11 @@ class Router:
                 raise StaleReplicaRoutingSnapshot(
                     'replica membership changed; retry from updated owner snapshot')
             self.selection_count += 1
-            self.readiness_aware_selection_count += 1
-            if self.ieee_selection_strategy == 'gpu_locality':
+            if self.ieee_selection_strategy == 'load_only':
+                self.load_only_selection_count += 1
+                decision = self.select_load_snapshot(ieee_snapshot)
+            elif self.ieee_selection_strategy == 'gpu_locality':
+                self.readiness_aware_selection_count += 1
                 decision = self.select_locality_snapshot(ieee_snapshot, self.locality_load_slack)
                 if decision is None:
                     reason = 'empty_feasible_set'
@@ -1936,6 +1941,7 @@ class Router:
                     reason = 'no_feasible_gpu_hit'
                 self.locality_selection_reasons[reason] += 1
             else:
+                self.readiness_aware_selection_count += 1
                 decision = self.select_ieee_snapshot(ieee_snapshot, self.service_bin_ms)
             self.last_ieee_decision = decision
             if decision is None:
@@ -1976,6 +1982,27 @@ class Router:
             raise ValueError('mixed snapshot epochs or request identities')
         feasible = [s for s in snapshot if s.feasible]
         return min(feasible, key=lambda s: s.routing_key(delta_ms)) if feasible else None
+
+    @staticmethod
+    def select_load_snapshot(snapshot: tuple[ReplicaRoutingSnapshot, ...]
+                             ) -> Optional[ReplicaRoutingSnapshot]:
+        """NoRouting ablation: remove only Eq. (3)'s service-bin prefix.
+
+        Keep the same committed feasible set, live Q tuple and stable tie-break.
+        Tier/D/T/O do not rank candidates. Snapshot collection and the caller's
+        source protection, admission and atomic reservations remain unchanged.
+        This pure selector does not acquire references or update owner state.
+        """
+        if not isinstance(snapshot, tuple):
+            raise ValueError('routing snapshot must be immutable')
+        if len({s.replica_id for s in snapshot}) != len(snapshot):
+            raise ValueError('duplicate replicas in snapshot')
+        if len({(s.epoch, s.request_id, s.adapter_id) for s in snapshot}) > 1:
+            raise ValueError('mixed snapshot epochs or request identities')
+        feasible = [s for s in snapshot if s.feasible]
+        return min(feasible, key=lambda s: (
+            s.admitted_requests, s.pending_loads, s.gpu_utilization_pct,
+            s.last_dispatch_at, s.replica_id)) if feasible else None
 
     def selection_contract(self) -> dict:
         """Placement identity, not certification of the full benchmark variant."""

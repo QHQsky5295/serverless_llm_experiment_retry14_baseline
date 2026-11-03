@@ -1,0 +1,39 @@
+"""Bounded CPU qualification of the A1 load-only selection branch."""
+import hashlib
+import json
+import os
+from pathlib import Path
+import sys
+import time
+import unittest
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+identity = p.scope_identity(p.cg_path().name)
+assert os.sched_getaffinity(0) == {2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert (p.cg_path()/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (p.cg_path()/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (p.cg_path()/'memory.swap.max').read_text().strip() == '0'
+names = [
+    'tests.test_ieee_tc_service_routing',
+    'tests.test_ieee_tc_request_lifecycle.SelectedSourceAdmissionIntegration.test_ablation_routes_keep_selected_source_reference_and_release_contract',
+    'tests.test_ieee_tc_request_lifecycle.PredecisionRoutingIntegration',
+]
+start = time.monotonic()
+with (RAW/'targeted_tests.txt').open('x') as stream:
+    result = unittest.TextTestRunner(stream=stream, verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames(names))
+report = dict(passed=result.wasSuccessful(), exit_code=0 if result.wasSuccessful() else 1,
+    tests_run=result.testsRun, tests=names, elapsed_s=time.monotonic()-start,
+    test_sources={name: p.digest(ROOT/name) for name in (
+        'tests/test_ieee_tc_service_routing.py', 'tests/test_ieee_tc_request_lifecycle.py')},
+    pool_source_sha256=p.digest(ROOT/'faaslora/experiment/instance_pool.py'),
+    runner_sha256=p.digest(ROOT/'scripts/run_all_experiments.py'),
+    identity=identity, resources=p.cgroup_snapshot(p.cg_path()),
+    performance_test=False, code_changed=True)
+with (RAW/'targeted_tests.json').open('x') as out:
+    json.dump(report,out,indent=2);out.write('\n')
+print(json.dumps(report),flush=True)
+sys.exit(report['exit_code'])

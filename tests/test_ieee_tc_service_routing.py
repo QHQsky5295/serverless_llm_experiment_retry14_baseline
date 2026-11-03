@@ -602,6 +602,16 @@ class FrozenMeasuredInitialization(unittest.TestCase):
         runner._warmup_engine_hot_set.assert_not_called()
         self.assertEqual(runner.instance_pool.count(), 1)
 
+    def test_load_only_keeps_owned_runner_and_measured_profile_identity(self):
+        runner = self.runner(coord_changes=dict(ieee_selection_strategy='load_only'))
+        self.assertEqual(runner._routing_policy, 'ieee_confirmed')
+        self.assertEqual(runner.router.policy, 'ieee_confirmed')
+        self.assertIs(runner.instance_pool.service_profiles, runner._service_profiles)
+        summary = runner._current_coord_metrics()['ieee_routing_selection']
+        self.assertEqual(summary['strategy'], 'load_only')
+        self.assertIsNone(summary['locality_load_slack'])
+        self.assertEqual(sum(summary['locality_attempt_reasons'].values()), 0)
+
     def test_actual_runner_rejects_absent_profiles_and_shared_runtime(self):
         for changes, message in [({'ieee_service_profile': None}, 'measured ieee_service_profile'),
                                  ({'instance_mode': 'shared'}, 'distinct physical runtime'),
@@ -783,6 +793,92 @@ class CommittedRoutingContract(unittest.TestCase):
         for delta in (0, -1, math.inf, math.nan):
             with self.assertRaises(ValueError):
                 Router.select_ieee_snapshot((), delta)
+
+
+class LoadOnlyRoutingContract(unittest.TestCase):
+    """A1 NoRouting changes placement ranking, not ownership or feasibility."""
+
+    def test_removes_service_prefix_but_preserves_full_Q_and_tie_break(self):
+        better = candidate('z', service=ServiceComponents(900., 800., 700.))
+        for field, value in [('admitted_requests', 2), ('pending_loads', 1),
+                             ('gpu_utilization_pct', 1.), ('last_dispatch_at', 1.)]:
+            worse = dataclasses.replace(candidate('a'), **{field: value})
+            with self.subTest(field=field):
+                self.assertIs(Router.select_ieee_snapshot((better, worse), 10), worse)
+                self.assertIs(Router.select_load_snapshot((worse, better)), better)
+        same_load = candidate('a')
+        self.assertIs(Router.select_load_snapshot((better, same_load)), same_load)
+        self.assertIs(Router.select_load_snapshot((same_load, better)), same_load)
+
+    def test_service_tier_changes_do_not_rank_or_call_service_key(self):
+        other = candidate('b', service=ServiceComponents(.1, .1, .1))
+        with patch.object(ReplicaRoutingSnapshot, 'routing_key',
+                          side_effect=AssertionError('service-bin score must not be read')):
+            for tier in ('gpu', 'host', 'nvme', 'remote'):
+                first = candidate('a', service_class=klass(tier),
+                    service=ServiceComponents(0. if tier == 'gpu' else 999., 800., 700.))
+                self.assertIs(Router.select_load_snapshot((other, first)), first)
+
+    def test_live_feasible_set_and_existing_adapter_capacity_are_unchanged(self):
+        feasible = candidate('z', max_active_loras=1)
+        for changes in (dict(runtime_ready=False), dict(available_slots=0),
+                        dict(active_adapters=frozenset({'other'}), max_active_loras=1)):
+            invalid = candidate('a', **changes)
+            self.assertFalse(invalid.feasible)
+            self.assertIs(Router.select_load_snapshot((invalid, feasible)), feasible)
+            self.assertIsNone(Router.select_load_snapshot((invalid,)))
+        self.assertIsNone(Router.select_load_snapshot(()))
+
+    def test_mutable_duplicate_and_mixed_identity_snapshots_rejected(self):
+        row = candidate()
+        for rows in ([row], (row, row),
+                     (row, dataclasses.replace(row, replica_id='b', epoch=2)),
+                     (row, dataclasses.replace(row, replica_id='b', request_id='other')),
+                     (row, dataclasses.replace(row, replica_id='b', adapter_id='other'))):
+            with self.assertRaises(ValueError):
+                Router.select_load_snapshot(rows)
+
+    def test_live_decision_counters_and_pure_shadow_preserve_handoff_state(self):
+        pool = InstancePool(max_instances=2)
+        a, b = pool.add_instance(None, None), pool.add_instance(None, None)
+        pool.get_slot(a).scaleup_handoff_request_budget = 10
+        router = Router(pool, 'ieee_confirmed', service_bin_ms=10,
+                        ieee_selection_strategy='load_only')
+        rows = (candidate(a), candidate(b))
+        for _ in range(2):
+            self.assertIs(router.select_load_snapshot(rows), rows[0])
+        self.assertEqual(router.selection_count, 0)
+        slot, first = router.select_instance_with_decision('lora-a', ieee_snapshot=rows)
+        self.assertEqual(slot.instance_id, a)
+        _, second = router.select_instance_with_decision('lora-a', ieee_snapshot=(
+            candidate(a, pending_loads=1), candidate(b)))
+        self.assertEqual(second.replica_id, b)
+        self.assertEqual(first.replica_id, a)
+        self.assertIs(router.last_ieee_decision, second)
+        self.assertEqual(pool.get_slot(a).scaleup_handoff_request_budget, 10)
+        self.assertIsNone(router.select_instance('lora-a', ieee_snapshot=(
+            candidate(a, available_slots=0), candidate(b, runtime_ready=False))))
+        self.assertEqual(router.selection_count, 3)
+        self.assertEqual(router.load_only_selection_count, 3)
+        self.assertEqual(router.readiness_aware_selection_count, 0)
+        self.assertEqual(sum(router.locality_selection_reasons.values()), 0)
+        with self.assertRaises(ValueError):
+            router.select_instance('other', ieee_snapshot=rows)
+        with self.assertRaises(ValueError):
+            router.select_instance('lora-a')
+        pool.get_slot(b).status = 'draining'
+        with self.assertRaises(ValueError):
+            router.select_instance('lora-a', ieee_snapshot=rows)
+
+    def test_explicit_owned_policy_required_and_locality_slack_forbidden(self):
+        pool = SimpleNamespace(get_slots=lambda: [])
+        with self.assertRaises(ValueError):
+            Router(pool, 'least_connections', ieee_selection_strategy='load_only')
+        with self.assertRaises(ValueError):
+            Router(pool, 'ieee_confirmed', service_bin_ms=10,
+                   ieee_selection_strategy='load_only', locality_load_slack=0)
+        router = Router(pool, 'ieee_confirmed', service_bin_ms=10)
+        self.assertEqual(router.selection_contract()['strategy'], 'service_bins')
 
 
 class BinaryLocalityRoutingContract(unittest.TestCase):
