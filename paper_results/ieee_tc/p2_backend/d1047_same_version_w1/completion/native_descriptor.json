@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "requests": 4000,
+  "kinds": {
+    "fresh_native_tensor_descriptor_v1": 4000
+  },
+  "library_sha256_counts": {
+    "b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044": 4000
+  },
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1047_20261104/d1047_3b_event_busy_time_w1_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1047_3b_event_busy_time_w1_full.json",
+    "sha256": "006785f8673626ed53139b50f6576a78c116c8490860ea16da30a8b05fd03a24",
+    "bytes": 289724404
+  }
+}

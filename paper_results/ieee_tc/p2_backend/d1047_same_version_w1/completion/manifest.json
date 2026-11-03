@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/closure.json",
+      "sha256": "fe78ff1d86b8c94502c75722534cd80a0a5dfabb82b2d6458146e41bd76ba1bb",
+      "bytes": 2854
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/collect_closed_evidence.py.snapshot",
+      "sha256": "91dd9c58812f3a1d24904c76c25415b8e774e52f1123417c7cda799c2b4493df",
+      "bytes": 6093
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/delivery_and_resources.json",
+      "sha256": "025053235272d3e67cdd28e889cb33246b4d1912a595fb5f2471fa4aee696843",
+      "bytes": 17095
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/full4000.json",
+      "sha256": "9efa154f7d9322e6ccac94541a7d323064d2bd868ee8642c8245755c42fde6e1",
+      "bytes": 53597
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/native_descriptor.json",
+      "sha256": "cbc01f33f8e29673a6641d7b4671ca3e84fcecc0109405026f47cf343996c42e",
+      "bytes": 584
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/profile_bindings.json",
+      "sha256": "93a29870956b78591a760272b565ae3d1d866a5ce83e9009129bdbb2b0c03d28",
+      "bytes": 2747
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/stages/diagnosis.json",
+      "sha256": "6f3615e3af5055b57c830ab950b976b50744e979802834243e2c958ccb2bb3e2",
+      "bytes": 255162
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/stages/requests.csv",
+      "sha256": "5d2bc64c5eda87c820fa08915441cf104c05b91d06a8065ab761623c79b248d1",
+      "bytes": 2336108
+    }
+  ]
+}
