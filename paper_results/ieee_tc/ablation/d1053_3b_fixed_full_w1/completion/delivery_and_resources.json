@@ -1,0 +1,88 @@
+{
+  "kind": "d713_closed_delivery_and_control_context_v1",
+  "passed": true,
+  "native_metric_audit": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1053_3b_fixed_full_w1/completion/full4000.json",
+    "sha256": "8791e0fb2690618bf0032b9fce76056ad77a324c96b4da101426ff5898688bc5",
+    "bytes": 37392
+  },
+  "terminal_meta": {
+    "run_completed": true,
+    "error": null,
+    "cleanup_errors": [],
+    "measurement_errors": []
+  },
+  "control": {
+    "scale_down_events": 0,
+    "scale_up_event_log": [],
+    "completed_scale_up_events": 0,
+    "scale_down_event_log": []
+  },
+  "physical_allocation_count": 4,
+  "all_allocations_released": true,
+  "remote": {
+    "transfers": 132,
+    "wire_bytes": 306360162,
+    "all_server_client_ids_bytes_hashes_match": true,
+    "request_time_packing": false,
+    "observation_mode": "existing_unmonitored",
+    "monitoring_limitation": "No continuous remote CPU/interference monitor; existing service was not restarted/stopped for this replay."
+  },
+  "resources": {
+    "events": {
+      "watchdog_ready": 1,
+      "resource_sample": 2282,
+      "gpu_terminal_census": 1,
+      "service_domain_gone": 1
+    },
+    "memory_events_max": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    },
+    "service_peak_bytes": 25064484864,
+    "max_swap_bytes": 0,
+    "min_host_available_bytes": 89259352064,
+    "min_free_disk_bytes": 156187353088
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1053_20261104/d1053_3b_fixed_full_w1/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1053_3b_fixed_full_w1.json",
+      "sha256": "c2ce7d86fde30e0421356a8748327b4aadfa83a35327f69faddb0cdf24d36b7a",
+      "bytes": 334179914
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1053_20261104/d1053_3b_fixed_full_w1/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "14a1f7f09e7fcf35aa4683a1d00e1782d1c2bf6914e9d5f3bdbdde97bf4d2d5b",
+      "bytes": 747997568
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1053_20261104/remote_transfers.jsonl",
+      "sha256": "0f588e1fd470905b70626c0385b2d3bd0796347598ebbd9d26cd0473e63b5abe",
+      "bytes": 110455
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1053_20261104/d1053_3b_fixed_full_w1/launch.launch/watchdog.jsonl",
+      "sha256": "5982c31b753882d326088fcaca85548a74cc5c9e8d1d14610bd0387bec7ead81",
+      "bytes": 16041945
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1053_20261104/remote_health.json",
+      "sha256": "4c7436f5318729def1e7f6a2d0939beec45a98c995cddb530926dff51047cb6c",
+      "bytes": 366
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "3abcd9d766a7dc1c780244d8eedaac8440815aa85c0e45c6d9b81ef2cf35a070",
+      "bytes": 151448
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261104_d1053_3b_fixed_full_w1.yaml",
+      "sha256": "ed1fab930c9ebc28e810ea29133ec09b45a1a061dce2b9071d712498a5353b13",
+      "bytes": 6155
+    }
+  ]
+}

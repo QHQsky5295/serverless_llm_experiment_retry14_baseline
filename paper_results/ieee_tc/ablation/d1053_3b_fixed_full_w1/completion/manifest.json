@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1053_3b_fixed_full_w1/completion/closure.json",
+      "sha256": "c32957af51cf7bbdfad4cdbf9bce137d69ac90b9e086350ce70f68833fabbded",
+      "bytes": 2859
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1053_3b_fixed_full_w1/completion/collect_closed_evidence.py.snapshot",
+      "sha256": "99d6408172901df36db068dbad39cdd78920885abe387590b8d2538d905fa9e4",
+      "bytes": 6108
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1053_3b_fixed_full_w1/completion/delivery_and_resources.json",
+      "sha256": "78199ab3aa9c2553f2491131bb2e23878e9ff1481c324d76087e7687e7d369b7",
+      "bytes": 3427
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1053_3b_fixed_full_w1/completion/full4000.json",
+      "sha256": "8791e0fb2690618bf0032b9fce76056ad77a324c96b4da101426ff5898688bc5",
+      "bytes": 37392
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1053_3b_fixed_full_w1/completion/native_descriptor.json",
+      "sha256": "feee398124e0a12a3e11f0980ad13db31599381aef5c841288f121d89c077e07",
+      "bytes": 564
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1053_3b_fixed_full_w1/completion/profile_bindings.json",
+      "sha256": "6c146e8f995b5844c63762b257133f2679242d30d2992553e396a1ba3f817cf8",
+      "bytes": 2686
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1053_3b_fixed_full_w1/completion/stages/diagnosis.json",
+      "sha256": "a9cd6920e3fd58d5d34461e52baa58d2a5cbd241009583c1da480f259b812e1c",
+      "bytes": 211468
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1053_3b_fixed_full_w1/completion/stages/requests.csv",
+      "sha256": "9ddce7bac910f7e0f87ea5cd56ea197eadc74d94f607d85061529aea0c5af1b9",
+      "bytes": 2311303
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "kind": "lossless_closed_outcome_compression_v1",
+  "created_unix": 1793739640.833877,
+  "before": {
+    "available_bytes": 160236670976
+  },
+  "after": {
+    "available_bytes": 164377321472
+  },
+  "entries": [
+    {
+      "run": "d915_20261027/3b_max3_full_w2_release_contract",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d915_20261027/3b_max3_full_w2_release_contract/launch.launch/physical_deployment/main_outcome.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d915_20261027/3b_max3_full_w2_release_contract/launch.launch/physical_deployment/main_outcome.json.gz",
+      "source_sha256": "7b7ebd936a48f7f72bd9826b4af94ce448e0a54fb39dd97c9f13592ac5d7c0e4",
+      "audit_sha256": null,
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 101470447,
+        "size": 1352066775,
+        "mtime_ns": 1793060639347179846,
+        "ctime_ns": 1793060639347179846,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 2640768
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "e97ce9ec24c73ef7c46ceb8b67e1cf29267642354abbc5160768aa4ccf6baa0e",
+      "archive_sha256": "7445bb98728c5678606429a068aff6846875eb2d9a250b7d5980d535a781cac3",
+      "archive_bytes": 162509798,
+      "archive_allocated_bytes": 162516992,
+      "first_roundtrip_sha256": "7b7ebd936a48f7f72bd9826b4af94ce448e0a54fb39dd97c9f13592ac5d7c0e4",
+      "second_roundtrip_sha256": "7b7ebd936a48f7f72bd9826b4af94ce448e0a54fb39dd97c9f13592ac5d7c0e4",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 1189556224
+    },
+    {
+      "run": "d854_20261025/3b_max3_full_w2",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d854_20261025/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d854_20261025/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json.gz",
+      "source_sha256": "2e55119a4aaf710b87ad67aea65c56145366a7c415d3f8bb0518bf458bc494ef",
+      "audit_sha256": null,
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 109597242,
+        "size": 1150499240,
+        "mtime_ns": 1792946373235659286,
+        "ctime_ns": 1792946373235659286,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 2247080
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "f9ba61d46b9966d220cf8d62f8e32295b162ca63a5afbe26ba852bfd9663d366",
+      "archive_sha256": "ed1e525bddaa55411dc423bf19e8cce31ddcd1ac464feecadafd81622f056f3a",
+      "archive_bytes": 142228253,
+      "archive_allocated_bytes": 142233600,
+      "first_roundtrip_sha256": "2e55119a4aaf710b87ad67aea65c56145366a7c415d3f8bb0518bf458bc494ef",
+      "second_roundtrip_sha256": "2e55119a4aaf710b87ad67aea65c56145366a7c415d3f8bb0518bf458bc494ef",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 1008271360
+    },
+    {
+      "run": "d870_20261026/3b_max3_full_w2",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d870_20261026/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d870_20261026/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json.gz",
+      "source_sha256": "86cc9854a7596a24265366d6476333451517dbbd2af34db4c20b37157f34e136",
+      "audit_sha256": null,
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 109597849,
+        "size": 1123386180,
+        "mtime_ns": 1792978506200742014,
+        "ctime_ns": 1792978506200742014,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 2194128
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "24e4572fb2effb7daee497ec86b496e7cd5454d123ffd7632ed0c0ce3f0faff8",
+      "archive_sha256": "d8f70774b354f00316ad9175426d1958efc522a537aa34a16ef4d6f4d9d9047b",
+      "archive_bytes": 141118543,
+      "archive_allocated_bytes": 141123584,
+      "first_roundtrip_sha256": "86cc9854a7596a24265366d6476333451517dbbd2af34db4c20b37157f34e136",
+      "second_roundtrip_sha256": "86cc9854a7596a24265366d6476333451517dbbd2af34db4c20b37157f34e136",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 982269952
+    },
+    {
+      "run": "d866_20261026/3b_max3_full_w2",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d866_20261026/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d866_20261026/3b_max3_full_w2/launch.launch/physical_deployment/main_outcome.json.gz",
+      "source_sha256": "b375e504527165a537dc0ddc65e9c6894f536cd6cb7e348b8edb700bae15af76",
+      "audit_sha256": null,
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 109597724,
+        "size": 1099663019,
+        "mtime_ns": 1792970432667790749,
+        "ctime_ns": 1792970432667790749,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 2147792
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "cbc5fb8c5cdaf1f0b9bb67938f279bf40bef4af47690dd06f94a4c43b16dccc5",
+      "archive_sha256": "d2085ed17891b71b2084adfaff5dfdb17227b95b1bc16761ae4e18caf12467fe",
+      "archive_bytes": 138751980,
+      "archive_allocated_bytes": 138756096,
+      "first_roundtrip_sha256": "b375e504527165a537dc0ddc65e9c6894f536cd6cb7e348b8edb700bae15af76",
+      "second_roundtrip_sha256": "b375e504527165a537dc0ddc65e9c6894f536cd6cb7e348b8edb700bae15af76",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 960913408
+    }
+  ],
+  "caveat": "Current source is preserved exactly in gzip. audit_sha256 mismatches are provenance caveats and are not promoted to reusable result identity.",
+  "protected": "weights, traces, adapter pools, environments, code and curated files unchanged.",
+  "source_archive_round_trip_verified": true
+}

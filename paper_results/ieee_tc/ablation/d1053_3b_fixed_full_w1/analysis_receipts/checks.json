@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_dirty_unchanged": true,
+  "unchanged_first_service_tests_reused": 4,
+  "prelaunch_tests_reused": 3,
+  "new_gpu_runs": 0,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1050_20261104/first_service_tests.json",
+      "sha256": "5a3b750cd406481adcf9e7a1c628d24753472367bcccd57c55245b5cac9f02a2",
+      "bytes": 700
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1053_3b_fixed_full_w1/comparison/manifest.json",
+      "sha256": "f12a7a838db87c9fa84e87506e9a5016691ad47276797467cc1a06a011d8a948",
+      "bytes": 2977
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1053_3b_fixed_full_w1/completion/manifest.json",
+      "sha256": "69659767e5a24c4778d0e3ccafeb3847c9804550c51f3df679a9afde80c62a81",
+      "bytes": 2219
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/storage/d1053_closed_outcomes_20261104.json",
+      "sha256": "88ccde70c826dcca9cd9c68b3fb29e688e8ae82337193514f059e09a8329c3f9",
+      "bytes": 6498
+    }
+  ],
+  "peak_capacity_caveat": "Full bounds 1\u20133 versus FixedFull 4\u20134; not pure same-peak elasticity isolation.",
+  "storage_reclaimed_bytes": 4141010944,
+  "planned_destinations": [
+    "origin/retry14_continuous_queue_v2",
+    "faaslora_origin/backup/d1053-fixed-full-20261104"
+  ],
+  "full_faaslora_v2_integrated": false
+}

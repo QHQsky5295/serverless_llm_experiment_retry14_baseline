@@ -1,0 +1,70 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-6b3140a1cda947c391e0b5487ece9443.scope",
+    "invocation_id": "f7b0231fbddf4cbfb2740651eb84aa42",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-6b3140a1cda947c391e0b5487ece9443.scope",
+    "inode": 38872039
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-6b3140a1cda947c391e0b5487ece9443.scope",
+    "memory.current": 69607424,
+    "memory.peak": 69607424,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 50652819\nuser_usec 48939333\nsystem_usec 1713486\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "analysis_sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1053_20261104/compare.py",
+      "sha256": "e0ca8e469a4c2c6e884270c87e2fe01e36ebf5c75d8e5f2af397b4a6e678b689",
+      "bytes": 15796
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d389_scaleup_handoff_labels.py",
+      "sha256": "7c72b0568b9eff81cf9292a25a6f0ce56addc060b0dc91e199c2dd53fa05a70f",
+      "bytes": 10026
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/check_d299_full_context.py",
+      "sha256": "10645738c5c991c827da4c7b63895b9422a4340d92f678ff820695c0b43fefee",
+      "bytes": 119463
+    }
+  ],
+  "outputs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1053_3b_fixed_full_w1/comparison/compare.py.snapshot",
+      "sha256": "e0ca8e469a4c2c6e884270c87e2fe01e36ebf5c75d8e5f2af397b4a6e678b689",
+      "bytes": 15796
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1053_3b_fixed_full_w1/comparison/comparison.json",
+      "sha256": "66a4234671f31a448328c7a546ba020cd825648f67814d84fa8b26bd5b4feb13",
+      "bytes": 58068
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1053_3b_fixed_full_w1/comparison/mechanisms.json",
+      "sha256": "d20f64960e7778610858d8b01d6c82b52e57e51800e03f7425c8e3f8a6cef42b",
+      "bytes": 2351424
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1053_3b_fixed_full_w1/comparison/metrics.csv",
+      "sha256": "8980b69efd5438f7f83cbffe2a7b70dcdd5c07d3090e73d1ea08429a56b2edc0",
+      "bytes": 499
+    }
+  ]
+}
