@@ -48,6 +48,7 @@ def runtime_memory_identity(worker, contract):
     import vllm.envs as envs
     from vllm.compilation.compiler_interface import get_inductor_factors
     from vllm.config.utils import hash_factors
+    from vllm.utils.hashing import safe_hash
     from vllm.v1.worker.startup_plan import compute_plan_fingerprint
     from vllm.utils.import_utils import import_pynvml
 
@@ -76,13 +77,18 @@ def runtime_memory_identity(worker, contract):
                  base / 'v1/worker/gpu_worker.py', base / 'v1/worker/startup_plan.py',
                  base / 'v1/worker/gpu/model_runner.py']:
         sources[str(path)] = hashlib.sha256(path.read_bytes()).hexdigest()
+    # Native Inductor hashes str(factors), not JSON: torch_key is bytes and
+    # portable configs also contain non-JSON objects. Preserve that encoding.
+    compiler_factors = get_inductor_factors()
     return dict(policy=POLICY, engine_contract=contract, driver=driver,
         torch=str(torch.__version__), cuda=torch.version.cuda,
         native_fingerprint=compute_plan_fingerprint(
             worker.vllm_config, worker.rank, worker.parallel_config.world_size),
         model_files=files, sources=sources,
         environment_hash=hash_factors(envs.compile_factors()),
-        compiler_component_hashes=[hash_factors([v]) for v in get_inductor_factors()])
+        compiler_hash=safe_hash(str(compiler_factors).encode(), usedforsecurity=False).hexdigest()[:10],
+        compiler_component_hashes=[hashlib.sha256(str(v).encode()).hexdigest()
+                                   for v in compiler_factors])
 
 
 class ExactStartupMemoryPlan:

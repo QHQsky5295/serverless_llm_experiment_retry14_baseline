@@ -1,0 +1,31 @@
+{
+  "kind": "native_startup_memory_implementation_failure_v1",
+  "performance_result": false,
+  "requests_completed": 0,
+  "code_commit": "c54c3ddd0bca10bab1e7e2fa129ce48e6f32ccad",
+  "cause": "JSON serialization of native torch_key bytes in new memory identity",
+  "native_worker_pid": 4030375,
+  "source_result": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1031_20261103/source1.json",
+    "sha256": "1264dbe5c1b3c2adebd4c6d896318a43f7459864ec4f3de0701ba96f9f641f0e"
+  },
+  "launch": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1031_20261103/source1_launch.json",
+    "sha256": "4ed89d1b479d1f30bd08b527d2b84d951ceb0433c6d4db73c7f329d44f9f90cf",
+    "pass": false,
+    "service_returncode": 2,
+    "watchdog_returncode": 0,
+    "native_gpu_context_release_confirmed": true,
+    "service_path_removed": true
+  },
+  "worker_archive": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1031_20261103/source1_worker_logs.tar.gz",
+    "sha256": "d4f6c1ca94ddbd5b0153f81e858e8d1b9a0165e1750ea4cfc38e993aa5d117da"
+  },
+  "watchdog_samples": 55,
+  "service_memory_peak_bytes": 5722959872,
+  "memory_events": {"high": 0, "max": 0, "oom": 0, "oom_kill": 0},
+  "startup_cache_created": false,
+  "repair_attempt": "source2",
+  "old_attempt_preserved": true
+}

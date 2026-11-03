@@ -142,10 +142,22 @@ def test_runtime_identity_binds_driver_files_and_installed_code_without_cuda(tmp
     nvml = NS(nvmlInit=Mock(), nvmlShutdown=Mock(), nvmlSystemGetDriverVersion=lambda: b'test-driver')
     with patch('vllm.utils.import_utils.import_pynvml', return_value=nvml), \
          patch('vllm.v1.worker.startup_plan.compute_plan_fingerprint', return_value='native-test'), \
-         patch('vllm.compilation.compiler_interface.get_inductor_factors', return_value=['a', 'b']):
+         patch('vllm.compilation.compiler_interface.get_inductor_factors', return_value=[{'device': 'test'}, b'\x00\xff']):
         identity = runtime_memory_identity(w, {'policy': POLICY})
     assert identity['driver'] == 'test-driver'
     assert identity['model_files']['model.safetensors']['size'] == 12
     assert len(identity['sources']) == 5
     assert len(identity['compiler_component_hashes']) == 2
+    # The complete receipt is JSON, while native compiler inputs need not be.
+    assert len(digest_json(identity)) == 64
     nvml.nvmlShutdown.assert_called_once_with()
+
+
+def test_actual_native_compiler_components_use_native_string_encoding():
+    from vllm.utils.hashing import safe_hash
+    from vllm.compilation.compiler_interface import get_inductor_factors, InductorStandaloneAdaptor
+    factors = get_inductor_factors()
+    assert isinstance(factors[1], bytes)
+    digest = safe_hash(str(factors).encode(), usedforsecurity=False).hexdigest()
+    native = InductorStandaloneAdaptor.__new__(InductorStandaloneAdaptor)
+    assert native.compute_hash(None) == digest[:10]

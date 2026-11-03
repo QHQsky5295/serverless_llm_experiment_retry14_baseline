@@ -86,6 +86,38 @@ paper_results/ieee_tc/storage/d1031_closed_d1029_outcome_20261103.json；
 `bash scripts/ieee_tc/run_d298_capacity_source.sh d1031`。
 本节不是已经完成 GPU 画像的声明。
 
+## source1 启动错误保留与接口修正
+
+12:16:06 在 tmux tc-d1031-3b-startup-memory 启动；代码
+c54c3ddd0bca10bab1e7e2fa129ce48e6f32ccad 已推送并核验 origin 的 V2 分支和
+faaslora_origin/backup/d1031-startup-memory-20261103。备份不冒称分歧 V2
+最终集成。远端 PID1984520 未变，两端 1000/full，无远端配置变更。
+
+source1 在模型加载后、内存画像前失败，完成 0 条请求：新增身份收集错误地
+对包含 bytes 的 torch_key 使用 JSON hash_factors。原生编译器实际使用
+str(factors) 编码及 safe_hash；修正只对齐这个接口，不删除因子或静默重试。
+原异常被旧 physical lease 的 lifetime-unqualified 收尾错误遮蔽；以 worker
+原始 traceback 确认真正原因，不修改旧测量/保护代码掩盖失败。
+
+独立 watchdog 完成收尾：service_path_removed=true、native GPU context
+release confirmed=true；55 样本，service peak=5722959872 B，high/max/oom/
+oom_kill 均 0。未形成显存缓存，原始请求分母/失败状态不改。worker
+/tmp/faaslora_worker_fik_9l0k（native PID4030375）已归档到 raw 的
+source1_worker_logs.tar.gz，SHA
+d4f6c1ca94ddbd5b0153f81e858e8d1b9a0165e1750ea4cfc38e993aa5d117da。
+
+补充真实 bytes 类型及 native 编码测试后，发现测试自身错误地把 SHA256 前缀
+与 safe_hash 的 MD5 前缀比较（39 pass/1 fail），已按实际源代码修正。
+这也限定 D1030 CPU 探针的 7e70d33753 是其诊断 SHA256 前缀，不是原生
+compiler_hash；D1030 两份真实 cache_key_factors 的不同比较仍然成立。
+不得用本次记录抹掉历史 failed attempt 或宣称性能已被否决。
+
+修正后的第二次尝试使用 FAASLORA_D1031_ATTEMPT=source2，保持相同配置、
+画像请求、冻结口径及内存保护，输出 source2*.json/log；source1 全部不覆盖。
+此为具体启动错误的修复，不是更换参数或重新抽样寻找胜出结果。
+修正后 40 passed、19 既有警告，13.56 秒；实际 compiler interface 的编码测试
+通过。原生开关仍关闭，未生成建议容量记录，也未修改底层库。
+
 两模型同版本 W0/W1/W2/G1/G2、独立数值正确性、与保留基线的最终对比、
 A1–A5、S1–S13、CE/Pareto、两轮审稿及 B1/B2/C1/C2/C3 文档、达标后图表和
 最终 V2 集成仍待完成。D810 的基线和 HydraServe 隔离适配已完成部分保留，

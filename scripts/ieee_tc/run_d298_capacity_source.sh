@@ -165,12 +165,21 @@ case "${1:-d298}" in
   *) exit 2 ;;
 esac
 [[ $# -le 1 ]] || exit 2
+SOURCE_STEM=source1
+if [[ -n "${FAASLORA_D1031_ATTEMPT:-}" ]]; then
+  [[ "${1:-d298}" == d1031 && "$FAASLORA_D1031_ATTEMPT" == source2 ]] || exit 2
+  SOURCE_STEM=source2
+fi
 cd "$ROOT"
 mkdir -p "$RAW"
-[[ ! -e "$RAW/source1_launch.json" && ! -e "$RAW/source1.json" ]] || exit 2
+[[ ! -e "$RAW/${SOURCE_STEM}_launch.json" && ! -e "$RAW/$SOURCE_STEM.json" ]] || exit 2
 set -o noclobber
-exec >"$RAW/source1_launcher.log" 2>&1
-git rev-parse HEAD > "$RAW/source_commit.txt"
+exec >"$RAW/${SOURCE_STEM}_launcher.log" 2>&1
+if [[ "$SOURCE_STEM" == source1 ]]; then
+  git rev-parse HEAD > "$RAW/source_commit.txt"
+else
+  git rev-parse HEAD > "$RAW/${SOURCE_STEM}_commit.txt"
+fi
 export PATH="/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin:$PATH"
 export CUDA_HOME=/usr/local/cuda-13.0 FLASHINFER_NVCC=/usr/local/cuda-13.0/bin/nvcc MAX_JOBS=2
 IFS= read -r PRIME_REMOTE_TOKEN < /home/qhq/.config/primelora-tc-d75/artifact.token
@@ -235,11 +244,11 @@ unit="primelora-tc-aux-$(tr -d '-' < /proc/sys/kernel/random/uuid).scope"
 exec systemd-run --user --scope --collect --unit="$unit" \
   -p MemoryHigh=3G -p MemoryMax=4G -p MemorySwapMax=0 \
   taskset -c 2,3,26,27 /usr/bin/python3 scripts/ieee_tc_preflight.py gated-launch \
-  --output "$RAW/source1_launch.json" --predicted-growth-gib 8 \
+  --output "$RAW/${SOURCE_STEM}_launch.json" --predicted-growth-gib 8 \
   --exec /home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python \
   scripts/ieee_tc_preflight.py backend-model-check \
   --runtime-receipt results/ieee_tc/p2_backend_qualification/runtime_20260926/cuda_import_attempt3.json \
   --config "$CONFIG" --model-profile "$MODEL_PROFILE" \
   --replay-trace "$REPLAY_TRACE" \
   "${QUALIFICATION_ARGS[@]}" \
-  --output "$RAW/source1.json"
+  --output "$RAW/$SOURCE_STEM.json"
