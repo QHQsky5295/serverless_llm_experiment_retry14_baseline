@@ -1,0 +1,149 @@
+{
+  "kind": "diagnostic_native_core_host_audit_v1",
+  "formal_performance_result": false,
+  "gpu_kernel_timing": false,
+  "quantile": "Type-1",
+  "diagnostic_count": 1000,
+  "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+  "complete_processes": 5,
+  "processes": 5,
+  "complete_request_observations": 1000,
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1040_20261103/d1040_3b_native_descriptor_prefix1000/launch.launch/diagnostic_core/691440-320793416.jsonl",
+      "bytes": 57081082,
+      "sha256": "bfb8c53cbff19de4eebd235ee74626e2730f6caaf860ea1054c1a98c7f9af928"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1040_20261103/d1040_3b_native_descriptor_prefix1000/launch.launch/diagnostic_core/693582-320797918.jsonl",
+      "bytes": 1419743,
+      "sha256": "d9b61d8d17baaa3e6ab644fcc061b8860ed5d01c871e3b4701319c033b71a0ac"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1040_20261103/d1040_3b_native_descriptor_prefix1000/launch.launch/diagnostic_core/693742-320798176.jsonl",
+      "bytes": 41106614,
+      "sha256": "75a2c09be65f52782b7e97789cb0e71febe0bc56c41eefd32260a831211f5779"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1040_20261103/d1040_3b_native_descriptor_prefix1000/launch.launch/diagnostic_core/725308-320871468.jsonl",
+      "bytes": 3896201,
+      "sha256": "8308793c20bfd6289bf32afcb00882116cfe29b0d323a2074a70e062eea67959"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1040_20261103/d1040_3b_native_descriptor_prefix1000/launch.launch/diagnostic_core/739733-320904823.jsonl",
+      "bytes": 3140,
+      "sha256": "47f9538e41159946a61e77836f489054694996e40465f620275e6e6ed6442502"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1040_20261103/d1040_3b_native_descriptor_prefix1000/launch.launch/exec_receipt.json",
+      "sha256": "322f98f2e9baa71e1ac6b7daf571a73b543acd2380e802a72d66bc13abc18400"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1040_20261103/d1040_3b_native_descriptor_prefix1000/launch.launch/physical_deployment/deployment.json",
+      "sha256": "0325deb7c476fd10109c837a2b368c84ea84156a27044d8ddc3b12e268780393"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py",
+      "sha256": "b3126b6c9c1e83aa2a499ae95bb4f4341f76a296d53d56453b567f01964f153e"
+    }
+  ],
+  "groups": [
+    {
+      "group": "all",
+      "timing_tpot_miss": false,
+      "count": 959,
+      "complete_observations": 959,
+      "mean_tpot_ms": 15.280693925680179,
+      "mean_decode_ms": 1850.2825461459854,
+      "mean_client_ms": 216.54740153701772,
+      "mean_input_nonclient_ms": 6.438841329509906,
+      "mean_step_ms": 1581.3288286882168,
+      "mean_other_or_unobserved_ms": 45.96747459124087,
+      "mean_host_inventory_ms": 146.79934069343065,
+      "mean_host_allocator_stats_ms": 0.17168972158498436
+    },
+    {
+      "group": "all",
+      "timing_tpot_miss": true,
+      "count": 41,
+      "complete_observations": 41,
+      "mean_tpot_ms": 42.62196238602799,
+      "mean_decode_ms": 372.45074021951217,
+      "mean_client_ms": 160.51112129268293,
+      "mean_input_nonclient_ms": 2.074217707317073,
+      "mean_step_ms": 204.90818417073172,
+      "mean_other_or_unobserved_ms": 4.957217048780488,
+      "mean_host_inventory_ms": 114.18406082926829,
+      "mean_host_allocator_stats_ms": 0.16818736585365854
+    },
+    {
+      "group": "short_2_32",
+      "timing_tpot_miss": false,
+      "count": 271,
+      "complete_observations": 271,
+      "mean_tpot_ms": 16.890832034141006,
+      "mean_decode_ms": 217.82685140221403,
+      "mean_client_ms": 34.13155901107011,
+      "mean_input_nonclient_ms": 1.412892512915129,
+      "mean_step_ms": 176.64177139852399,
+      "mean_other_or_unobserved_ms": 5.640628479704797,
+      "mean_host_inventory_ms": 23.250950232472324,
+      "mean_host_allocator_stats_ms": 0.03708308487084871
+    },
+    {
+      "group": "short_2_32",
+      "timing_tpot_miss": true,
+      "count": 41,
+      "complete_observations": 41,
+      "mean_tpot_ms": 42.62196238602799,
+      "mean_decode_ms": 372.45074021951217,
+      "mean_client_ms": 160.51112129268293,
+      "mean_input_nonclient_ms": 2.074217707317073,
+      "mean_step_ms": 204.90818417073172,
+      "mean_other_or_unobserved_ms": 4.957217048780488,
+      "mean_host_inventory_ms": 114.18406082926829,
+      "mean_host_allocator_stats_ms": 0.16818736585365854
+    },
+    {
+      "group": "long_33_256",
+      "timing_tpot_miss": false,
+      "count": 688,
+      "complete_observations": 688,
+      "mean_tpot_ms": 14.64646801377192,
+      "mean_decode_ms": 2493.299251488372,
+      "mean_client_ms": 288.4001534622093,
+      "mean_input_nonclient_ms": 8.418539191860464,
+      "mean_step_ms": 2134.6285271264533,
+      "mean_other_or_unobserved_ms": 61.85203170784884,
+      "mean_host_inventory_ms": 195.4644770523256,
+      "mean_host_allocator_stats_ms": 0.22471064970930235
+    },
+    {
+      "group": "long_33_256",
+      "timing_tpot_miss": true,
+      "count": 0,
+      "complete_observations": 0,
+      "mean_tpot_ms": null,
+      "mean_decode_ms": null,
+      "mean_client_ms": null,
+      "mean_input_nonclient_ms": null,
+      "mean_step_ms": null,
+      "mean_other_or_unobserved_ms": null,
+      "mean_host_inventory_ms": null,
+      "mean_host_allocator_stats_ms": null
+    }
+  ],
+  "caveats": [
+    "Detailed observation is intrusive; no speedup versus uninstrumented Full is estimated.",
+    "Client is nested in input; schedule is nested in step. Boundary table totals cannot all be added.",
+    "Host spans include GPU waits and overlap asynchronous GPU execution; they are not kernel durations or GPU idle time.",
+    "Input nonclient includes legitimate queue idle wait. Per-request intersections differ from whole-process idle totals.",
+    "Other/unobserved includes wrapper/loop gaps and missing observation; it is not an inferred kernel category.",
+    "TPOT groups are descriptive and use caller-supplied thresholds; they do not establish numerical correctness or causality.",
+    "HOST inventory/allocator spans are nested subsets; do not add them to client/input/step totals or subtract them from request latency.",
+    "Only owner-thread calls within observed native core spans are measured; this is not all-process HOST work.",
+    "Parent durations include nested observation overhead. Function CPU/wall ratios locate work but do not establish a counterfactual speedup."
+  ],
+  "host_inventory_timing": "fresh_inventory_v1",
+  "host_inventory_observations": 7123
+}

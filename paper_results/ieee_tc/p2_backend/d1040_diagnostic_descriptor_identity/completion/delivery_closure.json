@@ -1,0 +1,34 @@
+{
+  "passed": true,
+  "transfers": 146,
+  "wire_bytes": 338845661,
+  "all_server_client_ids_bytes_hashes_match": true,
+  "request_time_packing": false,
+  "remote_service_restarted": false,
+  "remote_service_stopped": false,
+  "remote_monitoring": "No new remote resource monitor; no complete remote CPU-interference attribution.",
+  "remote_snapshot_path": "/home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-026842a3bec74f1b9e012bb813642067.jsonl",
+  "remote_snapshot_sha256": "d218f333295fa05a3b54985214938c5fdf7d2b523a598bd57f949963febab45c",
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1040_20261103/remote_transfer_log_snapshot.jsonl",
+      "sha256": "d218f333295fa05a3b54985214938c5fdf7d2b523a598bd57f949963febab45c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1040_20261103/remote_transfers.jsonl",
+      "sha256": "597017687afc3a58f09316b58d183f1d658a132c49da60211fe818a9e9688a69"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1040_20261103/remote_health.json",
+      "sha256": "4a37e7fa2f801cb0a1b11230cc21f9c339b4144419fdac08a88434a7c074e64f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1040_20261103/d1040_3b_native_descriptor_prefix1000/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "f95cdbefee0a5429e259446e3e7af6e113d7a54aaa1d6fd73c05118dbc7baff1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "3abcd9d766a7dc1c780244d8eedaac8440815aa85c0e45c6d9b81ef2cf35a070"
+    }
+  ]
+}

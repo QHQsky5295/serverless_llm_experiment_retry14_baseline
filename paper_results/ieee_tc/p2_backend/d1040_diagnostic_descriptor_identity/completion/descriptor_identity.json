@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "requests": 1000,
+  "missing": 0,
+  "receipts": {
+    "fresh_native_tensor_descriptor_v1": 2004
+  },
+  "worker_receipts": {
+    "691440": {
+      "fresh_native_tensor_descriptor_v1": 1074
+    },
+    "693582": {
+      "fresh_native_tensor_descriptor_v1": 20
+    },
+    "693742": {
+      "fresh_native_tensor_descriptor_v1": 844
+    },
+    "725308": {
+      "fresh_native_tensor_descriptor_v1": 66
+    }
+  },
+  "expected_library_sha256": "b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044",
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1040_20261103/d1040_3b_native_descriptor_prefix1000",
+  "source_commit": "7282564f9e4c310ca6a2b83866fa2607ba144a3e",
+  "limitation": "Receipt occurrences are not independent inventory calls."
+}

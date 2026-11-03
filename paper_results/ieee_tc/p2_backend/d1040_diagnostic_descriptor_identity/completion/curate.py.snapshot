@@ -1,0 +1,20 @@
+"""D1040: preserve existing inventory/delivery analysis, add identity evidence."""
+import hashlib
+from pathlib import Path
+
+template = Path(__file__).resolve().parent.parent/'d1039_20261103/curate.py'
+assert hashlib.sha256(template.read_bytes()).hexdigest() == '84da8c961434369952e590d813c213d0da44089adf915ff8523a389ea4339bf1'
+source = template.read_text()
+for old, new in (
+    ('d1039_3b_file_native_prefix1000', 'd1040_3b_native_descriptor_prefix1000'),
+    ('d1039_current_native_inventory/completion', 'd1040_diagnostic_descriptor_identity/completion'),
+    ('2430ac0501abe01b90dd9e2bdf75e27df2f41835', '7282564f9e4c310ca6a2b83866fa2607ba144a3e'),
+):
+    assert old in source
+    source = source.replace(old, new)
+marker = "insertion = '''\n"
+assert source.count(marker) == 1
+source = source.replace(marker, marker + "descriptor_identity = read(RAW/'analysis1/descriptor_identity.json')\n"
+    "assert descriptor_identity['passed'] and descriptor_identity['requests'] == 1000\n"
+    "save(OUT/'descriptor_identity.json', descriptor_identity)\n")
+exec(compile(source, str(template), 'exec'), globals())

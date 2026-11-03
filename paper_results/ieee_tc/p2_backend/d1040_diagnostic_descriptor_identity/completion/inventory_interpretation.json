@@ -1,0 +1,94 @@
+{
+  "file_owner_timing_status": "not_exercised_inprocess_owner",
+  "file_owner_latency_measured": false,
+  "native_inventory_observations": 7123,
+  "native_inventory_complete": true,
+  "curation_template": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d863_20261026_attempt2/finalize.py",
+    "sha256": "0131c8685820ea0883252b24e74a3495535311350fb9f6b589673d4599ae3231"
+  },
+  "all_requests": 1000,
+  "window_groups": [
+    {
+      "phase": "all",
+      "tpot_miss": false,
+      "count": 959,
+      "decode_ms": 1850.2825461459854,
+      "client_ms": 216.54740153701772,
+      "input_nonclient_ms": 6.438841329509906,
+      "step_ms": 1581.3288286882168,
+      "other_or_unobserved_ms": 45.96747459124087,
+      "host_inventory_ms": 146.79934069343065,
+      "host_allocator_stats_ms": 0.17168972158498436
+    },
+    {
+      "phase": "all",
+      "tpot_miss": true,
+      "count": 41,
+      "decode_ms": 372.45074021951217,
+      "client_ms": 160.51112129268293,
+      "input_nonclient_ms": 2.074217707317073,
+      "step_ms": 204.90818417073172,
+      "other_or_unobserved_ms": 4.957217048780488,
+      "host_inventory_ms": 114.18406082926829,
+      "host_allocator_stats_ms": 0.16818736585365854
+    },
+    {
+      "phase": "ordinal_lt500",
+      "tpot_miss": false,
+      "count": 489,
+      "decode_ms": 2026.6261142903886,
+      "client_ms": 216.3425878220859,
+      "input_nonclient_ms": 6.298338838445807,
+      "step_ms": 1752.7630198261759,
+      "other_or_unobserved_ms": 51.22216780368098,
+      "host_inventory_ms": 145.97728122699385,
+      "host_allocator_stats_ms": 0.1744549263803681
+    },
+    {
+      "phase": "ordinal_lt500",
+      "tpot_miss": true,
+      "count": 11,
+      "decode_ms": 337.54150709090914,
+      "client_ms": 169.8640179090909,
+      "input_nonclient_ms": 3.9394086363636363,
+      "step_ms": 155.2534238181818,
+      "other_or_unobserved_ms": 8.484656727272728,
+      "host_inventory_ms": 121.331235,
+      "host_allocator_stats_ms": 0.162542
+    },
+    {
+      "phase": "ordinal_ge500",
+      "tpot_miss": false,
+      "count": 470,
+      "decode_ms": 1666.8101954595745,
+      "client_ms": 216.76049495531916,
+      "input_nonclient_ms": 6.585023708510638,
+      "step_ms": 1402.9643191851064,
+      "other_or_unobserved_ms": 40.5003576106383,
+      "host_inventory_ms": 147.65463235106384,
+      "host_allocator_stats_ms": 0.1688127319148936
+    },
+    {
+      "phase": "ordinal_ge500",
+      "tpot_miss": true,
+      "count": 30,
+      "decode_ms": 385.25079236666664,
+      "client_ms": 157.08172586666666,
+      "input_nonclient_ms": 1.3903143666666666,
+      "step_ms": 223.11492963333333,
+      "other_or_unobserved_ms": 3.6638225,
+      "host_inventory_ms": 111.5634303,
+      "host_allocator_stats_ms": 0.17025733333333332
+    }
+  ],
+  "inventory_total_wall_ms": 182788.424182,
+  "inventory_total_cpu_ms": 182412.671116,
+  "file_observer_absence_is_zero_time": false,
+  "counterfactual_speedup_estimated": false,
+  "caveats": [
+    "Inventory is nested in client/input/step, not an additional additive stage.",
+    "CPU time and window overlap do not prove removable delay or causal SLO improvement.",
+    "The first 1000 W2 requests are a diagnostic, not a complete G1/G2 point."
+  ]
+}

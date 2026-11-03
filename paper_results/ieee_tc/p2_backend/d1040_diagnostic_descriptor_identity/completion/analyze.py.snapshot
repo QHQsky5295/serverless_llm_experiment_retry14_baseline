@@ -1,0 +1,41 @@
+"""D1040: reuse D1039/D1016/D723 after GPU release; verify actual descriptor.
+
+Prepared during the running diagnostic, never executed before complete closure.
+"""
+import hashlib
+from pathlib import Path
+
+template = Path(__file__).resolve().parent.parent/'d1039_20261103/analyze.py'
+assert hashlib.sha256(template.read_bytes()).hexdigest() == '191b6982eefff70fb3be9839394fef7635c4f5a5340b9502200e3739b5b896a2'
+source = template.read_text()
+assert source.count('d1039_3b_file_native_prefix1000') == 1
+source = source.replace('d1039_3b_file_native_prefix1000', 'd1040_3b_native_descriptor_prefix1000')
+exec(compile(source, str(template), 'exec'), globals())
+
+# D723 already loaded and bound all requests. Do not reread a second large JSON.
+expected_kind = 'fresh_native_tensor_descriptor_v1'
+expected_sha = 'b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044'
+counts, workers = collections.Counter(), collections.defaultdict(collections.Counter)
+def inspect_descriptor(value):
+    if isinstance(value, dict):
+        if 'native_host_descriptor' in value:
+            descriptor = value['native_host_descriptor']
+            assert descriptor['kind'] == expected_kind and descriptor['sha256'] == expected_sha
+            assert descriptor['tensor_state_cached'] is False
+            counts[descriptor['kind']] += 1
+            workers[str(value['worker_pid'])][descriptor['kind']] += 1
+        for child in value.values():
+            inspect_descriptor(child)
+    elif isinstance(value, list):
+        for child in value:
+            inspect_descriptor(child)
+
+assert len(requests) == 1000
+for request in requests:
+    before = sum(counts.values())
+    inspect_descriptor(request)
+    assert sum(counts.values()) > before
+save(OUT/'descriptor_identity.json', dict(passed=True, requests=1000, missing=0,
+    receipts=dict(counts), worker_receipts=dict(workers), expected_library_sha256=expected_sha,
+    source_run=str(RUN), source_commit='7282564f9e4c310ca6a2b83866fa2607ba144a3e',
+    limitation='Receipt occurrences are not independent inventory calls.'))

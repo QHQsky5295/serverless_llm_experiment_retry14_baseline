@@ -1,0 +1,79 @@
+{
+  "passed": true,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "formal_performance_result": false,
+  "includes_observer_overhead": true,
+  "native_contract_requests": 1000,
+  "observations_complete": 1000,
+  "production_policy_changed_during_collection": false,
+  "observer_changed_during_collection": false,
+  "source_commit": "7282564f9e4c310ca6a2b83866fa2607ba144a3e",
+  "file_process_observation": "not_exercised_inprocess_owner",
+  "file_owner_latency_measured": false,
+  "protected_files_unchanged": 147,
+  "service_path_removed": true,
+  "work_caches_empty": true,
+  "remote_existing_service_reused": true,
+  "identity": {
+    "unit": "primelora-tc-aux-9a0bec3862944501844abbb6e05139eb.scope",
+    "invocation_id": "62c1da7fc970476f9ddcefdb848d7785",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-9a0bec3862944501844abbb6e05139eb.scope",
+    "inode": 38573122
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-9a0bec3862944501844abbb6e05139eb.scope",
+    "memory.current": 617738240,
+    "memory.peak": 617738240,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 12100642\nuser_usec 10662349\nsystem_usec 1438293\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "disk_available_bytes": 160831639552,
+  "caveats": [
+    "Host spans are not GPU kernel durations or counterfactual removable delay.",
+    "Per-request overlaps are not additive service wall time; groups differ in output lengths.",
+    "Diagnostic prefix is not a full 4000-request performance point.",
+    "Independent numerical correctness remains unknown."
+  ],
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d863_20261026_attempt2/finalize.py",
+      "sha256": "0131c8685820ea0883252b24e74a3495535311350fb9f6b589673d4599ae3231"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "3abcd9d766a7dc1c780244d8eedaac8440815aa85c0e45c6d9b81ef2cf35a070"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102/analyze.py",
+      "sha256": "a0743504ad6589def97eb22a04e1d175ebca3cf4c0b1fa680423d211d63a46d8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022/analyze.py",
+      "sha256": "31c5576dc1c1ae75e596ee99f6d809fc2e68dae784724f4243a4a4da6e9d1c2e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1040_20261103/d1040_3b_native_descriptor_prefix1000/launch.json",
+      "sha256": "7499aeaf979659716968b984bc39039dafd9b10abebaded6c0e4346002011d97"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1040_20261103/remote_transfers.jsonl",
+      "sha256": "597017687afc3a58f09316b58d183f1d658a132c49da60211fe818a9e9688a69"
+    }
+  ]
+}

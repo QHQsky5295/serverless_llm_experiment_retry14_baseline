@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-643891cf72d5407f8dcbec4b113900f1.scope",
+    "invocation_id": "5a149e4fe295447dbf66a64796928c2b",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-643891cf72d5407f8dcbec4b113900f1.scope",
+    "inode": 38572843
+  },
+  "launch_sha256": "7499aeaf979659716968b984bc39039dafd9b10abebaded6c0e4346002011d97",
+  "service_path_removed": true,
+  "remote_existing_service_reused": true,
+  "remote_service_stopped": false,
+  "remote_delivery_status": "separate_attempt_audit_pending",
+  "remote_resource_monitoring": "no_new_remote_monitor_started_for_this_diagnostic"
+}
