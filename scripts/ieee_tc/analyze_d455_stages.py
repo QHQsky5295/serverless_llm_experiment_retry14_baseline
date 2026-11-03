@@ -594,7 +594,40 @@ def control_busy_time_bounds(controls, requests):
                          for p in (.05, .5, .95)},
         scale_down_with_score_above_one=sum(c['action'] == 'scale_down' and c['score'] > 1
                                            for c in controls),
+        overload_release_events=[c for c in controls
+                                 if c['action'] == 'scale_down' and c['score'] > 1],
         releases=releases)
+
+
+def checked_retained_source(source, expected_sha256=None):
+    """Read a sealed source, or its explicitly receipted byte-identical gzip.
+
+    No restoration or source substitution; changed plain files do not fall back
+    to an archive. Preserve both original content and current storage identities.
+    """
+    import gzip
+    from scripts.ieee_tc.compress_closed_main_outcomes import decompressed_digest
+    source = Path(source)
+    if source.exists():
+        digest = sha256(source)
+        if expected_sha256 is not None and digest != expected_sha256:
+            raise ValueError('sealed source identity changed')
+        return (lambda: source.open('rb')), [dict(path=str(source), sha256=digest)]
+    receipt_path = (source.parents[2]/'compression_receipt.json'
+                    if source.name == 'main_outcome.json'
+                    else source.with_name(source.name+'.compression_receipt.json'))
+    receipt = read(receipt_path)
+    archive = source.with_name(source.name+'.gz')
+    if (receipt['source'] != str(source) or receipt['archive'] != str(archive)
+            or receipt['removed_uncompressed_duplicate'] is not True
+            or sha256(archive) != receipt['archive_sha256']
+            or decompressed_digest(archive) != receipt['source_sha256']
+            or (expected_sha256 is not None and receipt['source_sha256'] != expected_sha256)):
+        raise ValueError('compressed sealed source identity changed')
+    return (lambda: gzip.open(archive, 'rb')), [
+        dict(path=str(archive), sha256=receipt['archive_sha256'],
+             original_path=str(source), original_sha256=receipt['source_sha256']),
+        dict(path=str(receipt_path), sha256=sha256(receipt_path))]
 
 
 def audit_control_busy_windows(output, stages):
@@ -617,21 +650,24 @@ def audit_control_busy_windows(output, stages):
             raise ValueError('ambiguous run identity')
         source_refs = [r for r in stage['source_refs']
                        if Path(r['path']).name.startswith('experiment_results_')]
-        if len(source_refs) != 1 or sha256(Path(source_refs[0]['path'])) != source_refs[0]['sha256']:
+        if len(source_refs) != 1:
             raise ValueError('stage request source identity changed')
+        _, request_refs = checked_retained_source(
+            source_refs[0]['path'], source_refs[0]['sha256'])
         outcome = raw/'launch.launch/physical_deployment/main_outcome.json'
-        with outcome.open('rb') as stream:
+        opener, outcome_refs = checked_retained_source(outcome)
+        with opener() as stream:
             if next(ijson.items(stream, 'run_completed')) is not True:
                 raise ValueError('control outcome is incomplete')
-        with outcome.open('rb') as stream:
+        with opener() as stream:
             controls = list(ijson.items(stream, 'mechanism_events._ieee_control_events.item', use_float=True))
         with table.open(newline='') as stream:
             rows = list(csv.DictReader(stream))
         if len(rows) != 4000:
             raise ValueError('full request table required')
         reports[name] = control_busy_time_bounds(controls, rows)
-        refs.extend(dict(path=str(p), sha256=sha256(p)) for p in (path, table, outcome))
-        refs.extend(source_refs)
+        refs.extend(dict(path=str(p), sha256=sha256(p)) for p in (path, table))
+        refs.extend(outcome_refs + request_refs)
     refs.append(dict(path=str(Path(__file__).resolve()), sha256=sha256(Path(__file__))))
     report = dict(kind='retained_control_busy_lower_bound_v1', reports=reports,
         source_refs=refs, new_performance_runs=0, causal_attribution_established=False,

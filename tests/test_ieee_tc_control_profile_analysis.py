@@ -486,6 +486,75 @@ class ControlBusyBounds(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root, self.assertRaisesRegex(ValueError, 'new output'):
             audit_control_busy_windows(Path(root), [Path('absent')])
 
+    def test_actual_overload_release_is_retained_not_rewritten(self):
+        from scripts.ieee_tc.analyze_d455_stages import control_busy_time_bounds
+        control = self.control(5., sampled=2., action='scale_down')
+        control['score'] = 2.9
+        result = control_busy_time_bounds([control], [self.request('1', 0., 4.)])
+        self.assertEqual(result['scale_down_with_score_above_one'], 1)
+        self.assertEqual(result['overload_release_events'], [control])
+        self.assertEqual(control['action'], 'scale_down')
+
+
+class RetainedCompressedSources(unittest.TestCase):
+    def make(self, root, outcome=False):
+        import gzip
+        import hashlib
+        source = (Path(root)/'launch.launch/physical_deployment/main_outcome.json'
+                  if outcome else Path(root)/'experiment_results_test.json')
+        source.parent.mkdir(parents=True, exist_ok=True)
+        content = b'{"run_completed": true}\n'
+        archive = source.with_name(source.name+'.gz')
+        archive.write_bytes(gzip.compress(content))
+        receipt = dict(source=str(source), archive=str(archive),
+            removed_uncompressed_duplicate=True,
+            archive_sha256=p.digest(archive),
+            source_sha256=hashlib.sha256(content).hexdigest())
+        path = (Path(root)/'compression_receipt.json' if outcome
+                else source.with_name(source.name+'.compression_receipt.json'))
+        path.write_text(json.dumps(receipt))
+        return source, archive, path, receipt, content
+
+    def test_explicit_archive_matches_original_without_restoring(self):
+        from scripts.ieee_tc.analyze_d455_stages import checked_retained_source
+        for outcome in (False, True):
+            with self.subTest(outcome=outcome), tempfile.TemporaryDirectory() as root:
+                source, archive, receipt_path, receipt, content = self.make(root, outcome)
+                opener, refs = checked_retained_source(source, receipt['source_sha256'])
+                with opener() as stream:
+                    self.assertEqual(stream.read(), content)
+                self.assertFalse(source.exists())
+                self.assertEqual(refs[0]['original_sha256'], receipt['source_sha256'])
+                self.assertEqual(refs[1]['path'], str(receipt_path))
+
+    def test_changed_plain_source_does_not_silently_choose_archive(self):
+        from scripts.ieee_tc.analyze_d455_stages import checked_retained_source
+        with tempfile.TemporaryDirectory() as root:
+            source, _, _, receipt, content = self.make(root)
+            source.write_bytes(content)
+            opener, _ = checked_retained_source(source, receipt['source_sha256'])
+            with opener() as stream:
+                self.assertEqual(stream.read(), content)
+            source.write_bytes(b'changed')
+            with self.assertRaisesRegex(ValueError, 'sealed source identity'):
+                checked_retained_source(source, receipt['source_sha256'])
+
+    def test_changed_archive_or_original_digest_rejected(self):
+        from scripts.ieee_tc.analyze_d455_stages import checked_retained_source
+        for change in ('archive', 'digest', 'expected'):
+            with self.subTest(change=change), tempfile.TemporaryDirectory() as root:
+                source, archive, receipt_path, receipt, _ = self.make(root)
+                expected = receipt['source_sha256']
+                if change == 'archive':
+                    archive.write_bytes(b'changed')
+                elif change == 'digest':
+                    receipt['source_sha256'] = '0'*64
+                    receipt_path.write_text(json.dumps(receipt))
+                else:
+                    expected = '0'*64
+                with self.assertRaisesRegex(ValueError, 'compressed sealed source'):
+                    checked_retained_source(source, expected)
+
 
 class SealedCsvEncoding(unittest.TestCase):
     def test_zero_cohort_keeps_schema_but_missing_schema_does_not_create_a_file(self):

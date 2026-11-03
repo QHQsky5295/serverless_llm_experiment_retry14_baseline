@@ -1703,6 +1703,83 @@ class IEEEControlContract(unittest.TestCase):
                     },
                 )
 
+    def test_forecast_release_cannot_override_current_pressure(self):
+        from faaslora.coordination.autoscaler import IEEEReplicaControl, ScalingAction
+        # D1036 exposed this arbitration conflict at the replica limit. Cover
+        # every max-score input and the below-limit case without a GPU replay.
+        for signal in ('queue', 'active', 'ttft'):
+            for total in (2, 4):
+                with self.subTest(signal=signal, total=total):
+                    control = IEEEReplicaControl(
+                        ieee_control_fixture(), interval_s=1,
+                        min_instances=1, max_instances=4,
+                        predictive_config=dict(enabled=True, history_window_s=10.,
+                            ewma_beta=.5, allow_forecast_scale_down=True))
+                    forecast = dict(activation_horizon_s=10.,
+                        service_rate_rps_per_busy_instance=10., arrival_rate_rps=.1)
+                    args = dict(queue_depth=0, active_requests=0,
+                        ready_capacity=total*4, ready_instances=total,
+                        pending_instances=0, arrived_request_count=10,
+                        completed_request_count=10, busy_instances=1)
+                    # A low forecast has already persisted for a whole dwell.
+                    control._forecast_low_since = 0.
+                    if signal == 'queue':
+                        args['queue_depth'] = 3
+                    elif signal == 'active':
+                        args['active_requests'] = total*4
+                    else:
+                        control.observe_ttft('slow', 1001., observed_at=4.)
+                    with patch.object(control, '_observe_work', return_value=forecast):
+                        result = control.evaluate(now=4., **args)
+                    self.assertGreater(result['score'], 1.)
+                    self.assertLess(result['predictive_target_instances'], total)
+                    self.assertEqual(result['action'], ScalingAction.SCALE_UP
+                                     if total < 4 else ScalingAction.NO_ACTION)
+                    self.assertEqual(result['target_instances'], min(total+1, 4))
+                    self.assertIsNone(control._forecast_low_since)
+
+    def test_pressure_resets_forecast_dwell_without_disabling_low_pressure_release(self):
+        from faaslora.coordination.autoscaler import IEEEReplicaControl, ScalingAction
+        control = IEEEReplicaControl(
+            ieee_control_fixture(), interval_s=1, min_instances=1, max_instances=4,
+            predictive_config=dict(enabled=True, history_window_s=10.,
+                ewma_beta=.5, allow_forecast_scale_down=True))
+        forecast = dict(activation_horizon_s=10.,
+            service_rate_rps_per_busy_instance=10., arrival_rate_rps=.1)
+        args = dict(active_requests=0, ready_capacity=16, ready_instances=4,
+            pending_instances=0, arrived_request_count=10,
+            completed_request_count=10, busy_instances=1)
+        with patch.object(control, '_observe_work', return_value=forecast):
+            control.evaluate(now=0., queue_depth=0, **args)
+            pressure = control.evaluate(now=3., queue_depth=3, **args)
+            self.assertEqual(pressure['action'], ScalingAction.NO_ACTION)
+            self.assertIsNone(control._forecast_low_since)
+            # Score exactly one is not overload; start a fresh low-forecast dwell.
+            boundary = control.evaluate(now=4., queue_depth=2, **args)
+            self.assertEqual(boundary['score'], 1.)
+            self.assertEqual(boundary['action'], ScalingAction.NO_ACTION)
+            self.assertEqual(control._forecast_low_since, 4.)
+            self.assertEqual(control.evaluate(now=6., queue_depth=0, **args)['action'],
+                             ScalingAction.NO_ACTION)
+            self.assertEqual(control.evaluate(now=7., queue_depth=0, **args)['action'],
+                             ScalingAction.SCALE_DOWN)
+
+    def test_larger_forecast_can_still_raise_reactive_scale_up_target(self):
+        from faaslora.coordination.autoscaler import IEEEReplicaControl, ScalingAction
+        control = IEEEReplicaControl(
+            ieee_control_fixture(), interval_s=1, min_instances=1, max_instances=4,
+            predictive_config=dict(enabled=True, history_window_s=10.,
+                ewma_beta=.5, allow_forecast_scale_down=True))
+        forecast = dict(activation_horizon_s=10.,
+            service_rate_rps_per_busy_instance=1., arrival_rate_rps=4.)
+        with patch.object(control, '_observe_work', return_value=forecast):
+            result = control.evaluate(now=0., queue_depth=3, active_requests=0,
+                ready_capacity=8, ready_instances=2, pending_instances=0,
+                arrived_request_count=10, completed_request_count=10, busy_instances=1)
+        self.assertEqual(result['action'], ScalingAction.SCALE_UP)
+        self.assertEqual(result['reason'], 'ieee_forecast_horizon_capacity')
+        self.assertEqual(result['target_instances'], 4)
+
 
 class IEEEActualControl(unittest.TestCase):
     def test_locality_combination_keeps_actual_scaleout_but_no_preparation(self):

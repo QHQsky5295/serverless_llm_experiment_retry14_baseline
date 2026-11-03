@@ -346,6 +346,12 @@ class IEEEReplicaControl:
                     self._forecast_low_since = None
                     action, reason, target = (ScalingAction.SCALE_UP,
                         'ieee_forecast_horizon_capacity', predictive_target)
+                elif score > 1:
+                    # A lower horizon-average capacity estimate cannot reverse
+                    # current IEEE overload into release (including at max
+                    # replicas). Preserve the reactive action and restart the
+                    # forecast release dwell after the pressure subsides.
+                    self._forecast_low_since = None
                 elif predictive_target >= total:
                     self._forecast_low_since = None
                 elif action == ScalingAction.SCALE_DOWN:
