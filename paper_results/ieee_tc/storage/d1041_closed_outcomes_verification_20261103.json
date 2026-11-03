@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-f060a068e4ff41e88c9801f58989e717.scope",
+    "invocation_id": "2d7c9f370ab5444693d1ab3be4c016ce",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-f060a068e4ff41e88c9801f58989e717.scope",
+    "inode": 38576719
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-f060a068e4ff41e88c9801f58989e717.scope",
+    "memory.current": 468889600,
+    "memory.peak": 982999040,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 122795616\nuser_usec 113386765\nsystem_usec 9408850\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_dirty_files_unchanged": true,
+  "script_sha256": "83f51dbbd844c42909a6bb1c6b275d419ac391b92abc0143d8291bcaab85e7d6",
+  "wrapper_sha256": "3b57cd348e78e2fb3cf6128b2c9ecd6cca0cc0d070933a70b63b044767302bb2",
+  "receipt_sha256": "becc393f9492a4e823db4b3c718bc882b02856ec3193676717cc686a5e69852e",
+  "restoration": "gzip -dc archive.json.gz restores the exact original bytes; use a new path, never overwrite evidence."
+}
