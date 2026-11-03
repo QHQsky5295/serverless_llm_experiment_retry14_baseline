@@ -14,10 +14,12 @@ Keep the returned FileStateCall and join it before releasing its dependent work.
 from __future__ import annotations
 
 import asyncio
+import atexit
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures.process import BrokenProcessPool
 import hashlib
 import inspect
+import json
 import multiprocessing
 from multiprocessing.reduction import DupFd
 import os
@@ -243,6 +245,103 @@ def _execute_timed(message):
     return receipt
 
 
+class FileStateTimingJournal:
+    """Bounded diagnostic receipts; no payload, tensor or policy state retained.
+
+    Writes happen after first observation, outside the command's measured edges.
+    Their overhead still affects this diagnostic replay and is not subtracted.
+    A write failure must not prevent adoption of an already committed mutation;
+    it invalidates the diagnostic and is raised at orderly journal close instead.
+    """
+    MAX_BYTES = 64 * 1024 * 1024
+    MAX_RECORDS = 200000
+    RESERVE_BYTES = 4096
+
+    def __init__(self, stream, metadata, *, max_bytes=MAX_BYTES, max_records=MAX_RECORDS):
+        self.stream = stream
+        self.max_bytes, self.max_records = max_bytes, max_records
+        self.bytes_written = self.records = self.observed = self.observer_ns = 0
+        self.error = None
+        self.closed = self.truncated = False
+        self.lock = threading.Lock()
+        self._write(dict(metadata, event='file_owner_timing_journal_v1',
+                         max_bytes=max_bytes, max_records=max_records,
+                         formal_performance_result=False, observer_overhead_included=True,
+                         parent_observed_is_first_join_not_pipe_receive=True,
+                         worker_cpu_is_process_cpu_not_additive=True,
+                         command_arguments_and_results_retained=False))
+        if self.error is not None:
+            stream.close()
+            raise self.error
+
+    def _write(self, row):
+        data = (json.dumps(row, separators=(',', ':'), allow_nan=False) + '\n').encode()
+        try:
+            if self.stream.write(data) != len(data):
+                raise OSError('partial file-owner diagnostic write')
+            self.bytes_written += len(data)
+        except OSError as exc:
+            self.error = exc
+
+    def observe(self, receipt):
+        begin = time.monotonic_ns()
+        with self.lock:
+            if self.closed:
+                raise RuntimeError('file-owner observation after diagnostic close')
+            self.observed += 1
+            if self.error is None and not self.truncated:
+                row = dict(event='file_owner_command', sequence=receipt['sequence'],
+                           owner_id=receipt['owner_id'], worker_pid=receipt['pid'],
+                           ok=receipt['ok'], timing=receipt['diagnostic_timing'])
+                size = len((json.dumps(row, separators=(',', ':')) + '\n').encode())
+                if (self.records >= self.max_records
+                        or self.bytes_written + size + self.RESERVE_BYTES > self.max_bytes):
+                    self.truncated = True
+                else:
+                    self._write(row)
+                    if self.error is None:
+                        self.records += 1
+            self.observer_ns += time.monotonic_ns() - begin
+
+    def close(self, *, owner_closed=False, submitted_commands=None, raise_error=True):
+        with self.lock:
+            if not self.closed:
+                if self.error is None:
+                    self._write(dict(event='file_owner_timing_end_v1',
+                        owner_closed=owner_closed, records=self.records,
+                        submitted_commands=submitted_commands,
+                        observed_receipts=self.observed, truncated=self.truncated,
+                        observer_ns=self.observer_ns))
+                self.stream.close()
+                self.closed = True
+            error = self.error
+        if error is not None and raise_error:
+            raise error
+
+
+def _diagnostic_file_journal():
+    flag = os.environ.get('FAASLORA_TC_FILE_OWNER_TIMING')
+    if flag in (None, '0'):
+        return None
+    if flag != 'command_spans_v1':
+        raise ValueError('unsupported file-owner diagnostic')
+    from ..clock import local_monotonic_clock_id
+    from ..utils.logger import diagnostic_service_receipt
+    receipt, actual, replay = diagnostic_service_receipt('file-owner timing')
+    directory = receipt.parent / 'diagnostic_file_owner'
+    directory.mkdir(mode=0o700, exist_ok=True)
+    if directory.is_symlink():
+        raise ValueError('file-owner diagnostic directory must not be a symlink')
+    ticks = int(Path('/proc/self/stat').read_text().rsplit(') ', 1)[1].split()[19])
+    stream = (directory / f'{os.getpid()}-{ticks}.jsonl').open('xb', buffering=0)
+    journal = FileStateTimingJournal(stream, dict(pid=os.getpid(), start_ticks=ticks,
+        cgroup=str(actual), clock_id=local_monotonic_clock_id(),
+        replay_scope=replay['replay_scope'],
+        diagnostic_prefix_count=replay['diagnostic_prefix_count']))
+    atexit.register(journal.close, raise_error=False)
+    return journal
+
+
 class FileStateCall:
     """An owned command. A cancelled waiter can rejoin this exact receipt."""
 
@@ -309,10 +408,15 @@ class FileStateProcess:
     wired into the experiment runner until its complete call-site migration.
     """
 
-    def __init__(self, roots, *, file_cache_policy='planned_only', diagnostic_timing=False):
+    def __init__(self, roots, *, file_cache_policy='planned_only', diagnostic_timing=False,
+                 diagnostic_journal=None):
         if type(diagnostic_timing) is not bool:
             raise TypeError('diagnostic_timing must be a bool')
+        if diagnostic_journal is not None and not diagnostic_timing:
+            raise ValueError('file-owner journal requires command timing')
         self._diagnostic_timing = diagnostic_timing
+        self._diagnostic_journal = diagnostic_journal
+        self._diagnostic_submitted = 0
         self._lock = threading.Lock()
         self._closed = self._closing = False
         self._event_callbacks = {}
@@ -332,7 +436,10 @@ class FileStateProcess:
             # Serialize before submitting, as in the existing pure planner.
             message = pickle.dumps((operation, args), protocol=5)
             execute = _execute_timed if self._diagnostic_timing else _execute
-            return FileStateCall(self._pool.submit(execute, message),
+            future = self._pool.submit(execute, message)
+            if self._diagnostic_journal is not None:
+                self._diagnostic_submitted += 1
+            return FileStateCall(future,
                                  on_receipt=self._observe_receipt,
                                  diagnostic_submission=diagnostic)
 
@@ -344,6 +451,8 @@ class FileStateProcess:
         I/O while the owner lock is held, and a cancelled waiter can still
         deliver the event when it rejoins the same command.
         """
+        if self._diagnostic_journal is not None:
+            self._diagnostic_journal.observe(receipt)
         changes = tuple(receipt.get('file_changes', ()))
         if not changes:
             return
@@ -420,6 +529,9 @@ class FileStateProcess:
             self._pool.shutdown(wait=True, cancel_futures=False)
             with self._lock:
                 self._closed, self._closing = True, False
+            if self._diagnostic_journal is not None:
+                self._diagnostic_journal.close(submitted_commands=self._diagnostic_submitted,
+                                               raise_error=False)
             raise
         except BaseException:
             with self._lock:
@@ -428,6 +540,9 @@ class FileStateProcess:
         self._pool.shutdown(wait=True, cancel_futures=False)
         with self._lock:
             self._closed, self._closing = True, False
+        if self._diagnostic_journal is not None:
+            self._diagnostic_journal.close(owner_closed=True,
+                                           submitted_commands=self._diagnostic_submitted)
 
 
 class _ProcessContext:
@@ -522,7 +637,10 @@ class ProcessLocalSourceReferences:
     def __init__(self, roots, *, file_cache_policy='planned_only'):
         self.roots = {key: Path(value).resolve() for key, value in roots.items() if value}
         self.file_cache_policy = file_cache_policy
-        self.process = FileStateProcess(self.roots, file_cache_policy=file_cache_policy)
+        journal = _diagnostic_file_journal()
+        self.process = FileStateProcess(self.roots, file_cache_policy=file_cache_policy,
+                                       diagnostic_timing=journal is not None,
+                                       diagnostic_journal=journal)
         identity = self._call('identity')
         self.owner_id = identity['owner_id']
         self.identity = identity

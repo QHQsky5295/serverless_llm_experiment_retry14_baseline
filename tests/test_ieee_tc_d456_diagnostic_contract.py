@@ -191,6 +191,29 @@ class D519DiagnosticContract(unittest.TestCase):
         self.assertIn('FAASLORA_TC_CORE_TIMING=host_spans_v1', wrapper)
 
 
+class D1039CurrentFileNativeDiagnosticContract(unittest.TestCase):
+    def test_d1033_policy_only_exclusive_paths_change(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261103_d1033_3b_startup_memory_w2.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261103_d1039_3b_file_native_prefix1000.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            self.assertNotEqual(old[section].pop(field), new[section].pop(field))
+        self.assertEqual(old, new)
+        self.assertEqual(new['workload']['total_requests'], 4000)
+        self.assertEqual(new['model']['max_cpu_loras'], 32)
+
+    def test_only_registered_observer_enables_file_and_inventory_timing(self):
+        wrapper = (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text()
+        block = re.search(r'^  d1039_3b_file_native_prefix1000\)(.*?)^    ;;',
+                          wrapper, re.M | re.S).group(1)
+        self.assertIn('/d1039_20261103', block)
+        self.assertIn('FAASLORA_TC_HOST_INVENTORY_TIMING=fresh_inventory_v1', wrapper)
+        self.assertIn('FAASLORA_TC_FILE_OWNER_TIMING=command_spans_v1', wrapper)
+        self.assertIn('unset FAASLORA_TC_FILE_OWNER_TIMING', wrapper)
+        self.assertNotIn('d1039', '\n'.join(line for line in wrapper.splitlines()
+            if line.startswith('if ') and 'd723' in line))
+
+
 class D1016CurrentNativeDiagnosticContract(unittest.TestCase):
     def test_measurement_repair_attempt_uses_new_paths_without_policy_change(self):
         wrapper = (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text()

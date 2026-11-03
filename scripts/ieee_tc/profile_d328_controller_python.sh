@@ -44,6 +44,9 @@ case "${FAASLORA_RESULTS_TAG:-}" in
   d1016_attempt2_3b_native_prefix1000)
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1016_20261102_attempt2
     ;;
+  d1039_3b_file_native_prefix1000)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1039_20261103
+    ;;
   d723_3b_step_components100)
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d723_20261022
     ;;
@@ -73,9 +76,15 @@ else
   unset FAASLORA_TC_CORE_STEP_TIMING
 fi
 export FAASLORA_PYTHON=/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python
-if [[ "$FAASLORA_RESULTS_TAG" == d668_3b_full_w0_prefix1 || "$FAASLORA_RESULTS_TAG" == d684_3b_full_w0_prefix1 ]]; then
+if [[ "$FAASLORA_RESULTS_TAG" == d668_3b_full_w0_prefix1 || "$FAASLORA_RESULTS_TAG" == d684_3b_full_w0_prefix1 || "$FAASLORA_RESULTS_TAG" == d1039_3b_file_native_prefix1000 ]]; then
   export FAASLORA_TC_HOST_INVENTORY_TIMING=fresh_inventory_v1
 else
   unset FAASLORA_TC_HOST_INVENTORY_TIMING
+fi
+if [[ "$FAASLORA_RESULTS_TAG" == d1039_3b_file_native_prefix1000 ]]; then
+  test ! -e "$(dirname "$FAASLORA_TC_LAUNCH_RECEIPT")/diagnostic_file_owner"
+  export FAASLORA_TC_FILE_OWNER_TIMING=command_spans_v1
+else
+  unset FAASLORA_TC_FILE_OWNER_TIMING
 fi
 exec /usr/bin/time -v -o "$RAW/controller_prefix1_time.txt" "$FAASLORA_PYTHON" "$@"

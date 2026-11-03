@@ -1,0 +1,44 @@
+{
+  "kind": "lossless_closed_outcome_compression_v1",
+  "created_unix": 1793697718.425986,
+  "before": {
+    "available_bytes": 161052160000
+  },
+  "after": {
+    "available_bytes": 161290317824
+  },
+  "entries": [
+    {
+      "run": "d1033_20261103/d1033_3b_startup_memory_w2_full",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1033_20261103/d1033_3b_startup_memory_w2_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1033_3b_startup_memory_w2_full.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1033_20261103/d1033_3b_startup_memory_w2_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1033_3b_startup_memory_w2_full.json.gz",
+      "source_sha256": "1eeeb5f8613ab5baaf5b02df9df84de10ffb4aed61da09795656db91c346c6fd",
+      "audit_sha256": null,
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 103311639,
+        "size": 287843682,
+        "mtime_ns": 1793685838328305263,
+        "ctime_ns": 1793685838328305263,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 562208
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "7e3315becb9ddc036320aa97741b8b5ebce59e3a1c7b2fff4a693547c77eca28",
+      "archive_sha256": "733a85d5f22cb008bed430bc49691c4812228a66a12fc2bc6e9b64bcf136e065",
+      "archive_bytes": 49664583,
+      "archive_allocated_bytes": 49672192,
+      "first_roundtrip_sha256": "1eeeb5f8613ab5baaf5b02df9df84de10ffb4aed61da09795656db91c346c6fd",
+      "second_roundtrip_sha256": "1eeeb5f8613ab5baaf5b02df9df84de10ffb4aed61da09795656db91c346c6fd",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 238178304
+    }
+  ],
+  "caveat": "Current source is preserved exactly in gzip. audit_sha256 mismatches are provenance caveats and are not promoted to reusable result identity.",
+  "protected": "weights, traces, adapter pools, environments, code and curated files unchanged.",
+  "source_archive_round_trip_verified": true
+}
