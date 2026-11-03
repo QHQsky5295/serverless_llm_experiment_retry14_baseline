@@ -1,0 +1,9 @@
+{
+  "exit_code": 1,
+  "passed": false,
+  "stage": "offline admission-to-activation projection before output publication",
+  "error": "KeyError: activation_kind",
+  "cause": "Analyzer used the scale-up control-event field name for a mechanism activation record. Inspect the recorded mechanism schema; do not default or fabricate its category.",
+  "gpu_run_repeated": false,
+  "completion_audit_passed": true
+}

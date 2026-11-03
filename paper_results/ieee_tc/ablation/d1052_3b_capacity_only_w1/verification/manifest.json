@@ -1,0 +1,50 @@
+{
+  "passed": true,
+  "identity": {
+    "unit": "primelora-tc-aux-2066a9adc7e8460fa240060b06b59052.scope",
+    "invocation_id": "38ca628448564443a2100985b9ebbea3",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-2066a9adc7e8460fa240060b06b59052.scope",
+    "inode": 38847250
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-2066a9adc7e8460fa240060b06b59052.scope",
+    "memory.current": 36892672,
+    "memory.peak": 46477312,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 5236607\nuser_usec 4741739\nsystem_usec 494868\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "analysis_sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1052_20261104/verify_admission.py",
+      "sha256": "07984544f0887c0de07659be0a85d146d1e6abc40ee8dd2d4325173d427c5cea",
+      "bytes": 5234
+    }
+  ],
+  "outputs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/verification/admission_summary.json",
+      "sha256": "d746d5c7e31eaaa647895dccaceb424d1a2f5995e0f2dac261693d1afc8ccf6a",
+      "bytes": 12153
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/verification/verify_admission.py.snapshot",
+      "sha256": "07984544f0887c0de07659be0a85d146d1e6abc40ee8dd2d4325173d427c5cea",
+      "bytes": 5234
+    }
+  ]
+}

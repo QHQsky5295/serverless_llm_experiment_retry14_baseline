@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/completion/closure.json",
+      "sha256": "f131a0831f4d3a1e052e6211d18db75a6f6e5493bee768c46b4ef96543ae523d",
+      "bytes": 2880
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/completion/collect_closed_evidence.py.snapshot",
+      "sha256": "3e84922ac781ee35a1a6f3cee31d9d975eb03a6e1db2037bcb4df6f5fbbd04b9",
+      "bytes": 6132
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/completion/delivery_and_resources.json",
+      "sha256": "161ada98952c02a91b1e4d0c8dabd1ad97045d76aea70a894229f4a56fc4ce7f",
+      "bytes": 18147
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/completion/full4000.json",
+      "sha256": "e5d580def9bf057df240f1eabdad32f0e8af9dfdbbd676d057f307db3cc0517f",
+      "bytes": 50084
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/completion/native_descriptor.json",
+      "sha256": "c4218854c444995d73c2cbe9a068adc6b65c04ab14a06b5d0f02894887cf2b77",
+      "bytes": 570
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/completion/profile_bindings.json",
+      "sha256": "9aa3a8cd79cb15900fb3290564bd2b7dbfe06be7d95f4a2be846bd47c5651a0c",
+      "bytes": 2719
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/completion/stages/diagnosis.json",
+      "sha256": "f055c70dc7646695e81d5163fa4811d22a03c17f27a1da475c224a3f0c1f9957",
+      "bytes": 259071
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/completion/stages/requests.csv",
+      "sha256": "ffd8f3db55b6a361ee35a3a5b67e3c219c54f28399fb8efb30a02ae8d219fee3",
+      "bytes": 2337540
+    }
+  ]
+}

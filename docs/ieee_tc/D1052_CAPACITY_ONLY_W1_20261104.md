@@ -108,3 +108,166 @@ handoff/first-service、S1–S13、CE/价格/Pareto、两轮审稿设计文档�
 不覆盖；本文件承接 D1051，不能让其旧 D998 页首覆盖当前阶段。
 
 本文件预登记时尚未启动 D1052 GPU；启动/完成事实另附回执，不预写结果。
+
+## 启动后交接：2026-11-04 03:20 +08:00
+
+本轮为 PROGRESS：最小接线、24 项 CPU 检查、配置/旧结果保护校验及备份完成，
+随后已启动唯一完整 W1 回放。不是被阻塞，也不是整个目标已完成。
+
+代码提交 69cfb9e940bbd5ed4f9fdb30f89d49cd0bd50e97 已 push 并 ls-remote
+核验 origin/retry14_continuous_queue_v2 及
+faaslora_origin/backup/d1052-capacity-only-20261104。后者正式 V2 分支存在
+分叉，未 force push，不能声称已完成最终 V2 集成。备份回执为 raw/backup.json。
+提交只包含此次 14 个文件，用户 manifest 与 EXECUTION_STATUS 均未 stage。
+
+运行位于上述 raw 根目录下 d1052_3b_capacity_only_w1/，tmux 会话
+tc-d1052-capacity-only。launcher/replay/service/watchdog PID 分别为
+2012259/2012268/2012269/2012272；服务 scope 为
+primelora-tc-svc-3ca78ec3cff04357a1c1b56539953500.scope。当前均在运行，
+不得重复启动同一键。first 108 个监控样本中的最新快照：主机可用约
+90.34 GiB、服务峰值约 16.72 GiB、磁盘约 150.55 GiB；high/max/OOM/kill
+事件均为 0、swap 为 0、无外部 compute、无越界 owned worker、无安全中止原因。
+已产生 37 条请求终态记录，仅表示运行已进入服务阶段，不作为最终性能值。
+精确观测保存为 raw/live_checkpoint_001.json，当前 GPU 尚未释放。
+
+下一次只继续观察这个运行。完成并确认资源释放后，复用 D1050 的 collect_closed_evidence.py
+和比较逻辑建立新的 D1052 分析目录；检查软准入实际参数、物理安全、请求
+合同和完整指标，再与原 D1047 Full 作单轮描述性对照。不要在测量期间编辑
+运行源码、压缩/清理、推送、重启远端或开展另一 GPU 实验。源 PLAN、冻结指标、
+Full 和 NoHandoff 结果均不变。所有后续消融、敏感性和交付仍保持待办。
+
+### 后续观测：03:25 +08:00
+
+上一 goal turn 为 PROGRESS；本 turn 为已核实 live 的等待及收尾统计入口准备。
+同一 launcher/replay/service/watchdog 仍在运行，first phase 500/500 完成、
+日志请求失败 0；后续 phases 未完成，不能出完整性能结论。live 面板的
+slo@5000ms 是开发显示，不用于 D648 共同 SLO 判定。
+
+raw/collect_closed_evidence.py 复用 D1050 collector，仅更新运行、配置 SHA、
+变体和提交身份；raw/compare.py 复用 D1050 比较，改为 CapacityOnly 单开关
+核查并增加 GPU preparation plan 的 capacity_only、attempt/admission reason、
+实际 load 与观测软余量不足字段。Full/CapacityOnly 都保留 handoff；缺回执、
+提前拒绝和真正评估的软准入分开，计数不冒充独立物理加载或反事实收益。
+两脚本已通过轻量 AST 语法检查，尚未对未完成输出运行，也未宣称分析通过。
+精确进程/安全快照和检查回执为 raw/live_checkpoint_002.json。
+
+待本轮正常结束且 GPU 释放后，依次在既定辅助资源域执行上述 collector、
+compare；不要重启本轮、重新生成 Full、修改运行中源码或使用部分数据排名。
+此次只增加 raw 统计脚本与本文交接，没有推送/压缩/远端服务变更，也未删除
+剩余实验。源码备份仍为 69cfb9e9；运行后记录待收尾时一起备份。
+
+## 完成结果：同输入单轮观测，不支持软准入收益归因
+
+D1052 已正常完成，4,000/4,000 请求成功，458,224 个原生输出 token；全部
+请求的实际数量等于规定目标。launcher、回放、服务和 watchdog 均退出 0，
+服务资源域已移除，11 次物理 GPU allocation 全部具有 release 证据，无残留
+GPU compute。没有重跑 Full，也没有重复本轮或修改共同评价阈值。
+
+| 指标 | Full D1047（复用） | CapacityOnly D1052 |
+|---|---:|---:|
+| 完整原生数量合同通过 | 4,000/4,000 | 4,000/4,000 |
+| 联合时延 SLO 通过数 | 3,836 | 3,848 |
+| 联合时延 SLO 达成率 | 95.90% | 96.20% |
+| 生命周期物理 GPU-s | 6,182.715971 | 6,371.761305 |
+| GPU-s/offered-request | 1.545679 | 1.592940 |
+| 平均 TTFT（ms） | 454.156048 | 439.785864 |
+| P95 TTFT（ms） | 1,114.091001 | 1,042.205312 |
+| 平均 TPOT（ms） | 17.417030 | 17.345311 |
+| P95 TPOT（ms） | 31.774061 | 31.488817 |
+| 平均 E2E（ms） | 2,323.526111 | 2,292.407132 |
+| 真实远端传输次数 | 132 | 132 |
+| 线上传输字节 | 306,360,162 | 306,360,162 |
+| initial / natural-scaleout 数 | 1 / 9 | 1 / 10 |
+
+Full 的物理 GPU-s 比 CapacityOnly 低 2.966924%，但 P95 TTFT 高
+6.897459%，联合 SLO 低 0.30 个百分点。这是单轮观测的资源—时延取舍，
+不是 Full 在所有目标上胜出。两点的观测时延达成均超过 95%，资源均低于
+D657 W1 预算 6,754.783565 GPU-s；这不解除独立数值正确性限制，不宣称
+正式 G1/G2 排名、显著差异或全局最优。表中分母明确为 offered，不把未知的
+N_correct 偷换成 4,000。
+
+4,000 条 request/adapter/source-item/arrival-plan/prompt/native-prompt/target/
+generation/actual-token 映射逐条匹配。输出 digest 相同 3,807 条，不同 193 条。
+性能日志未保存全部原生 token 序列，不能由摘要判定这些差异的数值正确性，
+也不能将 D1051 的有限参考检查泛化至这 193 条。n_correct=null、
+independent_numerical_proof=false、formal_ranking_eligible=false 原样保留。
+既有 3B 零更新工件池的不可区分性与 source42 开发负载身份同样保留。
+
+### 实际机制：软余量不足未触发
+
+| 准备 attempt 分类 | Full | CapacityOnly |
+|---|---:|---:|
+| 进入 typed resource-admission 且放行 | 707 | 796 |
+| 进入 typed resource-admission 且延后 | 0 | 0 |
+| 观测 footprint 超过有效软容量 | 0 | 0 |
+| 进入资源准入前因 stale snapshot 延后 | 312 | 328 |
+| 已复用、未调用 native load | 23 | 24 |
+| attempt 无 native receipt | 0 | 2 |
+| attempt 合计 | 1,042 | 1,150 |
+
+所有被记录的 GPU preparation plan 的 capacity_only 与目标开关一致，包含
+natural-scaleout 和稳态 residency；initial 没有 GPU preparation attempt，
+不虚构 initial 的运行时软准入决策。参数透传的 initial 覆盖来自已保存的
+CPU 测试，与上述实际触发范围分开。
+
+CapacityOnly 的两条无 receipt attempt 在 journal 中仍标为 observing；其
+所属 plan 明确记录 CancelledError、state=cancelled、closed=true，关闭时
+live native/HOST/staged leases 均为 0，pending preparation targets 为空。
+原始 attempt 状态不补写。它们不算已评估的 admission、不算成功物理加载，
+也不凭“缺 receipt”推断发生了软延后。保留完整小型原始 plan/attempt 摘录。
+聚合中的 receipt_reasons.not_recorded 仅表示无顶层 reason，绝不能误读成
+730/822 条 receipt 缺失；实际缺失只有上述两条。
+
+因此，这一自然 W1 工作点没有观测到 Full 软 E(t) 检查阻止加载；不能把
+2.97% GPU-s 差异解释为该机制收益，也不能把 CapacityOnly 较低尾延迟解释为
+软策略确定有害。两轮自然反馈的扩容、准备计划和调度轨迹不同，且没有独立
+运行重复。原计划 S3 的同候选加载争用对照仍需要执行；不人为注入等待、
+更改阈值或反复运行来制造软准入触发。
+
+Full−CapacityOnly 的平均 TTFT 阶段差（ms）为：arrival→admission +9.485075、
+admission→acquired +0.263892、executable→engine +1.104971、
+engine-entry→queue +2.630387、native queue +0.117428、prefill +0.768430。
+这些只定位观测等待分布，不提供 E(t) 的因果分解。实际 dispatch tier 完整：
+Full GPU/host/NVMe/remote=3327/2/538/133，CapacityOnly=3333/1/535/131；
+不能由 dispatch remote 计数替代双方实际 132 次传输。
+
+### 计量、安全和分析来源
+
+- 2,266 个资源样本；service high/max/OOM/kill 事件均 0，swap=0；服务峰值
+  22,642,708,480 B。最低主机可用 93,233,377,280 B，最低磁盘可用
+  156,977,467,392 B；没有外部 compute 或越界 owned worker。
+- 132 次传输均能对应服务端/客户端 ID、线上字节与 SHA；请求中无打包。
+  远端 observation mode 为 existing_unmonitored，没有连续远端 CPU/外部
+  干扰监控，不能宣称已排除所有远端干扰。
+- 本轮工作缓存已清空；147 个旧投稿保护文件及两份用户 dirty 文件 SHA
+  不变。没有压缩原始本轮证据、覆盖旧图或修改论文。
+- completion/ 复用 D1050 完整计量 collector；comparison/ 复用既有冻结
+  指标与 actual-first-dispatch 分析。首次离线比较把机制 activation 的
+  category 误写成控制事件的 activation_kind，在发布输出前失败；依据
+  实际 schema 改正后通过，失败回执保留，未重跑性能实验。
+- verification/ 进一步区分 typed decision、stale snapshot、复用和真正
+  缺 receipt，原始 comparison 输出不覆盖。所有分析在既定 3/4 GiB、
+  swap=0、CPU 2,3,26,27、CUDA 隐藏的辅助域中执行，无内存保护事件。
+- D1050 的四项 actual-first-dispatch 测试及其源文件 SHA 未变化，直接复用
+  已通过回执，不再重复 broad qualification。
+
+产物根目录：paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/。
+原始 result SHA 为 a66578172e42c3860450af1cd8355cd7bc9aff8c709b2f4e8b4431bded1ab6da，
+full4000 audit SHA 为 e5d580def9bf057df240f1eabdad32f0e8af9dfdbbd676d057f307db3cc0517f。
+
+## 当前交接与下一主线
+
+本轮为 PROGRESS：完成一个 A1 CapacityOnly 自然 W1 点、完整计量和机制
+提取，不能把“未触发”包装成正贡献。Full、NoHandoff、CapacityOnly 的
+3B W1 已有数据，完整目标仍 active；不因此重新调优 Full 或重开基线适配。
+
+下一项仍按 A1，选择 FixedFull 3B W1：只将初始/最小/最大实例固定为四个，
+保持 Full 的 router、handoff、hierarchy、admission 与动态控制执行路径。
+它直接回答两轮审稿关于 elasticity 与 adapter-management 的区分，不应以
+关闭 dynamic_scaling 顺便关闭驻留调度。实施前复用 D1049 入口核查、做
+相应最小配置/初始池检查，并重新读计划及资源余量；本交接尚未启动该实验。
+
+其他 A1 节点、7B 两个累积节点、A2–A5 的 confirmed-state/受控 handoff/
+first-service、S1–S13（包括 S3）、CE/价格/Pareto、两轮审稿设计文档、
+IEEE 图表和最终 FaaSLoRA V2 集成全部保留。按最新规则先保存状态表，
+不以反复正确性总审计或展示工作替代实验主线。

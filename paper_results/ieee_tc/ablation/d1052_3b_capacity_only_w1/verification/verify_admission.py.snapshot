@@ -1,0 +1,96 @@
+"""Bounded post-run admission projection audit; no new inference or policy change."""
+import collections
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import ijson
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+BASE = ROOT/'paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1'
+OUT = BASE/'verification'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+def read(path):
+    return json.loads(path.read_text())
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, allow_nan=False)
+        handle.write('\n')
+
+identity = p.scope_identity(p.cg_path().name)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert (p.cg_path()/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (p.cg_path()/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (p.cg_path()/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+mechanisms_path = BASE/'comparison/mechanisms.json'
+comparison_path = BASE/'comparison/comparison.json'
+mechanisms, comparison = read(mechanisms_path), read(comparison_path)
+summary = {}
+missing = {}
+for variant, record in mechanisms.items():
+    attempts = record['proactive_admission']['attempts']
+    counts = collections.Counter()
+    for attempt in attempts:
+        if not attempt['receipt_present']:
+            counts['receipt_absent'] += 1
+            missing[attempt['attempt_id']] = attempt
+        elif attempt['resource_admission_evaluated']:
+            counts['typed_admit' if attempt['actual_admit'] else 'typed_defer'] += 1
+        elif attempt['receipt_reason'] == 'stale_snapshot':
+            counts['stale_snapshot_before_admission'] += 1
+        elif attempt['native_load_invoked'] is False and attempt['attempt_state'] == 'completed':
+            counts['completed_reuse_without_native_load'] += 1
+        else:
+            raise AssertionError(('unclassified_receipt', variant, attempt))
+    assert sum(counts.values()) == len(attempts)
+    summary[variant] = dict(attempts=len(attempts), categories=dict(counts),
+        observed_soft_headroom_deficits=record['proactive_admission']['observed_soft_headroom_deficits'],
+        typed_decision_count=record['proactive_admission']['typed_decisions'])
+assert summary['Full']['categories'] == dict(typed_admit=707,
+    stale_snapshot_before_admission=312, completed_reuse_without_native_load=23)
+assert summary['CapacityOnly']['categories'] == dict(typed_admit=796,
+    stale_snapshot_before_admission=328, completed_reuse_without_native_load=24, receipt_absent=2)
+assert all(value['observed_soft_headroom_deficits'] == 0 for value in summary.values())
+outcome_ref = next(item for item in comparison['source_refs']
+    if 'd1052_20261104/' in item['path'] and item['path'].endswith('/main_outcome.json'))
+outcome = Path(outcome_ref['path'])
+assert p.digest(outcome) == outcome_ref['sha256']
+originals = []
+with outcome.open('rb') as handle:
+    for plan in ijson.items(handle, 'mechanism_events._ieee_gpu_preparation_plans.item', use_float=True):
+        for attempt in plan['attempts']:
+            if attempt['attempt_id'] not in missing:
+                continue
+            assert 'receipt' not in attempt or attempt['receipt'] is None
+            assert attempt['state'] == 'observing'
+            originals.append(dict(plan={key:value for key,value in plan.items()
+                if key not in ('attempts', 'registration', 'results', 'targets')},
+                attempt=attempt))
+assert {item['attempt']['attempt_id'] for item in originals} == set(missing)
+OUT.mkdir(exist_ok=False)
+save(OUT/'admission_summary.json', dict(passed=True, summaries=summary,
+    unresolved_no_receipt_attempts=originals,
+    soft_admission_benefit_supported=False,
+    causal_performance_attribution=False,
+    statement='No recorded Full soft-headroom deferral; recorded CapacityOnly states also had no soft-headroom deficit. Natural closed-loop metric differences do not establish E(t) benefit.',
+    caveats=['Receipt reason absent is not the same as receipt absent.',
+        'Two CapacityOnly attempts remain observing with no native receipt in the saved journal. Do not impute native load, admission decision, successful completion, or cancellation.',
+        'Counts refer to preparation attempts, not unique physical loads.',
+        'Single known-source42 observations; no run-level CI or formal correctness ranking.'],
+    source_refs=[ref(mechanisms_path), ref(comparison_path), outcome_ref]))
+with (OUT/'verify_admission.py.snapshot').open('x') as handle:
+    handle.write(Path(__file__).read_text())
+save(OUT/'manifest.json', dict(passed=True, identity=identity,
+    resources=p.cgroup_snapshot(p.cg_path()), analysis_sources=[ref(Path(__file__))],
+    outputs=[ref(path) for path in sorted(OUT.iterdir()) if path.is_file()]))
+print(json.dumps(dict(passed=True, summaries=summary, unresolved=originals)), flush=True)

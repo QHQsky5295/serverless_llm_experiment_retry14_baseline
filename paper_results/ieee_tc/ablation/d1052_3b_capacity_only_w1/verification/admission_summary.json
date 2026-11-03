@@ -1,0 +1,322 @@
+{
+  "passed": true,
+  "summaries": {
+    "Full": {
+      "attempts": 1042,
+      "categories": {
+        "typed_admit": 707,
+        "stale_snapshot_before_admission": 312,
+        "completed_reuse_without_native_load": 23
+      },
+      "observed_soft_headroom_deficits": 0,
+      "typed_decision_count": 707
+    },
+    "CapacityOnly": {
+      "attempts": 1150,
+      "categories": {
+        "completed_reuse_without_native_load": 24,
+        "typed_admit": 796,
+        "stale_snapshot_before_admission": 328,
+        "receipt_absent": 2
+      },
+      "observed_soft_headroom_deficits": 0,
+      "typed_decision_count": 796
+    }
+  },
+  "unresolved_no_receipt_attempts": [
+    {
+      "plan": {
+        "plan_id": "bd233fc3853c49fb8744bea5a1c9dbad",
+        "objective_sha256": "5148e01a660ee4a160922418c3232e3f37e87d2f5ac189a70edd2cbf06ebb449",
+        "planning_sha256": "61f80f74b80c4113bbbcb7ca9ad508eb465115c6c7499fe4447db3fb63f82a44",
+        "owner_id": "295e1b6b765b4240a55c8db1a3ee592b",
+        "target_replica": "ieee-activation-c42cb11eb4d843c9950516b9e1084d98",
+        "trigger_reason": "residency",
+        "activation_id": null,
+        "capacity_only": true,
+        "state": "cancelled",
+        "started_at": 3241910.419466864,
+        "error_type": "CancelledError",
+        "close_receipt": {
+          "closed": true,
+          "plan_id": "bd233fc3853c49fb8744bea5a1c9dbad",
+          "owner_id": "295e1b6b765b4240a55c8db1a3ee592b",
+          "epoch": 5827,
+          "slot_adapter_ids": [
+            759642,
+            779229,
+            258317,
+            624445,
+            946784,
+            290186,
+            562289,
+            301533,
+            587868,
+            312822,
+            252156,
+            245877,
+            726295,
+            766766,
+            727043,
+            938324,
+            523333,
+            70767,
+            121231,
+            587742,
+            840647,
+            592633,
+            472424,
+            305513,
+            239010,
+            751303,
+            234335,
+            408597,
+            52046,
+            682388,
+            952585,
+            975075
+          ],
+          "reference_counts": {},
+          "live_leases": 0,
+          "released_leases": 852,
+          "host_source_reference_counts": {},
+          "live_host_source_leases": 0,
+          "staged_host_adapter_ids": [],
+          "live_staged_host_leases": 0,
+          "pending_preparation_targets": [],
+          "snapshot_holds_reference": false,
+          "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+          "native_host_allocator_policy": {
+            "policy": "uncached_background_v1",
+            "verified": true,
+            "allocator_settings": {
+              "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb:17592186044415",
+              "max_split_size": -1048576,
+              "garbage_collection_threshold": 0.0,
+              "expandable_segments": false,
+              "pinned_num_register_threads": 1,
+              "release_lock_on_cudamalloc": false,
+              "pinned_use_cuda_host_register": false,
+              "graph_capture_record_stream_reuse": false,
+              "max_round_threshold": -1,
+              "max_cached_size": 0,
+              "roundup_power2_divisions": {
+                "1": 0,
+                "2": 0,
+                "4": 0,
+                "8": 0,
+                "16": 0,
+                "32": 0,
+                "64": 0,
+                "128": 0,
+                "256": 0,
+                "512": 0,
+                "1024": 0,
+                "2048": 0,
+                "4096": 0,
+                "8192": 0,
+                "16384": 0,
+                "32768": 0
+              }
+            },
+            "verified_scope": "effective_uncached_pinned_allocation_limit",
+            "last_allocator_update": "max_split_size_mb:17592186044415",
+            "background_event_processing_requested": true,
+            "background_event_processing_readback": null,
+            "background_readback_limitation": "torch_2_13_snapshot_does_not_export_background_flag",
+            "persistent_cache_enabled": false,
+            "immediate_release_guaranteed": false
+          },
+          "native_host_descriptor": {
+            "kind": "fresh_native_tensor_descriptor_v1",
+            "library": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so",
+            "sha256": "b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044",
+            "torch_version": "2.13.0+cu130",
+            "python_abi": "cpython-312",
+            "tensor_state_cached": false
+          },
+          "worker_pid": 2015941,
+          "worker_rank": 0,
+          "completion_fence_scope": "current_worker_cuda_stream",
+          "production_launch_authorized": false,
+          "timing": {
+            "parent_rpc_channel_acquire_ms": 0.28293533250689507,
+            "parent_rpc_response_pickup_delay_ms": 0.0,
+            "parent_rpc_send_flush_ms": 0.04506716504693031,
+            "parent_rpc_request_bytes": 230,
+            "parent_rpc_response_bytes": 2363,
+            "parent_rpc_wait_response_ms": 18.664246890693903,
+            "parent_rpc_transport": "native_async_socket_v1",
+            "parent_rpc_thread_resume_delay_ms": 0.0
+          }
+        },
+        "finished_at": 3241914.265651459
+      },
+      "attempt": {
+        "attempt_id": "110d3ab53ce24e18820ea365e177b21f",
+        "adapter_int_id": 291162,
+        "state": "observing"
+      }
+    },
+    {
+      "plan": {
+        "plan_id": "11b965449ebd443590b579843bc4fefb",
+        "objective_sha256": "3743eea49554d92f77c3ed8e6bbb5a5fe4570060401ee2bdb1164d57075db359",
+        "planning_sha256": "58dd1e028780e9428319f3baa0896691a6341e888762fc502389dcd04ffb7a51",
+        "owner_id": "2b23fc6c656642c980a88c1e972b96ca",
+        "target_replica": "ieee-activation-ee164a2c68c14bcdaaaa99f3e04c006e",
+        "trigger_reason": "residency",
+        "activation_id": null,
+        "capacity_only": true,
+        "state": "cancelled",
+        "started_at": 3243000.84126489,
+        "error_type": "CancelledError",
+        "close_receipt": {
+          "closed": true,
+          "plan_id": "11b965449ebd443590b579843bc4fefb",
+          "owner_id": "2b23fc6c656642c980a88c1e972b96ca",
+          "epoch": 4035,
+          "slot_adapter_ids": [
+            62961,
+            983736,
+            875843,
+            663591,
+            192826,
+            98041,
+            602733,
+            501962,
+            836632,
+            824993,
+            741211,
+            706945,
+            516215,
+            164617,
+            687933,
+            212213,
+            597672,
+            245877,
+            733836,
+            97929,
+            552797,
+            934176,
+            193730,
+            707027,
+            784766,
+            542417,
+            611889,
+            234335,
+            574030,
+            755218,
+            140317,
+            291162
+          ],
+          "reference_counts": {},
+          "live_leases": 0,
+          "released_leases": 582,
+          "host_source_reference_counts": {},
+          "live_host_source_leases": 0,
+          "staged_host_adapter_ids": [],
+          "live_staged_host_leases": 0,
+          "pending_preparation_targets": [],
+          "snapshot_holds_reference": false,
+          "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+          "native_host_allocator_policy": {
+            "policy": "uncached_background_v1",
+            "verified": true,
+            "allocator_settings": {
+              "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb:17592186044415",
+              "max_split_size": -1048576,
+              "garbage_collection_threshold": 0.0,
+              "expandable_segments": false,
+              "pinned_num_register_threads": 1,
+              "release_lock_on_cudamalloc": false,
+              "pinned_use_cuda_host_register": false,
+              "graph_capture_record_stream_reuse": false,
+              "max_round_threshold": -1,
+              "max_cached_size": 0,
+              "roundup_power2_divisions": {
+                "1": 0,
+                "2": 0,
+                "4": 0,
+                "8": 0,
+                "16": 0,
+                "32": 0,
+                "64": 0,
+                "128": 0,
+                "256": 0,
+                "512": 0,
+                "1024": 0,
+                "2048": 0,
+                "4096": 0,
+                "8192": 0,
+                "16384": 0,
+                "32768": 0
+              }
+            },
+            "verified_scope": "effective_uncached_pinned_allocation_limit",
+            "last_allocator_update": "max_split_size_mb:17592186044415",
+            "background_event_processing_requested": true,
+            "background_event_processing_readback": null,
+            "background_readback_limitation": "torch_2_13_snapshot_does_not_export_background_flag",
+            "persistent_cache_enabled": false,
+            "immediate_release_guaranteed": false
+          },
+          "native_host_descriptor": {
+            "kind": "fresh_native_tensor_descriptor_v1",
+            "library": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so",
+            "sha256": "b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044",
+            "torch_version": "2.13.0+cu130",
+            "python_abi": "cpython-312",
+            "tensor_state_cached": false
+          },
+          "worker_pid": 2073233,
+          "worker_rank": 0,
+          "completion_fence_scope": "current_worker_cuda_stream",
+          "production_launch_authorized": false,
+          "timing": {
+            "parent_rpc_channel_acquire_ms": 0.1927679404616356,
+            "parent_rpc_response_pickup_delay_ms": 0.0,
+            "parent_rpc_send_flush_ms": 0.03207707777619362,
+            "parent_rpc_request_bytes": 229,
+            "parent_rpc_response_bytes": 2362,
+            "parent_rpc_wait_response_ms": 12.154525145888329,
+            "parent_rpc_transport": "native_async_socket_v1",
+            "parent_rpc_thread_resume_delay_ms": 0.0
+          }
+        },
+        "finished_at": 3243001.624440568
+      },
+      "attempt": {
+        "attempt_id": "6cc7a375488e47ba817921953685e1a2",
+        "adapter_int_id": 776124,
+        "state": "observing"
+      }
+    }
+  ],
+  "soft_admission_benefit_supported": false,
+  "causal_performance_attribution": false,
+  "statement": "No recorded Full soft-headroom deferral; recorded CapacityOnly states also had no soft-headroom deficit. Natural closed-loop metric differences do not establish E(t) benefit.",
+  "caveats": [
+    "Receipt reason absent is not the same as receipt absent.",
+    "Two CapacityOnly attempts remain observing with no native receipt in the saved journal. Do not impute native load, admission decision, successful completion, or cancellation.",
+    "Counts refer to preparation attempts, not unique physical loads.",
+    "Single known-source42 observations; no run-level CI or formal correctness ranking."
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/comparison/mechanisms.json",
+      "sha256": "e8a3e8a166c08a013b8c6e419b4d41945626c0576ab04e12282cf9097afd07a4",
+      "bytes": 16521228
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/comparison/comparison.json",
+      "sha256": "a2a3a4a8c88a30f463dc38a24d0ce51e5305e5ffbdb0d7b45ff62e48619109e7",
+      "bytes": 54698
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1052_20261104/d1052_3b_capacity_only_w1/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "050bf8aea73bf3954b76bfd736ed5fc5e0809ac0fe3e2ab7e12df1ac6257e20f",
+      "bytes": 435227390
+    }
+  ]
+}

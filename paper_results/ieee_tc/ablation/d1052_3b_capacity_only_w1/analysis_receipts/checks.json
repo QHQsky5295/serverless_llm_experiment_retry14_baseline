@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_dirty_unchanged": true,
+  "unchanged_first_service_tests_reused": 4,
+  "prelaunch_tests_reused": 24,
+  "new_gpu_runs": 0,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1050_20261104/first_service_tests.json",
+      "sha256": "5a3b750cd406481adcf9e7a1c628d24753472367bcccd57c55245b5cac9f02a2",
+      "bytes": 700
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/verification/admission_summary.json",
+      "sha256": "d746d5c7e31eaaa647895dccaceb424d1a2f5995e0f2dac261693d1afc8ccf6a",
+      "bytes": 12153
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/comparison/manifest.json",
+      "sha256": "43526bd8dd15e9609d973b59d354be31550eeba242c436c9684f48f6f648106d",
+      "bytes": 2992
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1052_3b_capacity_only_w1/completion/manifest.json",
+      "sha256": "28600c8e068d661d7f7e4b608342813cfec089a6eb0aed49b7047398c63b2766",
+      "bytes": 2244
+    }
+  ],
+  "two_receipt_absent_attempts": "Plans cancelled and cleanly closed; attempt state remains observing. No native decision or successful load is imputed.",
+  "planned_destinations": [
+    "origin/retry14_continuous_queue_v2",
+    "faaslora_origin/backup/d1052-capacity-only-20261104"
+  ],
+  "full_faaslora_v2_integrated": false
+}
