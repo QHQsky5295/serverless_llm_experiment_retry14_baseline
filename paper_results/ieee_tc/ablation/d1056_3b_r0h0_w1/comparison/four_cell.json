@@ -1,0 +1,159 @@
+{
+  "kind": "d1056_routing_handoff_four_cell_descriptive_v1",
+  "cell_runs": {
+    "Y11": {
+      "run": "D1047",
+      "variant": "Full"
+    },
+    "Y00": {
+      "run": "D1056",
+      "variant": "R0H0"
+    },
+    "Y10": {
+      "run": "D1050",
+      "variant": "NoHandoff"
+    },
+    "Y01": {
+      "run": "D1055",
+      "variant": "NoRouting"
+    }
+  },
+  "metrics": [
+    {
+      "metric": "physical_gpu_seconds",
+      "unit": "GPU-s",
+      "better": "lower",
+      "Y11": 6182.715970784891,
+      "Y00": 6423.550119171385,
+      "Y10": 5990.1353700347245,
+      "Y01": 6581.70705791004,
+      "routing_benefit_without_handoff": 433.41474913666025,
+      "routing_benefit_with_handoff": 398.9910871251486,
+      "gamma": -34.423662011511624
+    },
+    {
+      "metric": "gpu_seconds_per_offered_request",
+      "unit": "GPU-s/offered-request",
+      "better": "lower",
+      "Y11": 1.5456789926962229,
+      "Y00": 1.605887529792846,
+      "Y10": 1.497533842508681,
+      "Y01": 1.64542676447751,
+      "routing_benefit_without_handoff": 0.10835368728416506,
+      "routing_benefit_with_handoff": 0.09974777178128713,
+      "gamma": -0.008605915502877926
+    },
+    {
+      "metric": "joint_slo_percent",
+      "unit": "percentage points",
+      "better": "higher",
+      "Y11": 95.89999999999999,
+      "Y00": 97.275,
+      "Y10": 95.85000000000001,
+      "Y01": 97.35000000000001,
+      "routing_benefit_without_handoff": -1.4249999999999972,
+      "routing_benefit_with_handoff": -1.450000000000017,
+      "gamma": -0.025000000000019895
+    },
+    {
+      "metric": "mean_ttft_ms",
+      "unit": "ms",
+      "better": "lower",
+      "Y11": 454.1560476301238,
+      "Y00": 404.95205731410533,
+      "Y10": 445.5344161846442,
+      "Y01": 418.6694250210421,
+      "routing_benefit_without_handoff": -40.58235887053888,
+      "routing_benefit_with_handoff": -35.48662260908168,
+      "gamma": 5.095736261457205
+    },
+    {
+      "metric": "p95_ttft_ms",
+      "unit": "ms",
+      "better": "lower",
+      "Y11": 1114.0910014510155,
+      "Y00": 910.9129011631012,
+      "Y10": 1052.1820625290275,
+      "Y01": 980.708307120949,
+      "routing_benefit_without_handoff": -141.26916136592627,
+      "routing_benefit_with_handoff": -133.38269433006644,
+      "gamma": 7.886467035859823
+    },
+    {
+      "metric": "mean_tpot_ms",
+      "unit": "ms",
+      "better": "lower",
+      "Y11": 17.417030418550947,
+      "Y00": 16.51190678790005,
+      "Y10": 17.603646839466776,
+      "Y01": 16.373715334785892,
+      "routing_benefit_without_handoff": -1.0917400515667275,
+      "routing_benefit_with_handoff": -1.043315083765055,
+      "gamma": 0.04842496780167238
+    },
+    {
+      "metric": "p95_tpot_ms",
+      "unit": "ms",
+      "better": "lower",
+      "Y11": 31.774061266332865,
+      "Y00": 28.836157431619036,
+      "Y10": 31.899947999045253,
+      "Y01": 29.38093219629743,
+      "routing_benefit_without_handoff": -3.063790567426217,
+      "routing_benefit_with_handoff": -2.3931290700354353,
+      "gamma": 0.6706614973907818
+    },
+    {
+      "metric": "mean_e2e_ms",
+      "unit": "ms",
+      "better": "lower",
+      "Y11": 2323.5261109228013,
+      "Y00": 2187.259375981288,
+      "Y10": 2322.9075009010267,
+      "Y01": 2198.460509872646,
+      "routing_benefit_without_handoff": -135.64812491973862,
+      "routing_benefit_with_handoff": -125.06560105015524,
+      "gamma": 10.582523869583383
+    }
+  ],
+  "prior_sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1050_3b_no_handoff_w1/comparison/comparison.json",
+      "sha256": "64670f88c70ced770c21669b1f1be3333cb6cb56325089cf8f8c1c065b5205a2",
+      "bytes": 56847
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1050_3b_no_handoff_w1/comparison/manifest.json",
+      "sha256": "2976da4de093e433c275ae2ff083ef8b6227e7b51df58935a702c6d15e2bfa07",
+      "bytes": 2977
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1055_3b_no_routing_w1/comparison/comparison.json",
+      "sha256": "c05b583f3412ed7c89c63292d840c09334c063461a08c0ee98b74d48dbb38b80",
+      "bytes": 57099
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1055_3b_no_routing_w1/comparison/manifest.json",
+      "sha256": "521c9d5da823a45d8ff5ffe888b8a7f14f02c4233dfbcdeaf68710f4261a63cc",
+      "bytes": 2979
+    }
+  ],
+  "current_pair_file": "comparison.json",
+  "matched_input_requests_per_pair": 4000,
+  "confidence_interval": null,
+  "observed_runs_per_cell": 1,
+  "independent_holdout": false,
+  "independent_numerical_proof": false,
+  "formal_ranking_eligible": false,
+  "n_correct": null,
+  "formula_lower": "Y10 + Y01 - Y00 - Y11",
+  "formula_higher": "Y00 + Y11 - Y10 - Y01",
+  "interpretation": "Positive Gamma is an observed complementary contrast on that metric, not proof of significance or causal synergy.",
+  "caveats": [
+    "Natural closed-loop resource, cache and activation trajectories are not held fixed.",
+    "One source42 development observation per cell; no request-level pseudo-replication or CI.",
+    "Quantile contrasts are contrasts of run-level quantiles, not additive request-stage decompositions.",
+    "All-zero 3B updates do not independently validate nonzero LoRA arithmetic.",
+    "Controlled same-plan A2/A4 and information-view A3/S2 remain separate experiments."
+  ]
+}

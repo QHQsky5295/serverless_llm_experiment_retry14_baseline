@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1056_3b_r0h0_w1/completion/closure.json",
+      "sha256": "991b05bde34de5a0ac4e7996e7638ad86c0e3dcdffc105da41285d86f0affa34",
+      "bytes": 2818
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1056_3b_r0h0_w1/completion/collect_closed_evidence.py.snapshot",
+      "sha256": "0b4fda708641f9dc5e7aee0ec9aee9981ee5a120bdd131dcc5c03252edd15ed3",
+      "bytes": 6159
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1056_3b_r0h0_w1/completion/delivery_and_resources.json",
+      "sha256": "d297fe874ec6a1f2b9e16e63e922cc0eed4af869294ebdb088245317548bdd33",
+      "bytes": 16003
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1056_3b_r0h0_w1/completion/full4000.json",
+      "sha256": "37e739568093b48735e98b556d8c0c902ea5707ea6adb7d869cfcd70742ff579",
+      "bytes": 37613
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1056_3b_r0h0_w1/completion/native_descriptor.json",
+      "sha256": "5016ffcda259ba858d46b0643ee27d2359447313a930ce2aeb54c9227195d641",
+      "bytes": 552
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1056_3b_r0h0_w1/completion/profile_bindings.json",
+      "sha256": "32d28ceaace4566ca2f9f9de7d6fda1571c9d169ac7eab83de91116b6fd497f7",
+      "bytes": 2665
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1056_3b_r0h0_w1/completion/stages/diagnosis.json",
+      "sha256": "05df175e76c64c50fbd39d456a2b91764364a4096d0ab49ce92c8d5a77c55ce4",
+      "bytes": 253816
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1056_3b_r0h0_w1/completion/stages/requests.csv",
+      "sha256": "91af606fb6304006eb50b10b8cd81f2e80291f0bf3f735e081b79853a38f5c6e",
+      "bytes": 2340938
+    }
+  ]
+}

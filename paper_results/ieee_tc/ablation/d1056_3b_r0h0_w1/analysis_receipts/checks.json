@@ -1,0 +1,55 @@
+{
+  "passed": true,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_dirty_unchanged": true,
+  "unchanged_first_service_tests_reused": 4,
+  "prelaunch_tests_reused": 12,
+  "backup_phase_new_gpu_runs": 0,
+  "routing_validation_counts": {
+    "Full": 4000,
+    "R0H0": 4000
+  },
+  "completed_auxiliary_paths_removed": [
+    {
+      "unit": "primelora-tc-aux-36dbb13642f74189b2b47c32f62e256d.scope",
+      "invocation_id": "4471de85d8a44b7db4e5bf3271bb3edb",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-36dbb13642f74189b2b47c32f62e256d.scope",
+      "inode": 38946932
+    },
+    {
+      "unit": "primelora-tc-aux-2b0a0e7a418747ed832196ec86df7655.scope",
+      "invocation_id": "9fcbd1c5fd014f7997c459cecc2b2b79",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-2b0a0e7a418747ed832196ec86df7655.scope",
+      "inode": 38947527
+    }
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1050_20261104/first_service_tests.json",
+      "sha256": "5a3b750cd406481adcf9e7a1c628d24753472367bcccd57c55245b5cac9f02a2",
+      "bytes": 700
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1056_3b_r0h0_w1/comparison/manifest.json",
+      "sha256": "bc47728f45c0008b2f888288f810074bd31293448417105cd8a28d2675c43be7",
+      "bytes": 3476
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1056_3b_r0h0_w1/completion/manifest.json",
+      "sha256": "86b221340038530612561359cf499423ae1e89c9ea280fcc19ce981f4dbb3db9",
+      "bytes": 2172
+    }
+  ],
+  "planned_destinations": [
+    "origin/retry14_continuous_queue_v2",
+    "faaslora_origin/backup/d1056-r0h0-20261104"
+  ],
+  "full_faaslora_v2_integrated": false
+}

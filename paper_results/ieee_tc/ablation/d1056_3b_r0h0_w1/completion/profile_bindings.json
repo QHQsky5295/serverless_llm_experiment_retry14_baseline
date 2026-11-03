@@ -1,0 +1,59 @@
+{
+  "kind": "d719_full_profile_binding_audit_v1",
+  "passed": true,
+  "source_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1056_20261104/d1056_3b_r0h0_w1",
+  "n": 4000,
+  "tiers": {
+    "remote": 133,
+    "gpu": 3226,
+    "nvme": 640,
+    "host": 1
+  },
+  "service_classes": 92,
+  "preparation_classes": 47,
+  "numerical_correctness_qualified": false,
+  "ranking_eligible": false,
+  "performance_execution": false,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1056_20261104/d1056_3b_r0h0_w1/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1056_3b_r0h0_w1.json",
+      "sha256": "348228c802aa1c6fb7548016c3f01b9f7a92da0de94032d7c9330ba1f20978d0",
+      "bytes": 287697155
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1056_20261104/d1056_3b_r0h0_w1/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "015d3577962025a66f5331b9c493dce4caebb3ab0e9d300283689e537aed9b7b",
+      "bytes": 380433740
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1056_3b_r0h0_w1/completion/full4000.json",
+      "sha256": "37e739568093b48735e98b556d8c0c902ea5707ea6adb7d869cfcd70742ff579",
+      "bytes": 37613
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261104_d1056_3b_r0h0_w1.yaml",
+      "sha256": "9da28a2858ccae8e1628a53c09a33379507f7ac084dde094b331f48952437a87",
+      "bytes": 6147
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1031_3b_startup_memory_profile/export/service.json",
+      "sha256": "4f364ef488323fb63e568f9e413c6d9105597c5c7a88a470e8d732af44dd8ba5",
+      "bytes": 449156
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1031_3b_startup_memory_profile/export/preparation.json",
+      "sha256": "d8d66fcfac1b7c613c01efe53934507cffebe552b0a3c1374022d44941b6a870",
+      "bytes": 6492461
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1031_3b_startup_memory_profile/export/manifest.json",
+      "sha256": "96145f17fbced78e5f598d1d816ca623243011df3461db7177ce35b74301677b",
+      "bytes": 117373
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d703_3b_full.py",
+      "sha256": "3abcd9d766a7dc1c780244d8eedaac8440815aa85c0e45c6d9b81ef2cf35a070",
+      "bytes": 151448
+    }
+  ]
+}

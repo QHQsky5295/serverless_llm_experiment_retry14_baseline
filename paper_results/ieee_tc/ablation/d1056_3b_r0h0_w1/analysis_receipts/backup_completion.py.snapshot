@@ -1,0 +1,119 @@
+"""D1056: adapt the existing D1053 allowlisted completion-backup workflow."""
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+BASE = ROOT/'paper_results/ieee_tc/ablation/d1056_3b_r0h0_w1'
+OUT = BASE/'completion'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def read(path): return json.loads(path.read_text())
+def git(*args): return subprocess.check_output(['git', *args], cwd=ROOT, text=True).strip()
+def ref(path): return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+
+
+identity = p.scope_identity(p.cg_path().name)
+assert os.sched_getaffinity(0) == {2, 3, 26, 27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+for name, value in [('memory.high', 3*p.GIB), ('memory.max', 4*p.GIB), ('memory.swap.max', 0)]:
+    assert (p.cg_path()/name).read_text().strip() == str(value)
+assert git('branch', '--show-current') == 'retry14_continuous_queue_v2'
+assert not git('diff', '--cached', '--name-only')
+assert git('rev-parse', 'HEAD') == 'abf932383417cb703444c513cf50fa9d3856d96e'
+qualification = read(BASE/'prelaunch/qualification.json')
+closure = read(OUT/'closure.json')
+assert closure['passed'] is True and read(OUT/'full4000.json')['counts']['n'] == 4000
+assert qualification['passed'] and qualification['tests'] == 12 and qualification['variant'] == 'R0H0'
+assert p.check_plan() == qualification['plan_sha256']
+assert p.digest(Path(qualification['config']['path'])) == qualification['config']['sha256']
+for section in ('unchanged_sources', 'changed_sources', 'test_changes', 'test_sources', 'user_protected'):
+    for name, sha in qualification[section].items():
+        assert p.digest(ROOT/name) == sha, name
+for row in read(OUT/'manifest.json')['files']:
+    assert p.digest(Path(row['path'])) == row['sha256']
+protected = p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))
+assert protected['pass'] and protected['entry_count'] == 147
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+comparison = read(BASE/'comparison/comparison.json')
+assert comparison['matched_input_requests'] == 4000
+assert comparison['exact_output_hash_count'] + len(comparison['output_hash_changes']) == 4000
+assert comparison['formal_ranking_eligible'] is False and comparison['n_correct'] is None
+assert comparison['same_configuration_except_routing_handoff_and_paths'] is True
+analyses = {name: read(BASE/name/'manifest.json') for name in ('comparison',)}
+for name, manifest in analyses.items():
+    for row in manifest['outputs']:
+        assert p.digest(Path(row['path'])) == row['sha256']
+    for row in manifest.get('analysis_sources', []) + manifest.get('implementation_sources', []):
+        assert p.digest(Path(row['path'])) == row['sha256']
+assert analyses['comparison']['passed'] is True
+mechanisms = read(BASE/'comparison/mechanisms.json')
+assert set(mechanisms) == {'Full', 'R0H0'}
+for variant, mechanism in mechanisms.items():
+    assert mechanism['routing']['validated_requests'] == 4000
+    assert mechanism['routing']['counterfactual_latency_generated'] is False
+    assert mechanism['activation_policy_contract']['expected'] == ('full' if variant == 'Full' else 'no_handoff')
+factorial = read(BASE/'comparison/four_cell.json')
+assert factorial['observed_runs_per_cell'] == 1 and factorial['confidence_interval'] is None
+assert factorial['cell_runs'] == {
+    'Y11': {'run': 'D1047', 'variant': 'Full'},
+    'Y00': {'run': 'D1056', 'variant': 'R0H0'},
+    'Y10': {'run': 'D1050', 'variant': 'NoHandoff'},
+    'Y01': {'run': 'D1055', 'variant': 'NoRouting'}}
+assert len(factorial['metrics']) == 8 and factorial['formal_ranking_eligible'] is False
+# Preserve trade-offs; do not filter on a winner.
+closed_aux = [closure['auxiliary_identity']] + [m['identity'] for m in analyses.values()]
+for prior in closed_aux:
+    assert not Path(prior['path']).exists(), prior
+test_path = RAW.parent/'d1050_20261104/first_service_tests.json'
+tests = read(test_path)
+assert tests['passed'] and tests['tests_run'] == 4 and tests['exit_code'] == 0
+assert p.digest(ROOT/'tests/test_ieee_tc_handoff_analysis.py') == tests['test_source_sha256']
+assert p.digest(ROOT/'scripts/ieee_tc/audit_d389_scaleup_handoff_labels.py') == tests['analyzer_sha256']
+receipts = BASE/'analysis_receipts'
+receipts.mkdir(exist_ok=False)
+with (receipts/'backup_completion.py.snapshot').open('x') as f:
+    f.write(Path(__file__).read_text())
+with (receipts/'reused_first_service_tests.json').open('xb') as f:
+    f.write(test_path.read_bytes())
+save(receipts/'checks.json', dict(passed=True, protected=protected, user_dirty_unchanged=True,
+    unchanged_first_service_tests_reused=4, prelaunch_tests_reused=12, backup_phase_new_gpu_runs=0,
+    routing_validation_counts={k:v['routing']['validated_requests'] for k,v in mechanisms.items()},
+    completed_auxiliary_paths_removed=closed_aux,
+    source_refs=[ref(test_path), ref(BASE/'comparison/manifest.json'),
+        ref(OUT/'manifest.json')],
+    planned_destinations=['origin/retry14_continuous_queue_v2',
+        'faaslora_origin/backup/d1056-r0h0-20261104'],
+    full_faaslora_v2_integrated=False))
+paths = ['docs/ieee_tc/D1056_R0H0_W1_20261104.md',
+         'docs/ieee_tc/D1057_ELASTIC_ONLY_ENTRY_AUDIT_20261104.md']
+for directory in (OUT, BASE/'comparison', receipts):
+    paths += [str(path.relative_to(ROOT)) for path in sorted(directory.rglob('*')) if path.is_file()]
+for name in paths:
+    assert not re.search(r'-----BEGIN (?:RSA |OPENSSH |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|Authorization:\s*Bearer\s+\S+', (ROOT/name).read_text()), name
+git('diff', '--check')
+git('add', '--', *paths)
+assert set(git('diff', '--cached', '--name-only').splitlines()) == set(paths)
+git('diff', '--cached', '--check')
+git('commit', '-m', 'D1056 preserve routing-handoff four-cell observations')
+head, verified = git('rev-parse', 'HEAD'), []
+for remote, branch in [('origin', 'refs/heads/retry14_continuous_queue_v2'),
+                       ('faaslora_origin', 'refs/heads/backup/d1056-r0h0-20261104')]:
+    subprocess.run(['git', 'push', remote, 'HEAD:'+branch], cwd=ROOT, check=True)
+    assert git('ls-remote', remote, branch).split()[0] == head
+    verified.append(dict(remote=remote, ref=branch, commit=head))
+for name, sha in qualification['user_protected'].items():
+    assert p.digest(ROOT/name) == sha, name
+save(RAW/'backup_completion.json', dict(passed=True, commit=head, verified=verified,
+    paths=paths, identity=identity, resources=p.cgroup_snapshot(p.cg_path()),
+    protected=protected, user_dirty_unchanged=True, full_faaslora_v2_integrated=False))
+print(json.dumps(dict(passed=True, commit=head, verified=verified)), flush=True)
