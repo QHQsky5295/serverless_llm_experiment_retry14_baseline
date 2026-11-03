@@ -4,6 +4,10 @@
 本文件是当前交接，不覆盖用户 dirty 的 EXECUTION_STATUS.md。
 这不是新的 GPU 性能结果；D1035 仅登记一次原生画像，后续完整 W2 另建键。
 
+最新状态：D1035一次画像及严格导出已完成，不得重复；D1036完整W2配置
+已准备且静态核验通过，尚未启动。当前交接见本文末尾和
+`D1036_NATIVE_HOST_CAPACITY_FULL_W2_20261103.md`。
+
 ## 主线、已完成项与历史检查
 
 完整重读目标文件、PLAN、指标 V1/单轮 V2 和当前 D1033 交接。共享 k3s 非本
@@ -147,3 +151,39 @@ G1先全部正确和3800联合达标，再比较物理GPU-s；W2 G2还需U≤120
 主机可用内存约104GiB，GPU计算进程为空；启动器仍会重新执行既定准入。
 已通过的74项测试不重复执行。仅提交本候选明确的15个文件，不暂存用户修改、
 旧图或其他未跟踪资料。GPU画像仍未启动，后续启动与结果单独追加。
+
+## D1035完成与下一完整运行
+
+14:45在tmux `tc-d1035-native-host-capacity`启动source1，14:55前完整结束。
+执行源码2386e154859661a4d2847a8f491305714aa06ac9已在启动前推送并核对
+origin/retry14_continuous_queue_v2及faaslora_origin/
+backup/d1034-native-host-capacity-20261103。历史分歧的FaaSLoRA V2未强推。
+
+423/423原生请求通过，160/160服务类、96准备类；415服务样本、332准备
+样本。423次真实远端传输共981702550B，双端记录关联和内容SHA通过；没有
+在线打包、后备工件路径或新权重。严格exporter复用，输出独占新目录。
+
+实际worker PID199332，CPU容量110、GPU槽32；本次startup_memory为miss，
+成功发布实际KV预算8092388312B，完整启动113016.165084ms，原生init74.42s、
+compile32.12s。新观测字段已在真实physical journal中保留。这里不是命中
+微测，不用较快/较慢启动预测Full效果；不额外追加暖启动。
+
+生命周期553.622477439 GPU-s。562个资源样本，服务峰值5734998016B，主机
+可用内存最小105604833280B；high/max/OOM/kill、服务swap、外部compute和
+逃逸均0。原生context、service scope、请求reservation和专属工作区均释放。
+保留末尾已有的未await退休协程warning（D1031也存在）；它不抹去真实释放
+证据，也不将这项日志告警虚构成一次失败后重测。远端仍只有前后快照，不
+声称连续监控；早期资源快照为D1031的历史记录，已明确标注。
+
+完整回执：`paper_results/ieee_tc/p2_backend/d1035_3b_native_host_capacity_profile/completion.json`。
+manifest SHA c33175472fcc6739193808cdc7ffdbda4930693e6b297631efb28f3af9e409a7。
+worker与缓存小归档逐成员SHA核验通过，147旧保护项再次零变化。
+
+测量结束后使用既有compress_closed_main_outcomes入口无损压缩已结束D1022
+请求结果，双次解压SHA一致，释放236261376B；原证据保存在同路径.json.gz，
+回执`paper_results/ieee_tc/storage/d1035_closed_d1022_result_20261103.json`。
+未删除唯一内容、不改旧投稿、不在GPU测量时压缩；其他项目数据未动。
+
+D1036仅准备完整W2，14处结构差异限CPU容量、新画像身份/上下文和独占路径；
+实际dedicated配置的160/96严格载入通过。没有再跑短Full或重新生成数据。
+下一步备份后重新核查PLAN和资源，运行一次D1036；所有未完成范围不删减。

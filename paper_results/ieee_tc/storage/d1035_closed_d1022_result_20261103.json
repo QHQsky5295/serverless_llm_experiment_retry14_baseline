@@ -1,0 +1,44 @@
+{
+  "kind": "lossless_closed_outcome_compression_v1",
+  "created_unix": 1793689081.3789713,
+  "before": {
+    "available_bytes": 161076068352
+  },
+  "after": {
+    "available_bytes": 161312288768
+  },
+  "entries": [
+    {
+      "run": "d1022_20261102/d1022_3b_active_lora_w2_full",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1022_20261102/d1022_3b_active_lora_w2_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1022_3b_active_lora_w2_full.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1022_20261102/d1022_3b_active_lora_w2_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1022_3b_active_lora_w2_full.json.gz",
+      "source_sha256": "c4910ebfd3f3b61981f2df3c3fcd94233f5060d4b601167dbea8299acfcac317",
+      "audit_sha256": null,
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 103308324,
+        "size": 285793600,
+        "mtime_ns": 1793638175217661899,
+        "ctime_ns": 1793638175217661899,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 558200
+      },
+      "launch_pass": true,
+      "closed_failure_explicitly_allowed": false,
+      "launch_sha256": "4764fa0f3fb0a2b8bf1007acb8527448d53d3610dfec82dcaf4c1eb04755ea8c",
+      "archive_sha256": "c2ca5e4a5d4bfcccb61fba93483ab0d2c8c4105573462987143563ef76db7f7f",
+      "archive_bytes": 49530928,
+      "archive_allocated_bytes": 49537024,
+      "first_roundtrip_sha256": "c4910ebfd3f3b61981f2df3c3fcd94233f5060d4b601167dbea8299acfcac317",
+      "second_roundtrip_sha256": "c4910ebfd3f3b61981f2df3c3fcd94233f5060d4b601167dbea8299acfcac317",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 236261376
+    }
+  ],
+  "caveat": "Current source is preserved exactly in gzip. audit_sha256 mismatches are provenance caveats and are not promoted to reusable result identity.",
+  "protected": "weights, traces, adapter pools, environments, code and curated files unchanged.",
+  "source_archive_round_trip_verified": true
+}

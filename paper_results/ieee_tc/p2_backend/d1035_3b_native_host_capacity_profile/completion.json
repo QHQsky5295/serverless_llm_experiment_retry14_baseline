@@ -1,0 +1,74 @@
+{
+  "kind": "budget_derived_native_host_capacity_profile_completion_v1",
+  "source_attempt": "source1",
+  "source_commit": "2386e154859661a4d2847a8f491305714aa06ac9",
+  "passed": true,
+  "performance_result": false,
+  "numerical_correctness_qualified": false,
+  "ranking_eligible": false,
+  "requests": 423,
+  "bad_native_contract_requests": 0,
+  "service_classes": 160,
+  "preparation_classes": 96,
+  "service_samples": 415,
+  "preparation_samples": 332,
+  "remote_transfer_count": 423,
+  "remote_transfer_bytes": 981702550,
+  "server_client_transfers_matched": true,
+  "request_time_packing": false,
+  "cpu_entry_capacity": 110,
+  "gpu_lora_slots": 32,
+  "native_tensor_budget_bytes": 2147483648,
+  "startup_latency_ms": 113016.16508420557,
+  "native_init_seconds_rounded": 74.42,
+  "native_compilation_seconds_rounded": 32.12,
+  "physical_gpu_seconds": 553.6224774392322,
+  "native_worker_pid": 199332,
+  "startup_memory": {
+    "status": "miss",
+    "publication": "created",
+    "actual_kv_cache_memory_bytes": 8092388312,
+    "fingerprint": "ce4f36d667c009937a9c0d61c698bdcad221cf30302bf8a0b916f30ecbd9f720",
+    "receipt_persisted_in_physical_journal": true
+  },
+  "watchdog_samples": 562,
+  "service_memory_peak_bytes": 5734998016,
+  "host_mem_available_min_bytes": 105604833280,
+  "disk_available_min_bytes": 160805351424,
+  "memory_events": {
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0
+  },
+  "service_swap_peak_bytes": 0,
+  "foreign_compute_samples": 0,
+  "escaped_owned_samples": 0,
+  "native_gpu_context_release_confirmed": true,
+  "service_path_removed": true,
+  "workspaces_removed": true,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1035_20261103/source1.json",
+      "sha256": "5dd75fbd37f948adfe8d99322b0d158f27cc55967e1bcd44b1090d11eaa41880"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1035_20261103/source1_launch.json",
+      "sha256": "f1ae78e49c5cca74e4de3f3a2785987cd61940a8e3830eb6e57964b75071a4e6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1035_3b_native_host_capacity_profile/export/manifest.json",
+      "sha256": "c33175472fcc6739193808cdc7ffdbda4930693e6b297631efb28f3af9e409a7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1035_20261103/source1_worker_and_plan.tar.gz",
+      "sha256": "8048dc6c0ea962754a587083fc43c8811339bbf794feb21fdbd56f2ef4665c99"
+    }
+  ],
+  "limitations": [
+    "24 representative adapters do not fill or demonstrate reuse of 110 CPU entries; the complete W2 must test the mechanism.",
+    "This is a profile measurement, not full-workload SLO qualification or a cache-hit experiment.",
+    "No continuous remote CPU/RAM/interference monitor; historical before plus current after resource snapshots.",
+    "Existing final cleanup coroutine-not-awaited warning also occurs in D1031; actual native contexts, service scope and workspaces released. This warning is retained, not a performance failure erased by rerun."
+  ]
+}
