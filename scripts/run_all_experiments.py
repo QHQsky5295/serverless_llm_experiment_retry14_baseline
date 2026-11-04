@@ -173,6 +173,7 @@ try:
         ObservedRequestCost,
         Router,
         StaleReplicaRoutingSnapshot,
+        LastKnownRoutingSourceView,
     )
     from faaslora.coordination.autoscaler import ScalingMetrics, ScalingAction
     FAASLORA_EXPERIMENT_AVAILABLE = True
@@ -7784,6 +7785,8 @@ class ScenarioRunner:
         if self._preparation_profiles is not None and self._routing_policy != 'ieee_confirmed':
             raise ValueError('preparation profile requires IEEE source admission, not legacy routing')
         self._ieee_routing_epoch = 0
+        self._ieee_routing_source_view = LastKnownRoutingSourceView.from_config(cc)
+        self._ieee_routing_information_events = []
         self._ieee_source_observation_waves = {}
         self._ieee_source_observation_stats = {}
         # Candidate-only route observation optimization.  The default remains
@@ -9826,6 +9829,43 @@ class ScenarioRunner:
                 utilization=utilization)
         return tuple(rows), evidence
 
+    def _ieee_select_received_route(self, adapter_id, *, ieee_snapshot, source_evidence,
+                                    phase):
+        """Rank with an optional information view; execute from the received row.
+
+        No await separates the view, one real selection, and the returned live
+        source class. Shadow selection is pure and grants no resource ownership.
+        """
+        view = getattr(self, '_ieee_routing_source_view', None)
+        if view is None:
+            return self.router.select_instance_with_decision(
+                adapter_id, ieee_snapshot=ieee_snapshot)
+        received_choice = Router.select_ieee_snapshot(ieee_snapshot, self.router.service_bin_ms)
+        slots = {slot.instance_id: slot for slot in self.instance_pool.get_slots()}
+        if set(slots) != {row.replica_id for row in ieee_snapshot}:
+            raise StaleReplicaRoutingSnapshot('information view owner membership changed')
+        now = time.monotonic()
+        ranking, candidates = view.project(ieee_snapshot, source_evidence,
+            estimate=lambda rid, key: slots[rid].service_cost_model.estimate(key), now=now)
+        slot, ranked_decision = self.router.select_instance_with_decision(
+            adapter_id, ieee_snapshot=ranking)
+        selected_id = ranked_decision.replica_id if ranked_decision is not None else None
+        received_id = received_choice.replica_id if received_choice is not None else None
+        information = dict(kind=view.policy, hold_interval_s=view.hold_s, phase=phase,
+            request_id=ieee_snapshot[0].request_id if ieee_snapshot else None,
+            adapter_id=adapter_id, observed_monotonic_s=now, candidates=candidates,
+            received_view_choice=received_id, ranking_view_choice=selected_id,
+            choice_disagreement=received_id != selected_id,
+            counterfactual_latency_generated=False, executable_reference_granted=False)
+        self._ieee_routing_information_events.append(information)
+        if slot is None:
+            return None, None
+        # The request keeps local evidence even if another coroutine selects
+        # before its next await. The held class never reaches admission/EWMA.
+        source_evidence[selected_id]['routing_information_view'] = information
+        decision = next(row for row in ieee_snapshot if row.replica_id == selected_id)
+        return slot, decision
+
     def _slot_can_accept_runtime_request(
         self,
         slot: Optional[Any],
@@ -10284,6 +10324,8 @@ class ScenarioRunner:
             result['ieee_initial_deployment'] = copy.deepcopy(self._ieee_initial_deployment)
         if hasattr(self, '_ieee_control_events'):
             result['ieee_control_events'] = copy.deepcopy(self._ieee_control_events)
+        if getattr(self, '_ieee_routing_source_view', None) is not None:
+            result['ieee_routing_information_events'] = copy.deepcopy(self._ieee_routing_information_events)
         if hasattr(self, '_ieee_source_observation_stats'):
             result['ieee_source_observation_stats'] = dict(self._ieee_source_observation_stats)
         if hasattr(self, '_ieee_runtime_quarantine_events'):
@@ -19408,8 +19450,13 @@ class ScenarioRunner:
                 record['reason'] = 'snapshot_membership_rejected'
                 return record
             snapshot, source_evidence = committed
-            slot, decision = self.router.select_instance_with_decision(
-                trace.adapter_id, ieee_snapshot=snapshot)
+            slot, decision = self._ieee_select_received_route(
+                trace.adapter_id, ieee_snapshot=snapshot, source_evidence=source_evidence,
+                phase='arrival_prefetch')
+            if slot is not None:
+                information = source_evidence.get(slot.instance_id, {}).get('routing_information_view')
+                if information is not None:
+                    record['routing_information_view'] = information
             if slot is None or decision is None:
                 record['reason'] = 'no_feasible_confirmed_route'
                 return record
@@ -19494,8 +19541,9 @@ class ScenarioRunner:
             if committed is None:
                 return
             snapshot, sources = committed
-            slot, decision = self.router.select_instance_with_decision(
-                trace.adapter_id, ieee_snapshot=snapshot)
+            slot, decision = self._ieee_select_received_route(
+                trace.adapter_id, ieee_snapshot=snapshot, source_evidence=sources,
+                phase='preadmission_wait')
             if slot is None or decision is None:
                 return
             tier = getattr(getattr(decision, 'service_class', None), 'tier', None)
@@ -19592,8 +19640,9 @@ class ScenarioRunner:
                             source_evidence=source_evidence, decision=selected_decision,
                             slot=selected_slot)
             fresh_snapshot, fresh_sources = committed
-            fresh_slot, fresh_decision = self.router.select_instance_with_decision(
-                trace.adapter_id, ieee_snapshot=fresh_snapshot)
+            fresh_slot, fresh_decision = self._ieee_select_received_route(
+                trace.adapter_id, ieee_snapshot=fresh_snapshot, source_evidence=fresh_sources,
+                phase='prefetch_reconciliation')
             if fresh_slot is None or fresh_decision is None:
                 record['reason'] = 'fresh_snapshot_no_feasible_route'
                 return dict(updated=False, record=record, snapshot=snapshot,
@@ -19976,8 +20025,9 @@ class ScenarioRunner:
                     continue
                 snapshot, source_evidence = committed
                 try:
-                    slot, selected_ieee_decision = self.router.select_instance_with_decision(
-                        adapter_id, ieee_snapshot=snapshot
+                    slot, selected_ieee_decision = self._ieee_select_received_route(
+                        adapter_id, ieee_snapshot=snapshot, source_evidence=source_evidence,
+                        phase='request_dispatch'
                     )
                 except StaleReplicaRoutingSnapshot:
                     # The owner set changed after the immutable view was
@@ -20060,6 +20110,13 @@ class ScenarioRunner:
                         candidates=[asdict(row) | {'active_adapters': sorted(row.active_adapters)}
                                     for row in snapshot], sources=source_evidence,
                         selected_reference_acquired=False)
+                    information = source_evidence[slot.instance_id].get('routing_information_view')
+                    if information is not None:
+                        # Candidates remain the received source rows used by
+                        # acquisition. Never label the held ranking as a live
+                        # physical source or let an old analyzer assume Full.
+                        record['kind'] = 'ieee_predecision_last_known_source_view_v1'
+                        record['ranking_information_view'] = information
                     _reservation.ieee_routing_evidence = record
                     _reservation.gpu_reference_evidence['routing_snapshot'] = record
                     _reservation.gpu_reference_evidence['prior_routing_attempts'] = list(
@@ -26657,7 +26714,8 @@ async def _finish_ieee_main_scenario(service, stack, claims, primary_error):
             '_ieee_native_host_preparations','_ieee_control_events',
             '_ieee_proactive_diagnostic',
             '_ieee_source_observation_stats','_ieee_route_cache_stats',
-            '_ieee_runtime_quarantine_events','_ieee_scalein_events')})
+            '_ieee_runtime_quarantine_events','_ieee_scalein_events',
+            '_ieee_routing_information_events')})
     if coordination_after_shutdown is not None:
         data['coordination_after_shutdown'] = coordination_after_shutdown
     if cpu_frontend_preparation is not None:

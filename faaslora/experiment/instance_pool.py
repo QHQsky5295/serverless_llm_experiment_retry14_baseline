@@ -10,7 +10,7 @@ import math
 import hashlib
 import json
 from bisect import bisect_left
-from dataclasses import dataclass, field, replace
+from dataclasses import asdict, dataclass, field, replace
 from threading import RLock
 from types import MappingProxyType
 from pathlib import Path
@@ -1004,6 +1004,118 @@ class ReplicaRoutingSnapshot:
         return (math.floor(self.service.total_ms / delta_ms), self.admitted_requests,
                 self.pending_loads, self.gpu_utilization_pct, self.last_dispatch_at,
                 self.replica_id)
+
+
+@dataclass(frozen=True)
+class HeldRoutingSource:
+    """Ranking information only: no lease, path, tensor or execution authority."""
+    tier: str
+    representation: str
+    footprint_bin: int
+    published_at: float
+    native_captured_at: float
+    file_captured_at: float
+    source_native: bool
+
+
+class LastKnownRoutingSourceView:
+    """A1/A3 opt-in sample-and-hold view, independent of physical residency.
+
+    Sampling is request-triggered, not a simulated background broadcast. Only
+    source dimensions are held; feasibility, Q and the current cost estimator
+    remain live. A ranked row must never authorize an executable reference.
+    """
+    policy = 'last_known_source_sample_hold_v1'
+
+    def __init__(self, hold_s: float):
+        if type(hold_s) not in (int, float) or not math.isfinite(hold_s) or hold_s < 0:
+            raise ValueError('source hold interval must be finite and nonnegative')
+        self.hold_s = float(hold_s)
+        self._held: dict[tuple, HeldRoutingSource] = {}
+
+    @classmethod
+    def from_config(cls, config: Mapping):
+        policy = config.get('ieee_routing_information_view')
+        hold = config.get('ieee_routing_source_hold_s')
+        if policy is None:
+            if hold is not None:
+                raise ValueError('source hold interval requires an explicit information view')
+            return None
+        if policy != cls.policy:
+            raise ValueError('unknown IEEE routing information view')
+        if (config.get('routing_policy') != 'ieee_confirmed'
+                or config.get('ieee_selection_strategy', 'service_bins') != 'service_bins'):
+            raise ValueError('LastKnown requires unchanged IEEE service-bin routing')
+        view = cls(hold)
+        if view.hold_s <= 0:
+            raise ValueError('configured LastKnown hold interval must be positive')
+        return view
+
+    def project(self, snapshot: tuple[ReplicaRoutingSnapshot, ...], sources: Mapping,
+                *, estimate, now: float):
+        """Return separate ranking rows and evidence; never mutate received rows."""
+        if not isinstance(snapshot, tuple) or not math.isfinite(now) or now <= 0:
+            raise ValueError('immutable snapshot and positive monotonic time required')
+        owners = {}
+        for row in snapshot:
+            evidence = sources[row.replica_id]
+            native_owner = evidence['native_owner_id']
+            if not isinstance(native_owner, str) or not native_owner:
+                raise ValueError('ranking view requires physical owner identity')
+            owners[row.replica_id] = (row.replica_id, native_owner, evidence['file_owner_id'])
+        # Retired/replaced owners cannot lend their history to a new worker.
+        live = set(owners.values())
+        self._held = {key: value for key, value in self._held.items() if key[:3] in live}
+        ranked, records = [], []
+        for row in snapshot:
+            if not row.feasible or row.adapter_id is None:
+                ranked.append(row)
+                records.append(dict(replica_id=row.replica_id, feasible=row.feasible,
+                                    reason='infeasible' if not row.feasible else 'backbone'))
+                continue
+            evidence, current = sources[row.replica_id], row.service_class
+            key = (*owners[row.replica_id], row.adapter_id)
+            held = self._held.get(key)
+            if held is not None and now < held.published_at:
+                raise ValueError('routing information clock moved backwards')
+            reason = 'bootstrap' if held is None else 'hold'
+            if held is None or now - held.published_at >= self.hold_s:
+                if held is not None:
+                    reason = 'refresh'
+                captured = (evidence['native_captured_monotonic_s'],
+                            evidence['file_captured_monotonic_s'])
+                if any(type(t) not in (int, float) or not math.isfinite(t)
+                       or not 0 < t <= now for t in captured):
+                    raise ValueError('ranking view lacks causal source timestamps')
+                native = evidence['source']['native']
+                if type(native) is not bool:
+                    raise ValueError('source kind must be explicit')
+                held = HeldRoutingSource(current.tier, current.representation,
+                    current.footprint_bin, now, *captured, native)
+                self._held[key] = held
+            visible = replace(current, tier=held.tier, representation=held.representation,
+                              footprint_bin=held.footprint_bin)
+            # Reuse the already live estimate when the class is unchanged.
+            # Otherwise read the current EWMA of the held source class, never
+            # store/freeze estimator values or update observations here.
+            service = row.service if visible == current else estimate(row.replica_id, visible)
+            ranked.append(replace(row, service_class=visible, service=service))
+            records.append(dict(replica_id=row.replica_id, feasible=True, reason=reason,
+                owner_identity=list(owners[row.replica_id]),
+                received_class=asdict(current), ranking_class=asdict(visible),
+                received_service=asdict(row.service), ranking_service=asdict(service),
+                held_source=asdict(held), controller_hold_age_s=now-held.published_at,
+                native_observation_age_s=now-held.native_captured_at,
+                file_observation_age_s=now-held.file_captured_at,
+                source_observation_age_s=now-(held.native_captured_at if held.source_native
+                                              else held.file_captured_at),
+                oldest_input_age_s=now-min(held.native_captured_at,held.file_captured_at),
+                tier_disagreement=visible.tier != current.tier,
+                source_class_disagreement=visible != current,
+                admitted_requests=row.admitted_requests, pending_loads=row.pending_loads,
+                gpu_utilization_pct=row.gpu_utilization_pct,
+                last_dispatch_at=row.last_dispatch_at, available_slots=row.available_slots))
+        return tuple(ranked), records
 
 
 @dataclass

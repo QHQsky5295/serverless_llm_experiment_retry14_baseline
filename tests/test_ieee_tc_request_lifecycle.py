@@ -1840,6 +1840,51 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
             if key.tier == 'gpu':
                 self.assertEqual(slot.service_cost_model.sample_counts(key), dict(d_ms=0, t_ms=0, o_ms=0))
 
+    def test_last_known_gpu_hint_cannot_authorize_a_changed_source_or_zero_preparation(self):
+        from faaslora.experiment.instance_pool import LastKnownRoutingSourceView
+        runner, slot, trace, plan, owner, rpc = self.build('gpu')
+        runner._ieee_routing_source_view = LastKnownRoutingSourceView(.5)
+        runner._ieee_routing_information_events = []
+        attempts = []
+        async def invalidate(*, operation, **kwargs):
+            if operation == 'demand_load_and_acquire':
+                attempts.append(kwargs)
+                if len(attempts) == 1:
+                    owner.manager.deactivate(InferenceEngine._lora_int_id(trace.adapter_id))
+            return await rpc(operation=operation, **kwargs)
+        slot.engine.ieee_gpu_reference.side_effect = invalidate
+        result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertTrue(result.success,result.error)
+        self.assertEqual(runner.router.selection_count,2)
+        self.assertEqual(result.readiness_tier_before_dispatch,'host')
+        evidence=result.gpu_reference_evidence
+        self.assertEqual(len(evidence['prior_routing_attempts']),1)
+        snap=evidence['routing_snapshot']
+        self.assertEqual(snap['kind'],'ieee_predecision_last_known_source_view_v1')
+        self.assertEqual(snap['candidates'][0]['service_class']['tier'],'host')
+        info=snap['ranking_information_view']['candidates'][0]
+        self.assertEqual(info['reason'],'hold')
+        self.assertEqual(info['ranking_class']['tier'],'gpu')
+        self.assertEqual(evidence['service_intervals']['service_class']['tier'],'host')
+        self.assertEqual(owner.snapshot()['live_leases'],0)
+        self.assertEqual(owner.snapshot()['live_host_source_leases'],0)
+        self.assertEqual(slot.active_requests,0)
+        for key in slot.service_cost_model._profiles:
+            if key.tier=='gpu':
+                self.assertEqual(slot.service_cost_model.sample_counts(key),dict(d_ms=0,t_ms=0,o_ms=0))
+        runner._resolve_lora.assert_not_awaited()
+
+    def test_last_known_cancellation_reuses_actual_host_release_contract(self):
+        from faaslora.experiment.instance_pool import LastKnownRoutingSourceView
+        build=self.build
+        def enabled(tier):
+            values=build(tier)
+            values[0]._ieee_routing_source_view=LastKnownRoutingSourceView(.5)
+            values[0]._ieee_routing_information_events=[]
+            return values
+        with patch.object(self,'build',side_effect=enabled):
+            self.test_cancel_after_host_admission_does_not_invent_preparation_or_token_intervals()
+
     def test_admission_class_uses_live_post_accept_count_after_host_guard(self):
         runner, slot, trace, plan, owner, rpc = self.build('host')
         slot.active_requests = 1  # Another backbone request ends during native RPC.

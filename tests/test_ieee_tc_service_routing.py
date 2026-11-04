@@ -15,7 +15,7 @@ from faaslora.experiment.instance_pool import (
     InstancePool, ReplicaRoutingSnapshot, Router, ServiceClassBins,
     ServiceComponents, ServiceCostModel, ServiceIntervalObservation,
     ServiceObservationClass, NativeSourceSnapshot, InstanceSlot, FrozenServiceProfiles,
-    confirmed_source_class,
+    confirmed_source_class, LastKnownRoutingSourceView,
 )
 
 
@@ -793,6 +793,163 @@ class CommittedRoutingContract(unittest.TestCase):
         for delta in (0, -1, math.inf, math.nan):
             with self.assertRaises(ValueError):
                 Router.select_ieee_snapshot((), delta)
+
+
+class LastKnownRoutingContract(unittest.TestCase):
+    """Synthetic information ablation; no counterfactual latency or GPU work."""
+
+    @staticmethod
+    def sources(rows, at=9., owner='worker'):
+        return {r.replica_id: dict(native_owner_id=owner+'-'+r.replica_id,
+            file_owner_id='file-owner', native_captured_monotonic_s=at,
+            file_captured_monotonic_s=at,
+            source=dict(native=r.service_class.tier in ('gpu', 'host')))
+            for r in rows}
+
+    def test_opt_in_configuration_is_explicit_and_default_unchanged(self):
+        self.assertIsNone(LastKnownRoutingSourceView.from_config({}))
+        config = dict(routing_policy='ieee_confirmed',
+            ieee_routing_information_view=LastKnownRoutingSourceView.policy,
+            ieee_routing_source_hold_s=.5)
+        self.assertEqual(LastKnownRoutingSourceView.from_config(config).hold_s, .5)
+        for change in ({'ieee_routing_information_view':'unknown'},
+                       {'ieee_routing_source_hold_s':None}, {'ieee_routing_source_hold_s':0},
+                       {'ieee_routing_source_hold_s':True}, {'ieee_routing_source_hold_s':math.nan},
+                       {'routing_policy':'least_connections'}, {'ieee_selection_strategy':'load_only'}):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                LastKnownRoutingSourceView.from_config(config | change)
+        with self.assertRaises(ValueError):
+            LastKnownRoutingSourceView.from_config({'ieee_routing_source_hold_s':.5})
+
+    def test_AA_bootstrap_and_zero_hold_do_not_mutate_or_estimate_twice(self):
+        rows = (candidate('b'), candidate('a'))
+        sources = self.sources(rows)
+        saved = copy.deepcopy(sources)
+        def unexpected(*args):
+            self.fail('unchanged class must reuse the received live estimate')
+        for interval in (0., .5):
+            view = LastKnownRoutingSourceView(interval)
+            for now in (10.,10.25,10.5):
+                ranked, records = view.project(rows,sources,estimate=unexpected,now=now)
+                self.assertEqual(ranked,rows)
+                self.assertEqual(Router.select_ieee_snapshot(ranked,10),
+                                 Router.select_ieee_snapshot(rows,10))
+                self.assertEqual(sources,saved)
+                self.assertTrue(all(not r['source_class_disagreement'] for r in records))
+
+    def test_only_source_dimensions_are_held_and_cost_reads_current_EWMA(self):
+        view = LastKnownRoutingSourceView(.5)
+        old = candidate(service_class=klass('gpu'),service=ServiceComponents(0,20,30))
+        view.project((old,),self.sources((old,)),estimate=None,now=10.)
+        key = dataclasses.replace(klass('remote'),prompt_bin=1,output_limit_bin=2,
+                                  admitted_bin=3,footprint_bin=4)
+        current = candidate(service_class=key,service=ServiceComponents(50,60,70),
+            admitted_requests=3,pending_loads=2,gpu_utilization_pct=25.,last_dispatch_at=9.9,
+            active_adapters=frozenset({'lora-a','other'}))
+        held_key = dataclasses.replace(key,tier='gpu',footprint_bin=0)
+        costs = ServiceCostModel({held_key:ServiceComponents(0,100,200)},beta=.5,profile_id='fixture')
+        calls = []
+        def estimate(rid,k):
+            calls.append(k)
+            return costs.estimate(k)
+        first, records = view.project((current,),self.sources((current,),at=10.1),
+                                      estimate=estimate,now=10.2)
+        self.assertEqual(calls,[held_key])
+        self.assertEqual(first[0],dataclasses.replace(current,service_class=held_key,
+                                                    service=ServiceComponents(0,100,200)))
+        # Replace the estimator, not the stored source, to witness no frozen cost.
+        second,_ = view.project((current,),self.sources((current,),at=10.1),
+            estimate=lambda rid,k:ServiceComponents(0,300,400),now=10.3)
+        self.assertEqual(second[0].service,ServiceComponents(0,300,400))
+        self.assertEqual(costs.sample_counts(held_key),dict(d_ms=0,t_ms=0,o_ms=0))
+        self.assertAlmostEqual(records[0]['controller_hold_age_s'],.2)
+        self.assertAlmostEqual(records[0]['source_observation_age_s'],1.2)
+        refreshed,records = view.project((current,),self.sources((current,),at=10.4),
+                                        estimate=estimate,now=10.5)
+        self.assertEqual(refreshed,(current,))
+        self.assertEqual(records[0]['reason'],'refresh')
+
+    def test_owner_replacement_retirement_and_unseen_adapter_bootstrap(self):
+        view = LastKnownRoutingSourceView(.5)
+        row = candidate()
+        view.project((row,),self.sources((row,)),estimate=None,now=10.)
+        _, records = view.project((row,),self.sources((row,),owner='replacement'),estimate=None,now=10.1)
+        self.assertEqual(records[0]['reason'],'bootstrap')
+        self.assertEqual(len(view._held),1)
+        new = dataclasses.replace(row,adapter_id='unseen')
+        _, records = view.project((new,),self.sources((new,)),estimate=None,now=10.2)
+        self.assertEqual(records[0]['reason'],'bootstrap')
+        self.assertEqual(view.project((),{},estimate=None,now=10.3),((),[]))
+        self.assertEqual(view._held,{})
+
+    def test_stale_hit_cannot_change_feasibility(self):
+        view = LastKnownRoutingSourceView(.5)
+        hit = candidate(service_class=klass('gpu'),service=ServiceComponents(0,1,2))
+        view.project((hit,),self.sources((hit,)),estimate=None,now=10.)
+        for changes in (dict(available_slots=0),dict(runtime_ready=False),
+                        dict(active_adapters=frozenset({'other'}),max_active_loras=1)):
+            invalid = dataclasses.replace(hit,**changes)
+            ranked,records = view.project((invalid,),self.sources((invalid,)),estimate=None,now=10.1)
+            self.assertIs(ranked[0],invalid)
+            self.assertIsNone(Router.select_ieee_snapshot(ranked,10))
+            self.assertEqual(records[0]['reason'],'infeasible')
+
+    def test_future_or_reversed_clock_cannot_claim_causal_observation(self):
+        view = LastKnownRoutingSourceView(.5)
+        rows=(candidate(),)
+        with self.assertRaises(ValueError):
+            view.project(rows,self.sources(rows,at=11),estimate=None,now=10.)
+        view.project(rows,self.sources(rows),estimate=None,now=10.)
+        with self.assertRaises(ValueError):
+            view.project(rows,self.sources(rows),estimate=None,now=9.5)
+
+    def test_one_formal_selection_returns_original_row_not_stale_execution_authority(self):
+        from scripts.run_all_experiments import ScenarioRunner
+        from unittest.mock import Mock
+        view = LastKnownRoutingSourceView(.5)
+        hit = candidate('a',service_class=klass('gpu'),service=ServiceComponents(0,1,2))
+        other = candidate('b',service_class=klass('host'))
+        before=(hit,other)
+        view.project(before,self.sources(before),estimate=None,now=10.)
+        current=(candidate('a',service=ServiceComponents(500,20,30)),other)
+        slots=[SimpleNamespace(instance_id=r.replica_id,
+            service_cost_model=SimpleNamespace(estimate=Mock(return_value=hit.service))) for r in current]
+        runner=ScenarioRunner.__new__(ScenarioRunner)
+        runner.instance_pool=SimpleNamespace(get_slots=lambda:slots)
+        runner.router=Router(runner.instance_pool,'ieee_confirmed',service_bin_ms=10)
+        runner._ieee_routing_source_view=view
+        runner._ieee_routing_information_events=[]
+        for phase in ('arrival_prefetch','preadmission_wait','prefetch_reconciliation','request_dispatch'):
+            sources=self.sources(current,at=10.1)
+            with patch('scripts.run_all_experiments.time.monotonic',return_value=10.2):
+                slot,decision=runner._ieee_select_received_route('lora-a',ieee_snapshot=current,
+                    source_evidence=sources,phase=phase)
+            self.assertIs(slot,slots[0])
+            self.assertIs(decision,current[0])
+            self.assertEqual(decision.service_class.tier,'remote')
+            self.assertEqual(runner.router.last_ieee_decision.service_class.tier,'gpu')
+            event=sources['a']['routing_information_view']
+            self.assertTrue(event['choice_disagreement'])
+            self.assertEqual(event['received_view_choice'],'b')
+            self.assertFalse(event['executable_reference_granted'])
+            self.assertFalse(event['counterfactual_latency_generated'])
+        self.assertEqual(runner.router.selection_count,4)
+        self.assertEqual(len(runner._ieee_routing_information_events),4)
+
+    def test_all_actual_routing_callers_share_the_information_boundary(self):
+        import ast
+        import inspect
+        import textwrap
+        from scripts.run_all_experiments import ScenarioRunner
+        names=('_arrived_route_confirmed_file_preparation',
+            '_maybe_wait_arrival_prefetch_before_admission',
+            '_reconcile_arrival_prefetch_route','_exec_request_in_reservation')
+        for name in names:
+            tree=ast.parse(textwrap.dedent(inspect.getsource(getattr(ScenarioRunner,name))))
+            calls=[n.func.attr for n in ast.walk(tree) if isinstance(n,ast.Call)
+                   and isinstance(n.func,ast.Attribute)]
+            self.assertEqual(calls.count('_ieee_select_received_route'),1,name)
+            self.assertNotIn('select_instance_with_decision',calls,name)
 
 
 class LoadOnlyRoutingContract(unittest.TestCase):

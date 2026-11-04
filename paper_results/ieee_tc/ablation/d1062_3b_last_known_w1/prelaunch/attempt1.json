@@ -1,0 +1,56 @@
+{
+  "passed": true,
+  "tests_run": 26,
+  "names": [
+    "tests.test_ieee_tc_service_routing.LastKnownRoutingContract",
+    "tests.test_ieee_tc_service_routing.CommittedRoutingContract",
+    "tests.test_ieee_tc_request_lifecycle.SelectedSourceAdmissionIntegration.test_last_known_gpu_hint_cannot_authorize_a_changed_source_or_zero_preparation",
+    "tests.test_ieee_tc_request_lifecycle.SelectedSourceAdmissionIntegration.test_last_known_cancellation_reuses_actual_host_release_contract",
+    "tests.test_ieee_tc_request_lifecycle.SelectedSourceAdmissionIntegration.test_ablation_routes_keep_selected_source_reference_and_release_contract",
+    "tests.test_ieee_tc_request_lifecycle.SelectedSourceAdmissionIntegration.test_changed_gpu_source_reselects_whole_router_and_does_not_record_gpu_zero",
+    "tests.test_ieee_tc_request_lifecycle.SelectedSourceAdmissionIntegration.test_route_confirmed_wait_preparation_is_not_started_for_local_source",
+    "tests.test_ieee_tc_request_lifecycle.SelectedSourceAdmissionIntegration.test_route_confirmed_arrival_pre_admission_waits_before_serve",
+    "tests.test_ieee_tc_request_lifecycle.SelectedSourceAdmissionIntegration.test_completed_arrival_prefetch_reconciles_confirmed_nvme_tier",
+    "tests.test_ieee_tc_request_lifecycle.SelectedSourceAdmissionIntegration.test_completed_arrival_prefetch_may_reroute_to_fresh_confirmed_nonremote_replica",
+    "tests.test_ieee_tc_request_lifecycle.SelectedSourceAdmissionIntegration.test_nonblocking_arrival_prefetch_does_not_wait_for_pending_task",
+    "tests.test_ieee_tc_request_lifecycle.SelectedSourceAdmissionIntegration.test_cancel_after_host_admission_does_not_invent_preparation_or_token_intervals"
+  ],
+  "failures": 0,
+  "errors": 0,
+  "elapsed_s": 9.482098460197449,
+  "sources": {
+    "scripts/run_all_experiments.py": "29f93596c0791b98342a5cea383c40b761976aa39e9812fa2a11c6cf1ef11260",
+    "faaslora/experiment/instance_pool.py": "3a034a5227d9178e38c1050f8302ba1a3d9964ee264dd2b247c8619dcb854f1e",
+    "tests/test_ieee_tc_service_routing.py": "9f97ad8e719f14fb0a055f97c0af16e9abcdadcea2dfcf1183ecaf2be038843f",
+    "tests/test_ieee_tc_request_lifecycle.py": "fb53b1740f2c97b471a5d642afae523c9e8da2ff9b132cb133eccdefd6a416f2"
+  },
+  "identity": {
+    "unit": "primelora-tc-aux-d1062000000000000000000000000002.scope",
+    "invocation_id": "28ec9b1d8c6f49bdb1d8a0082b1a092d",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d1062000000000000000000000000002.scope",
+    "inode": 39084825
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d1062000000000000000000000000002.scope",
+    "memory.current": 664514560,
+    "memory.peak": 680415232,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 9673470\nuser_usec 8349322\nsystem_usec 1324148\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "performance_test": false
+}

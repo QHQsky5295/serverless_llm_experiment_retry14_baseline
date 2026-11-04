@@ -1,0 +1,118 @@
+{
+  "passed": true,
+  "performance_result": false,
+  "variant": "LastKnown",
+  "raw_scenario": "tc_ieee_full",
+  "parent_variant": "Full",
+  "parent_result": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/full4000.json",
+    "sha256": "9efa154f7d9322e6ccac94541a7d323064d2bd868ee8642c8245755c42fde6e1",
+    "bytes": 53597
+  },
+  "parent_qualification": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1047_same_version_w1/prelaunch/qualification.json",
+    "sha256": "1539d442d9083d3061904deb3d5678010c80ac252564bdac0153cc4097fb910d",
+    "bytes": 6636
+  },
+  "config": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261104_d1062_3b_last_known_w1.yaml",
+    "sha256": "9b9273a8d254ac394af34ea09f4820e95832bdbf0d45c945db347a967f1792b7",
+    "bytes": 6242
+  },
+  "tests": 26,
+  "analyzer_tests_reused": 25,
+  "sources": {
+    "scripts/run_all_experiments.py": "29f93596c0791b98342a5cea383c40b761976aa39e9812fa2a11c6cf1ef11260",
+    "faaslora/experiment/instance_pool.py": "3a034a5227d9178e38c1050f8302ba1a3d9964ee264dd2b247c8619dcb854f1e",
+    "tests/test_ieee_tc_service_routing.py": "9f97ad8e719f14fb0a055f97c0af16e9abcdadcea2dfcf1183ecaf2be038843f",
+    "tests/test_ieee_tc_request_lifecycle.py": "fb53b1740f2c97b471a5d642afae523c9e8da2ff9b132cb133eccdefd6a416f2",
+    "scripts/ieee_tc/audit_d703_3b_full.py": "a2253619a308475c171499a2fea7d7d202d70b7c7d99e759db5e353b70ebfaf0",
+    "tests/test_ieee_tc_diagnostic_plot.py": "722f480a930793a55bcf22008be3ab12b5adeeabc1f997ac7c1ff96548d42c0d",
+    "scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh": "28ee05d34392c4b35a98575f9a5bc95c37598b09c50e388d165441b98e4cebe4"
+  },
+  "reused_analyzer_tests": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1057_3b_elastic_only_w1/prelaunch/analyzer_tests.json",
+    "sha256": "54589047e630869285b12a85ba64273c60d05d17ed13154443634e034dfdd74a",
+    "bytes": 1908
+  },
+  "configuration_equal_except_information_view_and_exclusive_paths": true,
+  "information_view": "last_known_source_sample_hold_v1",
+  "hold_interval_s": 0.5,
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "workload": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "view_sha256": "8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W1",
+    "rate_scale": 1.0
+  },
+  "metric_protocol": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+    "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "bytes": 18511
+  },
+  "single_run_protocol": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+    "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+    "bytes": 4135
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_protected": {
+    "configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "docs/ieee_tc/EXECUTION_STATUS.md": "41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374"
+  },
+  "identity": {
+    "unit": "primelora-tc-aux-d1062000000000000000000000000003.scope",
+    "invocation_id": "c537daca896547dda07fc87d7cc231b2",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d1062000000000000000000000000003.scope",
+    "inode": 39085815
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d1062000000000000000000000000003.scope",
+    "memory.current": 678436864,
+    "memory.peak": 708382720,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 10205634\nuser_usec 8617492\nsystem_usec 1588142\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "performance_replay_started": false,
+  "n_correct": null,
+  "formal_ranking_eligible": false,
+  "launcher_pretest_failure": {
+    "reason": "scope identifier length did not match owned UUID regex",
+    "tests_started": false,
+    "service_started": false,
+    "corrected_without_policy_change": true
+  },
+  "limitations": [
+    "Known source42 development workload; one observation, no CI.",
+    "CPU tests do not demonstrate performance or real mechanism trigger counts.",
+    "Independent full numerical LoRA correctness remains unproven.",
+    "LastKnown received and ranking snapshots are separate; legacy Full-only routing analyzer must not infer a winner from received rows.",
+    "Existing remote service reused; continuous remote monitoring remains unavailable.",
+    "Shared k3s unchanged; completed HydraServe isolated adaptation is not restarted."
+  ]
+}

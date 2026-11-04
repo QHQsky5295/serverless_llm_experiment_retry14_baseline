@@ -1,0 +1,89 @@
+"""D1062: reuse D1061 prelaunch provenance format for the LastKnown boundary."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import yaml
+
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+OUT=ROOT/'paper_results/ieee_tc/ablation/d1062_3b_last_known_w1/prelaunch'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+from faaslora.datasets.workload_generator import FrozenReplayPlan
+from faaslora.experiment.instance_pool import LastKnownRoutingSourceView
+
+def read(path): return json.loads(path.read_text())
+def ref(path): return dict(path=str(path),sha256=p.digest(path),bytes=path.stat().st_size)
+def save(path,value):
+    with path.open('x') as f:
+        json.dump(value,f,indent=2,allow_nan=False);f.write('\n')
+
+identity=p.scope_identity(p.cg_path().name)
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+for name,value in [('memory.high',3*p.GIB),('memory.max',4*p.GIB),('memory.swap.max',0)]:
+    assert (p.cg_path()/name).read_text().strip()==str(value)
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+parent_qualification=ROOT/'paper_results/ieee_tc/p2_backend/d1047_same_version_w1/prelaunch/qualification.json'
+prior=read(parent_qualification)
+parent_metric=ROOT/'paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/full4000.json'
+assert p.digest(parent_metric)=='9efa154f7d9322e6ccac94541a7d323064d2bd868ee8642c8245755c42fde6e1'
+view=FrozenReplayPlan.load(prior['frozen_views']['W1']['source_path'],profile='W1').identity()
+assert view['count']==view['source_count']==4000
+for key in ('source_sha256','view_sha256'):
+    assert view[key]==prior['frozen_views']['W1'][key]
+test=read(RAW/'attempt1.json')
+assert test['passed'] and test['tests_run']==26
+assert not Path(test['identity']['path']).exists()
+assert not any(test['resources']['memory.events'].values())
+assert test['resources']['memory.swap.current']==0
+analysis_path=ROOT/'paper_results/ieee_tc/ablation/d1057_3b_elastic_only_w1/prelaunch/analyzer_tests.json'
+analysis=read(analysis_path)
+assert analysis['passed'] and analysis['pytest_exit_code']==analysis['bash_syntax_returncode']==0
+sources={**test['sources'],**analysis['sources']}
+for name,sha in sources.items(): assert p.digest(ROOT/name)==sha,name
+config=ROOT/'configs/ieee_tc/20261104_d1062_3b_last_known_w1.yaml'
+candidate=yaml.safe_load(config.read_text())
+parent=yaml.safe_load((ROOT/'configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml').read_text())
+assert LastKnownRoutingSourceView.from_config(candidate['resource_coordination']).hold_s==.5
+for key,value in [('ieee_routing_information_view','last_known_source_sample_hold_v1'),
+                  ('ieee_routing_source_hold_s',.5)]:
+    assert candidate['resource_coordination'].pop(key)==value
+    assert key not in parent['resource_coordination']
+for c in (candidate,parent):
+    del c['experiment']['output_dir'];del c['storage']['nvme_cache_dir'];del c['storage']['host_cache_dir']
+assert candidate==parent
+protected=p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))
+assert protected['pass'] and protected['entry_count']==147
+user_protected={
+    'configs/generated/lora_manifest_1000.json':'3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df',
+    'docs/ieee_tc/EXECUTION_STATUS.md':'41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374'}
+for name,sha in user_protected.items(): assert p.digest(ROOT/name)==sha,name
+OUT.mkdir(parents=True,exist_ok=False)
+for name in ('targeted_tests.py','attempt1.json','attempt1.txt','curate.py'):
+    with (OUT/(name+'.snapshot' if name.endswith('.py') else name)).open('xb') as f:
+        f.write((RAW/name).read_bytes())
+save(OUT/'qualification.json',dict(passed=True,performance_result=False,
+    variant='LastKnown',raw_scenario='tc_ieee_full',parent_variant='Full',
+    parent_result=ref(parent_metric),parent_qualification=ref(parent_qualification),
+    config=ref(config),tests=26,analyzer_tests_reused=25,sources=sources,
+    reused_analyzer_tests=ref(analysis_path),
+    configuration_equal_except_information_view_and_exclusive_paths=True,
+    information_view='last_known_source_sample_hold_v1',hold_interval_s=.5,
+    plan_sha256=p.check_plan(),workload=view,
+    metric_protocol=ref(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+    single_run_protocol=ref(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md'),
+    protected=protected,user_protected=user_protected,identity=identity,
+    resources=p.cgroup_snapshot(p.cg_path()),performance_replay_started=False,
+    n_correct=None,formal_ranking_eligible=False,
+    launcher_pretest_failure={'reason':'scope identifier length did not match owned UUID regex',
+        'tests_started':False,'service_started':False,'corrected_without_policy_change':True},
+    limitations=['Known source42 development workload; one observation, no CI.',
+        'CPU tests do not demonstrate performance or real mechanism trigger counts.',
+        'Independent full numerical LoRA correctness remains unproven.',
+        'LastKnown received and ranking snapshots are separate; legacy Full-only routing analyzer must not infer a winner from received rows.',
+        'Existing remote service reused; continuous remote monitoring remains unavailable.',
+        'Shared k3s unchanged; completed HydraServe isolated adaptation is not restarted.']))
+save(OUT/'manifest.json',dict(files=[ref(x) for x in sorted(OUT.iterdir()) if x.is_file()]))
+print(json.dumps(dict(passed=True,tests=26,analyzer_tests_reused=25,variant='LastKnown')),flush=True)

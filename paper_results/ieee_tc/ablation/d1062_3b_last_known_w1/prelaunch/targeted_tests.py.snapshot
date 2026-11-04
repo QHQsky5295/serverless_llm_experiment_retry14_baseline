@@ -1,0 +1,52 @@
+"""D1062 targeted CPU checks, using the existing test/containment machinery."""
+import json
+import os
+from pathlib import Path
+import sys
+import time
+import unittest
+
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+NAMES=['tests.test_ieee_tc_service_routing.LastKnownRoutingContract',
+       'tests.test_ieee_tc_service_routing.CommittedRoutingContract']
+NAMES += ['tests.test_ieee_tc_request_lifecycle.SelectedSourceAdmissionIntegration.'+name for name in (
+    'test_last_known_gpu_hint_cannot_authorize_a_changed_source_or_zero_preparation',
+    'test_last_known_cancellation_reuses_actual_host_release_contract',
+    'test_ablation_routes_keep_selected_source_reference_and_release_contract',
+    'test_changed_gpu_source_reselects_whole_router_and_does_not_record_gpu_zero',
+    'test_route_confirmed_wait_preparation_is_not_started_for_local_source',
+    'test_route_confirmed_arrival_pre_admission_waits_before_serve',
+    'test_completed_arrival_prefetch_reconciles_confirmed_nvme_tier',
+    'test_completed_arrival_prefetch_may_reroute_to_fresh_confirmed_nonremote_replica',
+    'test_nonblocking_arrival_prefetch_does_not_wait_for_pending_task',
+    'test_cancel_after_host_admission_does_not_invent_preparation_or_token_intervals')]
+
+def main():
+    identity=p.scope_identity(p.cg_path().name)
+    group=p.cg_path()
+    assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+    assert (group/'memory.high').read_text().strip()==str(3*p.GIB)
+    assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+    assert (group/'memory.swap.max').read_text().strip()=='0'
+    start=time.monotonic()
+    tag=sys.argv[1]
+    with (RAW/(tag+'.txt')).open('x') as stream:
+        result=unittest.TextTestRunner(stream=stream,verbosity=2).run(
+            unittest.defaultTestLoader.loadTestsFromNames(NAMES))
+    report=dict(passed=result.wasSuccessful(),tests_run=result.testsRun,names=NAMES,
+        failures=len(result.failures),errors=len(result.errors),elapsed_s=time.monotonic()-start,
+        sources={name:p.digest(ROOT/name) for name in (
+            'scripts/run_all_experiments.py','faaslora/experiment/instance_pool.py',
+            'tests/test_ieee_tc_service_routing.py','tests/test_ieee_tc_request_lifecycle.py')},
+        identity=identity,resources=p.cgroup_snapshot(group),performance_test=False)
+    with (RAW/(tag+'.json')).open('x') as f:
+        json.dump(report,f,indent=2);f.write('\n')
+    print(json.dumps(report),flush=True)
+    sys.exit(0 if result.wasSuccessful() else 1)
+
+if __name__=='__main__':
+    main()
