@@ -222,7 +222,7 @@ class NoHostNativeLifecycle(unittest.TestCase):
 
     def test_private_settlement_keeps_lease_and_caches_final_receipt(self):
         case = self.private_case()
-        build = case.begin()
+        build = case.begin(plan='private-plan')
         # Another own CPU-only object becomes eligible only at the completed
         # outer commit. The private build stays counted until joined settlement.
         case.manager._registered_adapters[5] = native_tests.NativeAdapter()
@@ -230,22 +230,28 @@ class NoHostNativeLifecycle(unittest.TestCase):
         case.owner._remember_source_object(5)
         receipt = case.complete(build)
         self.assertEqual(receipt['nohost_retired_adapter_ids'], [5])
-        self.assertEqual(set(case.manager._registered_adapters), {4})
-        self.assertEqual(case.owner.prepare_file_host_and_hold(**case.command()), receipt)
+        self.assertEqual(set(case.manager._registered_adapters), set())
+        self.assertEqual(set(case.owner.staged_models()), {4})
+        self.assertEqual(receipt['tier'], 'staging')
+        self.assertEqual(case.owner.prepare_file_host_and_hold(
+            **case.command(plan='private-plan')), receipt)
+        case.owner.finish_preparation_target(plan_id='private-plan', adapter_int_id=4,
+            expected_owner_id=case.owner.owner_id)
         released = case.owner.release_host_source(lease_id='private-host',
             expected_owner_id=case.owner.owner_id)
-        self.assertEqual(released['nohost_retired_adapter_ids'], [4])
+        self.assertEqual(released['nohost_retired_adapter_ids'], [])
+        self.assertEqual(case.owner.staged_models(), {})
         self.assertEqual(case.owner.host_construction_reserved_bytes(), 0)
 
     def test_completed_but_unsettled_build_keeps_target_until_cancel_join(self):
         case = self.private_case()
-        build = case.begin()
+        build = case.begin(plan='private-plan')
         case.finish.set()
         self.assertTrue(build.done.wait(5))
         case.manager._registered_adapters[4] = native_tests.NativeAdapter()
         case.owner._sources[4] = ('adapter-4', '/existing/adapter-4')
         case.owner._remember_source_object(4)
-        before = self.close(case)
+        before = self.close(case, 'private-plan')
         self.assertEqual(before['nohost_retired_adapter_ids'], [])
         self.assertEqual(case.owner.host_construction_reserved_bytes(), 300)
         receipt = case.owner.finish_file_host_construction(build, cancelled=True)

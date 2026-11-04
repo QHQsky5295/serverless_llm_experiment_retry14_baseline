@@ -1,0 +1,58 @@
+{
+  "passed": true,
+  "tests_run": 88,
+  "names": [
+    "tests.test_ieee_tc_nohost.NoHostNativeLifecycle",
+    "tests.test_ieee_tc_nohost_staging",
+    "tests.test_ieee_tc_gpu_references.NativeDemandTransactions",
+    "tests.test_ieee_tc_gpu_references.ProtectedFileDemandTransactions",
+    "tests.test_ieee_tc_gpu_references.PrivateNativeHostConstruction",
+    "tests.test_ieee_tc_gpu_references.NativeFileHostPreparation"
+  ],
+  "failures": 0,
+  "errors": 0,
+  "elapsed_s": 8.83301731897518,
+  "sources": {
+    "faaslora/memory/residency_manager.py": "a50975d388167308a154dff98b484958c98c11ef8c5dc49e5374adfecd5aaafb",
+    "tests/test_ieee_tc_nohost.py": "8e0668215df10ef33dd7b3551eca0716c4eedd4b8e29fbf857fbf21535f90a0e",
+    "tests/test_ieee_tc_nohost_staging.py": "bcff8dc211204de062ba1d015544967afe9813e0c4ecafda7849078eef1841d8",
+    "tests/test_ieee_tc_gpu_references.py": "f60fc2f1510a45a2d6857486cf44c7f6132399ec4266f9080a612d9eed32cfe6"
+  },
+  "sources_after": {
+    "faaslora/memory/residency_manager.py": "a50975d388167308a154dff98b484958c98c11ef8c5dc49e5374adfecd5aaafb",
+    "tests/test_ieee_tc_nohost.py": "8e0668215df10ef33dd7b3551eca0716c4eedd4b8e29fbf857fbf21535f90a0e",
+    "tests/test_ieee_tc_nohost_staging.py": "bcff8dc211204de062ba1d015544967afe9813e0c4ecafda7849078eef1841d8",
+    "tests/test_ieee_tc_gpu_references.py": "f60fc2f1510a45a2d6857486cf44c7f6132399ec4266f9080a612d9eed32cfe6"
+  },
+  "source_unchanged": true,
+  "identity": {
+    "unit": "primelora-tc-test-23b70df2d08548328ef0c221485c02f1.scope",
+    "invocation_id": "79785975b1f94f6d9d4aae140081469f",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-23b70df2d08548328ef0c221485c02f1.scope",
+    "inode": 39151823
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-23b70df2d08548328ef0c221485c02f1.scope",
+    "memory.current": 597647360,
+    "memory.peak": 609120256,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 8847822\nuser_usec 7669778\nsystem_usec 1178044\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "performance_test": false,
+  "nohost_execution_qualified": false
+}

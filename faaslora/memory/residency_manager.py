@@ -2221,8 +2221,74 @@ class IEEEBackendGPUReferences:
     def staged_models(self):
         return {aid: row['model'] for aid, row in self._staged_host.items()}
 
+    def _pending_staging_plans(self, adapter_int_id, staged):
+        """Exact unfinished GPU preparations, not the plan's retirement set.
+
+        Completed siblings may protect registered backing until plan close,
+        but they cannot keep an independent NoHOST staging cache alive.
+        """
+        source = staged['source']
+        content = staged.get('content_sha256')
+        if content is None:
+            return []
+        return sorted(plan_id for plan_id, plan in self._preparation_plans.items()
+            if adapter_int_id in plan['pending'] and any(
+                row['adapter_int_id'] == adapter_int_id
+                and row['adapter_id'] == source[0]
+                and row.get('content_sha256') == content
+                for row in plan['objective']['sources']))
+
+    def _bind_staging_operation(self, adapter_int_id, command, *, construction_token=None):
+        """Bind a newly constructed object; never relabel an existing copy."""
+        if self._independent_host_reuse:
+            return
+        staged = self._staged_host[adapter_int_id]
+        plan_id = command.get('preparation_plan_id')
+        if plan_id not in self._pending_staging_plans(adapter_int_id, staged):
+            raise RuntimeError('NoHOST staging lacks its unfinished preparation operation')
+        staged['preparation_operation'] = dict(kind='nohost_staging_operation_v1',
+            lease_id=command['lease_id'], plan_id=plan_id,
+            adapter_int_id=adapter_int_id, lora_name=staged['source'][0],
+            content_sha256=staged['content_sha256'], source_id=staged['source_id'],
+            construction_token=construction_token)
+
+    def _nohost_staging_join(self, adapter_int_id, staged, lease_id, file_source_witness):
+        """Authorize demand takeover in its existing serialized GPU turn.
+
+        A completed CPU movement's old lease is NOT a live HOST reference.
+        Its receipt identifies construction only; continuous unfinished GPU
+        preparation ownership plus this demand's protected file authorize the
+        join. No extra RPC or wait for proactive GPU soft admission is needed.
+        """
+        operation = staged.get('preparation_operation')
+        if (not isinstance(operation, dict)
+                or operation.get('kind') != 'nohost_staging_operation_v1'
+                or operation.get('adapter_int_id') != adapter_int_id
+                or operation.get('lora_name') != staged['source'][0]
+                or operation.get('content_sha256') != staged.get('content_sha256')
+                or operation.get('source_id') != staged['source_id']):
+            raise ValueError('NoHOST staging join lacks its exact construction identity')
+        preparation = self._file_host_preparations.get(operation['lease_id'])
+        if (preparation is None
+                or preparation['identity'][0] != adapter_int_id
+                or preparation['identity'][4] != operation['plan_id']
+                or preparation['identity'][5] != operation['content_sha256']
+                or preparation['receipt'].get('native_host_source_id') != staged['source_id']):
+            raise ValueError('NoHOST staging join lacks its settled construction receipt')
+        plans = self._pending_staging_plans(adapter_int_id, staged)
+        if (not plans or file_source_witness is None
+                or file_source_witness['adapter_id'] != staged['source'][0]
+                or file_source_witness['content_sha256'] != staged.get('content_sha256')):
+            raise ValueError('NoHOST staging join requires pending preparation and protected content')
+        return dict(kind='nohost_demand_staging_join_v1', gpu_lease_id=lease_id,
+            owner_id=self.owner_id, source_id=staged['source_id'],
+            preparation_operation=copy.deepcopy(operation), pending_plan_ids=plans,
+            file_lease_id=file_source_witness['lease_id'], independent_host_hit=False)
+
     def _collect_staged_host(self):
-        targets = {aid for plan in self._preparation_plans.values() for aid in plan['identity'][1]}
+        targets = ({aid for plan in self._preparation_plans.values() for aid in plan['identity'][1]}
+            if self._independent_host_reuse else
+            {aid for aid, staged in self._staged_host.items() if self._pending_staging_plans(aid, staged)})
         held = set(self._staged_host_leases.values())
         for aid in set(self._staged_host) - targets - held:
             # Dropping the object is not claimed as allocator byte release.
@@ -2567,6 +2633,8 @@ class IEEEBackendGPUReferences:
                and row['identity'][0] == adapter_int_id for lease, row in self._preparations.items()):
             raise RuntimeError('preparation target still owns an unreleased GPU operation')
         plan['pending'].discard(adapter_int_id)
+        if not self._independent_host_reuse:
+            self._collect_staged_host()
         return dict(finished=True, plan_id=plan_id, adapter_int_id=adapter_int_id, **self.snapshot())
 
     def close_preparation_plan(self, *, plan_id, expected_owner_id):
@@ -2823,7 +2891,8 @@ class IEEEBackendGPUReferences:
             return dict(held=False, reason='unowned_native_adapter', **self.snapshot())
         if adapter_int_id in slots:
             return dict(held=False, reason='required_source_changed', **self.snapshot())
-        needs_staging = adapter_int_id in self._staged_host or (not cached and len(cpu) >= self.manager.capacity)
+        needs_staging = adapter_int_id in self._staged_host or (not cached and (
+            not self._independent_host_reuse or len(cpu) >= self.manager.capacity))
         if needs_staging:
             plan = self._preparation_plans.get(preparation_plan_id)
             if plan is None or adapter_int_id not in plan['pending']:
@@ -2834,6 +2903,9 @@ class IEEEBackendGPUReferences:
                     and row.get('content_sha256') == expected_content_sha256
                     and row.get('adapter_id') == lora_name)):
                 raise ValueError('native staging source differs from the registered plan')
+            if not self._independent_host_reuse and (expected_content_sha256 is None
+                    or row.get('content_sha256') != expected_content_sha256):
+                raise ValueError('NoHOST staging requires the selected immutable content')
         if not callable(self.file_host_loader):
             raise RuntimeError('native CPU-only loader is not attached')
         return slots, identity, source, cpu, cached, needs_staging
@@ -2934,6 +3006,7 @@ class IEEEBackendGPUReferences:
                     self._staged_host[aid] = dict(model=build.model, source=source,
                         content_sha256=command.get('expected_content_sha256'), source_id=uuid.uuid4().hex,
                         allocation={**build.allocation, 'after': after['before']})
+                    self._bind_staging_operation(aid, command, construction_token=build.token)
                     build.model = None  # Ownership moves to the accounted native owner.
                     self.epoch += 1
                     if not state[5]:
@@ -3005,6 +3078,8 @@ class IEEEBackendGPUReferences:
                     self._staged_host[adapter_int_id] = dict(model=model, source=source,
                         content_sha256=expected_content_sha256,
                         source_id=uuid.uuid4().hex, allocation=allocation)
+                    self._bind_staging_operation(adapter_int_id, dict(lease_id=lease_id,
+                        preparation_plan_id=preparation_plan_id))
                     self.epoch += 1
                 self._staged_host_leases[lease_id] = adapter_int_id
                 staged = self._staged_host[adapter_int_id]
@@ -3331,6 +3406,10 @@ class IEEEBackendGPUReferences:
                 if source_tier == 'gpu' else self._source_incarnations.get(adapter_int_id))
             if current_source_id != expected_source_id:
                 return {'acquired': False, 'reason': 'required_source_changed', **self.snapshot()}
+        staging_join = None
+        if not self._independent_host_reuse and staged is not None:
+            staging_join = self._nohost_staging_join(
+                adapter_int_id, staged, lease_id, file_source_witness)
         # The worker is serialized: validate this exact copy, then all LIVE
         # capacity/pin/budget constraints before mutation. Other references do
         # not invalidate a copy, but no old capacity decision is reused here.
@@ -3469,6 +3548,8 @@ class IEEEBackendGPUReferences:
                            if not gpu_hit else None),
                        load_and_acquire_ms=(time.monotonic()-start)*1000.,
                        proactive_admission_evaluated=False)
+        if staging_join is not None:
+            receipt['nohost_staging_join'] = staging_join
         if file_source_witness is not None:
             receipt.update(file_source_witness=dict(file_source_witness),
                 file_demand_transaction=dict(kind=IEEE_FILE_DEMAND_TRANSACTION,
