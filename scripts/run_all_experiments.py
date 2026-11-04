@@ -21317,7 +21317,6 @@ class ScenarioRunner:
                 native_started = True
                 receipt, cancelled = await settle(call)
                 receipt = checked(receipt)
-                native_outcome_known = True
                 if receipt.get('reason') in ('preparation_source_set_changed', 'preparation_source_binding_changed'):
                     if (receipt.get('acquired') is not False
                             or receipt.get('preparation_plan_id') != plan_id
@@ -21341,6 +21340,10 @@ class ScenarioRunner:
                     else:
                         native_preparation_source_conflict(frozen=frozen, observed=receipt['source_observation'])
                     superseded = True
+                # A correct worker/clock is not yet proof that this is the
+                # submitted operation's outcome. Retain fallback ownership if
+                # the plan/source/lease-bound rejection above is malformed.
+                native_outcome_known = True
             except BaseException:
                 if native_started and not native_outcome_known:
                     evidence['state'] = 'native_outcome_unresolved'

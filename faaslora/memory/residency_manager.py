@@ -1992,6 +1992,11 @@ class IEEEBackendGPUReferences:
         self.registered_preparation_storage_witness = registered_preparation_storage_witness
         self._native_host_tensor_budget = None
         self._native_host_workspace = None
+        # The ablation changes reuse, not the positive staging/backing budget.
+        # Freeze at budget installation, before a NoHOST owner loads anything.
+        self._independent_host_reuse = True
+        self._host_reuse_policy_configured = False
+        self._nohost_retired_cpu_copies = 0
         self._file_host_preparations: Dict[str, Dict[str, Any]] = {}
         # Unregistered incoming objects are charged to the same tensor budget.
         # They are neither a HOST hit nor a larger native CPU cache. All live
@@ -2176,6 +2181,63 @@ class IEEEBackendGPUReferences:
             del self._staged_host[aid]
             self.epoch += 1
 
+    def _retire_independent_host_copies(self):
+        """Retire unneeded CPU-only copies at an outer owner boundary.
+
+        Never called by an observation or a native removal callback. In
+        particular, GPU replacement must finish its same-victim/slot checks
+        before this runs. Dropping a native object is not an allocator-byte
+        release claim; the next allocation still reads actual counters.
+        """
+        if self._independent_host_reuse:
+            return []
+        slots = self._refresh()
+        cpu, gpu = self._caches()
+        # Unlike GPU-victim eligibility, ALL HOST references protect CPU
+        # storage, including file_fallback references. Completed siblings are
+        # protected until the whole plan closes, not merely until pending=0.
+        protected = (set(gpu) | set(slots) | cpu.pinned_items | gpu.pinned_items
+            | set(self._references) | set(self._host_references)
+            | set(self._staged_host_leases.values())
+            | {aid for plan in self._preparation_plans.values() for aid in plan['identity'][1]})
+        if self._native_host_build is not None:
+            protected.add(self._native_host_build.command['adapter_int_id'])
+        # Unknown native copies remain visible as unknown; do not infer their
+        # identity/ownership or silently delete them as a successful ablation.
+        candidates = sorted((set(cpu) & set(self._sources)) - protected)
+        if not candidates:
+            return []
+        try:
+            self.completion_fence()
+            for aid in candidates:
+                if not self.manager.remove_adapter(aid):
+                    raise RuntimeError('NoHOST retirement did not remove its CPU copy')
+                if aid in cpu or tuple(self._refresh()) != slots:
+                    raise RuntimeError('NoHOST CPU retirement changed GPU residency')
+                self._source_objects.pop(aid, None)
+                self._source_incarnations.pop(aid, None)
+                self._nohost_retired_cpu_copies += 1
+        except BaseException:
+            self._poisoned = True
+            self._poison_reason = 'NoHOST CPU retirement outcome invalidated'
+            raise
+        return candidates
+
+    def _finish_nohost_operation(self, receipt):
+        """Finalize only after the outer transaction's original postconditions."""
+        if self._independent_host_reuse or 'nohost_retired_adapter_ids' in receipt:
+            return receipt
+        retired = self._retire_independent_host_copies()
+        receipt.update(self.snapshot(), nohost_retired_adapter_ids=retired)
+        if 'post_load_source_snapshot' in receipt:
+            from ..clock import local_monotonic_clock_id
+            receipt['post_load_source_snapshot'] = dict(self.source_snapshot(),
+                clock_id=local_monotonic_clock_id())
+        lease = receipt.get('lease_id')
+        if receipt.get('acquired') and lease in self._leases:
+            self._leases[lease].update(receipt)
+        return receipt
+
     def _register_staged_host(self, adapter_int_id):
         """Same-owner commit after the caller has claimed actual CPU capacity."""
         staged = self._staged_host.pop(adapter_int_id)
@@ -2246,6 +2308,9 @@ class IEEEBackendGPUReferences:
     def snapshot(self) -> Dict[str, Any]:
         slots = self._refresh()
         return {'owner_id': self.owner_id, 'epoch': self.epoch,
+                **({} if self._independent_host_reuse else {
+                    'independent_host_reuse': False,
+                    'nohost_retired_cpu_copies': self._nohost_retired_cpu_copies}),
                 'slot_adapter_ids': list(slots),
                 'reference_counts': {str(aid): len(refs) for aid, refs in self._references.items()},
                 'live_leases': len(self._leases), 'released_leases': len(self._released),
@@ -2257,7 +2322,8 @@ class IEEEBackendGPUReferences:
                                                        for aid in plan['pending']}),
                 'snapshot_holds_reference': False}
 
-    def configure_host_budget(self, *, expected_owner_id, tensor_budget_bytes, workspace_contract=None):
+    def configure_host_budget(self, *, expected_owner_id, tensor_budget_bytes, workspace_contract=None,
+                              independent_host_reuse=True):
         """Freeze the same capacity check for proactive AND demand loading."""
         self._refresh()
         if expected_owner_id != self.owner_id:
@@ -2266,6 +2332,17 @@ class IEEEBackendGPUReferences:
             raise ValueError('native HOST budget requires positive integer bytes')
         if self._native_host_tensor_budget not in (None, tensor_budget_bytes):
             raise ValueError('native HOST tensor sub-budget cannot change within a worker')
+        if type(independent_host_reuse) is not bool:
+            raise ValueError('independent HOST reuse must be boolean')
+        if self._host_reuse_policy_configured:
+            if independent_host_reuse != self._independent_host_reuse:
+                raise ValueError('independent HOST reuse policy cannot change within a worker')
+        elif not independent_host_reuse and (
+                self._native_host_tensor_budget is not None or self._caches()[0]
+                or self._staged_host or self._native_host_build is not None
+                or self._leases or self._host_leases or self._staged_host_leases
+                or self._preparation_plans or self._sources):
+            raise ValueError('NoHOST requires an initially empty native owner')
         if not callable(self.host_allocation_check):
             raise RuntimeError('native HOST allocation checker is not attached')
         check = self.host_allocation_check(lora_path=None, reuse=True,
@@ -2311,6 +2388,8 @@ class IEEEBackendGPUReferences:
                 minimum_tensor_allowance_bytes=minimum,
                 tensor_budget_bytes=tensor_budget_bytes)
         self._native_host_tensor_budget = tensor_budget_bytes
+        self._independent_host_reuse = independent_host_reuse
+        self._host_reuse_policy_configured = True
         return dict(configured=True, tensor_budget_bytes=tensor_budget_bytes,
                     allocation=check, workspace_partition=copy.deepcopy(self._native_host_workspace),
                     **self.snapshot())
@@ -2452,7 +2531,7 @@ class IEEEBackendGPUReferences:
         self._collect_staged_host()
         # A late/lost register cannot revive a cancelled plan.
         self._closed_preparation_plans.add(plan_id)
-        return dict(closed=True, plan_id=plan_id, **self.snapshot())
+        return self._finish_nohost_operation(dict(closed=True, plan_id=plan_id, **self.snapshot()))
 
     def source_snapshot(self) -> Dict[str, Any]:
         """Completed, source-bound copies, without acquiring or touching LRU.
@@ -2484,6 +2563,7 @@ class IEEEBackendGPUReferences:
         unconfirmed = sorted(aid for aid in slots
                              if aid is not None and aid not in self._gpu_confirmations)
         return {'kind': 'native_lora_sources_v1', 'owner_id': self.owner_id,
+                **({} if self._independent_host_reuse else {'independent_host_reuse': False}),
                 'epoch': self.epoch, 'captured_monotonic_s': time.monotonic(),
                 'slot_adapter_ids': list(slots), 'registered_cpu_adapter_ids': sorted(cpu),
                 'sources': sources, 'unknown_native_adapter_ids': unknown,
@@ -2633,7 +2713,8 @@ class IEEEBackendGPUReferences:
             self._host_released.add(lease_id)
             self._collect_staged_host()
             self.epoch += 1
-            return {'released': True, 'already_released': False, **self.snapshot()}
+            return self._finish_nohost_operation(
+                {'released': True, 'already_released': False, **self.snapshot()})
         if lease_id not in self._host_leases:
             raise ValueError('unknown HOST source lease')
         aid = self._host_leases[lease_id]['adapter_int_id']
@@ -2648,7 +2729,8 @@ class IEEEBackendGPUReferences:
         del self._host_leases[lease_id]
         self._host_released.add(lease_id)
         self.epoch += 1
-        return {'released': True, 'already_released': False, **self.snapshot()}
+        return self._finish_nohost_operation(
+            {'released': True, 'already_released': False, **self.snapshot()})
 
     def _file_host_preparation_state(self, *, lease_id, adapter_int_id, lora_name,
                                      lora_path, expected_owner_id, expected_epoch,
@@ -2817,9 +2899,10 @@ class IEEEBackendGPUReferences:
                 load_started_monotonic_s=build.started_at,
                 load_completed_monotonic_s=build.completed_at,
                 construction_settled_monotonic_s=time.monotonic())
+            build.settled = True
+            receipt = self._finish_nohost_operation(receipt)
             if receipt.get('held'):
                 self._file_host_preparations[lease]['receipt'] = copy.deepcopy(receipt)
-            build.settled = True
             return receipt
         except BaseException:
             # Retain the task/peak on uncertain settlement. No silent retry or
@@ -3023,7 +3106,8 @@ class IEEEBackendGPUReferences:
         del self._leases[lease_id]
         self._released.add(lease_id)
         self.epoch += 1
-        return {'released': True, 'already_released': False, **self.snapshot()}
+        return self._finish_nohost_operation(
+            {'released': True, 'already_released': False, **self.snapshot()})
 
     def demand_load_and_acquire(self, *, lease_id: str, adapter_int_id: int,
                                 lora_name: str, lora_path: str,
@@ -3033,12 +3117,13 @@ class IEEEBackendGPUReferences:
                                 expected_content_sha256: Optional[str] = None,
                                 file_source_witness: Optional[Dict[str, Any]] = None,
                                 release_host_lease_id: Optional[str] = None) -> Dict[str, Any]:
-        return self._load_and_acquire(lease_id=lease_id, adapter_int_id=adapter_int_id,
+        receipt = self._load_and_acquire(lease_id=lease_id, adapter_int_id=adapter_int_id,
             lora_name=lora_name, lora_path=lora_path, expected_owner_id=expected_owner_id,
             expected_epoch=expected_epoch, required_source_tier=required_source_tier,
             expected_source_id=expected_source_id, expected_content_sha256=expected_content_sha256,
             file_source_witness=file_source_witness, release_host_lease_id=release_host_lease_id,
             loader=self.demand_loader)
+        return self._finish_nohost_operation(receipt) if receipt.get('acquired') else receipt
 
     def _load_and_acquire(self, *, lease_id: str, adapter_int_id: int,
                          lora_name: str, lora_path: str, expected_owner_id: str,
@@ -3680,6 +3765,8 @@ class IEEEBackendGPUReferences:
                     raise RuntimeError('native replacement lost its fallback or claimed slot')
             receipt.update(common)
             self._leases[lease_id].update(common)
+        if receipt.get('acquired'):
+            receipt = self._finish_nohost_operation(receipt)
         self._preparations[lease_id] = {'identity': identity, 'receipt': copy.deepcopy(receipt),
                                       'plan_id': preparation_plan_id}
         return receipt

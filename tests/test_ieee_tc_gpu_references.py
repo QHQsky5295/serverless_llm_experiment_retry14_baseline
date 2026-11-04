@@ -2570,7 +2570,12 @@ class OwnedNativePreparationPlans(unittest.TestCase):
             case.manager.capacity, case.manager._registered_adapters = host_capacity, cache
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner.model_cfg = {'ieee_gpu_references': True}
-        runner._stack = SimpleNamespace(preloading_manager=PreloadingManager({}, Mock(), Mock(), Mock()))
+        runner._stack = SimpleNamespace(
+            preloading_manager=PreloadingManager({}, Mock(), Mock(), Mock()),
+            # These fixtures already own native HOST sources: no file acquire
+            # is expected. Match the runner's current owner container without
+            # mocking a successful file fallback or permitting unexpected I/O.
+            residency_manager=SimpleNamespace(local_source_references=SimpleNamespace()))
         runner._ieee_artifact_identities = {name: {'content_sha256': digest} for name, digest in case.content.items()}
         def response(row):
             return row | {'clock_id': local_monotonic_clock_id()}
