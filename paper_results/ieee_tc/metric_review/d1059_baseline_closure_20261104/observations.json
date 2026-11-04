@@ -1,0 +1,239 @@
+{
+  "kind": "baseline_retention_and_per_workload_closure_review",
+  "date": "2026-11-04",
+  "parent_commit": "ef2fc5d71b3de26d0ab66a83eeaceb9d7089860a",
+  "new_gpu_runs": 0,
+  "protocol_changed": false,
+  "baseline_roster_changed": false,
+  "sources": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d639_cross_workload_observation/qualification.json",
+      "sha256": "23934bf65d8615cbc1a0eb50bc12b72353e9284a9e04f6de4ad40cef80be74d5"
+    },
+    {
+      "path": "paper_results/ieee_tc/main_comparison/d1048_same_version_3b/metrics.csv",
+      "sha256": "a6d62c2d10c3e53ca8d83146b7ca4a9050531dc1477b29fb409a24dfed51f744"
+    },
+    {
+      "path": "paper_results/ieee_tc/ablation/d1056_3b_r0h0_w1/comparison/four_cell.csv",
+      "sha256": "4be62204d97c64a06d65421af8f42d8e697749fb970df7eced4b961c0135a028"
+    }
+  ],
+  "protocols": {
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+    "v1_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "single_run_v2_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+    "goal_sha256": "fe696deaa83c6061d4f026fbd49f23235074cd798c74b46532344ff72d35f2b9"
+  },
+  "formulae": {
+    "saving": "100*(1-U_PrimeLoRA/U_vLLM)",
+    "slo_difference": "100*(A_PrimeLoRA-A_vLLM)",
+    "g2_budget": "0.75*U_vLLM",
+    "g1_proxy_denominator": "4000 protocol-bound requests, not a replacement for unknown N_correct"
+  },
+  "points": [
+    {
+      "model": "7B",
+      "workload": "W0",
+      "run": "D636",
+      "protocol_bound_requests": 4000,
+      "joint_slo": 0.98375,
+      "physical_gpu_seconds": 9193.046576336492,
+      "gpu_seconds_per_protocol_bound": 2.298261644084123,
+      "p95_ttft_ms": 2024.775859899819,
+      "external_measured_points": 5,
+      "external_points_meeting_joint95": [
+        {
+          "system": "vLLM",
+          "run": "D423",
+          "gpu_seconds": 16115.377162149176
+        },
+        {
+          "system": "ServerlessLLM",
+          "run": "D414",
+          "gpu_seconds": 16089.762743524276
+        }
+      ],
+      "g1_observation": "lowest_resource_among_measured_joint95_protocol_bound_points",
+      "g1_comparison_verified": true,
+      "g2_budget": null,
+      "g2_prime_observed_feasible": null,
+      "g2_external_feasible_points": null,
+      "g2_equal_budget_superiority_established": false,
+      "gpu_saving_vs_vllm_percent": 42.95481586413897,
+      "joint_slo_difference_vs_vllm_pp": -1.100000000000001,
+      "p95_ratio_vs_vllm": 1.6866008249378985,
+      "n_correct": null,
+      "independent_numerical_proof": false,
+      "formal_ranking": false,
+      "identity": "reused_known_workload_single_run_observation"
+    },
+    {
+      "model": "7B",
+      "workload": "W1",
+      "run": "D633",
+      "protocol_bound_requests": 4000,
+      "joint_slo": 0.9605,
+      "physical_gpu_seconds": 6310.028822237393,
+      "gpu_seconds_per_protocol_bound": 1.5775072055593482,
+      "p95_ttft_ms": 3154.1048656217754,
+      "external_measured_points": 5,
+      "external_points_meeting_joint95": [],
+      "g1_observation": "lowest_resource_among_measured_joint95_protocol_bound_points",
+      "g1_comparison_verified": true,
+      "g2_budget": 6756.571050141065,
+      "g2_prime_observed_feasible": true,
+      "g2_external_feasible_points": [],
+      "g2_equal_budget_superiority_established": false,
+      "gpu_saving_vs_vllm_percent": 29.956754964054756,
+      "joint_slo_difference_vs_vllm_pp": 23.375,
+      "p95_ratio_vs_vllm": 0.3226036852785381,
+      "n_correct": null,
+      "independent_numerical_proof": false,
+      "formal_ranking": false,
+      "identity": "reused_known_workload_single_run_observation"
+    },
+    {
+      "model": "7B",
+      "workload": "W2",
+      "run": "D632",
+      "protocol_bound_requests": 4000,
+      "joint_slo": 0.9635,
+      "physical_gpu_seconds": 10914.192405564012,
+      "gpu_seconds_per_protocol_bound": 2.728548101391003,
+      "p95_ttft_ms": 3553.6220038775355,
+      "external_measured_points": 5,
+      "external_points_meeting_joint95": [
+        {
+          "system": "vLLM",
+          "run": "D557",
+          "gpu_seconds": 16115.559125168016
+        }
+      ],
+      "g1_observation": "lowest_resource_among_measured_joint95_protocol_bound_points",
+      "g1_comparison_verified": true,
+      "g2_budget": 12086.669343876012,
+      "g2_prime_observed_feasible": true,
+      "g2_external_feasible_points": [],
+      "g2_equal_budget_superiority_established": false,
+      "gpu_saving_vs_vllm_percent": 32.27543443702749,
+      "joint_slo_difference_vs_vllm_pp": -1.8749999999999933,
+      "p95_ratio_vs_vllm": 2.029139034595205,
+      "n_correct": null,
+      "independent_numerical_proof": false,
+      "formal_ranking": false,
+      "identity": "reused_known_workload_single_run_observation"
+    },
+    {
+      "model": "3B",
+      "workload": "W0",
+      "run": "D1046",
+      "protocol_bound_requests": 4000,
+      "joint_slo": 0.9785,
+      "physical_gpu_seconds": 7967.349446525332,
+      "gpu_seconds_per_protocol_bound": 1.991837361631333,
+      "p95_ttft_ms": 744.6254063397646,
+      "external_measured_points": 5,
+      "external_points_meeting_joint95": [
+        {
+          "system": "vLLM",
+          "run": "D653",
+          "gpu_seconds": 16119.239769904874
+        },
+        {
+          "system": "ServerlessLLM",
+          "run": "D764",
+          "gpu_seconds": 16090.730445874855
+        }
+      ],
+      "g1_observation": "lowest_resource_among_measured_joint95_protocol_bound_points",
+      "g1_comparison_verified": true,
+      "g2_budget": null,
+      "g2_prime_observed_feasible": null,
+      "g2_external_feasible_points": null,
+      "g2_equal_budget_superiority_established": false,
+      "gpu_saving_vs_vllm_percent": 50.57242425662889,
+      "joint_slo_difference_vs_vllm_pp": -2.124999999999999,
+      "p95_ratio_vs_vllm": 4.365320514958155,
+      "n_correct": null,
+      "independent_numerical_proof": false,
+      "formal_ranking": false,
+      "identity": "reused_known_workload_single_run_observation"
+    },
+    {
+      "model": "3B",
+      "workload": "W1",
+      "run": "D1047",
+      "protocol_bound_requests": 4000,
+      "joint_slo": 0.959,
+      "physical_gpu_seconds": 6182.715970784891,
+      "gpu_seconds_per_protocol_bound": 1.5456789926962229,
+      "p95_ttft_ms": 1114.0910014510155,
+      "external_measured_points": 6,
+      "external_points_meeting_joint95": [
+        {
+          "system": "vLLM",
+          "run": "D654",
+          "gpu_seconds": 9006.378086880315
+        }
+      ],
+      "g1_observation": "lowest_resource_among_measured_joint95_protocol_bound_points",
+      "g1_comparison_verified": true,
+      "g2_budget": 6754.783565160236,
+      "g2_prime_observed_feasible": true,
+      "g2_external_feasible_points": [],
+      "g2_equal_budget_superiority_established": false,
+      "gpu_saving_vs_vllm_percent": 31.351805230214367,
+      "joint_slo_difference_vs_vllm_pp": -4.100000000000003,
+      "p95_ratio_vs_vllm": 6.294213926677023,
+      "n_correct": null,
+      "independent_numerical_proof": false,
+      "formal_ranking": false,
+      "identity": "reused_known_workload_single_run_observation"
+    },
+    {
+      "model": "3B",
+      "workload": "W2",
+      "run": "D1045",
+      "protocol_bound_requests": 4000,
+      "joint_slo": 0.95825,
+      "physical_gpu_seconds": 8182.401820929721,
+      "gpu_seconds_per_protocol_bound": 2.0456004552324303,
+      "p95_ttft_ms": 1672.3241172730923,
+      "external_measured_points": 6,
+      "external_points_meeting_joint95": [
+        {
+          "system": "vLLM",
+          "run": "D656",
+          "gpu_seconds": 16110.751826980617
+        },
+        {
+          "system": "ServerlessLLM",
+          "run": "D766",
+          "gpu_seconds": 16084.201387144625
+        }
+      ],
+      "g1_observation": "lowest_resource_among_measured_joint95_protocol_bound_points",
+      "g1_comparison_verified": true,
+      "g2_budget": 12083.063870235463,
+      "g2_prime_observed_feasible": true,
+      "g2_external_feasible_points": [],
+      "g2_equal_budget_superiority_established": false,
+      "gpu_saving_vs_vllm_percent": 49.211545750294015,
+      "joint_slo_difference_vs_vllm_pp": -4.174999999999995,
+      "p95_ratio_vs_vllm": 3.786666600506375,
+      "n_correct": null,
+      "independent_numerical_proof": false,
+      "formal_ranking": false,
+      "identity": "reused_known_workload_single_run_observation"
+    }
+  ],
+  "caveats": [
+    "G1 here compares observed protocol-bound points, not all legal resource configurations.",
+    "7B W0 is after D635 repair; W1/W2 predate it, as scoped in D637-D639.",
+    "3B zero-update artifacts cannot independently validate nonzero LoRA arithmetic; original unknown correctness remains unchanged.",
+    "All observations are single-run development replay, not independent holdout or significance evidence.",
+    "3B W1 NoHandoff has lower U and P95 than Full while meeting joint95; R0H0 has lower P95 and higher jointSLO than Full within the budget. These are ablations, not published external baselines.",
+    "No four-card reference is treated as evidence that all lower-resource vLLM configurations fail."
+  ]
+}

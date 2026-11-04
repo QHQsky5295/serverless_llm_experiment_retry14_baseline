@@ -1,0 +1,56 @@
+{
+  "passed": true,
+  "validated_points": 6,
+  "new_gpu_runs": 0,
+  "files": [
+    {
+      "path": "paper_results/ieee_tc/metric_review/d1059_baseline_closure_20261104/observations.json",
+      "sha256": "d1f060dad051595a4cc9cb3d2da892c621605e3796c3607c57177ee715fc5431"
+    },
+    {
+      "path": "docs/ieee_tc/D1059_BASELINES_AND_WORKLOAD_CLOSURE_20261104.md",
+      "sha256": "e293435e4fe44d74c2e428484d1dd196632c547524e0f9bd09e25fb60c7e5843"
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_protected": {
+    "configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "docs/ieee_tc/EXECUTION_STATUS.md": "41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374"
+  },
+  "scope": {
+    "unit": "primelora-tc-aux-bc1059a4e27e4388a1c6e60a2105b913.scope",
+    "invocation_id": "1116ca6b32c74b0f835cc10187d47b53",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-bc1059a4e27e4388a1c6e60a2105b913.scope",
+    "inode": 39019442
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-bc1059a4e27e4388a1c6e60a2105b913.scope",
+    "memory.current": 12464128,
+    "memory.peak": 13111296,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 150768\nuser_usec 118896\nsystem_usec 31871\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "comparison_scope": "known-workload descriptive observation, not proof of formal/global optimality"
+}
