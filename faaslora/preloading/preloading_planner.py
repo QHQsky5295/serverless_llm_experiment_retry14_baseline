@@ -393,6 +393,9 @@ def observed_proactive_preparation_interval(*, adapter_id, context, native,
     clock = local_monotonic_clock_id() if expected_clock_id is None else expected_clock_id
     source = context['source']
     key = PreparationClass(**context['preparation_class'])
+    staging = (native.get('source_tier_before_acquisition') == 'staging'
+        and native.get('nohost_same_turn_staging_activation') is True
+        and native.get('native_staged_source_reused') is True and source['native'] is False)
     if (not isinstance(clock, str) or not clock
             or any(not isinstance(context.get(k), str) or not context[k]
                    for k in ('plan_id', 'preparation_profile_id'))
@@ -400,7 +403,7 @@ def observed_proactive_preparation_interval(*, adapter_id, context, native,
             or key.tier == 'gpu' or context['clock_id'] != clock
             or native.get('clock_id') != clock or native.get('acquired') is not True
             or native.get('lora_name') != adapter_id
-            or native.get('source_tier_before_acquisition') not in ('host', 'gpu')
+            or (native.get('source_tier_before_acquisition') not in ('host', 'gpu') and not staging)
             or type(native.get('native_load_invoked')) is not bool
             or any(not isinstance(native.get(k), str) or not native[k]
                    for k in ('owner_id', 'lease_id', 'lora_path'))):
@@ -414,7 +417,7 @@ def observed_proactive_preparation_interval(*, adapter_id, context, native,
         profile_eligible=False, d_ms=None)
     if not native['native_load_invoked']:
         return record | dict(reason='native_source_reused_or_changed_before_loading')
-    if native['source_tier_before_acquisition'] != 'host':
+    if native['source_tier_before_acquisition'] != 'host' and not staging:
         raise ValueError('proactive new GPU loading requires a native HOST source')
     def instant(value):
         return type(value) in (int, float) and math.isfinite(value) and value > 0
@@ -434,6 +437,8 @@ def observed_proactive_preparation_interval(*, adapter_id, context, native,
         if cpu_result is None or not cpu_result.get('_movement', {}).get('owns_io', False):
             return record | dict(reason='shared_native_host_preparation_reused')
         cpu = cpu_result.get('receipt', {})
+        if staging and cpu.get('tier') != 'staging':
+            raise ValueError('NoHOST GPU activation lacks its CPU staging receipt')
         if (cpu.get('held') is not True or cpu.get('native_load_invoked') is not True
                 or cpu.get('clock_id') != clock or cpu.get('owner_id') != native['owner_id']
                 or cpu.get('lora_name') != adapter_id or cpu.get('lora_path') != native['lora_path']

@@ -1,0 +1,69 @@
+{
+  "passed": false,
+  "tests_run": 59,
+  "names": [
+    "tests.test_ieee_tc_nohost_controller.NoHostController",
+    "tests.test_ieee_tc_nohost_controller.NoHostGpuFallback",
+    "tests.test_ieee_tc_nohost_controller.NoHostReleaseQueue",
+    "tests.test_ieee_tc_nohost_controller.NoHostCostIntervals",
+    "tests.test_ieee_tc_transfer_pressure.AutomaticGPUReplacement",
+    "tests.test_ieee_tc_transfer_pressure.AutomaticFileReplacement",
+    "tests.test_ieee_tc_transfer_pressure.ProactiveCostFeedback",
+    "tests.test_ieee_tc_preparation_cost.ProactivePreparationIntervals",
+    "tests.test_ieee_tc_nohost_sources.CpuPreparationReleaseWitness"
+  ],
+  "failures": 0,
+  "errors": 1,
+  "elapsed_s": 13.095788420177996,
+  "sources": {
+    "faaslora/memory/residency_manager.py": "2dfe232faf339c4b21a00fbbeccde8e2e92ebf86b36ce3cc686334c331a5eae4",
+    "faaslora/memory/gpu_monitor.py": "979ffa7241c5268e1d2f239507136ca13509fe7cb14fa800f6af848d1d92c43f",
+    "faaslora/experiment/experiment_stack.py": "335ad14f9bf44d47f5ce3d8d9896d9bd4caf015352a03aa7bccc0c1e0edfc0ea",
+    "faaslora/preloading/preloading_manager.py": "9c4b8878adef835a9c6711dd6778c52ece0365b2803087146d004337b8839fdf",
+    "faaslora/preloading/preloading_planner.py": "d55ebe25c5b4866d82ad9302903a811f443ecefc0680f09a14c942c18ed30ec3",
+    "scripts/run_all_experiments.py": "80af2f5bfd72d65e140b22c47d0b9badd2358abb89f6407eaeac0bdee2d0d298",
+    "tests/test_ieee_tc_nohost_controller.py": "2791732d37f98800d6a32f0b8a963f637da5d595b88910d39698cb299cc3a5ec",
+    "tests/test_ieee_tc_transfer_pressure.py": "704105443fb090097a3bfdc43e46e40824be50fed63daaf381837f70ca25e1be"
+  },
+  "sources_after": {
+    "faaslora/memory/residency_manager.py": "2dfe232faf339c4b21a00fbbeccde8e2e92ebf86b36ce3cc686334c331a5eae4",
+    "faaslora/memory/gpu_monitor.py": "979ffa7241c5268e1d2f239507136ca13509fe7cb14fa800f6af848d1d92c43f",
+    "faaslora/experiment/experiment_stack.py": "335ad14f9bf44d47f5ce3d8d9896d9bd4caf015352a03aa7bccc0c1e0edfc0ea",
+    "faaslora/preloading/preloading_manager.py": "9c4b8878adef835a9c6711dd6778c52ece0365b2803087146d004337b8839fdf",
+    "faaslora/preloading/preloading_planner.py": "d55ebe25c5b4866d82ad9302903a811f443ecefc0680f09a14c942c18ed30ec3",
+    "scripts/run_all_experiments.py": "80af2f5bfd72d65e140b22c47d0b9badd2358abb89f6407eaeac0bdee2d0d298",
+    "tests/test_ieee_tc_nohost_controller.py": "2791732d37f98800d6a32f0b8a963f637da5d595b88910d39698cb299cc3a5ec",
+    "tests/test_ieee_tc_transfer_pressure.py": "704105443fb090097a3bfdc43e46e40824be50fed63daaf381837f70ca25e1be"
+  },
+  "source_unchanged": true,
+  "identity": {
+    "unit": "primelora-tc-test-c1d5857c2b12494ca1e2d6495d7db6a2.scope",
+    "invocation_id": "2ab795ad3040480ab6bee3675cd1a3f1",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-c1d5857c2b12494ca1e2d6495d7db6a2.scope",
+    "inode": 39412479
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-c1d5857c2b12494ca1e2d6495d7db6a2.scope",
+    "memory.current": 623067136,
+    "memory.peak": 623173632,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 13040056\nuser_usec 11437664\nsystem_usec 1602392\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "performance_test": false,
+  "nohost_execution_qualified": false
+}

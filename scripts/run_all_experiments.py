@@ -5175,7 +5175,7 @@ class InferenceEngine:
         if operation not in ("snapshot", "source_snapshot", "routing_source_snapshot", "source_identity_snapshot",
                              "request_source_snapshot",
                              "acquire", "release", "evict", "begin_use", "end_use",
-                             "demand_load_and_acquire", "hold_host_source", "release_host_source",
+                             "demand_load_and_acquire", "hold_host_source", "hold_gpu_source", "release_host_source",
                              "prepare_file_host_and_hold", "configure_host_budget",
                              "register_preparation_plan", "finish_preparation_target", "close_preparation_plan"):
             raise ValueError("unknown GPU reference operation")
@@ -18357,6 +18357,7 @@ class ScenarioRunner:
             raise ValueError('NoHOST reload wait must identify its exact inactive backing')
         witnesses = getattr(self, '_native_reference_witnesses', {})
         cpu_releases = getattr(self, '_native_cpu_preparation_releases', {})
+        gpu_releases = getattr(self, '_native_gpu_fallback_releases', {})
         # Proactive native preparation has an explicit controller-owned task,
         # but it is not a request lease and therefore cannot be represented by
         # the per-request witness map.  A capacity wait may join that task's
@@ -18409,7 +18410,8 @@ class ScenarioRunner:
                         or len(set(ids)) != len(ids) or (expected_tier == 'gpu' and kind == 'host' and ids)):
                     raise ValueError('invalid native capacity blocker lease set')
                 for lease in ids:
-                    cpu_release = cpu_releases.get((receipt['owner_id'], lease)) if kind == 'host' else None
+                    cpu_release = (cpu_releases if kind == 'host' else gpu_releases).get(
+                        (receipt['owner_id'], lease))
                     if cpu_release is not None:
                         # CPU staging can become registered backing while its
                         # movement is still releasing the pin. Wait for that
@@ -21065,8 +21067,10 @@ class ScenarioRunner:
             confirmed_file_copy_pair)
         from faaslora.preloading.preloading_manager import MovementOutcome
         from faaslora.clock import local_monotonic_clock_id
+        from faaslora.registry.schema import independent_host_reuse_enabled
         objective = copy.deepcopy(objective)
         frozen = validate_native_gpu_epoch(objective)
+        host_reuse = independent_host_reuse_enabled(frozen)
         mixed = frozen['kind'] == 'ieee_owned_gpu_objective_v2'
         if (not self.model_cfg.get('ieee_gpu_references') or self._stack is None
                 or type(capacity_only) is not bool or trigger_reason not in ('handoff', 'residency')
@@ -21161,7 +21165,9 @@ class ScenarioRunner:
             current = checked(await engine.ieee_gpu_reference(operation='source_snapshot'))
             source = next((r for r in current['sources'] if r['adapter_int_id'] == aid), None)
             staged = next((r for r in current.get('staged_sources', ()) if r['adapter_int_id'] == aid), None)
-            if source is None:
+            if independent_host_reuse_enabled(current) != host_reuse:
+                raise ValueError('GPU execution owner HOST mode differs from frozen objective')
+            if source is None or (not host_reuse and source['gpu_slot'] is None and staged is not None):
                 source = staged
             if source is None:
                 from faaslora.preloading.preloading_planner import supersede_absent_native_source
@@ -21200,12 +21206,22 @@ class ScenarioRunner:
                 evidence.update(state='superseded', prepare_rpc_submitted=False)
                 raise PreparationPlanSuperseded(dict(plan_id=plan_id,
                     plan_sha256=objective['plan_sha256'], **conflict), stage='native_gpu_objective')
+            consumed_path = row['lora_path']
+            if not host_reuse and staged is not None and source['gpu_slot'] is None:
+                # A coalesced CPU movement may have used another confirmed
+                # file copy of the same immutable artifact. Activate that
+                # actual staged object; never relabel it with the old path.
+                if (staged.get('adapter_id') != row['adapter_id']
+                        or staged.get('content_sha256') != row.get('content_sha256')):
+                    raise ValueError('NoHOST staged object differs from frozen name/content')
+                consumed_path = staged['lora_path']
             command = dict(lease_id=uuid.uuid4().hex, adapter_int_id=aid,
-                lora_name=row['adapter_id'], lora_path=row['lora_path'],
+                lora_name=row['adapter_id'], lora_path=consumed_path,
                 expected_owner_id=owner_id, expected_epoch=current['epoch'])
             command['expected_content_sha256'] = row.get('content_sha256') or \
                 self._ieee_artifact_identities[row['adapter_id']]['content_sha256']
-            evidence.update(state='native_pending', lease_id=command['lease_id'])
+            evidence.update(state='native_pending', lease_id=command['lease_id'],
+                            frozen_source_path=row['lora_path'], consumed_source_path=consumed_path)
             file_holds, file_fallbacks = [], {}
             references = self._stack.residency_manager.local_source_references
             process_owner = hasattr(references, 'call_async')
@@ -21260,7 +21276,8 @@ class ScenarioRunner:
                     raise RuntimeError('file fallback leases remain unresolved') from failures[0]
                 evidence['host_file_fallbacks_released'] = True
 
-            if staged is not None:
+            need_file_fallbacks = staged is not None or not host_reuse
+            if need_file_fallbacks:
                 try:
                     # Hold each actual fastest remaining file copy before the
                     # native transaction. No predicted path or stale snapshot
@@ -21295,6 +21312,8 @@ class ScenarioRunner:
                                 fallback = victim['remote_fallback']
                             else:
                                 confirmed = held['confirmed_source']
+                                if not host_reuse and confirmed['tier'] != 'nvme':
+                                    raise ValueError('NoHOST GPU fallback must not retain a HOST file')
                                 fallback = dict(confirmed, native=False, owner_id=held['owner_id'],
                                                 footprint_bytes=confirmed['allocated_file_bytes'])
                         else:
@@ -21307,7 +21326,7 @@ class ScenarioRunner:
                             with references.lock:
                                 view = references.source_snapshot(victim['adapter_id'])
                                 local = sorted(
-                                    view['sources'],
+                                    (s for s in view['sources'] if host_reuse or s['tier'] == 'nvme'),
                                     key=lambda s: ('host', 'nvme').index(s['tier']),
                                 )
                                 if local:
@@ -21330,7 +21349,7 @@ class ScenarioRunner:
             evidence['host_file_fallbacks'] = file_fallbacks
             call = engine.ieee_prepare_host(**command, capacity_only=capacity_only,
                 replacement_epoch=objective, preparation_plan_id=plan_id,
-                **({'host_file_fallbacks': file_fallbacks} if staged is not None else {}))
+                **({'host_file_fallbacks': file_fallbacks} if need_file_fallbacks else {}))
             superseded = False
             native_started = False
             native_outcome_known = False
@@ -21722,6 +21741,18 @@ class ScenarioRunner:
                 if cancelled:
                     raise asyncio.CancelledError()
                 if not receipt['held']:
+                    if receipt['reason'] == 'nohost_backing_still_referenced':
+                        reservation = RuntimeRequestReservation('cpu-preparation-' + command['lease_id'])
+                        reservation.gpu_reference_engine = engine
+                        reservation.gpu_reference_evidence = dict(intent=dict(command,
+                            expected_epoch=receipt['epoch']))
+                        evidence['capacity_wait'] = reservation.gpu_reference_evidence
+                        async def release_ready():
+                            await self._wait_native_reference_capacity(reservation, receipt)
+                        # Queue invokes this only after transfer and file-lease
+                        # cleanup, outside its limited physical execution slots.
+                        return MovementOutcome('deferred', value=receipt, reason=receipt['reason'],
+                                               retry_ready=release_ready)
                     return MovementOutcome('deferred', value=receipt.get('allocation'), reason=receipt['reason'])
                 return MovementOutcome('completed', dict(state='native_host_prepared', receipt=receipt,
                     content_sha256=content, total_host_memory_covered=False,
@@ -22196,6 +22227,10 @@ class ScenarioRunner:
         for candidate in selected['gpu']:
             aid = candidate.artifact_id
             source = plan['source_view']['sources'][aid]['selected_source']
+            from faaslora.registry.schema import independent_host_reuse_enabled
+            if (not independent_host_reuse_enabled(plan['source_view'])
+                    and (source['native'] or source['tier'] not in ('nvme', 'remote'))):
+                raise ValueError('NoHOST GPU preparation must originate from a planned file source')
             row = (dict(adapter_id=aid, adapter_int_id=plan['source_view']['adapter_int_ids'][aid],
                         lora_path=source['path'] or plan['source_view']['files']['artifacts'][aid]['targets']['nvme']['path'])
                    if preinit else next(r for r in gpu_objective['sources'] if r['adapter_id'] == aid))
@@ -22243,6 +22278,8 @@ class ScenarioRunner:
         async def protect_native_fallbacks():
             if owned_file_replacement:
                 from faaslora.clock import local_monotonic_clock_id
+                from faaslora.registry.schema import independent_host_reuse_enabled
+                host_reuse = independent_host_reuse_enabled(plan['source_view'])
                 required = {r['adapter_id']: r['fallback'] for r in replacement_epoch['victims']
                             if r['fallback'].get('native')}
                 owner_id = plan['source_view']['native']['owner_id']
@@ -22255,19 +22292,32 @@ class ScenarioRunner:
                     if (observed.get('clock_id') != local_monotonic_clock_id()
                             or type(observed.get('epoch')) is not int or observed['epoch'] < 1):
                         raise ValueError('native file fallback observation is invalid')
+                    hold_operation = 'hold_host_source' if host_reuse else 'hold_gpu_source'
                     evidence = dict(adapter_id=aid, lease_id=uuid.uuid4().hex,
+                                    release_operation='release_host_source' if host_reuse else 'release',
                                     owner_id=owner_id, expected_epoch=observed['epoch'], state='holding')
                     native_fallbacks.append(evidence)
+                    if not host_reuse:
+                        releases = getattr(self, '_native_gpu_fallback_releases', None)
+                        if releases is None:
+                            releases = self._native_gpu_fallback_releases = {}
+                        releases[(owner_id, evidence['lease_id'])] = dict(engine=target_engine,
+                            adapter_int_id=source['adapter_int_id'],
+                            completion=asyncio.get_running_loop().create_future())
                     receipt, cancelled = await settle(target_engine.ieee_gpu_reference(
-                        operation='hold_host_source', lease_id=evidence['lease_id'],
+                        operation=hold_operation, lease_id=evidence['lease_id'],
                         adapter_int_id=source['adapter_int_id'], lora_name=aid,
                         lora_path=source['path'], expected_owner_id=owner_id,
-                        expected_epoch=observed['epoch'], reference_purpose='file_fallback'))
+                        expected_epoch=observed['epoch'],
+                        **({'reference_purpose': 'file_fallback'} if host_reuse else {
+                            'expected_content_sha256': self._ieee_artifact_identities[aid]['content_sha256']})))
                     if (receipt.get('clock_id') != local_monotonic_clock_id()
                             or receipt.get('owner_id') != owner_id or type(receipt.get('held')) is not bool):
                         raise ValueError('native fallback hold outcome is unresolved')
                     evidence.update(state='held' if receipt['held'] else 'rejected', receipt=receipt)
                     if not receipt['held']:
+                        if not host_reuse:
+                            releases[(owner_id, evidence['lease_id'])]['completion'].set_result('no_acquisition')
                         # A known negative ACK owns no new reference. Retire
                         # this objective through the normal joined cleanup,
                         # then let a later residency tick observe/plan anew.
@@ -22299,20 +22349,32 @@ class ScenarioRunner:
                 interrupted_cleanup = False
                 unresolved = False
                 for evidence in native_fallbacks:
+                    witness = getattr(self, '_native_gpu_fallback_releases', {}).get(
+                        (evidence['owner_id'], evidence['lease_id']))
+                    def settle_release(state):
+                        if witness is not None and not witness['completion'].done():
+                            witness['completion'].set_result(state)
                     if evidence['state'] in ('rejected', 'released'):
                         continue
                     if evidence['state'] != 'held':
+                        settle_release('unresolved')
                         unresolved = True
                         continue
                     evidence['state'] = 'releasing'
-                    released, interrupted = await settle(target_engine.ieee_gpu_reference(
-                        operation='release_host_source', lease_id=evidence['lease_id'],
-                        expected_owner_id=evidence['owner_id']))
+                    try:
+                        released, interrupted = await settle(target_engine.ieee_gpu_reference(
+                            operation=evidence['release_operation'], lease_id=evidence['lease_id'],
+                            expected_owner_id=evidence['owner_id']))
+                    except BaseException:
+                        settle_release('unresolved')
+                        raise
                     interrupted_cleanup |= interrupted
                     if released.get('released') is not True or released.get('owner_id') != evidence['owner_id']:
+                        settle_release('unresolved')
                         unresolved = True
                         continue
                     evidence.update(state='released', release_receipt=released)
+                    settle_release('released')
                     queue.wake(owner_id=evidence['owner_id'])
                 if unresolved:
                     raise RuntimeError('native file fallback ownership is unresolved')
@@ -22390,8 +22452,13 @@ class ScenarioRunner:
                         owner_id=gpu_objective['owner_id'], adapter_id=aid,
                         source_path=row['lora_path'], plan_id=native_plan_id,
                         stage='native_staging_copy', record=record)
-                return feedback  # Reuse is recorded as ineligible, not zero loading.
-            if source['native']:
+                from faaslora.registry.schema import independent_host_reuse_enabled
+                if current['gpu_slot'] is not None or independent_host_reuse_enabled(observed):
+                    return feedback  # Reuse is recorded as ineligible, not zero loading.
+                # Physical inactive backing remains in the snapshot. NoHOST
+                # cannot serve from it: construct from the planned file source.
+                # This is not an absent-native supersession witness.
+            if source['native'] and current is None:
                 from faaslora.preloading.preloading_planner import supersede_absent_native_source
                 supersede_absent_native_source(observed=observed, owner_id=gpu_objective['owner_id'],
                     planned_epoch=gpu_objective['epoch'], adapter_int_id=aid_int,
@@ -22704,6 +22771,8 @@ class ScenarioRunner:
         from scripts.ieee_tc_preflight import gpu_process_identity
         from faaslora.metrics.metrics_collector import _open_pidfd
         native = self.model_cfg.get('ieee_native_host_tensor_budget_bytes')
+        from faaslora.registry.schema import independent_host_reuse_enabled
+        host_reuse = independent_host_reuse_enabled(self.model_cfg)
         workspace_contract = copy.deepcopy(self.model_cfg.get('ieee_native_host_workspace'))
         def workspace_matches(receipt):
             partition = receipt.get('workspace_partition')
@@ -22717,6 +22786,9 @@ class ScenarioRunner:
             self._ieee_host_budget_members = {}
         async with self._ieee_host_budget_lock:
             files = self._stack.residency_manager.local_source_references
+            if independent_host_reuse_enabled(
+                    {'independent_host_reuse': files.independent_host_reuse}) != host_reuse:
+                raise ValueError('native/file HOST reuse configuration differs')
             if hasattr(files, 'call_async'):
                 await files.call_async('configure_host_budget', limit_bytes=total)
             else:
@@ -22725,7 +22797,8 @@ class ScenarioRunner:
             if old is not None:
                 if (old['state'] != 'attached' or not any(e is engine for e in old['engines'])
                         or old['receipt']['tensor_budget_bytes'] != native
-                        or not workspace_matches(old['receipt'])):
+                        or not workspace_matches(old['receipt'])
+                        or independent_host_reuse_enabled(old['receipt']) != host_reuse):
                     raise RuntimeError('native HOST limit installation is unresolved or retired')
                 return old['receipt']
             state = await engine.ieee_gpu_reference(operation='snapshot')
@@ -22740,7 +22813,8 @@ class ScenarioRunner:
                 if member['owner_id'] == owner_id:
                     if (member['state'] != 'attached' or member['process_identity'] != identity
                             or member['receipt']['tensor_budget_bytes'] != native
-                            or not workspace_matches(member['receipt'])):
+                            or not workspace_matches(member['receipt'])
+                            or independent_host_reuse_enabled(member['receipt']) != host_reuse):
                         raise ValueError('shared native HOST owner is unresolved or changed identity')
                     member['engines'].append(engine)
                     self._ieee_host_budget_members[id(engine)] = member
@@ -22766,6 +22840,7 @@ class ScenarioRunner:
             # its bytes. Join the exact command before propagating cancellation.
             task = asyncio.create_task(engine.ieee_gpu_reference(operation='configure_host_budget',
                 expected_owner_id=owner_id, tensor_budget_bytes=native,
+                **({} if host_reuse else {'independent_host_reuse': False}),
                 **({'workspace_contract': workspace_contract} if workspace_contract is not None else {})))
             cancelled = False
             try:
@@ -22780,7 +22855,8 @@ class ScenarioRunner:
                 if (receipt.get('configured') is not True or receipt.get('owner_id') != owner_id
                         or receipt.get('worker_pid') != pid or receipt.get('tensor_budget_bytes') != native
                         or receipt.get('clock_id') != local_monotonic_clock_id()
-                        or not workspace_matches(receipt)):
+                        or not workspace_matches(receipt)
+                        or independent_host_reuse_enabled(receipt) != host_reuse):
                     raise ValueError('native HOST limit acknowledgement differs from its reserved owner')
                 member.update(state='attached', receipt=receipt)
             except BaseException:
@@ -27637,6 +27713,13 @@ async def _main_async_impl(
         hw_merged = {**hw_cfg, **sc.get("hardware_override", {})}
         instance_mode = str(sc_coord.get("instance_mode", "shared")).lower()
         runner_model_cfg = _prepare_scenario_runtime_model_config(model_cfg, wl_cfg_yaml, sc_coord)
+        from faaslora.registry.schema import independent_host_reuse_enabled
+        host_reuse = independent_host_reuse_enabled(preload_cfg)
+        if ('independent_host_reuse' in runner_model_cfg
+                and independent_host_reuse_enabled(runner_model_cfg) != host_reuse):
+            raise ValueError('scenario and native worker HOST reuse configuration differs')
+        if not host_reuse:
+            runner_model_cfg['independent_host_reuse'] = False
         if physical_deployment is not None:
             if (runner_model_cfg.get('ieee_physical_allocation') is not True
                     or runner_model_cfg.get('backend', 'vllm') != 'vllm'

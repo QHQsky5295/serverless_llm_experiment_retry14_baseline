@@ -310,11 +310,11 @@ class ManagedHostOwnership(unittest.TestCase):
             self.assertEqual(calls.count('configure_host_budget'), 1)
             self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 8192)
             with self.assertRaisesRegex(RuntimeError, 'has not exited'):
-                runner._retire_ieee_host_budget(engine)
+                await runner._retire_ieee_host_budget(engine)
             child.stdin.close()
             child.wait(timeout=5)
-            runner._retire_ieee_host_budget(engine)
-            runner._retire_ieee_host_budget(alias)
+            await runner._retire_ieee_host_budget(engine)
+            await runner._retire_ieee_host_budget(alias)
             self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 0)
         asyncio.run(run())
 
@@ -337,7 +337,7 @@ class ManagedHostOwnership(unittest.TestCase):
                 await runner._attach_ieee_host_budget(engine)
             child.stdin.close()
             child.wait(timeout=5)
-            runner._retire_ieee_host_budget(engine)
+            await runner._retire_ieee_host_budget(engine)
         asyncio.run(run())
 
     def test_workspace_contract_is_forwarded_acknowledged_and_frozen_for_aliases(self):
@@ -365,7 +365,7 @@ class ManagedHostOwnership(unittest.TestCase):
                 await runner._attach_ieee_host_budget(engine)
             child.stdin.close()
             child.wait(timeout=5)
-            runner._retire_ieee_host_budget(engine)
+            await runner._retire_ieee_host_budget(engine)
         asyncio.run(run())
 
     def test_cancelled_installation_joins_then_propagates_without_returning_bytes(self):
@@ -393,7 +393,7 @@ class ManagedHostOwnership(unittest.TestCase):
             self.assertEqual(files.host_budget_snapshot()['native_reserved_bytes'], 8192)
             child.stdin.close()
             child.wait(timeout=5)
-            runner._retire_ieee_host_budget(engine)
+            await runner._retire_ieee_host_budget(engine)
         asyncio.run(run())
 
 
@@ -1587,7 +1587,7 @@ class OwnedNativeHostMovement(unittest.TestCase):
 
 class OwnedPreparationPlanning(unittest.TestCase):
     """Actual runner/owner/selector composition, with controlled native reports."""
-    def make(self, *, native_owner_count=1):
+    def make(self, *, native_owner_count=1, host_reuse=True, nvme_replacement=False):
         import copy
         import json
         from faaslora.clock import local_monotonic_clock_id
@@ -1597,12 +1597,15 @@ class OwnedPreparationPlanning(unittest.TestCase):
         from faaslora.preloading.preloading_planner import FrozenPreparationProfiles, PreparationCostModel
         factory = FileObjectiveReplacement()
         self.addCleanup(factory.doCleanups)
-        fixture, runner, queue, engine, _, _, old_profiles, old_costs = factory.make(victims=('b','c','d'))
+        fixture, runner, queue, engine, _, _, old_profiles, old_costs = factory.make(
+            victims=('b','c','d'), host_reuse=host_reuse,
+            target='nvme' if nvme_replacement else 'host')
         clock = local_monotonic_clock_id()
         ids = {aid: InferenceEngine._lora_int_id(aid) for aid in runner._ieee_artifact_identities}
         registered = sorted((ids['b'], ids['c']))
         names = {i: aid for aid, i in ids.items()}
         native = dict(kind='native_lora_sources_v1', owner_id='controlled-native', epoch=1,
+            **({} if host_reuse else {'independent_host_reuse': False}),
             replacement_protected_adapter_ids=[],
             clock_id=clock, captured_monotonic_s=10., slot_adapter_ids=[ids['b'], None],
             registered_cpu_adapter_ids=registered, unknown_native_adapter_ids=[],
@@ -1641,6 +1644,7 @@ class OwnedPreparationPlanning(unittest.TestCase):
                 return dict(owner_id=native['owner_id'], worker_pid=os.getpid(), clock_id=clock)
             if command['operation'] == 'configure_host_budget':
                 return dict(configured=True, owner_id=native['owner_id'], worker_pid=os.getpid(),
+                            **({} if host_reuse else {'independent_host_reuse': False}),
                             tensor_budget_bytes=command['tensor_budget_bytes'], clock_id=clock)
             raise AssertionError(command)
         engine.ieee_gpu_reference = AsyncMock(side_effect=observation)
@@ -2145,7 +2149,7 @@ class MixedOwnedPreparation(unittest.TestCase):
                 await queue.close()
         asyncio.run(run())
 
-    def make(self, *, remote_gpu=False):
+    def make(self, *, remote_gpu=False, host_reuse=True, nvme_replacement=False):
         import copy
         import time
         from faaslora.clock import local_monotonic_clock_id
@@ -2153,7 +2157,8 @@ class MixedOwnedPreparation(unittest.TestCase):
         from tests.test_ieee_tc_gpu_references import NativeManager, NativeAdapter
         factory = OwnedPreparationPlanning()
         self.addCleanup(factory.doCleanups)
-        fixture, runner, queue, slot, template = factory.make()
+        fixture, runner, queue, slot, template = factory.make(
+            host_reuse=host_reuse, nvme_replacement=nvme_replacement)
         manager = NativeManager()
         for aid in tuple(manager._registered_adapters): manager.remove_adapter(aid)
         ids = {a: InferenceEngine._lora_int_id(a) for a in runner._ieee_artifact_identities}
@@ -2181,14 +2186,29 @@ class MixedOwnedPreparation(unittest.TestCase):
             preparation_loader=load, file_host_loader=cpu_load,
             host_allocation_check=lambda **kw: dict(admitted=True))
         owner.owner_id = template['owner_id']  # Same explicit fixture incarnation.
-        owner.demand_load_and_acquire(lease_id='initial-b', adapter_int_id=ids['b'],
-            lora_name='b', lora_path=str(fixture.nvme/'b'), expected_owner_id=owner.owner_id,
-            expected_epoch=owner.snapshot()['epoch'])
+        if not host_reuse:
+            owner.configure_host_budget(expected_owner_id=owner.owner_id,
+                tensor_budget_bytes=runner.model_cfg['ieee_native_host_tensor_budget_bytes'],
+                independent_host_reuse=False)
+        def demand(name, lease):
+            kw = {}
+            if not host_reuse:
+                held = fixture.owner.acquire(path=str(fixture.nvme/name), adapter_id=name,
+                    lease_id='file-'+lease)
+                kw = dict(expected_content_sha256=runner._ieee_artifact_identities[name]['content_sha256'],
+                    file_source_witness=fixture.owner.demand_witness(held,
+                        content_sha256=runner._ieee_artifact_identities[name]['content_sha256']))
+            try:
+                return owner.demand_load_and_acquire(lease_id=lease, adapter_int_id=ids[name],
+                    lora_name=name, lora_path=str(fixture.nvme/name), expected_owner_id=owner.owner_id,
+                    expected_epoch=owner.snapshot()['epoch'], **kw)
+            finally:
+                if not host_reuse:
+                    fixture.owner.release(lease_id=held['lease_id'], expected_owner_id=held['owner_id'])
+        demand('b', 'initial-b')
         owner.release(lease_id='initial-b', expected_owner_id=owner.owner_id)
         # Seed a confirmed native source, then remove only its GPU copy.
-        receipt = owner.demand_load_and_acquire(lease_id='initial-c', adapter_int_id=ids['c'],
-            lora_name='c', lora_path=str(fixture.nvme/'c'), expected_owner_id=owner.owner_id,
-            expected_epoch=owner.snapshot()['epoch'])
+        receipt = demand('c', 'initial-c')
         owner.release(lease_id='initial-c', expected_owner_id=owner.owner_id)
         manager.deactivate(ids['c'])
         def snapshot():
@@ -4504,7 +4524,7 @@ class AutomaticFileReplacement(unittest.TestCase):
 
 class FileObjectiveReplacement(unittest.TestCase):
     """Real preallocation/reclamation with controlled, non-performance costs."""
-    def make(self, *, incoming_count=80, victims=('b', 'c'), target='host'):
+    def make(self, *, incoming_count=80, victims=('b', 'c'), target='host', host_reuse=True):
         from tests.test_http_artifact_store import content_manifest, archive_bytes, SizedResponse
         from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
         from faaslora.preloading.preloading_planner import (FrozenPreparationProfiles,
@@ -4513,6 +4533,13 @@ class FileObjectiveReplacement(unittest.TestCase):
         factory = OwnedFileMovement()
         self.addCleanup(factory.doCleanups)
         fixture, runner, queue, engine, ledger = factory.make()
+        if not host_reuse:
+            from faaslora.memory.residency_manager import LocalSourceReferences
+            self.assertFalse(fixture.owner.leases)
+            fixture.manager.local_source_references = LocalSourceReferences(
+                fixture.owner.roots, independent_host_reuse=False)
+            fixture.owner = fixture.manager.local_source_references
+            runner.model_cfg['independent_host_reuse'] = False
         payloads = {a: {'adapter_config.json': b'{"r":8}', 'weights':
             b'a'*(12288 if a == 'a' else 8)} for a in ('a', 'b', 'c', 'd')}
         manifest = dict(format='artifact_content_v1', artifacts=[
@@ -4528,13 +4555,16 @@ class FileObjectiveReplacement(unittest.TestCase):
         # Set immutable budgets before the first actual allocation.
         limit = len(victims)*8192
         fixture.manager.tier_capacities[StorageTier.HOST].total_bytes = limit
-        fixture.manager.tier_capacities[StorageTier.NVME].total_bytes = (limit if target == 'nvme' else 131072)
+        fixture.manager.tier_capacities[StorageTier.NVME].total_bytes = (
+            limit + (os.statvfs(fixture.nvme).f_frsize if not host_reuse else 0)
+            if target == 'nvme' else 131072)
         for aid in victims:
             runner._materialize_remote_adapter(aid, fixture.nvme/aid)
-            fixture.manager.materialize_confirmed_source(aid, fixture.nvme/aid, StorageTier.HOST)
-            if target == 'nvme':
+            if host_reuse:
+                fixture.manager.materialize_confirmed_source(aid, fixture.nvme/aid, StorageTier.HOST)
+            if target == 'nvme' and host_reuse:
                 self.assertTrue(fixture.manager._delete_path(str(fixture.nvme/aid)))
-        if target == 'nvme':
+        if target == 'nvme' and host_reuse:
             for aid in victims:
                 fixture.manager.materialize_confirmed_source(aid, fixture.host/aid, StorageTier.NVME)
         if target == 'host':

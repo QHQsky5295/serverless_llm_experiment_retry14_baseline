@@ -1381,7 +1381,7 @@ class IEEEWorkerObservationExtension:
         if operation not in ('snapshot', 'source_snapshot', 'routing_source_snapshot', 'source_identity_snapshot',
                              'request_source_snapshot',
                              'acquire', 'release', 'evict', 'begin_use', 'end_use',
-                             'demand_load_and_acquire', 'hold_host_source', 'release_host_source',
+                             'demand_load_and_acquire', 'hold_host_source', 'hold_gpu_source', 'release_host_source',
                              'prepare_file_host_and_hold', 'configure_host_budget',
                              'register_preparation_plan', 'finish_preparation_target', 'close_preparation_plan',
                              'proactive_host_prepare_and_acquire', 'admit_and_demand_load'):

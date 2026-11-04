@@ -681,13 +681,14 @@ class LocalSourceReferences:
         return after, receipt
 
     def bind_file_native_fallbacks(self, *, plan_id, objective, receipts):
-        """Bind acknowledged native CPU leases to an existing file-plan lifetime.
+        """Bind acknowledged native leases to an existing file-plan lifetime.
 
         The controller owns the cross-process leases and releases them only
         after all dependent file IO joins. This binding is not a native snapshot
         reinterpreted as a lease, and never releases native storage itself.
         """
         from ..preloading.preloading_planner import validate_file_replacement_epoch
+        from ..registry.schema import independent_host_reuse_enabled
         with self.lock:
             frozen = validate_file_replacement_epoch(objective)
             if (frozen['kind'] != 'ieee_owned_file_replacement_objective_v2'
@@ -698,17 +699,23 @@ class LocalSourceReferences:
                         if r['fallback'].get('native')}
             by_id = {r['lora_name']: r for r in receipts}
             native_owner = frozen['source_view']['native']['owner_id']
+            host_reuse = independent_host_reuse_enabled(frozen['source_view'])
             if len(by_id) != len(receipts) or set(by_id) != set(required):
                 raise ValueError('native fallback lease coverage differs from replacement sources')
             for aid, expected in required.items():
                 receipt = by_id[aid]
                 if (receipt.get('held') is not True or receipt.get('owner_id') != native_owner
-                        or not receipt.get('lease_id') or receipt.get('gpu_acquired') is not False
-                        or receipt.get('reference_scope') != 'native_cpu_lru_source'
+                        or not receipt.get('lease_id') or receipt.get('gpu_acquired') is not (not host_reuse)
+                        or receipt.get('reference_scope') != (
+                            'native_cpu_lru_source' if host_reuse else 'native_cpu_and_gpu_lru')
                         or receipt.get('reference_purpose') != 'file_fallback'
                         or receipt.get('adapter_int_id') != expected['adapter_int_id']
-                        or receipt.get('lora_path') != expected['path']):
-                    raise ValueError('file fallback lacks its acknowledged native CPU lease')
+                        or receipt.get('lora_path') != expected['path']
+                        or (not host_reuse and (expected['tier'] != 'gpu'
+                            or receipt.get('acquired') is not True
+                            or receipt.get('content_sha256') != frozen['source_view']['files']['artifacts'][aid][
+                                'content_sha256']))):
+                    raise ValueError('file fallback lacks its acknowledged native source lease')
             if 'replacement_sha256' in plan:
                 raise ValueError('file fallback protection is already bound')
             plan.update(replacement_sha256=objective['plan_sha256'], native_fallbacks=copy.deepcopy(by_id))
@@ -2848,6 +2855,46 @@ class IEEEBackendGPUReferences:
             gpu_acquired=False, reference_purpose=reference_purpose,
             expected_source_id=expected_source_id)
         self._host_leases[lease_id] = receipt
+        return dict(receipt)
+
+    def hold_gpu_source(self, *, lease_id, adapter_int_id, lora_name, lora_path,
+                        expected_owner_id, expected_epoch, expected_content_sha256):
+        """Protect a real GPU successor while its redundant file is reclaimed.
+
+        Compare identity and acquire in the same serialized owner turn. This
+        is an actual GPU/CPU pin, not a HOST lease renamed as GPU residency.
+        It never activates an inactive adapter or reloads a missing source.
+        """
+        if (not isinstance(lora_name, str) or not lora_name
+                or not isinstance(lora_path, str) or not Path(lora_path).is_absolute()
+                or not isinstance(expected_content_sha256, str)
+                or len(expected_content_sha256) != 64):
+            raise ValueError('GPU fallback requires exact immutable source identity')
+        self._refresh()
+        if expected_owner_id != self.owner_id:
+            return dict(held=False, reason='owner_changed', **self.snapshot())
+        previous = self._leases.get(lease_id)
+        if previous is not None:
+            if (previous.get('reference_purpose') != 'file_fallback'
+                    or tuple(previous.get(k) for k in (
+                        'adapter_int_id', 'lora_name', 'lora_path', 'content_sha256')) != (
+                        adapter_int_id, lora_name, lora_path, expected_content_sha256)):
+                raise ValueError('GPU fallback lease reused for another source')
+            return dict(previous)
+        if expected_epoch != self.epoch:
+            return dict(held=False, reason='stale_snapshot', **self.snapshot())
+        if (self._sources.get(adapter_int_id) != (lora_name, lora_path)
+                or self._source_contents.get(adapter_int_id) != expected_content_sha256
+                or adapter_int_id not in self._gpu_confirmations):
+            return dict(held=False, reason='required_source_changed', **self.snapshot())
+        receipt = self.acquire(lease_id=lease_id, adapter_int_id=adapter_int_id,
+            expected_owner_id=expected_owner_id, expected_epoch=expected_epoch)
+        if receipt['acquired'] is not True:
+            return dict(receipt, held=False)
+        receipt.update(held=True, gpu_acquired=True, tier='gpu', lora_name=lora_name,
+            lora_path=lora_path, content_sha256=expected_content_sha256,
+            reference_purpose='file_fallback')
+        self._leases[lease_id] = receipt
         return dict(receipt)
 
     def release_host_source(self, *, lease_id: str, expected_owner_id: str) -> Dict[str, Any]:

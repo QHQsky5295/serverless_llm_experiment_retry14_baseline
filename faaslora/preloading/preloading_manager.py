@@ -30,10 +30,13 @@ class MovementOutcome:
     state: str
     value: Any = None
     reason: str = ''
+    retry_ready: Optional[Callable] = None
 
     def __post_init__(self):
         if self.state not in ('completed', 'deferred') or not isinstance(self.reason, str):
             raise ValueError('movement step needs an explicit completed/deferred outcome')
+        if self.retry_ready is not None and (self.state != 'deferred' or not callable(self.retry_ready)):
+            raise ValueError('release readiness is only valid for a deferred movement')
 
 
 class OwnedMovementQueue:
@@ -150,8 +153,18 @@ class OwnedMovementQueue:
                 # future capacity. Monitoring can compare subsequent state
                 # without re-running the physical operation on every tick.
                 attempt['observation'] = copy.deepcopy(result.value)
-                job['state'] = 'pending' if self._revision.get(revision_key, 0) != revision else 'deferred'
                 job['deferred_revision'] = revision
+                if result.retry_ready is not None:
+                    # The physical action and its file/pressure cleanup have
+                    # returned. Keep this shared job's cancellation lifetime,
+                    # but release its execution slot while an exact owner ACK
+                    # is awaited. Generic wakes cannot substitute for that ACK.
+                    job['state'] = 'waiting_release'
+                    self._pump()
+                    await result.retry_ready()
+                    job['state'] = 'pending'
+                else:
+                    job['state'] = 'pending' if self._revision.get(revision_key, 0) != revision else 'deferred'
             else:
                 job['state'] = 'completed'
                 if not job['ready_future'].done():

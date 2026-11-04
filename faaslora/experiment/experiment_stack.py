@@ -98,9 +98,12 @@ def _build_experiment_config(
         strategy = "greedy_value"
     max_concurrent_ops = int(coord_cfg.get("max_concurrent_loads", preload_cfg.get("max_concurrent_operations", 3)))
     registry_backend = str(coord_cfg.get("registry_backend", "memory"))
+    from ..registry.schema import independent_host_reuse_enabled
+    host_reuse = independent_host_reuse_enabled(preload_cfg)
     data = {
         "registry": {"backend": registry_backend, "redis": {}},
         "memory": {
+            **({} if host_reuse else {'independent_host_reuse': False}),
             "file_cache_policy": preload_cfg.get('file_cache_policy', 'planned_only'),
             "file_state_process": bool(preload_cfg.get('file_state_process', False)),
             "gpu": {
