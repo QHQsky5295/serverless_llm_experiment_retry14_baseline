@@ -1,0 +1,100 @@
+{
+  "passed": true,
+  "scope": "100-request real native entry, not a performance comparison",
+  "n": 100,
+  "n_correct": null,
+  "formal_ranking_eligible": false,
+  "independent_host_reuse_receipts": {
+    "False": 100
+  },
+  "dispatch_tiers": {
+    "remote": 29,
+    "gpu": 69,
+    "nvme": 2
+  },
+  "native_sources": {
+    "file": 30,
+    "gpu": 69,
+    "staging": 1
+  },
+  "nohost_retired_ids_in_demand_receipts": 0,
+  "native_staged_demand_joins": 1,
+  "mechanisms": {
+    "_ieee_file_preparation_plans": {
+      "count": 58,
+      "states": {
+        "completed": 53,
+        "superseded": 5
+      },
+      "attempts": 0
+    },
+    "_ieee_gpu_preparation_plans": {
+      "count": 15,
+      "states": {
+        "completed": 10,
+        "superseded": 5
+      },
+      "attempts": 23
+    },
+    "_ieee_native_host_preparations": {
+      "count": 21,
+      "states": {
+        "not_recorded": 21
+      },
+      "attempts": 48
+    }
+  },
+  "remote_transfers": 29,
+  "remote_monitoring": "existing_unmonitored",
+  "external_remote_interference_unknown": true,
+  "watchdog_samples": 168,
+  "foreign_gpu_samples": 0,
+  "escaped_gpu_samples": 0,
+  "service_memory_peak_bytes": 13796933632,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "sources": {
+    "faaslora/memory/residency_manager.py": "2dfe232faf339c4b21a00fbbeccde8e2e92ebf86b36ce3cc686334c331a5eae4",
+    "faaslora/memory/gpu_monitor.py": "979ffa7241c5268e1d2f239507136ca13509fe7cb14fa800f6af848d1d92c43f",
+    "faaslora/experiment/experiment_stack.py": "335ad14f9bf44d47f5ce3d8d9896d9bd4caf015352a03aa7bccc0c1e0edfc0ea",
+    "faaslora/preloading/preloading_manager.py": "9c4b8878adef835a9c6711dd6778c52ece0365b2803087146d004337b8839fdf",
+    "faaslora/preloading/preloading_planner.py": "d55ebe25c5b4866d82ad9302903a811f443ecefc0680f09a14c942c18ed30ec3",
+    "scripts/run_all_experiments.py": "80af2f5bfd72d65e140b22c47d0b9badd2358abb89f6407eaeac0bdee2d0d298",
+    "tests/test_ieee_tc_nohost_controller.py": "fe59fa261e3bd939fab8a96ef6d79ef3d15668f09fa59191ab8a12af73c23886",
+    "tests/test_ieee_tc_transfer_pressure.py": "783a8a4a4f704ec3ab97c76cb0b3485c62e5b07cc7b1d573d57c3437202083d7",
+    "faaslora/experiment/instance_pool.py": "f051c0e4a07bd1ebe5af008edbbe4be6db650e0a083604700502656595b15629",
+    "tests/test_ieee_tc_service_routing.py": "0073722adba63313469d8e52baca57ae494813fe96c826a2a9a693981051502b"
+  },
+  "result": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261105/d1063_3b_nohost_w1_smoke100_a2/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1063_3b_nohost_w1_smoke100_a2.json",
+    "sha256": "cba4d2618af28ec5c85cf3b00b8f7a3d3030611a5879d91c5c2ae8c8d19009d5"
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-3a118b84baf84956886c710a73066dbc.scope",
+    "memory.current": 679161856,
+    "memory.peak": 692781056,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 10902277\nuser_usec 9504882\nsystem_usec 1397394\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  }
+}

@@ -318,6 +318,30 @@ class NoHostCostIntervals(unittest.TestCase):
 
 
 class NoHostInstallation(unittest.TestCase):
+    def test_frozen_d1047_service_and_preparation_bind_actual_nohost_child(self):
+        from pathlib import Path
+        import yaml
+        from scripts.run_all_experiments import (
+            _prepare_scenario_runtime_model_config, _prepare_dedicated_subprocess_model_cfg)
+        from faaslora.experiment.instance_pool import FrozenServiceProfiles
+        from faaslora.preloading.preloading_planner import FrozenPreparationProfiles
+        root = Path(__file__).resolve().parents[1]
+        config = yaml.safe_load((root/'configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml').read_text())
+        coord = config['resource_coordination']
+        model = _prepare_scenario_runtime_model_config(config['model'], config['workload'], coord)
+        model['independent_host_reuse'] = False
+        child, _ = _prepare_dedicated_subprocess_model_cfg(model, device_id=0, runtime_gpu_ids=[0])
+        self.assertIs(child['independent_host_reuse'], False)
+        identities = []
+        for name, cls in [('ieee_service_profile', FrozenServiceProfiles),
+                          ('ieee_preparation_profile', FrozenPreparationProfiles)]:
+            spec = coord[name]
+            profile = cls.load(Path(spec['path']), expected_sha256=spec['sha256'],
+                model_config=child, expected_context=spec['context'], beta=spec['ewma_beta'])
+            profile.validate_runtime(child)
+            identities.append(profile.model_config_json)
+        self.assertEqual(*identities)
+
     def test_stack_configuration_preserves_budgets_and_native_reads_back_mode(self):
         from faaslora.experiment.experiment_stack import _build_experiment_config
         from tests.test_ieee_tc_nohost_files import NoHostFilePolicy

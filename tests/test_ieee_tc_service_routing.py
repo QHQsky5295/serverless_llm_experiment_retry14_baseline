@@ -458,6 +458,22 @@ class FrozenMeasuredInitialization(unittest.TestCase):
                 'ieee_control_deferral': 'readonly_control_defer_v1',
             })
 
+    def test_nohost_reuses_class_initialization_not_changed_backend_or_budget(self):
+        candidate = self.model | {'independent_host_reuse': False}
+        profiles = self.load(model_config=candidate)
+        profiles.validate_runtime(candidate)
+        key = profiles.bins.classify(**self.features)
+        self.assertEqual(profiles.profiles[key], ServiceComponents(125., 375., 500.))
+        self.assertIs(candidate['independent_host_reuse'], False)
+        for field, value in [('dtype', 'bfloat16'), ('max_loras', 16),
+                             ('ieee_native_host_tensor_budget_bytes', 1024),
+                             ('ieee_host_budget_bytes', 0)]:
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, 'context mismatch'):
+                self.load(model_config=candidate | {field: value})
+        for value in ('false', 0, None):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                self.load(model_config=self.model | {'independent_host_reuse': value})
+
     def test_context_bins_and_fixed_generation_are_required(self):
         for bad in ({}, self.context | {'extra': 'f'*64},
                     self.context | {'backend_environment_sha256': 'unlocked'}):

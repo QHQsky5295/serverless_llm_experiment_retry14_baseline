@@ -1,0 +1,53 @@
+{
+  "passed": true,
+  "tests_run": 25,
+  "names": [
+    "tests.test_ieee_tc_service_routing.FrozenMeasuredInitialization",
+    "tests.test_ieee_tc_preparation_cost.FrozenPreparationInitialization",
+    "tests.test_ieee_tc_nohost_controller.NoHostInstallation"
+  ],
+  "failures": 0,
+  "errors": 0,
+  "elapsed_s": 9.324062168598175,
+  "sources": {
+    "faaslora/experiment/instance_pool.py": "f051c0e4a07bd1ebe5af008edbbe4be6db650e0a083604700502656595b15629",
+    "tests/test_ieee_tc_service_routing.py": "0073722adba63313469d8e52baca57ae494813fe96c826a2a9a693981051502b",
+    "tests/test_ieee_tc_nohost_controller.py": "fe59fa261e3bd939fab8a96ef6d79ef3d15668f09fa59191ab8a12af73c23886"
+  },
+  "sources_after": {
+    "faaslora/experiment/instance_pool.py": "f051c0e4a07bd1ebe5af008edbbe4be6db650e0a083604700502656595b15629",
+    "tests/test_ieee_tc_service_routing.py": "0073722adba63313469d8e52baca57ae494813fe96c826a2a9a693981051502b",
+    "tests/test_ieee_tc_nohost_controller.py": "fe59fa261e3bd939fab8a96ef6d79ef3d15668f09fa59191ab8a12af73c23886"
+  },
+  "source_unchanged": true,
+  "identity": {
+    "unit": "primelora-tc-test-f36859477abf4f78be8ef5184e87cd2e.scope",
+    "invocation_id": "35862e42721f40ff811897aa49d82db0",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-f36859477abf4f78be8ef5184e87cd2e.scope",
+    "inode": 39425534
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-f36859477abf4f78be8ef5184e87cd2e.scope",
+    "memory.current": 603795456,
+    "memory.peak": 621506560,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 9049204\nuser_usec 7852499\nsystem_usec 1196704\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "performance_test": false,
+  "nohost_execution_qualified": false
+}

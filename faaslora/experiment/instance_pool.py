@@ -698,6 +698,11 @@ class FrozenServiceProfiles:
     def model_identity(model_config: Mapping) -> dict:
         if not isinstance(model_config, Mapping):
             raise ValueError('service profile requires the actual runtime configuration')
+        # NoHOST changes legal sources/targets, not the backend measurements
+        # used to initialize each remaining service/preparation class. Its mode
+        # stays in run identity, owner receipts and source feasibility. Validate
+        # the switch even though profile reuse deliberately omits it.
+        independent_host_reuse_enabled(model_config)
         prebuild_policy = model_config.get('ieee_quantization_prebuild_policy')
         from .backbone_loader import validate_backbone_loader
         validate_backbone_loader(model_config)
@@ -730,6 +735,7 @@ class FrozenServiceProfiles:
             # actual gate in the resolved run identity and receipts; only the
             # reusable measured profile identity omits it.
             'ieee_control_deferral',
+            'independent_host_reuse',
         }
         return {key: value for key, value in model_config.items()
                 if key not in ({'visible_device_ids', 'device_id', 'ieee_token_id_capture'}
