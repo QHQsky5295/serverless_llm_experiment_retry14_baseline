@@ -7,7 +7,7 @@ Defines data models and schemas for LoRA artifact metadata management.
 import time
 from dataclasses import fields
 from enum import Enum
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Mapping
 from dataclasses import dataclass, field
 
 
@@ -17,6 +17,19 @@ class StorageTier(Enum):
     HOST = "host"        # Host memory (fast)
     NVME = "nvme"        # NVMe storage (medium)
     REMOTE = "remote"    # Remote storage (slowest)
+
+
+def independent_host_reuse_enabled(payload: Mapping) -> bool:
+    """Owner-declared reuse policy; absence preserves the historical Full wire.
+
+    This says whether HOST is a service source, not whether CPU allocations
+    exist. NoHOST still needs complete backing/staging footprint observations.
+    A consumer cannot turn this declaration into a lease or a reclamation proof.
+    """
+    enabled = payload.get('independent_host_reuse', True)
+    if type(enabled) is not bool:
+        raise ValueError('independent HOST reuse policy must be boolean')
+    return enabled
 
 
 class ArtifactStatus(Enum):

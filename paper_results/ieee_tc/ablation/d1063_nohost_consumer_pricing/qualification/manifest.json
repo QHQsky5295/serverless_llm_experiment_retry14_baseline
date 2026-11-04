@@ -1,0 +1,103 @@
+{
+  "kind": "nohost_consumer_pricing_checkpoint_v1",
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_consumer_pricing/qualification/qualification.py",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/qualification.py",
+      "sha256": "dbc878779bd245a3be5f72950e9d3c9c0c5a908ddf28378f366b6e9a68e60e32"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_consumer_pricing/qualification/checkpoint.py",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/checkpoint.py",
+      "sha256": "3c19682d1a78ce94632c6b03d3f1bf7d7b432c2e48d7589090b0184615d03589"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_consumer_pricing/qualification/attempt1_failure.md",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/attempt1_failure.md",
+      "sha256": "ef5f6dca42aa5f711d5ead8b18a8a9264a58b6ae8019fe633f841a51000ea1e8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_consumer_pricing/qualification/consumer_tests3.txt.gz",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/consumer_tests3.txt",
+      "sha256": "7f9e6ca34c54043d3ac18a8e791dd78c381519a113d21fb20b9ad3f8c7c0fc24",
+      "uncompressed_sha256": "7cfd405285801e7f8e453ff02a3d2fdeb0d8ca8adc9945bf16dc15681151ca5a",
+      "encoding": "gzip",
+      "lossless_compressed_curated_copy": true
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_consumer_pricing/qualification/consumer_tests4.txt.gz",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/consumer_tests4.txt",
+      "sha256": "7f9e6ca34c54043d3ac18a8e791dd78c381519a113d21fb20b9ad3f8c7c0fc24",
+      "uncompressed_sha256": "7cfd405285801e7f8e453ff02a3d2fdeb0d8ca8adc9945bf16dc15681151ca5a",
+      "encoding": "gzip",
+      "lossless_compressed_curated_copy": true
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_consumer_pricing/qualification/consumer_tests5.json",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/consumer_tests5.json",
+      "sha256": "8009b57785ad4793c25e15131217d624bdf75786d2274ed4482b267dbfd0d841"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_consumer_pricing/qualification/consumer_tests5.txt",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/consumer_tests5.txt",
+      "sha256": "bb1675eafc00c23e99349c024fc50bf7b1815a1c944705fe8a9eddb2e78e6f21"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_consumer_pricing/qualification/consumer_tests6.json",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/consumer_tests6.json",
+      "sha256": "d1ce464c4a48c5ece400ba0a693e93e61a382028a9e6aa77b3cade938804100b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_consumer_pricing/qualification/consumer_tests6.txt",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/consumer_tests6.txt",
+      "sha256": "98eed021ede721e807b11a124c7723b2bd3b392c339f0e5f9b7581b9e2885356"
+    }
+  ],
+  "tested_sources": {
+    "faaslora/registry/schema.py": "ac5de54afbb501d2f393077682c89b3665dc845770b0b296cb577c40a529fb52",
+    "faaslora/experiment/instance_pool.py": "8fd827699178ad1c88bec3d5cf503ecd04815d89e3490c4b5d1223019679dfc1",
+    "faaslora/preloading/preloading_planner.py": "70dd729160c4198ca91abd4af27aa7e34bc917f85c9d792c49dc2278e9d3d68d",
+    "faaslora/preloading/planning_cpu.py": "538d34c5e776f8a5f0a661cbfc356deb92ff83da4fa1961f56812acbdc8c970d",
+    "tests/test_ieee_tc_nohost.py": "f2584f2318b0833425b57f101f1bdff519a1ac7d9f2ef6d0ae58e8e4c939d001"
+  },
+  "user_protected": {
+    "configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "docs/ieee_tc/EXECUTION_STATUS.md": "41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374"
+  },
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "old_submission_seal": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "old_submission_seal_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json",
+  "performance_run": false,
+  "nohost_execution_qualified": false,
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-8cf2f4f6b352579214d7ad75b3673f3d.scope",
+    "memory.current": 11350016,
+    "memory.peak": 26738688,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 266310\nuser_usec 150047\nsystem_usec 116262\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "remaining": "native owner lifetime, file owner policy, exact GPU/file fallback leases, runner/config, then one 3B W1 replay",
+  "initial_backup_staging_failure": "Two incomplete unittest logs ended in trailing whitespace. Raw logs unchanged; curated copies losslessly gzip-compressed instead of rewriting evidence or suppressing diff checks."
+}

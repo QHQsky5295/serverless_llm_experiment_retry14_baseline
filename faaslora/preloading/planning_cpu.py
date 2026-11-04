@@ -196,6 +196,9 @@ def _initialized_execution_view(bundle):
         sources={candidate.artifact_id: dict(
             selected_source=view['sources'][candidate.artifact_id]['selected_source'])
             for candidate in selected['gpu']})
+    if view.get('independent_host_reuse') is False:
+        execution['source_view']['independent_host_reuse'] = False
+        execution['source_view']['native']['independent_host_reuse'] = False
     # Do not prune objectives: future GPU/HOST victims may be unselected IDs.
     return execution, selected, objectives
 

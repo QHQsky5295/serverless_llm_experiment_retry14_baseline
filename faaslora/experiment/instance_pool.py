@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Set, Tuple
 
 from ..utils.logger import get_logger
+from ..registry.schema import independent_host_reuse_enabled
 
 
 @dataclass(frozen=True)
@@ -32,6 +33,7 @@ class NativeAdapterSource:
     gpu_slot_capacity_bytes: Optional[int] = None
     gpu_representation: Optional[str] = None
     source_id: Optional[str] = None
+    host_reuse_allowed: bool = True
 
     @property
     def tier(self) -> str:
@@ -44,6 +46,8 @@ class NativeAdapterSource:
         A readiness-only snapshot is useful evidence, but cannot initialize a
         footprint-dependent cost class. There is no file-size/rank-size fallback.
         """
+        if self.tier == 'host' and not self.host_reuse_allowed:
+            raise ValueError('native HOST backing/staging is not an independent service source')
         footprint = self.gpu_slot_capacity_bytes if self.tier == 'gpu' else self.host_storage_bytes
         representation = self.gpu_representation if self.tier == 'gpu' else self.host_representation
         if footprint is None or representation is None:
@@ -73,6 +77,7 @@ class NativeSourceSnapshot:
     host_tensor_storage_bytes: Optional[int] = None
     gpu_pool_storage_bytes: Optional[int] = None
     footprint_adapter_ids: Optional[tuple] = None
+    independent_host_reuse: bool = True
 
     def identity_view(self):
         """Exact readiness/copy identity projection, never a capacity observation."""
@@ -294,7 +299,7 @@ class NativeSourceSnapshot:
                     host_representation=s.host_representation,
                     gpu_slot_capacity_bytes=s.gpu_slot_capacity_bytes,
                     gpu_representation=s.gpu_representation) for s in self.sources])
-        return dict(kind='native_lora_routing_sources_v1', device_uuid=device_uuid,
+        value = dict(kind='native_lora_routing_sources_v1', device_uuid=device_uuid,
             owner_id=self.owner_id, epoch=self.epoch, clock_id=self.clock_id,
             captured_monotonic_s=self.captured_monotonic_s,
             snapshot_holds_reference=False,
@@ -308,6 +313,9 @@ class NativeSourceSnapshot:
                 cpu_registered=True, gpu_slot=s.gpu_slot,
                 gpu_confirmed_monotonic_s=s.gpu_confirmed_monotonic_s) for s in self.sources],
             routing_footprints=footprints)
+        if not self.independent_host_reuse:
+            value['independent_host_reuse'] = False
+        return value
 
     @staticmethod
     def _routing_footprints(payload, slots, registered):
@@ -381,6 +389,7 @@ class NativeSourceSnapshot:
                     'unknown_native_adapter_ids', 'unconfirmed_gpu_adapter_ids'):
             if not isinstance(payload.get(key), list):
                 raise ValueError(f'native source snapshot requires a list: {key}')
+        host_reuse = independent_host_reuse_enabled(payload)
         slots = tuple(payload['slot_adapter_ids'])
         mapped = tuple(aid for aid in slots if aid is not None)
         registered = tuple(payload['registered_cpu_adapter_ids'])
@@ -414,7 +423,8 @@ class NativeSourceSnapshot:
                 raise ValueError('GPU source lacks matching slot/completed-copy evidence')
             sources.append(NativeAdapterSource(row['adapter_int_id'], row['adapter_id'],
                 row['lora_path'], row['rank'], slot, confirmed,
-                *footprints.get(row['adapter_int_id'], (None, None, None, None)), source_id))
+                *footprints.get(row['adapter_int_id'], (None, None, None, None)), source_id,
+                host_reuse))
         known = {row.adapter_int_id for row in sources}
         names = {row.adapter_id for row in sources}
         gpu_known = {row.adapter_int_id for row in sources if row.gpu_slot is not None}
@@ -428,9 +438,11 @@ class NativeSourceSnapshot:
                 or payload.get('complete_for_native_caches') is not (not unknown and not unconfirmed)):
             raise ValueError('native source snapshot coverage is inconsistent')
         return cls(payload['owner_id'], payload['epoch'], expected_clock_id, captured,
-                   slots, registered, tuple(sources), unknown, unconfirmed, host_bytes, gpu_bytes)
+                   slots, registered, tuple(sources), unknown, unconfirmed, host_bytes, gpu_bytes,
+                   independent_host_reuse=host_reuse)
 
     def find(self, *, adapter_id: str, adapter_int_id: int, lora_path: str) -> Optional[NativeAdapterSource]:
+        """Find physical identity, not authorization to reuse a HOST source."""
         for source in self.sources:
             if source.adapter_int_id == adapter_int_id or source.adapter_id == adapter_id:
                 if (source.adapter_int_id, source.adapter_id, source.lora_path) != (
@@ -484,6 +496,7 @@ def confirmed_file_sources_by_tier(*, files: Mapping, identity: Mapping,
             or type(files.get('epoch')) is not int or files['epoch'] < 0
             or not isinstance(files.get('sources'), list)):
         raise ValueError('routing file snapshot lacks consistent owner/clock/adapter identity')
+    host_reuse = independent_host_reuse_enabled(files)
     file_by_tier = {}
     for row in files['sources']:
         tier = row.get('tier')
@@ -496,6 +509,10 @@ def confirmed_file_sources_by_tier(*, files: Mapping, identity: Mapping,
                 or not isinstance(row.get('path'), str) or not Path(row['path']).is_absolute()):
             raise ValueError('routing file source differs from frozen content/representation')
         file_by_tier[tier] = row
+    if not host_reuse:
+        # Validate physical rows above, but do not turn retained staging into a
+        # generally reusable source. Its bytes remain in the owner's inventory.
+        file_by_tier.pop('host', None)
     return file_by_tier
 
 
@@ -512,6 +529,8 @@ def confirmed_source_class(*, native: NativeSourceSnapshot, files: Mapping,
     adapter_id = identity['adapter_id']
     file_by_tier = confirmed_file_sources_by_tier(
         files=files, identity=identity, clock_id=native.clock_id)
+    if native.independent_host_reuse != independent_host_reuse_enabled(files):
+        raise ValueError('native/file owners disagree on independent HOST reuse')
     features = dict(prompt_tokens=prompt_tokens, declared_output_tokens=declared_output_tokens,
                     admitted_after_accept=admitted_after_accept)
     selected = next((source for source in native.sources
@@ -522,6 +541,7 @@ def confirmed_source_class(*, native: NativeSourceSnapshot, files: Mapping,
             raise ValueError('native routing source changed frozen adapter identity/rank')
         if not selected.source_id:
             raise ValueError('confirmed routing requires a native copy identity')
+    if selected is not None and (selected.tier == 'gpu' or selected.host_reuse_allowed):
         return selected.service_class(bins, **features), dict(
             owner_id=native.owner_id, epoch=native.epoch, tier=selected.tier,
             source_id=selected.source_id,
@@ -1216,6 +1236,8 @@ class InstanceSlot:
         if previous is not None:
             if snapshot.owner_id != previous.owner_id or snapshot.clock_id != previous.clock_id:
                 raise ValueError('native source owner changed; explicit replica recovery required')
+            if snapshot.independent_host_reuse != previous.independent_host_reuse:
+                raise ValueError('independent HOST reuse policy changed within a native owner')
             if snapshot.epoch < previous.epoch:
                 return False
             if snapshot.epoch == previous.epoch:

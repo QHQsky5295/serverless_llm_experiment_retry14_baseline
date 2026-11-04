@@ -20,7 +20,7 @@ from types import MappingProxyType
 from enum import Enum
 from collections import defaultdict
 
-from ..registry.schema import ArtifactMetadata, StorageTier, PreloadingPlan
+from ..registry.schema import ArtifactMetadata, StorageTier, PreloadingPlan, independent_host_reuse_enabled
 from ..registry.artifact_registry import ArtifactRegistry
 from ..utils.math_models import ValuePerByteCalculator, EWMAEstimator
 from ..utils.config import Config
@@ -203,6 +203,8 @@ def supersede_absent_native_source(*, observed, owner_id, planned_epoch,
             'kind', 'owner_id', 'clock_id', 'epoch', 'captured_monotonic_s',
             'registered_cpu_adapter_ids', 'slot_adapter_ids', 'sources', 'staged_sources',
             'unknown_native_adapter_ids', 'unconfirmed_gpu_adapter_ids', 'complete_for_native_caches')})
+    if not snap.independent_host_reuse:
+        receipt['observation']['independent_host_reuse'] = False
     raise PreparationPlanSuperseded(receipt, stage=stage)
 
 
@@ -723,6 +725,9 @@ def owned_preparation_inputs(*, native_snapshot, file_snapshot, identities,
             or len(set(adapter_int_ids.values())) != len(adapter_int_ids)):
         raise ValueError('automatic planning requires complete owned native identities/footprints')
     files = file_snapshot
+    host_reuse = independent_host_reuse_enabled(files)
+    if not prospective and native.independent_host_reuse != host_reuse:
+        raise ValueError('planning native/file owners disagree on independent HOST reuse')
     budget = files['budgets']
     if (files.get('kind') != 'ieee_file_planning_sources_v1'
             or files.get('physical_resources_reserved') is not False
@@ -785,9 +790,10 @@ def owned_preparation_inputs(*, native_snapshot, file_snapshot, identities,
                 copies.append(dict(tier='gpu', native=True, owner_id=native.owner_id,
                     path=source.lora_path, expected_content_sha256=content,
                     representation=source.gpu_representation, footprint_bytes=source.gpu_slot_capacity_bytes))
-            copies.append(dict(tier='host', native=True, owner_id=native.owner_id,
-                path=source.lora_path, expected_content_sha256=content,
-                representation=source.host_representation, footprint_bytes=source.host_storage_bytes))
+            if host_reuse:
+                copies.append(dict(tier='host', native=True, owner_id=native.owner_id,
+                    path=source.lora_path, expected_content_sha256=content,
+                    representation=source.host_representation, footprint_bytes=source.host_storage_bytes))
         by_tier = {}
         for row in record['sources']:
             tier = row['tier']
@@ -798,7 +804,8 @@ def owned_preparation_inputs(*, native_snapshot, file_snapshot, identities,
                 raise ValueError('planning file source differs from confirmed identity')
             by_tier[tier] = dict(row, native=False, owner_id=files['owner_id'],
                                 footprint_bytes=row['allocated_file_bytes'])
-        copies.extend(by_tier[tier] for tier in ('host', 'nvme') if tier in by_tier)
+        copies.extend(by_tier[tier] for tier in ('host', 'nvme')
+                      if tier in by_tier and (tier != 'host' or host_reuse))
         copies.append(dict(tier='remote', native=False, owner_id='immutable_artifact_origin', path=None,
             content_sha256=content, footprint_bytes=identity['remote_payload_bytes'],
             representation=identity['remote_representation']))
@@ -811,6 +818,8 @@ def owned_preparation_inputs(*, native_snapshot, file_snapshot, identities,
         targets['gpu'] = dict(tier='gpu', representation=gpu_representation,
             content_sha256=content, footprint_bytes=slot_bytes)
         for tier in order[:order.index(current['tier'])]:
+            if tier == 'host' and not host_reuse:
+                continue
             target = targets[tier]
             if target['content_sha256'] != content or target['tier'] != tier:
                 raise ValueError('planning target changed frozen content or tier')
@@ -820,6 +829,8 @@ def owned_preparation_inputs(*, native_snapshot, file_snapshot, identities,
         adapter_int_ids=dict(adapter_int_ids), sources=source_rows,
         remaining_bytes={tier.value: value for tier, value in budgets.items()},
         captured_from_separate_owners=True, physical_resources_reserved=False)
+    if not host_reuse:
+        view['independent_host_reuse'] = False
     if prospective:
         view.update(activation_id=activation_id, inherited_layout=layout,
                     native_owner_exists=False, gpu_budget_basis='frozen_initialization_layout')
@@ -873,7 +884,12 @@ def validate_file_replacement_epoch(epoch):
             latency(row['current_load_ms'], h)
             latency(row['fallback_load_ms'], h)
             loss = h * max(0., row['fallback_load_ms']-row['current_load_ms']) if h else 0.
-        if row['loss_ms'] != loss or row['fallback']['tier'] not in ('host', 'nvme', 'remote'):
+        allowed_fallbacks = ('host', 'nvme', 'remote')
+        if unchanged and not independent_host_reuse_enabled(frozen['source_view']):
+            # NoHOST may retain an executable GPU copy, never merely its CPU
+            # backing. Execution must hold that GPU lease through file removal.
+            allowed_fallbacks = ('gpu',)
+        if row['loss_ms'] != loss or row['fallback']['tier'] not in allowed_fallbacks:
             raise ValueError('file replacement changed frozen eviction loss')
     seen = set()
     for row in frozen['candidates']:
@@ -904,7 +920,8 @@ def owned_file_replacement_rows(*, view, counts, total, estimates, size_edges_by
     rows = []
     for aid, state in sorted(view['sources'].items()):
         copies = [s for s in state['confirmed_copies'] if s['native'] or s.get('path') not in removed]
-        native = next((s for s in copies if s['native'] and s['tier'] == 'host'), None)
+        native_tier = 'host' if independent_host_reuse_enabled(view) else 'gpu'
+        native = next((s for s in copies if s['native'] and s['tier'] == native_tier), None)
         files = [s for s in copies if not s['native'] and s['tier'] in ('host', 'nvme')]
         remote = next(s for s in copies if s['tier'] == 'remote')
         h = counts.get(aid, 0)/total if total else 0.
@@ -915,7 +932,7 @@ def owned_file_replacement_rows(*, view, counts, total, estimates, size_edges_by
                 # same native tensor remains available on both sides of deletion.
                 current_key = fallback_key = None
                 d_current = d_fallback = None
-                fallback = dict(tier='host', native=True, adapter_id=aid,
+                fallback = dict(tier=native_tier, native=True, adapter_id=aid,
                     adapter_int_id=view['adapter_int_ids'][aid], path=native['path'])
                 fallback_bytes, loss, basis = native['footprint_bytes'], 0., 'retained_native_copy'
             else:
@@ -1082,7 +1099,13 @@ def owned_gpu_planning_victims(*, view, counts, total, estimates, size_edges_byt
         sources = view['sources'][name]
         if sources['selected_source']['tier'] != 'gpu':
             raise ValueError('replacement victim lacks its confirmed GPU source')
-        fallback = next(s for s in sources['confirmed_copies'] if s['native'] and s['tier'] == 'host')
+        if independent_host_reuse_enabled(view):
+            fallback = next(s for s in sources['confirmed_copies'] if s['native'] and s['tier'] == 'host')
+        else:
+            # CPU backing remains physically charged, but ceases to be reusable
+            # after GPU retirement. Price the actual fastest successor instead.
+            fallback = next(s for s in sources['confirmed_copies']
+                            if not s['native'] and s['tier'] in ('nvme', 'remote'))
         key = FrozenPreparationProfiles.source_class(fallback, size_edges_bytes)
         h = counts.get(name, 0)/total if total else 0.
         d = estimates[key] if h else None
@@ -1108,6 +1131,9 @@ def owned_gpu_execution_objective(*, plan, selected, size_edges_bytes, initializ
         native = initialized_snapshot
     elif initialized_snapshot is not None:
         raise ValueError('initialized plan cannot replace its native observation')
+    host_reuse = independent_host_reuse_enabled(view)
+    if independent_host_reuse_enabled(native) != host_reuse:
+        raise ValueError('GPU objective changed independent HOST reuse policy')
     options = {(r['artifact_id'], r['target']['tier']): r for r in plan['options']}
     sources = []
     for name, source in sorted(view['sources'].items()):
@@ -1133,13 +1159,15 @@ def owned_gpu_execution_objective(*, plan, selected, size_edges_bytes, initializ
         physical_resources_reserved=False,
         **{k: copy.deepcopy(plan[k]) for k in ('arrival_counts', 'total_arrivals',
                                                'demand_observed_at', 'window_seconds')})
+    if not host_reuse:
+        frozen['independent_host_reuse'] = False
     frozen['plan_sha256'] = hashlib.sha256(json.dumps(frozen, sort_keys=True,
         separators=(',', ':'), allow_nan=False).encode()).hexdigest()
     validate_native_gpu_epoch(frozen)
     return frozen
 
 
-def native_gpu_fallback_costs(*, objective, native_inventory):
+def native_gpu_fallback_costs(*, objective, native_inventory, file_fallbacks=None):
     """Actual worker-side HOST fallback classes priced at the original epoch."""
     from ..experiment.instance_pool import NativeSourceSnapshot
     frozen = validate_native_gpu_epoch(objective)
@@ -1151,11 +1179,18 @@ def native_gpu_fallback_costs(*, objective, native_inventory):
         tuple(native_inventory['slot_adapter_ids']), tuple(native_inventory['registered_cpu_adapter_ids']))
     values = frozen_preparation_costs(frozen['cost_estimates'])
     rows = {r['adapter_int_id']: r for r in frozen['sources']}
+    if not independent_host_reuse_enabled(frozen):
+        host = _native_host_replacement_costs(frozen, native_inventory, file_fallbacks,
+                                              observed, values, rows)
+        return {aid: host[aid]['loss_ms'] for aid in native_inventory['slot_adapter_ids']
+                if aid is not None}
     return _native_gpu_fallback_costs(frozen, native_inventory, observed, values, rows)
 
 
 def _native_gpu_fallback_costs(frozen, native_inventory, observed, values, rows):
     """Pure pricing over this call's validated objective and physical graph."""
+    if not independent_host_reuse_enabled(frozen):
+        raise ValueError('NoHOST GPU replacement requires actual file/remote fallback evidence')
     result = {}
     for aid in native_inventory['slot_adapter_ids']:
         if aid is None:
@@ -1198,14 +1233,15 @@ def _native_host_replacement_costs(frozen, native_inventory, file_fallbacks,
                                   observed, values, rows):
     ids = tuple(native_inventory['registered_cpu_adapter_ids'])
     slots = tuple(native_inventory['slot_adapter_ids'])
-    if set(file_fallbacks) != {str(a) for a in ids}:
+    if not isinstance(file_fallbacks, dict) or set(file_fallbacks) != {str(a) for a in ids}:
         raise ValueError('native HOST replacement requires complete file fallback observations')
     footprints = {r['adapter_int_id']: r for r in native_inventory['host_adapter_footprints']}
     result = {}
     for aid in ids:
         row, evidence = rows[aid], file_fallbacks[str(aid)]
         source = evidence['source']
-        if (source['tier'] not in ('host', 'nvme', 'remote') or source.get('native') is not False
+        tiers = ('host', 'nvme', 'remote') if independent_host_reuse_enabled(frozen) else ('nvme', 'remote')
+        if (source['tier'] not in tiers or source.get('native') is not False
                 or source.get('content_sha256') != row['content_sha256']):
             raise ValueError('HOST replacement fallback content/tier differs')
         if source['tier'] == 'remote':
@@ -1229,7 +1265,8 @@ def _native_host_replacement_costs(frozen, native_inventory, file_fallbacks,
             host_key = FrozenPreparationProfiles.source_class(dict(native=True, tier='host',
                 footprint_bytes=size, representation=representation,
                 expected_content_sha256=row['content_sha256']), tuple(frozen['size_edges_bytes']))
-            current_d = 0. if aid in slots else values[host_key]
+            current_d = (0. if aid in slots else values[host_key]
+                         if independent_host_reuse_enabled(frozen) else values[source_key])
             loss = n/frozen['total_arrivals'] * max(0., values[source_key]-current_d)
         else:
             loss = 0.
@@ -1257,10 +1294,12 @@ def native_replacement_costs(*, objective, native_inventory, file_fallbacks=None
         tuple(native_inventory['slot_adapter_ids']), tuple(native_inventory['registered_cpu_adapter_ids']))
     values = frozen_preparation_costs(frozen['cost_estimates'])
     rows = {r['adapter_int_id']: r for r in frozen['sources']}
-    gpu = _native_gpu_fallback_costs(frozen, native_inventory, observed, values, rows)
     host = (_native_host_replacement_costs(frozen, native_inventory, file_fallbacks,
                                          observed, values, rows)
-            if file_fallbacks is not None else None)
+            if file_fallbacks is not None or not independent_host_reuse_enabled(frozen) else None)
+    gpu = (_native_gpu_fallback_costs(frozen, native_inventory, observed, values, rows)
+           if independent_host_reuse_enabled(frozen) else
+           {aid: host[aid]['loss_ms'] for aid in native_inventory['slot_adapter_ids'] if aid is not None})
     return gpu, host
 
 
@@ -1276,6 +1315,8 @@ def validate_native_gpu_epoch(epoch):
             separators=(',', ':'), allow_nan=False).encode()).hexdigest():
         raise ValueError('native GPU preparation epoch hash mismatch')
     mixed = frozen.get('kind') == 'ieee_owned_gpu_objective_v2'
+    if not independent_host_reuse_enabled(frozen) and not mixed:
+        raise ValueError('NoHOST requires an all-tier GPU objective, not a HOST-only epoch')
     if (frozen.get('kind') not in ('ieee_native_gpu_objective_v1', 'ieee_owned_gpu_objective_v2')
             or frozen.get('physical_resources_reserved') is not False
             or not isinstance(frozen.get('owner_id'), str) or not frozen['owner_id']
