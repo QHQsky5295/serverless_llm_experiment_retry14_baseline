@@ -1,0 +1,226 @@
+{
+  "kind": "retained_preparation_consumers_d1065_v1",
+  "run": "D1047",
+  "plans": 2397,
+  "states": {
+    "completed": 1579,
+    "superseded": 816,
+    "cancelled": 2
+  },
+  "native_fallback_count_histogram": {
+    "0": 2397
+  },
+  "native_fallback_holds": 0,
+  "multi_fallback_plans": 0,
+  "result_count_histogram": {
+    "0": 1948,
+    "2": 101,
+    "5": 6,
+    "4": 16,
+    "1": 295,
+    "9": 1,
+    "6": 1,
+    "3": 24,
+    "7": 2,
+    "10": 1,
+    "12": 1,
+    "13": 1
+  },
+  "registered_file_target_histogram": {
+    "0": 1130,
+    "2": 342,
+    "1": 713,
+    "5": 21,
+    "4": 52,
+    "3": 126,
+    "9": 2,
+    "6": 3,
+    "10": 2,
+    "7": 3,
+    "11": 1,
+    "12": 1,
+    "13": 1
+  },
+  "state_result_target_counts": [
+    {
+      "state": "cancelled",
+      "results": 0,
+      "registered_file_targets": 2,
+      "count": 1
+    },
+    {
+      "state": "cancelled",
+      "results": 0,
+      "registered_file_targets": 3,
+      "count": 1
+    },
+    {
+      "state": "completed",
+      "results": 0,
+      "registered_file_targets": 0,
+      "count": 1130
+    },
+    {
+      "state": "completed",
+      "results": 1,
+      "registered_file_targets": 1,
+      "count": 295
+    },
+    {
+      "state": "completed",
+      "results": 2,
+      "registered_file_targets": 2,
+      "count": 101
+    },
+    {
+      "state": "completed",
+      "results": 3,
+      "registered_file_targets": 3,
+      "count": 24
+    },
+    {
+      "state": "completed",
+      "results": 4,
+      "registered_file_targets": 4,
+      "count": 16
+    },
+    {
+      "state": "completed",
+      "results": 5,
+      "registered_file_targets": 5,
+      "count": 6
+    },
+    {
+      "state": "completed",
+      "results": 6,
+      "registered_file_targets": 6,
+      "count": 1
+    },
+    {
+      "state": "completed",
+      "results": 7,
+      "registered_file_targets": 7,
+      "count": 2
+    },
+    {
+      "state": "completed",
+      "results": 9,
+      "registered_file_targets": 9,
+      "count": 1
+    },
+    {
+      "state": "completed",
+      "results": 10,
+      "registered_file_targets": 10,
+      "count": 1
+    },
+    {
+      "state": "completed",
+      "results": 12,
+      "registered_file_targets": 12,
+      "count": 1
+    },
+    {
+      "state": "completed",
+      "results": 13,
+      "registered_file_targets": 13,
+      "count": 1
+    },
+    {
+      "state": "superseded",
+      "results": 0,
+      "registered_file_targets": 1,
+      "count": 418
+    },
+    {
+      "state": "superseded",
+      "results": 0,
+      "registered_file_targets": 2,
+      "count": 240
+    },
+    {
+      "state": "superseded",
+      "results": 0,
+      "registered_file_targets": 3,
+      "count": 101
+    },
+    {
+      "state": "superseded",
+      "results": 0,
+      "registered_file_targets": 4,
+      "count": 36
+    },
+    {
+      "state": "superseded",
+      "results": 0,
+      "registered_file_targets": 5,
+      "count": 15
+    },
+    {
+      "state": "superseded",
+      "results": 0,
+      "registered_file_targets": 6,
+      "count": 2
+    },
+    {
+      "state": "superseded",
+      "results": 0,
+      "registered_file_targets": 7,
+      "count": 1
+    },
+    {
+      "state": "superseded",
+      "results": 0,
+      "registered_file_targets": 9,
+      "count": 1
+    },
+    {
+      "state": "superseded",
+      "results": 0,
+      "registered_file_targets": 10,
+      "count": 1
+    },
+    {
+      "state": "superseded",
+      "results": 0,
+      "registered_file_targets": 11,
+      "count": 1
+    }
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1064_retained_a1_overhead/summary.json",
+      "sha256": "304fe266e7481fa873338f1b7f561dbb167f28509831c25628efdc5bac0af798"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1047_20261104/d1047_3b_event_busy_time_w1_full/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "8a4bc4804fea75a291771fd529d3af76509f921a4d1fff52e2f76e79938aa46a"
+    }
+  ],
+  "script": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1065_preparation_consumer_audit/analyze.py",
+    "sha256": "fe398fd96ddeba1eec156a72dfb274b62c9de5e08ff5b2007cc98a85f267e0f1"
+  },
+  "scope": {
+    "unit": "primelora-tc-test-f9a8024ed5f249a5bbf3ffb0daa4d65e.scope",
+    "invocation_id": "9b9dfde0dcce4bb5902ed468e9dd7136",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-f9a8024ed5f249a5bbf3ffb0daa4d65e.scope",
+    "inode": 39470861
+  },
+  "resource_snapshot": {
+    "memory.high": "3221225472",
+    "memory.max": "4294967296",
+    "memory.peak": "30519296",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0",
+    "memory.swap.max": "0"
+  },
+  "new_gpu_runs": 0,
+  "formal_ranking_eligible": false,
+  "causal_attribution_established": false,
+  "caveats": [
+    "Zero native fallback holds rules out this path as observed D1047 overhead, not all workloads.",
+    "An empty results list is not proof of an empty profitable candidate set.",
+    "Do not bypass fresh capacity or source checks using these aggregate counts."
+  ]
+}
