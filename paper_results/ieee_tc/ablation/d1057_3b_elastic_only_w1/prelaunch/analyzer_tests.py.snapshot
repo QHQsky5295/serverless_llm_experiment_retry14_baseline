@@ -1,0 +1,44 @@
+"""Focused scenario-binding regression; no inference or result recomputation."""
+import contextlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def main():
+    import pytest
+    identity = p.scope_identity(p.cg_path().name)
+    assert os.sched_getaffinity(0) == {2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+    assert (p.cg_path()/'memory.high').read_text().strip() == str(3*p.GIB)
+    assert (p.cg_path()/'memory.max').read_text().strip() == str(4*p.GIB)
+    assert (p.cg_path()/'memory.swap.max').read_text().strip() == '0'
+    arguments = ['-q', '-p', 'no:cacheprovider', 'tests/test_ieee_tc_diagnostic_plot.py',
+        '-k', 'd1057 or d719_profile_audit or registered_common_slo_population or unregistered_common_slo_population']
+    start = time.monotonic()
+    with (RAW/'analyzer_tests.txt').open('x') as stream:
+        with contextlib.redirect_stdout(stream), contextlib.redirect_stderr(stream):
+            code = int(pytest.main(arguments))
+    shell = subprocess.run(['bash', '-n', 'scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh'], check=False)
+    report = dict(passed=code == 0 and shell.returncode == 0, pytest_exit_code=code,
+        bash_syntax_returncode=shell.returncode, arguments=arguments, elapsed_s=time.monotonic()-start,
+        identity=identity, resources=p.cgroup_snapshot(p.cg_path()), performance_test=False,
+        sources={name:p.digest(ROOT/name) for name in (
+            'scripts/ieee_tc/audit_d703_3b_full.py', 'tests/test_ieee_tc_diagnostic_plot.py',
+            'scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh')})
+    with (RAW/'analyzer_tests.json').open('x') as stream:
+        json.dump(report, stream, indent=2)
+        stream.write('\n')
+    print(json.dumps(report), flush=True)
+    sys.exit(0 if report['passed'] else 1)
+
+
+if __name__ == '__main__':
+    main()

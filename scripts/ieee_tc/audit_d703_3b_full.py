@@ -1035,13 +1035,45 @@ def partition_common_slo_request(request, groups, *, clock_id):
         load_end=receipt['native_load_completed_monotonic_s'])
 
 
-def diagnose_common_slo(raw: Path, output: Path, metric_audit: Path) -> None:
+def require_analysis_scenario(scenario, *, metric=None, config=None):
+    """Keep raw scenario identity explicit; old D714 records are Full only."""
+    if scenario not in ('tc_ieee_full', 'tc_ieee_elastic_only', 'tc_ieee_elastic_locality'):
+        raise ValueError('unknown registered analysis scenario')
+    if metric is not None and metric.get('scenario', 'tc_ieee_full') != scenario:
+        raise ValueError('metric/scenario identity differs; raw results must not be relabelled')
+    if config is not None:
+        selected = [row for row in config['scenarios'] if row['name'] == scenario]
+        if len(selected) != 1:
+            raise ValueError('config/scenario identity differs')
+
+
+def audit_result_scenario(result: Path, scenario: str):
+    """Bounded projection of the runner's raw metadata and detailed identity."""
+    import ijson
+    require_analysis_scenario(scenario)
+    keys = {'metadata.scenario_coordination': [], 'detailed_results': []}
+    names = []
+    with result.open('rb') as stream:
+        for prefix, event, value in ijson.parse(stream, use_float=True):
+            if prefix in keys and event == 'map_key':
+                keys[prefix].append(value)
+            elif prefix == f'detailed_results.{scenario}.scenario_name':
+                if event != 'string':
+                    raise ValueError('raw scenario name must be a string')
+                names.append(value)
+    if names != [scenario] or any(value != [scenario] for value in keys.values()):
+        raise ValueError('raw metadata/detailed scenario identity differs')
+
+
+def diagnose_common_slo(raw: Path, output: Path, metric_audit: Path,
+                        *, scenario='tc_ieee_full') -> None:
     """D716: all-request, source-bound, CPU-only descriptive stage diagnosis."""
     import ijson
     from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
     if output.exists():
         raise FileExistsError(output)
     metric = read(metric_audit)
+    require_analysis_scenario(scenario, metric=metric)
     if (metric['kind'] != 'native_common_slo_reanalysis_d714_v1' or not metric['passed']
             or metric['source_run'] != str(raw) or metric['counts']['n'] != 4000):
         raise ValueError('complete same-run D714 common-SLO audit required')
@@ -1059,7 +1091,7 @@ def diagnose_common_slo(raw: Path, output: Path, metric_audit: Path) -> None:
     freeze, summary = read(freeze_path), read(summary_path)
     rows = []
     with result.open('rb') as handle:
-        for request in ijson.items(handle, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+        for request in ijson.items(handle, f'detailed_results.{scenario}.requests.item', use_float=True):
             rows.append(partition_common_slo_request(request, freeze['groups'], clock_id=summary['clock_id']))
     rows.sort(key=lambda r:r['ordinal'])
     if (len(rows) != 4000 or len({r['request_id'] for r in rows}) != 4000
@@ -1122,7 +1154,7 @@ def diagnose_common_slo(raw: Path, output: Path, metric_audit: Path) -> None:
                 ROOT/'scripts/ieee_tc/check_d299_full_context.py',
                 Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md')]
     report = dict(kind='d716_all_request_stage_diagnosis_v1', passed=True,
-        source_run=str(raw), clock_id=summary['clock_id'], counts=counts, groups=groups,
+        source_run=str(raw), scenario=scenario, clock_id=summary['clock_id'], counts=counts, groups=groups,
         max_stage_identity_error_ms=max(r['stage_identity_error_ms'] for r in rows),
         n_correct=metric['n_correct'], numerical_adapter_correctness_qualified=False,
         ranking_eligible=False, physical_gpu_seconds=metric['physical_gpu_seconds'],
@@ -1702,12 +1734,13 @@ def configured_profile_sources(config: dict, manifest_path: Path):
 
 
 def audit_profile_bindings(raw: Path, output: Path, metric_audit: Path, config_path: Path,
-                           manifest_path: Path = None) -> None:
+                           manifest_path: Path = None, *, scenario='tc_ieee_full') -> None:
     """Stream the original D703 profile checks after a strict full native audit."""
     import ijson
     if output.exists():
         raise FileExistsError(output)
     metric = read(metric_audit)
+    require_analysis_scenario(scenario, metric=metric)
     if (metric['source_run'] != str(raw) or metric['passed'] is not True
             or metric['counts']['n'] != 4000):
         raise ValueError('complete same-run native metric audit required')
@@ -1717,6 +1750,7 @@ def audit_profile_bindings(raw: Path, output: Path, metric_audit: Path, config_p
     if digest(result) != source['sha256']:
         raise ValueError('metric source changed')
     config = __import__('yaml').safe_load(config_path.read_text())
+    require_analysis_scenario(scenario, config=config)
     rc = config['resource_coordination']
     service_path, preparation_path = configured_profile_sources(config, manifest_path)
     service_sha, preparation_sha = digest(service_path), digest(preparation_path)
@@ -1744,7 +1778,7 @@ def audit_profile_bindings(raw: Path, output: Path, metric_audit: Path, config_p
     ids, service_classes, preparation_classes = set(), set(), set()
     tiers = collections.Counter()
     with result.open('rb') as handle:
-        for row in ijson.items(handle, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+        for row in ijson.items(handle, f'detailed_results.{scenario}.requests.item', use_float=True):
             rid = row['request_id']
             if rid in ids:
                 raise ValueError('duplicate profile audit request')
@@ -1764,7 +1798,7 @@ def audit_profile_bindings(raw: Path, output: Path, metric_audit: Path, config_p
     if ids != {f'req_{i:05d}' for i in range(4000)}:
         raise ValueError('full offered profile population required')
     report = dict(kind='d719_full_profile_binding_audit_v1', passed=True, source_run=str(raw),
-        n=len(ids), tiers=dict(tiers), service_classes=len(service_classes),
+        scenario=scenario, n=len(ids), tiers=dict(tiers), service_classes=len(service_classes),
         preparation_classes=len(preparation_classes), numerical_correctness_qualified=False,
         ranking_eligible=False, performance_execution=False,
         source_refs=[ref(x) for x in (result, outcome, metric_audit, config_path, service_path,
@@ -1785,18 +1819,21 @@ def configured_release_reasons(config):
 
 
 def audit_closed_outcome(raw: Path, output: Path, metric_audit: Path,
-                         config_path: Path = None, remote_observation='managed_monitor') -> None:
+                         config_path: Path = None, remote_observation='managed_monitor',
+                         *, scenario='tc_ieee_full') -> None:
     """Join closed remote, control and watchdog evidence after the SLO audit."""
     import ijson
     from scripts.ieee_tc.check_d299_full_context import project
     if output.exists():
         raise FileExistsError(output)
     metric = read(metric_audit)
+    require_analysis_scenario(scenario, metric=metric)
     if metric['source_run'] != str(raw) or metric['passed'] is not True:
         raise ValueError('same-run completed native metric audit required')
     if remote_observation not in ('managed_monitor', 'existing_unmonitored'):
         raise ValueError('explicit known remote observation mode required')
     config = __import__('yaml').safe_load(config_path.read_text()) if config_path else None
+    require_analysis_scenario(scenario, config=config)
     if config is not None and Path(config['experiment']['output_dir']).resolve() != raw.resolve():
         raise ValueError('closed audit config/run binding differs')
     release_reasons = configured_release_reasons(config)
@@ -1845,7 +1882,7 @@ def audit_closed_outcome(raw: Path, output: Path, metric_audit: Path,
     control = {}
     with result.open('rb') as stream:
         for prefix, event, value in ijson.parse(stream, use_float=True):
-            if prefix == 'detailed_results.tc_ieee_full.scale_down_events':
+            if prefix == f'detailed_results.{scenario}.scale_down_events':
                 if event != 'number':
                     raise ValueError('scalar observed event count required')
                 control[prefix.rsplit('.',1)[1]] = value
@@ -1853,11 +1890,11 @@ def audit_closed_outcome(raw: Path, output: Path, metric_audit: Path,
         raise ValueError('scale-in count must be recorded')
     with result.open('rb') as stream:
         control['scale_up_event_log'] = list(ijson.items(stream,
-            'detailed_results.tc_ieee_full.scale_up_events.item', use_float=True))
+            f'detailed_results.{scenario}.scale_up_events.item', use_float=True))
     control['completed_scale_up_events'] = len(control['scale_up_event_log'])
     with result.open('rb') as stream:
         control['scale_down_event_log'] = list(ijson.items(stream,
-            'detailed_results.tc_ieee_full.scale_down_event_log.item', use_float=True))
+            f'detailed_results.{scenario}.scale_down_event_log.item', use_float=True))
     if control['scale_down_events'] != len(control['scale_down_event_log']):
         raise ValueError('scale-in log/count mismatch')
     for event in control['scale_down_event_log']:
@@ -1874,6 +1911,7 @@ def audit_closed_outcome(raw: Path, output: Path, metric_audit: Path,
     if remote_observation == 'managed_monitor':
         source_paths += [raw.parent/'remote_monitor.log',raw.parent/'remote_stop.log']
     audit = dict(kind='d713_closed_delivery_and_control_context_v1', passed=True,
+        scenario=scenario,
         native_metric_audit=ref(metric_audit), terminal_meta=meta, control=control,
         physical_allocation_count=len(summary['allocation_journals']),
         all_allocations_released=all(j['released'] for j in summary['allocation_journals']),
@@ -1906,7 +1944,8 @@ def registered_arrival_plan(identity, *, expected_count: int):
     return plan
 
 
-def reevaluate_common_slo(raw: Path, output: Path, *, expected_count: int) -> None:
+def reevaluate_common_slo(raw: Path, output: Path, *, expected_count: int,
+                          scenario='tc_ieee_full') -> None:
     """R1: append-only native SLO correction, with bounded streaming memory.
 
     No remote call, GPU launch, threshold change or modification of v1 evidence.
@@ -1921,6 +1960,7 @@ def reevaluate_common_slo(raw: Path, output: Path, *, expected_count: int) -> No
         raise FileExistsError(output)
     if expected_count not in (100, 1000, 4000):
         raise ValueError('registered prefix100/prefix1000 or full4000 only')
+    require_analysis_scenario(scenario)
     results = list(raw.glob('experiment_results_full*.json'))
     if len(results) != 1:
         raise ValueError('exactly one completed source result required')
@@ -1939,6 +1979,7 @@ def reevaluate_common_slo(raw: Path, output: Path, *, expected_count: int) -> No
             or physical['summary_sha256'] != digest(summary_path)
             or physical['measurement_complete'] is not True or physical['open_lease_ids']):
         raise ValueError('source-bound complete physical sidecar required')
+    audit_result_scenario(result, scenario)
     gpu_s = closed_physical_integral(summary, expected_count=expected_count)
     for j in summary['allocation_journals']:
         if j['released'] is not True or digest(Path(j['path'])) != j['sha256']:
@@ -1967,7 +2008,7 @@ def reevaluate_common_slo(raw: Path, output: Path, *, expected_count: int) -> No
         sort_keys=True, separators=(',', ':')).encode()).hexdigest() for a in index['artifacts']}
     if len(content) != len(index['artifacts']) or len(content) != 500:
         raise ValueError('existing full content index required')
-    rows = matched_controller_rows(result, 'tc_ieee_full', content, expected_count=expected_count)
+    rows = matched_controller_rows(result, scenario, content, expected_count=expected_count)
     if set(rows) != {e.request_id for e in plan.entries}:
         raise ValueError('offered population mismatch')
     counts = collections.Counter(n=0, ttft_pass=0, tpot_eligible=0, tpot_pass=0, joint_pass=0)
@@ -2009,7 +2050,7 @@ def reevaluate_common_slo(raw: Path, output: Path, *, expected_count: int) -> No
             failed_slo.append(dict(request_id=entry.request_id, ordinal=ordinal,
                 native_prompt_tokens=r['native_prompt_tokens'], **values, **flags))
     with result.open('rb') as stream:
-        legacy = next(ijson.items(stream, 'detailed_results.tc_ieee_full.slo_attainment', use_float=True))
+        legacy = next(ijson.items(stream, f'detailed_results.{scenario}.slo_attainment', use_float=True))
     sources = [result, launch_path, summary_path, physical_path, freeze_path, warm, content_path,
                v1, v2, Path(__file__), ROOT/'scripts/ieee_tc/check_d299_full_context.py']
     if raw == RAW:
@@ -2018,7 +2059,7 @@ def reevaluate_common_slo(raw: Path, output: Path, *, expected_count: int) -> No
             raise ValueError('D703 original sealed source changed')
         sources.append(OUT/'audit.json')
     audit = dict(kind='native_common_slo_reanalysis_d714_v1', source_run=str(raw),
-        reuse_level='R1', passed=True, counts=dict(counts),
+        scenario=scenario, reuse_level='R1', passed=True, counts=dict(counts),
         joint_slo_fraction=counts['joint_pass']/expected_count,
         ttft_marginal_fraction=counts['ttft_pass']/expected_count,
         tpot_conditional_fraction=counts['tpot_pass']/counts['tpot_eligible'] if counts['tpot_eligible'] else None,

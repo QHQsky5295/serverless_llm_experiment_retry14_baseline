@@ -21,8 +21,8 @@ def ieee_control_fixture():
         ttft_upper_ms=1000, ttft_lower_ms=500, ttft_window_s=100, scale_down_cooldown_s=3)
 
 
-def elastic_locality_configuration_fixture():
-    return (dict(ieee_system_variant='elastic_locality_v1',
+def elastic_locality_configuration_fixture(*, load_only=False):
+    coord, preload = (dict(ieee_system_variant='elastic_locality_v1',
         routing_policy='ieee_confirmed', ieee_selection_strategy='gpu_locality',
         locality_load_slack=1, ieee_handoff_policy='no_handoff',
         coordination_enabled=False, scale_up_handoff_enabled=False,
@@ -30,6 +30,10 @@ def elastic_locality_configuration_fixture():
         dict(file_cache_policy='demand_lru', enabled=False,
         hierarchical_residency_enabled=False, dynamic_forwarding_enabled=False,
         gpu_dynamic_forwarding_enabled=False, host_promotion_on_nvme_hit_enabled=False))
+    if load_only:
+        coord.update(ieee_system_variant='elastic_only_v1', ieee_selection_strategy='load_only')
+        del coord['locality_load_slack']
+    return coord, preload
 
 
 class ElasticLocalityContract(unittest.TestCase):
@@ -98,6 +102,72 @@ class ElasticLocalityContract(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'forbids proactive'):
             asyncio.run(service.run_ieee_proactive_admission_diagnostic())
         self.assertFalse(hasattr(service,'_ieee_proactive_diagnostic_attempted'))
+
+
+class ElasticOnlyContract(unittest.TestCase):
+    def test_config_changes_only_registered_mechanisms_and_output_paths(self):
+        import copy
+        import yaml
+        root = Path(__file__).resolve().parents[1]
+        full = yaml.safe_load((root/'configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml').read_text())
+        ablation = yaml.safe_load((root/'configs/ieee_tc/20261104_d1057_3b_elastic_only_w1.yaml').read_text())
+        coord, preload = elastic_locality_configuration_fixture(load_only=True)
+        self.assertEqual(runner._ieee_system_variant_contract(ablation['resource_coordination'],
+            ablation['scenarios'][0]['preloading'], environment={}),
+            runner._ieee_system_variant_contract(coord, preload, environment={}))
+        self.assertEqual(ablation['scenarios'][0]['name'], 'tc_ieee_elastic_only')
+        normalized = copy.deepcopy(ablation)
+        normalized['experiment']['output_dir'] = full['experiment']['output_dir']
+        for key in ('nvme_cache_dir', 'host_cache_dir'):
+            self.assertNotEqual(ablation['storage'][key], full['storage'][key])
+            normalized['storage'][key] = full['storage'][key]
+        normalized['scenarios'][0]['name'] = full['scenarios'][0]['name']
+        for target, original, changes in (
+                (normalized['resource_coordination'], full['resource_coordination'], coord),
+                (normalized['scenarios'][0]['preloading'], full['scenarios'][0]['preloading'], preload)):
+            for key in changes:
+                if key in original:
+                    target[key] = original[key]
+                else:
+                    del target[key]
+        self.assertEqual(normalized, full)
+
+    def test_load_only_contract_requires_all_gates_and_no_locality_slack(self):
+        coord, preload = elastic_locality_configuration_fixture(load_only=True)
+        check = runner._ieee_system_variant_contract
+        contract = check(coord, preload, environment={})
+        self.assertEqual(contract['system'], 'ElasticOnly')
+        self.assertEqual(contract['selection_strategy'], 'load_only')
+        self.assertIsNone(contract['locality_load_slack'])
+        self.assertTrue(contract['native_demand_loading'])
+        self.assertTrue(contract['physical_admission'])
+        self.assertFalse(contract['proactive_preparation'])
+        for group, values in (('coordination', coord), ('preloading', preload)):
+            for key in values:
+                if key == 'ieee_system_variant':
+                    continue
+                other = {k:v for k,v in values.items() if k != key}
+                with self.subTest(group=group, key=key), self.assertRaises(ValueError):
+                    check(other if group == 'coordination' else coord,
+                          other if group == 'preloading' else preload, environment={})
+        for value in (None, 0, 1, True):
+            with self.subTest(slack=value), self.assertRaisesRegex(ValueError, 'load_slack'):
+                check(coord | {'locality_load_slack': value}, preload, environment={})
+        with self.assertRaises(ValueError):
+            check(coord | {'ieee_selection_strategy': 'gpu_locality'}, preload, environment={})
+
+    def test_proactive_diagnostics_reject_before_mutation(self):
+        coord, preload = elastic_locality_configuration_fixture(load_only=True)
+        for key in ('FAASLORA_IEEE_PROACTIVE_DIAGNOSTIC',
+                    'FAASLORA_IEEE_PROACTIVE_DIAGNOSTIC_DURING_REPLAY'):
+            with self.subTest(key=key), self.assertRaisesRegex(ValueError, 'diagnostic'):
+                runner._ieee_system_variant_contract(coord, preload, environment={key: '1'})
+        service = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
+        service._ieee_mechanism_contract = runner._ieee_system_variant_contract(
+            coord, preload, environment={})
+        with self.assertRaisesRegex(ValueError, 'forbids proactive'):
+            asyncio.run(service.run_ieee_proactive_admission_diagnostic())
+        self.assertFalse(hasattr(service, '_ieee_proactive_diagnostic_attempted'))
 
 
 async def terminal_run_observation(policy):
@@ -294,9 +364,9 @@ class IEEEIntegratedLaunchContract(unittest.IsolatedAsyncioTestCase):
         self.service.engine_factory.assert_not_awaited()
         self.assertIsNone(self.service.engine.engine)
 
-    async def assemble_locality(self):
+    async def assemble_locality(self, *, load_only=False):
         service = self.service
-        coord, preload = elastic_locality_configuration_fixture()
+        coord, preload = elastic_locality_configuration_fixture(load_only=load_only)
         service.coord_cfg.update(coord)
         service.preload_cfg.update(preload)
         await service._stack.stop()
@@ -306,8 +376,9 @@ class IEEEIntegratedLaunchContract(unittest.IsolatedAsyncioTestCase):
             remote_dir=root/'remote',nvme_dir=root/'nvme',host_dir=root/'host',
             coordination_enabled=False)
         service.router = runner.Router(service.instance_pool,policy='ieee_confirmed',
-            service_bin_ms=1.,ieee_selection_strategy='gpu_locality',locality_load_slack=1)
-        service.name = 'tc_ieee_elastic_locality'
+            service_bin_ms=1.,ieee_selection_strategy=coord['ieee_selection_strategy'],
+            locality_load_slack=coord.get('locality_load_slack'))
+        service.name = 'tc_ieee_elastic_only' if load_only else 'tc_ieee_elastic_locality'
         service._ieee_handoff_policy = 'no_handoff'
         service._coordination_enabled = service._scale_up_handoff_enabled = False
         service._hierarchical_residency_enabled = False
@@ -323,6 +394,28 @@ class IEEEIntegratedLaunchContract(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.service._stack.residency_manager.local_source_references.file_cache_policy,
                          'demand_lru')
         self.service.engine_factory.assert_not_awaited()
+
+    async def test_elastic_only_binds_actual_load_owner_and_own_scenario(self):
+        await self.assemble_locality(load_only=True)
+        service = self.service
+        service._require_ieee_full_qualification()
+        receipt = service._ieee_full_launch_contract['system_mechanism_contract']
+        self.assertEqual(receipt['system'], 'ElasticOnly')
+        self.assertEqual(receipt['selection_strategy'], 'load_only')
+        self.assertIsNone(receipt['locality_load_slack'])
+        service.engine_factory.assert_not_awaited()
+        for name in ('tc_ieee_full', 'tc_ieee_elastic_locality'):
+            service.name = name
+            with self.subTest(name=name), self.assertRaisesRegex(RuntimeError, 'own scenario'):
+                service._require_ieee_full_qualification()
+        service.name = 'tc_ieee_elastic_only'
+        service.router.ieee_selection_strategy = 'service_bins'
+        with self.assertRaisesRegex(RuntimeError, 'actual locality owners'):
+            service._require_ieee_full_qualification()
+        service.router.ieee_selection_strategy = 'load_only'
+        del service.coord_cfg['ieee_system_variant']
+        with self.assertRaisesRegex(RuntimeError, 'complete locality variant'):
+            service._require_ieee_full_qualification()
 
     async def test_complete_locality_rejects_full_label_owner_drift_and_late_diagnostic(self):
         await self.assemble_locality()
@@ -1998,11 +2091,18 @@ class IEEEEventBusyTimeContract(unittest.TestCase):
 
 class IEEEActualControl(unittest.TestCase):
     def test_locality_combination_keeps_actual_scaleout_but_no_preparation(self):
+        self._assert_demand_only_scaleout(load_only=False)
+
+    def test_elastic_only_keeps_actual_scaleout_but_no_preparation(self):
+        self._assert_demand_only_scaleout(load_only=True)
+
+    def _assert_demand_only_scaleout(self, *, load_only):
         fixture, files, service, queue, engine = self.make('no_handoff')
-        coord, preload = elastic_locality_configuration_fixture()
+        coord, preload = elastic_locality_configuration_fixture(load_only=load_only)
         service.coord_cfg.update(coord)
         service.preload_cfg = preload
         service._coordination_enabled = service._scale_up_handoff_enabled = False
+        service._hierarchical_residency_enabled = False
         service._retired_coord_metrics = []
         service.coordinator = None
         service._ieee_mechanism_contract = runner._ieee_system_variant_contract(
@@ -2012,7 +2112,8 @@ class IEEEActualControl(unittest.TestCase):
         owner = service._stack.residency_manager.local_source_references
         owner.file_cache_policy = 'demand_lru'
         service.router = runner.Router(service.instance_pool,policy='ieee_confirmed',
-            service_bin_ms=1.,ieee_selection_strategy='gpu_locality',locality_load_slack=1)
+            service_bin_ms=1.,ieee_selection_strategy=coord['ieee_selection_strategy'],
+            locality_load_slack=coord.get('locality_load_slack'))
         async def run():
             service.engine_factory = AsyncMock(return_value=(engine,None))
             result = SimpleNamespace(scale_up_events=[],scale_down_events=0,scale_down_event_log=[])
@@ -2020,7 +2121,7 @@ class IEEEActualControl(unittest.TestCase):
                               AsyncMock(side_effect=AssertionError('proactive preparation'))):
                 self.assertTrue(await self.evaluate(service,result,coord_enabled=False))
                 await service._wait_for_pending_scale_up_tasks()
-                service._schedule_ieee_residency_epochs()
+                await service._schedule_ieee_residency_epochs()
             self.assertEqual(service.instance_pool.count(),1)
             self.assertEqual(len(result.scale_up_events),1)
             event = result.scale_up_events[0]
@@ -2032,7 +2133,8 @@ class IEEEActualControl(unittest.TestCase):
             self.assertFalse(getattr(service,'_ieee_file_preparation_plans',[]))
             service._stack.trigger_scaling_preload.assert_not_awaited()
             metrics = service._current_coord_metrics()
-            self.assertEqual(metrics['ieee_mechanism_contract']['system'],'ElasticLocality')
+            self.assertEqual(metrics['ieee_mechanism_contract']['system'],
+                             'ElasticOnly' if load_only else 'ElasticLocality')
             self.assertEqual(metrics['ieee_file_cache']['file_cache_policy'],'demand_lru')
             self.assertFalse(metrics['ieee_file_cache']['plans'])
             await queue.close()

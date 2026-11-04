@@ -1529,7 +1529,7 @@ def _derive_online_hotness_window_s(
 
 
 def _ieee_system_variant_contract(coord_cfg, preload_cfg, *, environment=None):
-    """Identify the complete internal locality control, not an isolated gate.
+    """Identify a complete demand-only ablation, not an isolated feature gate.
 
     Existing Full and single-feature diagnostics keep their historical identity.
     The new variant is explicitly assembled; no missing flag is defaulted to
@@ -1539,10 +1539,13 @@ def _ieee_system_variant_contract(coord_cfg, preload_cfg, *, environment=None):
     variant = coord_cfg.get('ieee_system_variant')
     if variant is None:
         return None
-    if variant != 'elastic_locality_v1':
+    variants = {'elastic_locality_v1': ('ElasticLocality', 'gpu_locality'),
+                'elastic_only_v1': ('ElasticOnly', 'load_only')}
+    if variant not in variants:
         raise ValueError('unknown IEEE system variant')
+    system, selection_strategy = variants[variant]
     expected_coord = dict(routing_policy='ieee_confirmed',
-        ieee_selection_strategy='gpu_locality', ieee_handoff_policy='no_handoff',
+        ieee_selection_strategy=selection_strategy, ieee_handoff_policy='no_handoff',
         coordination_enabled=False, scale_up_handoff_enabled=False,
         effective_capacity_admission_enabled=False)
     expected_preload = dict(file_cache_policy='demand_lru', enabled=False,
@@ -1552,18 +1555,20 @@ def _ieee_system_variant_contract(coord_cfg, preload_cfg, *, environment=None):
                                     ('preloading', preload_cfg, expected_preload)):
         for key, value in expected.items():
             if type(actual.get(key)) is not type(value) or actual[key] != value:
-                raise ValueError(f'ElasticLocality requires explicit {group}.{key}={value!r}')
+                raise ValueError(f'{system} requires explicit {group}.{key}={value!r}')
     slack = coord_cfg.get('locality_load_slack')
-    if type(slack) is not int or slack < 0:
+    if variant == 'elastic_locality_v1' and (type(slack) is not int or slack < 0):
         raise ValueError('ElasticLocality requires a nonnegative integer load slack')
+    if variant == 'elastic_only_v1' and 'locality_load_slack' in coord_cfg:
+        raise ValueError('ElasticOnly does not use locality_load_slack')
     env = os.environ if environment is None else environment
     for key in ('FAASLORA_IEEE_PROACTIVE_DIAGNOSTIC',
                 'FAASLORA_IEEE_PROACTIVE_DIAGNOSTIC_DURING_REPLAY'):
         if str(env.get(key, '')).strip().lower() not in ('', '0', 'false', 'no', 'off'):
-            raise ValueError('ElasticLocality forbids proactive diagnostic: ' + key)
-    return dict(kind='ieee_system_mechanism_contract_v1', system='ElasticLocality',
+            raise ValueError(f'{system} forbids proactive diagnostic: ' + key)
+    return dict(kind='ieee_system_mechanism_contract_v1', system=system,
         variant=variant, routing_policy='ieee_confirmed',
-        selection_strategy='gpu_locality', locality_load_slack=slack,
+        selection_strategy=selection_strategy, locality_load_slack=slack,
         file_cache_policy='demand_lru', handoff_policy='no_handoff',
         proactive_preparation=False, native_demand_loading=True,
         physical_admission=True, autoscaler='IEEEReplicaControl',
@@ -16557,8 +16562,10 @@ class ScenarioRunner:
         if mechanism is not None:
             require(mechanism == getattr(self, '_ieee_mechanism_contract', None),
                     'system mechanism contract changed after assembly')
-            require(self.name == 'tc_ieee_elastic_locality',
-                    'ElasticLocality must not be labelled as Full')
+            expected_scenario = {'elastic_locality_v1': 'tc_ieee_elastic_locality',
+                                 'elastic_only_v1': 'tc_ieee_elastic_only'}[mechanism['variant']]
+            require(self.name == expected_scenario,
+                    f'{mechanism["system"]} must retain its own scenario identity')
             selection = self.router.selection_contract()
             require(selection['strategy'] == mechanism['selection_strategy']
                 and selection['locality_load_slack'] == mechanism['locality_load_slack']
@@ -21774,7 +21781,7 @@ class ScenarioRunner:
         loading as proactive admission.
         """
         if getattr(self, '_ieee_mechanism_contract', None) is not None:
-            raise ValueError('ElasticLocality forbids proactive admission diagnostics')
+            raise ValueError('Demand-only ablation forbids proactive admission diagnostics')
         import traceback
         from faaslora.preloading.preloading_planner import PreparationPlanSuperseded
         record: Dict[str, Any] = {

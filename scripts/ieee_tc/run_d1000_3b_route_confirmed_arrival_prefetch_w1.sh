@@ -5,6 +5,11 @@ ROOT=/home/qhq/serverless_llm_experiment_retry14_baseline
 RUN_ID="${FAASLORA_D1000_RUN_ID:-d1000_20261101}"
 RUN_TAG="${FAASLORA_D1000_RUN_TAG:-d1000_3b_route_confirmed_arrival_prefetch_w1}"
 CONFIG="${FAASLORA_D1000_CONFIG:-configs/ieee_tc/20261101_d1000_3b_route_confirmed_arrival_prefetch_w1.yaml}"
+SCENARIO="${FAASLORA_D1000_SCENARIO:-tc_ieee_full}"
+case "$SCENARIO" in
+  tc_ieee_full|tc_ieee_elastic_only|tc_ieee_elastic_locality) ;;
+  *) echo 'Unknown owned IEEE scenario' >&2; exit 2 ;;
+esac
 RAW_ROOT="${FAASLORA_D1000_RAW_ROOT:-/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification}"
 RAW="$RAW_ROOT/$RUN_ID/$RUN_TAG"
 cd "$ROOT"
@@ -106,4 +111,4 @@ esac
 
 exec bash scripts/run_all_experiments_user_scope.sh \
   --config "$CONFIG" \
-  --scenario tc_ieee_full --full-stack
+  --scenario "$SCENARIO" --full-stack

@@ -1,0 +1,50 @@
+{
+  "passed": true,
+  "pytest_exit_code": 0,
+  "bash_syntax_returncode": 0,
+  "arguments": [
+    "-v",
+    "--tb=short",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests/test_ieee_tc_diagnostic_plot.py",
+    "-k",
+    "d1057 or d719_profile_audit or registered_common_slo_population or unregistered_common_slo_population"
+  ],
+  "elapsed_s": 9.966176419053227,
+  "identity": {
+    "unit": "primelora-tc-aux-70ae71057bd94282b98f3e24f7ae3462.scope",
+    "invocation_id": "777f0e3b3a19451a9be6fafccf7b1c96",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-70ae71057bd94282b98f3e24f7ae3462.scope",
+    "inode": 39011058
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-70ae71057bd94282b98f3e24f7ae3462.scope",
+    "memory.current": 598925312,
+    "memory.peak": 599273472,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 10385568\nuser_usec 9029408\nsystem_usec 1356160\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "performance_test": false,
+  "sources": {
+    "scripts/ieee_tc/audit_d703_3b_full.py": "a2253619a308475c171499a2fea7d7d202d70b7c7d99e759db5e353b70ebfaf0",
+    "tests/test_ieee_tc_diagnostic_plot.py": "722f480a930793a55bcf22008be3ab12b5adeeabc1f997ac7c1ff96548d42c0d",
+    "scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh": "28ee05d34392c4b35a98575f9a5bc95c37598b09c50e388d165441b98e4cebe4"
+  }
+}

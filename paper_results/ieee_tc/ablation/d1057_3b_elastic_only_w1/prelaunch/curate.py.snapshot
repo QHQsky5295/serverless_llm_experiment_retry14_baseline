@@ -1,0 +1,90 @@
+"""D1057: reuse the D1056 evidence/checkpoint format for demand-only entry."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import yaml
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+OUT = ROOT/'paper_results/ieee_tc/ablation/d1057_3b_elastic_only_w1/prelaunch'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from faaslora.datasets.workload_generator import FrozenReplayPlan
+from scripts.ieee_tc.audit_d703_3b_full import audit_result_scenario
+
+def read(path): return json.loads(path.read_text())
+def ref(path): return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+def save(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, indent=2, allow_nan=False)
+        handle.write('\n')
+
+identity = p.scope_identity(p.cg_path().name)
+assert os.sched_getaffinity(0) == {2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+for name, value in [('memory.high', 3*p.GIB), ('memory.max', 4*p.GIB), ('memory.swap.max', 0)]:
+    assert (p.cg_path()/name).read_text().strip() == str(value)
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'], text=True).strip()
+parent_qualification = ROOT/'paper_results/ieee_tc/p2_backend/d1047_same_version_w1/prelaunch/qualification.json'
+prior = read(parent_qualification)
+parent_metric = ROOT/'paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/full4000.json'
+assert p.digest(parent_metric) == '9efa154f7d9322e6ccac94541a7d323064d2bd868ee8642c8245755c42fde6e1'
+metric = read(parent_metric)
+parent_result = next(Path(x['path']) for x in metric['source_refs']
+                     if Path(x['path']).name.startswith('experiment_results_full'))
+# Reuse retained Full to check only the newly generalized raw-name reader.
+# Do not rerun inference or recompute its SLO/performance statistics.
+audit_result_scenario(parent_result, 'tc_ieee_full')
+view = FrozenReplayPlan.load(prior['frozen_views']['W1']['source_path'], profile='W1').identity()
+assert view['count'] == view['source_count'] == 4000
+for key in ('source_sha256', 'view_sha256'):
+    assert view[key] == prior['frozen_views']['W1'][key]
+test = read(RAW/'targeted_tests.json')
+analysis = read(RAW/'analyzer_tests.json')
+assert test['passed'] and test['tests_run'] == 20
+assert analysis['passed'] and analysis['pytest_exit_code'] == analysis['bash_syntax_returncode'] == 0
+assert '25 passed' in (RAW/'analyzer_tests.txt').read_text()
+sources = {**test['sources'], **analysis['sources']}
+for name, sha in sources.items():
+    assert p.digest(ROOT/name) == sha, name
+for report in (test, analysis):
+    assert not Path(report['identity']['path']).exists()
+    assert report['resources']['memory.swap.current'] == 0
+    assert not any(report['resources']['memory.events'].values())
+protected = p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))
+assert protected['pass'] and protected['entry_count'] == 147
+user_protected = {
+    'configs/generated/lora_manifest_1000.json': '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df',
+    'docs/ieee_tc/EXECUTION_STATUS.md': '41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374'}
+for name, sha in user_protected.items():
+    assert p.digest(ROOT/name) == sha, name
+config = ROOT/'configs/ieee_tc/20261104_d1057_3b_elastic_only_w1.yaml'
+candidate = yaml.safe_load(config.read_text())
+assert candidate['scenarios'][0]['name'] == 'tc_ieee_elastic_only'
+assert candidate['resource_coordination']['ieee_system_variant'] == 'elastic_only_v1'
+OUT.mkdir(parents=True, exist_ok=False)
+for name in ('targeted_tests.py','targeted_tests.json','targeted_tests.txt',
+             'analyzer_tests.py','analyzer_tests.json','analyzer_tests.txt','curate.py'):
+    with (OUT/(name+'.snapshot' if name.endswith('.py') else name)).open('xb') as handle:
+        handle.write((RAW/name).read_bytes())
+save(OUT/'qualification.json', dict(passed=True, performance_result=False,
+    variant='ElasticOnly', raw_scenario='tc_ieee_elastic_only', parent_variant='Full',
+    parent_result=ref(parent_metric), parent_qualification=ref(parent_qualification),
+    config=ref(config), tests=20, analyzer_tests=25, sources=sources,
+    test_scopes_removed=True, plan_sha256=p.check_plan(), workload=view,
+    metric_protocol=ref(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+    single_run_protocol=ref(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md'),
+    reused_full_raw_scenario_verified=ref(parent_result),
+    protected=protected, user_protected=user_protected,
+    identity=identity, resources=p.cgroup_snapshot(p.cg_path()),
+    performance_replay_started=False, n_correct=None, formal_ranking_eligible=False,
+    next_action='Back up this checkpoint, then fresh resource/remote checks and one full 3B W1 ElasticOnly replay.',
+    limitations=['Known source42 development workload; one observation, no CI.',
+        'CPU fixtures verify entry semantics, not measured mechanism execution or performance.',
+        'Independent full numerical LoRA correctness remains unproven; do not fill n_correct.',
+        'Remote health and inference resource checks must be fresh at actual launch.',
+        'Unrelated k3s unchanged; HydraServe isolated adaptation and existing runs are reused.']))
+save(OUT/'manifest.json', dict(files=[ref(x) for x in sorted(OUT.iterdir()) if x.is_file()]))
+print(json.dumps(dict(passed=True, variant='ElasticOnly', tests=20, analyzer_tests=25,
+                     performance_replay_started=False)), flush=True)

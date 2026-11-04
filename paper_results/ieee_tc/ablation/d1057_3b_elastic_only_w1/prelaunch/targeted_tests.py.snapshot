@@ -1,0 +1,55 @@
+"""D1057: existing demand-only fixtures extended for ElasticOnly; no GPU replay."""
+import json
+import os
+from pathlib import Path
+import sys
+import time
+import unittest
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+NAMES = [
+    'tests.test_ieee_tc_launch.ElasticLocalityContract',
+    'tests.test_ieee_tc_launch.ElasticOnlyContract',
+    'tests.test_ieee_tc_launch.IEEEIntegratedLaunchContract.test_accepts_bound_components_but_does_not_certify_results_or_start_runtime',
+    'tests.test_ieee_tc_launch.IEEEIntegratedLaunchContract.test_complete_locality_uses_actual_router_file_owner_and_no_gpu_launch',
+    'tests.test_ieee_tc_launch.IEEEIntegratedLaunchContract.test_complete_locality_rejects_full_label_owner_drift_and_late_diagnostic',
+    'tests.test_ieee_tc_launch.IEEEIntegratedLaunchContract.test_elastic_only_binds_actual_load_owner_and_own_scenario',
+    'tests.test_ieee_tc_launch.IEEEActualControl.test_locality_combination_keeps_actual_scaleout_but_no_preparation',
+    'tests.test_ieee_tc_launch.IEEEActualControl.test_elastic_only_keeps_actual_scaleout_but_no_preparation',
+    'tests.test_ieee_tc_service_routing.LoadOnlyRoutingContract',
+    'tests.test_ieee_tc_request_lifecycle.SelectedSourceAdmissionIntegration.test_ablation_routes_keep_selected_source_reference_and_release_contract',
+]
+
+
+def main():
+    identity = p.scope_identity(p.cg_path().name)
+    assert os.sched_getaffinity(0) == {2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+    assert (p.cg_path()/'memory.high').read_text().strip() == str(3*p.GIB)
+    assert (p.cg_path()/'memory.max').read_text().strip() == str(4*p.GIB)
+    assert (p.cg_path()/'memory.swap.max').read_text().strip() == '0'
+    start = time.monotonic()
+    with (RAW/'targeted_tests.txt').open('x') as stream:
+        result = unittest.TextTestRunner(stream=stream, verbosity=2).run(
+            unittest.defaultTestLoader.loadTestsFromNames(NAMES))
+    report = dict(passed=result.wasSuccessful(), tests_run=result.testsRun,
+        tests=NAMES, elapsed_s=time.monotonic()-start,
+        sources={name:p.digest(ROOT/name) for name in (
+            'scripts/run_all_experiments.py', 'tests/test_ieee_tc_launch.py',
+            'tests/test_ieee_tc_service_routing.py', 'tests/test_ieee_tc_request_lifecycle.py',
+            'scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh',
+            'configs/ieee_tc/20261104_d1057_3b_elastic_only_w1.yaml')},
+        identity=identity, resources=p.cgroup_snapshot(p.cg_path()),
+        performance_test=False)
+    with (RAW/'targeted_tests.json').open('x') as output:
+        json.dump(report, output, indent=2)
+        output.write('\n')
+    print(json.dumps(report), flush=True)
+    sys.exit(0 if result.wasSuccessful() else 1)
+
+
+if __name__ == '__main__':
+    main()

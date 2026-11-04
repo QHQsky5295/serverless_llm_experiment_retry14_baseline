@@ -520,6 +520,73 @@ def test_common_slo_rejects_missing_or_overlapping_strata():
             common_slo_flags(groups, **values)
 
 
+@pytest.mark.parametrize('scenario', ['tc_ieee_full', 'tc_ieee_elastic_only',
+                                     'tc_ieee_elastic_locality'])
+def test_d1057_raw_scenario_identity_is_not_a_display_label(tmp_path, scenario):
+    from scripts.ieee_tc.audit_d703_3b_full import audit_result_scenario
+    payload = dict(metadata={'scenario_coordination': {scenario: {}}},
+                   detailed_results={scenario: {'scenario_name': scenario, 'requests': []}})
+    path = tmp_path/'raw.json'
+    path.write_text(json.dumps(payload))
+    audit_result_scenario(path, scenario)
+    assert json.loads(path.read_text()) == payload
+    for other in {'tc_ieee_full', 'tc_ieee_elastic_only', 'tc_ieee_elastic_locality'} - {scenario}:
+        with pytest.raises(ValueError, match='scenario identity'):
+            audit_result_scenario(path, other)
+
+
+@pytest.mark.parametrize('fault', ['metadata', 'detail_key', 'name', 'name_type',
+                                 'extra', 'missing'])
+def test_d1057_raw_scenario_disagreement_is_rejected(tmp_path, fault):
+    from scripts.ieee_tc.audit_d703_3b_full import audit_result_scenario
+    scenario = 'tc_ieee_elastic_only'
+    row = dict(scenario_name=scenario, requests=[])
+    payload = dict(metadata={'scenario_coordination': {scenario: {}}},
+                   detailed_results={scenario: row})
+    if fault == 'metadata': payload['metadata']['scenario_coordination'] = {'tc_ieee_full': {}}
+    elif fault == 'detail_key': payload['detailed_results'] = {'tc_ieee_full': row}
+    elif fault == 'name': row['scenario_name'] = 'tc_ieee_full'
+    elif fault == 'name_type': row['scenario_name'] = None
+    elif fault == 'extra': payload['detailed_results']['tc_ieee_full'] = dict(row)
+    elif fault == 'missing': del payload['metadata']['scenario_coordination']
+    path = tmp_path/'raw.json'
+    path.write_text(json.dumps(payload))
+    with pytest.raises(ValueError, match='scenario'):
+        audit_result_scenario(path, scenario)
+
+
+def test_d1057_analysis_contract_retains_legacy_full_but_not_implicit_ablation():
+    import inspect
+    from scripts.ieee_tc import audit_d703_3b_full as audit
+    audit.require_analysis_scenario('tc_ieee_full', metric={})
+    for scenario in ('tc_ieee_full', 'tc_ieee_elastic_only', 'tc_ieee_elastic_locality'):
+        audit.require_analysis_scenario(scenario, metric={'scenario': scenario},
+                                        config={'scenarios': [{'name': scenario}]})
+    for metric in ({}, {'scenario': 'tc_ieee_full'}, {'scenario': 'tc_ieee_elastic_locality'}):
+        with pytest.raises(ValueError, match='metric/scenario'):
+            audit.require_analysis_scenario('tc_ieee_elastic_only', metric=metric)
+    with pytest.raises(ValueError, match='config/scenario'):
+        audit.require_analysis_scenario('tc_ieee_elastic_only',
+                                       config={'scenarios': [{'name': 'tc_ieee_full'}]})
+    with pytest.raises(ValueError, match='unknown'):
+        audit.require_analysis_scenario('unknown')
+    for function in (audit.reevaluate_common_slo, audit.diagnose_common_slo,
+                     audit.audit_profile_bindings, audit.audit_closed_outcome):
+        assert inspect.signature(function).parameters['scenario'].default == 'tc_ieee_full'
+
+
+@pytest.mark.parametrize('entry', ['diagnose_common_slo', 'audit_profile_bindings',
+                                 'audit_closed_outcome'])
+def test_d1057_analysis_entry_rejects_wrong_scenario_before_reading_sources(tmp_path, monkeypatch, entry):
+    from scripts.ieee_tc import audit_d703_3b_full as audit
+    monkeypatch.setattr(audit, 'read', lambda _: {'scenario': 'tc_ieee_full'})
+    args = [tmp_path/'run', tmp_path/'out', tmp_path/'metric.json']
+    if entry == 'audit_profile_bindings': args.append(tmp_path/'config.yaml')
+    with pytest.raises(ValueError, match='metric/scenario'):
+        getattr(audit, entry)(*args, scenario='tc_ieee_elastic_only')
+    assert not (tmp_path/'out').exists()
+
+
 @pytest.mark.parametrize("count", [100, 1000, 4000])
 def test_registered_common_slo_population_still_requires_completed_source(tmp_path, count):
     from scripts.ieee_tc.audit_d703_3b_full import reevaluate_common_slo
