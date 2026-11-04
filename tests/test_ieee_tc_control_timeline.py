@@ -301,6 +301,60 @@ class DispatchGateSplitTest(unittest.TestCase):
                 [dict(offset_s=4., queue=1, active=0, capacity=1, pending=0)])
 
 
+class RetainedNestedOverheadTest(unittest.TestCase):
+    def row(self):
+        return dict(routing_decision_us=2500., control_path_total_us=2500.,
+            lora_io_ms=3., dispatch_admission_wait_ms=20., dispatch_window_wait_ms=4.,
+            native_token_timing=dict(parent_rpc_transport='native_async_socket_v1',
+                parent_rpc_overhead_ms=4., parent_rpc_channel_acquire_ms=.1,
+                parent_rpc_response_pickup_delay_ms=3., parent_rpc_send_flush_ms=.2,
+                parent_rpc_thread_resume_delay_ms=0., worker_rpc_queue_ms=.3),
+            gpu_reference_evidence=dict(receipt=dict(load_and_acquire_ms=2.)))
+
+    def test_keeps_nested_spans_separate_and_does_not_mutate(self):
+        import copy
+        from scripts.ieee_tc.analyze_d455_stages import retained_nested_overhead
+        row = self.row()
+        before = copy.deepcopy(row)
+        result = retained_nested_overhead(row)
+        self.assertEqual(row, before)
+        self.assertEqual(result['routing_decision_ms'], 2.5)
+        self.assertEqual(result['native_load_and_acquire_ms'], 2.)
+        self.assertNotIn('sum', result)
+        self.assertNotIn('n_correct', result)
+
+    def test_invalid_and_missing_observations_do_not_become_zero(self):
+        from scripts.ieee_tc.analyze_d455_stages import retained_nested_overhead
+        for value in (None, True, -1., float('nan'), float('inf')):
+            row = self.row()
+            row['native_token_timing']['parent_rpc_overhead_ms'] = value
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                retained_nested_overhead(row)
+        row = self.row()
+        del row['native_token_timing']['worker_rpc_queue_ms']
+        with self.assertRaises(KeyError):
+            retained_nested_overhead(row)
+        row = self.row()
+        row['routing_decision_us'] = True
+        with self.assertRaises(ValueError):
+            retained_nested_overhead(row)
+
+    def test_unmeasured_transport_rejected(self):
+        from scripts.ieee_tc.analyze_d455_stages import retained_nested_overhead
+        row = self.row()
+        row['native_token_timing']['parent_rpc_transport'] = 'unknown'
+        with self.assertRaises(ValueError):
+            retained_nested_overhead(row)
+
+    def test_new_output_and_no_legacy_fallback(self):
+        from scripts.ieee_tc.analyze_d455_stages import analyze_retained_overhead
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaises(ValueError):
+                analyze_retained_overhead(Path(directory), [Path('/not-read')])
+            with self.assertRaises(ValueError):
+                analyze_retained_overhead(Path(directory)/'new', [])
+
+
 class RetainedStagePartitionTest(unittest.TestCase):
     def test_sealed_candidate_preserves_prior_rows_and_rejects_mismatch(self):
         import copy

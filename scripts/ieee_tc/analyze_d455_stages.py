@@ -683,6 +683,178 @@ def audit_control_busy_windows(output, stages):
     return report
 
 
+def retained_nested_overhead(request):
+    """Read existing nested spans; do not turn them into additive CPU costs.
+
+    The historical routing timer omits early-continue snapshot attempts. RPC
+    pickup is a same-host wall-clock estimate, not an exclusive scheduling span.
+    Missing observations are errors rather than zero-cost operations.
+    """
+    native = request['native_token_timing']
+    if native['parent_rpc_transport'] != 'native_async_socket_v1':
+        raise ValueError('retained overhead requires the measured native transport')
+    result = {key.removesuffix('_us') + '_ms': request[key] / 1000
+              for key in ('routing_decision_us', 'control_path_total_us')
+              if type(request[key]) in (int, float)}
+    if len(result) != 2:
+        raise ValueError('complete numeric routing observations required')
+    result.update({key: request[key] for key in
+                   ('lora_io_ms', 'dispatch_admission_wait_ms', 'dispatch_window_wait_ms')})
+    result.update({key: native[key] for key in (
+        'parent_rpc_overhead_ms', 'parent_rpc_channel_acquire_ms',
+        'parent_rpc_response_pickup_delay_ms', 'parent_rpc_send_flush_ms',
+        'parent_rpc_thread_resume_delay_ms', 'worker_rpc_queue_ms')})
+    result['native_load_and_acquire_ms'] = request['gpu_reference_evidence']['receipt']['load_and_acquire_ms']
+    if any(type(value) not in (int, float) or not math.isfinite(value) or value < 0
+           for value in result.values()):
+        raise ValueError('complete finite nonnegative nested observations required')
+    return result
+
+
+def analyze_retained_overhead(output, comparisons):
+    """Stream the sources of sealed comparisons, reusing the stage partition.
+
+    Pure R1 analysis: no replay, no new workloads, no source/result edits. This
+    locates observed waiting; composite ablations do not isolate a cause.
+    """
+    import csv
+    import hashlib
+
+    output = Path(output)
+    if output.exists() or not comparisons:
+        raise ValueError('explicit sealed comparisons and a new output required')
+    pinned, refs = {}, []
+    for path in map(Path, comparisons):
+        comparison = read(path)
+        refs.append(dict(path=str(path), sha256=sha256(path)))
+        for ref in comparison['source_refs']:
+            if ref['path'] in pinned and pinned[ref['path']] != ref['sha256']:
+                raise ValueError('conflicting sealed source identities')
+            pinned[ref['path']] = ref['sha256']
+
+    def checked(path):
+        path = Path(path)
+        if sha256(path) != pinned[str(path)]:
+            raise ValueError('sealed comparison source changed')
+        refs.append(dict(path=str(path), sha256=pinned[str(path)]))
+        return path
+
+    summaries = sorted(Path(path) for path in pinned if Path(path).name == 'full4000.json')
+    reports, rows_csv, input_hashes, plans = {}, [], set(), []
+    for summary_path in summaries:
+        summary = read(checked(summary_path))
+        if not summary['passed'] or summary['counts']['n'] != 4000 or not summary['full_replay']:
+            raise ValueError('complete previously qualified replay required')
+        run = Path(summary['source_run'])
+        name = run.name
+        if name in reports:
+            raise ValueError('duplicate retained run')
+        scenario = summary.get('scenario', 'tc_ieee_full')
+        sources = [Path(path) for path in pinned
+                   if Path(path).parent == run and Path(path).name.startswith('experiment_results_full')]
+        if len(sources) != 1:
+            raise ValueError('one explicit retained request source per run required')
+        source = checked(sources[0])
+        launch = read(checked(run/'launch.json'))
+        if launch['pass'] is not True:
+            raise ValueError('successful resource closure required')
+        external = launch['external_replay']
+        rows, identities = [], []
+        with source.open('rb') as stream:
+            for r in ijson.items(stream, f'detailed_results.{scenario}.requests.item', use_float=True):
+                row = partition_retained_request_stages(r,
+                    arrival_start_s=external['replay_t0_s'], clock_id=external['clock_id'])
+                row.update(nested_ms=retained_nested_overhead(r),
+                    output_tokens=r['completion_tokens'], tier=r['readiness_tier_before_dispatch'],
+                    arrival_offset_s=r['scheduled_arrival_offset_s'])
+                if row['output_tokens'] != r['requested_completion_tokens']:
+                    raise ValueError('retained output contract changed')
+                identities.append([r['request_id'], r['adapter_id'], r['scheduled_arrival_offset_s'],
+                    r['canonical_prompt_sha256'], r['native_token_timing']['native_prompt_token_ids_sha256'],
+                    r['requested_completion_tokens'], r['completion_tokens'], r['generation_contract']])
+                rows.append(row)
+        if len(rows) != len({r['request_id'] for r in rows}) or len(rows) != 4000:
+            raise ValueError('4000 unique request observations required')
+        rows.sort(key=lambda r: (r['arrival_offset_s'], r['request_id']))
+        identities.sort(key=lambda r: r[0])
+        input_hash = hashlib.sha256(json.dumps(identities, separators=(',', ':')).encode()).hexdigest()
+        input_hashes.add(input_hash)
+        for metric in ('ttft_ms', 'e2e_ms'):
+            measured = timing_stats([r[metric] for r in rows])
+            if any(abs(measured[k]-summary['metrics'][metric][k]) > 1e-6
+                   for k in ('mean', 'p95_type1')):
+                raise ValueError('retained metrics differ from sealed summary')
+        groups = [('all', rows)] + [(f'phase_{i+1}', rows[i*500:(i+1)*500]) for i in range(8)]
+        groups += [('output_le32', [r for r in rows if r['output_tokens'] <= 32]),
+                   ('output_gt32', [r for r in rows if r['output_tokens'] > 32])]
+        report_groups = {}
+        for group, subset in groups:
+            group_summary = dict(count=len(subset))
+            for family in ('stages_ms', 'nested_ms'):
+                group_summary[family] = {}
+                for field in rows[0][family]:
+                    values = [r[family][field] for r in subset]
+                    stats = timing_stats(values) if values else dict(count=0, mean=None, p50_type1=None, p95_type1=None)
+                    group_summary[family][field] = stats
+                    rows_csv.append(dict(run=name, group=group, family=family, field=field, **stats))
+            report_groups[group] = group_summary
+        outcome = run/'launch.launch/physical_deployment/main_outcome.json'
+        opener, outcome_refs = checked_retained_source(outcome, pinned[str(outcome)])
+        refs.extend(outcome_refs)
+        with opener() as stream:
+            events = list(ijson.items(stream, 'planning_cpu_events.item', use_float=True))
+        with opener() as stream:
+            if next(ijson.items(stream, 'run_completed')) is not True:
+                raise ValueError('retained service outcome is incomplete')
+        planning = {}
+        for label, begin, end in (
+            ('capture_serialization_ms', 'captured_monotonic_s', 'detached_monotonic_s'),
+            ('serialized_owner_wait_ms', 'detached_monotonic_s', 'submitted_monotonic_s'),
+            ('worker_dispatch_ms', 'submitted_monotonic_s', 'worker_started_monotonic_s'),
+            ('worker_wall_ms', 'worker_started_monotonic_s', 'worker_finished_monotonic_s'),
+            ('worker_result_pickup_ms', 'worker_finished_monotonic_s', 'joined_monotonic_s')):
+            values = [(event[end]-event[begin])*1000 for event in events]
+            if any(not math.isfinite(v) or v < 0 for v in values):
+                raise ValueError('invalid retained planning interval')
+            planning[label] = dict(timing_stats(values), sum=math.fsum(values)) if values else None
+        values = [event['worker_cpu_seconds']*1000 for event in events]
+        if any(type(v) not in (int, float) or not math.isfinite(v) or v < 0 for v in values):
+            raise ValueError('invalid retained planning CPU duration')
+        planning['worker_cpu_ms'] = dict(timing_stats(values), sum=math.fsum(values)) if values else None
+        reports[name] = dict(input_contract_sha256=input_hash, scenario=scenario,
+            sealed_metrics=summary['metrics'], observed_joint_fraction=summary['joint_slo_fraction'],
+            physical_gpu_seconds=summary['physical_gpu_seconds'], n_correct=summary['n_correct'],
+            max_partition_error_ms=max(r['max_identity_error_ms'] for r in rows),
+            groups=report_groups, planning_event_count=len(events), planning=planning,
+            planning_states=dict(Counter(e['state'] for e in events)),
+            planning_operations=dict(Counter(e['operation'] for e in events)))
+        plans.append(summary['replay_plan'])
+    if len(reports) < 2 or len(input_hashes) != 1 or any(plan != plans[0] for plan in plans):
+        raise ValueError('at least two complete matched-input retained runs required')
+    report = dict(kind='retained_nested_overhead_d1064_v1', reports=reports,
+        matched_request_inputs=True, new_gpu_runs=0, formal_ranking_eligible=False,
+        causal_attribution_established=False, confidence_interval=None, source_refs=refs,
+        scope=p.scope_identity(p.cg_path().name),
+        script=dict(path=str(Path(__file__).resolve()), sha256=sha256(Path(__file__).resolve())),
+        caveats=[
+            'Nested spans are not additive E2E components or exclusive CPU durations.',
+            'Historical routing timers omit early-continue attempts; smaller values do not prove cheaper routing.',
+            'Composite ablations change decisions and execution work; matched inputs do not fix closed-loop paths.',
+            'Planning worker CPU and wall times overlap requests and cannot be subtracted from their latency.',
+            'RPC pickup uses same-host wall clocks and producer clamping; it is not an exclusive event-loop span.',
+            'Unknown numerical correctness is preserved; output length and binding alone do not fill N_correct.',
+            'One known trace per configuration, no independent holdout or run-level uncertainty.'])
+    output.mkdir(parents=True, exist_ok=False)
+    with (output/'summary.json').open('x') as stream:
+        json.dump(report, stream, indent=2, allow_nan=False)
+    with (output/'stages_and_nested.csv').open('x', newline='') as stream:
+        writer = csv.DictWriter(stream, fieldnames=list(rows_csv[0]))
+        writer.writeheader()
+        writer.writerows(rows_csv)
+    print(json.dumps(dict(output=str(output), runs=list(reports), new_gpu_runs=0)))
+    return report
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument('--output', required=True, type=Path)
@@ -693,8 +865,14 @@ if __name__ == '__main__':
                         help='explicit successful receipts in the same order as sources')
     parser.add_argument('--retained-control-model', choices=('7b', '3b'), default='7b')
     parser.add_argument('--control-busy-stage', action='append', type=Path)
+    parser.add_argument('--overhead-comparison', action='append', type=Path)
     args = parser.parse_args()
-    if args.control_busy_stage:
+    if args.overhead_comparison:
+        if (args.control_busy_stage or args.retained_control_source or args.retained_control_launch
+                or args.include_d458 or args.owner_decode):
+            parser.error('nested overhead analysis requires its explicit comparison sources only')
+        analyze_retained_overhead(args.output, args.overhead_comparison)
+    elif args.control_busy_stage:
         if args.retained_control_source or args.retained_control_launch or args.include_d458 or args.owner_decode:
             parser.error('busy-stage analysis cannot be mixed with performance comparison modes')
         audit_control_busy_windows(args.output, args.control_busy_stage)

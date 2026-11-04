@@ -1,0 +1,101 @@
+"""Allowlisted D1064 checkpoint; reuse established protection/backup helpers."""
+import importlib.util
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import xml.etree.ElementTree as ET
+
+RAW = Path(__file__).resolve().parent
+spec = importlib.util.spec_from_file_location('checkpoint_helpers', RAW.parent/'d1063_20261104/checkpoint.py')
+c = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(c)
+ROOT, p = c.ROOT, c.p
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d1064_retained_a1_overhead'
+
+
+def ref(path):
+    return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+
+
+def main():
+    group = p.cg_path()
+    identity = p.scope_identity(group.name)
+    assert os.sched_getaffinity(0) == {2, 3, 26, 27}
+    assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
+    for name, value in [('memory.high', 3*p.GIB), ('memory.max', 4*p.GIB), ('memory.swap.max', 0)]:
+        assert (group/name).read_text().strip() == str(value)
+    assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid',
+        '--format=csv,noheader'], text=True).strip()
+    assert c.git('rev-parse','HEAD') == '41046c8554d211b1facffa77652111db285ab1cf'
+    assert c.git('branch','--show-current') == 'retry14_continuous_queue_v2'
+    assert not c.git('diff','--cached','--name-only')
+    for name, sha in c.PROTECTED.items():
+        assert p.digest(ROOT/name) == sha, name
+    assert p.check_plan() == 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+    summary = json.loads((OUT/'summary.json').read_text())
+    assert summary['matched_request_inputs'] and summary['new_gpu_runs'] == 0
+    assert len(summary['reports']) == 3 and not summary['formal_ranking_eligible']
+    for entry in summary['source_refs'] + [summary['script']]:
+        assert p.digest(Path(entry['path'])) == entry['sha256'], entry['path']
+    file_rounds = json.loads((OUT/'file_rounds.json').read_text())
+    assert file_rounds['unique_file_observations'] == 1048 and file_rounds['linked_residency_epochs'] == 2389
+    for entry in file_rounds['source_refs'] + [file_rounds['script']]:
+        assert p.digest(Path(entry['path'])) == entry['sha256'], entry['path']
+    suite = ET.parse(RAW/'tests.xml').getroot().find('testsuite')
+    # pytest's JUnit aggregate includes subtest reports; collected methods are
+    # the concrete testcase elements, not that aggregate counter.
+    assert len(suite.findall('testcase')) == 44
+    assert all(int(suite.attrib[k]) == 0 for k in ('failures','errors','skipped'))
+    seal = p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))
+    assert seal['pass'] and seal['entry_count'] == 147
+    snapshots = []
+    for source, name in [(RAW/'file_rounds.py', 'file_rounds.py.snapshot'),
+        (RAW/'checkpoint.py', 'checkpoint.py.snapshot'), (RAW/'tests.xml', 'tests.xml'),
+        (RAW/'backup_attempt1_failure.md', 'backup_attempt1_failure.md'),
+        (ROOT/'scripts/ieee_tc/analyze_d455_stages.py','analyze_d455_stages.py.snapshot'),
+        (ROOT/'tests/test_ieee_tc_control_timeline.py','test_ieee_tc_control_timeline.py.snapshot')]:
+        dest = OUT/name
+        with dest.open('xb') as stream:
+            stream.write(source.read_bytes())
+        assert p.digest(source) == p.digest(dest)
+        snapshots.append(dict(**ref(dest), source=ref(source)))
+    outputs = [ref(OUT/name) for name in ('summary.json','stages_and_nested.csv','file_rounds.json')]
+    c.write_json(OUT/'manifest.json', dict(kind='d1064_retained_a1_overhead_checkpoint_v1',
+        outputs=outputs, snapshots=snapshots, old_submission_seal=seal,
+        protected=c.PROTECTED, plan_sha256=p.check_plan(), gpu_runs=0,
+        tests_passed=44, junit_reported_tests=int(suite.attrib['tests']),
+        no_serving_changes=True, numerical_correctness_qualified=False,
+        full_faaslora_v2_integrated=False, resources=p.cgroup_snapshot(group),
+        next_action='Inspect exact intra-transaction repeated work and invalidation boundaries against rejected history; no unsupported GPU replay.'))
+    paths = ['scripts/ieee_tc/analyze_d455_stages.py','tests/test_ieee_tc_control_timeline.py',
+        'docs/ieee_tc/D1064_RETAINED_A1_OVERHEAD_20261105.md',
+        'docs/ieee_tc/D1063_NOHOST_OUTCOME_20261105.md']
+    paths += [str(path.relative_to(ROOT)) for path in sorted(OUT.iterdir()) if path.is_file()]
+    secret = re.compile(r'-----BEGIN (?:RSA |OPENSSH |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|Authorization:\s*Bearer\s+\S+')
+    for name in paths:
+        assert not secret.search((ROOT/name).read_text()), name
+    assert not set(paths) & set(c.PROTECTED)
+    c.git('diff','--check','--',*paths)
+    c.git('add','--',*paths)
+    assert set(c.git('diff','--cached','--name-only').splitlines()) == set(paths)
+    c.git('diff','--cached','--check')
+    c.git('commit','-m','D1064 locate retained A1 waiting and preserve complete overhead evidence')
+    head = c.git('rev-parse','HEAD')
+    verified = []
+    for remote, branch in [('origin','refs/heads/retry14_continuous_queue_v2'),
+                           ('faaslora_origin','refs/heads/backup/d1064-a1-overhead-20261105')]:
+        subprocess.run(['git','push',remote,'HEAD:'+branch],cwd=ROOT,check=True)
+        assert c.git('ls-remote',remote,branch).split()[0] == head
+        verified.append(dict(remote=remote, ref=branch, commit=head))
+    for name, sha in c.PROTECTED.items():
+        assert p.digest(ROOT/name) == sha
+    c.write_json(RAW/'backup.json',dict(passed=True,commit=head,verified=verified,paths=paths,
+        identity=identity,resources=p.cgroup_snapshot(group),protected_unchanged=True,
+        full_faaslora_v2_integrated=False,new_gpu_runs=0))
+    print(json.dumps(dict(passed=True,commit=head,verified=verified)))
+
+
+if __name__ == '__main__':
+    main()

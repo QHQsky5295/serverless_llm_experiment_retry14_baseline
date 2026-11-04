@@ -153,3 +153,15 @@ curated：`paper_results/ieee_tc/ablation/d1063_3b_nohost_w1/`。
 CE/价格/Pareto、B1/B2/C1/C2/C3和两轮审稿证据文档、IEEE图表、最终同版本
 主结果来源统一与实际V2集成。HydraServe既有隔离适配/3B结果继续复用，
 共享k3s不操作。本轮完成一个实验组的观测，不宣告整体目标完成。
+
+## 后置备份交接
+
+完成检查点 `41046c8554d211b1facffa77652111db285ab1cf` 已推送并逐项核验
+origin/retry14_continuous_queue_v2 与 faaslora_origin/
+backup/d1063-nohost-outcome-20261105；共26个显式文件，未stage用户manifest
+或EXECUTION_STATUS，未强推实际FaaSLoRA V2分歧。RAW backup_completion.json
+保存远端指针及来源。备份scope已inactive/dead、exit0，峰值54321152B，
+保护事件/swap零。当前无GPU运行、无等待中的collector/comparison；不要重启
+D1063或再执行独占输出的备份脚本。最近磁盘可用162071068672B，工作缓存已空。
+下一主线是依据完整A1做Full瓶颈归因和一个有证据候选，不回到HydraServe适配。
+这一后置记录在下一正常检查点纳入提交，已完成的结果备份不因此失效。

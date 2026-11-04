@@ -1,0 +1,68 @@
+"""Reuse the recorded shared-file observations; no new observer or replay."""
+import json
+import math
+import sys
+from collections import Counter
+from pathlib import Path
+
+import ijson
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+sys.path.insert(0, str(ROOT))
+from scripts.ieee_tc.analyze_d455_stages import checked_retained_source
+from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+from scripts.ieee_tc.check_d299_full_context import read, sha256
+from scripts import ieee_tc_preflight as p
+
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d1064_retained_a1_overhead'
+summary_path = OUT/'summary.json'
+summary = read(summary_path)
+refs = summary['source_refs']
+sources = [r for r in refs if '/d1047_20261104/' in r['path']
+           and Path(r['path']).name == 'main_outcome.json']
+assert len(sources) == 1
+source = sources[0]
+opener, source_refs = checked_retained_source(Path(source['path']), source['sha256'])
+rounds, states, references = {}, Counter(), Counter()
+with opener() as stream:
+    for epoch in ijson.items(stream, 'mechanism_events._ieee_residency_epochs.item', use_float=True):
+        states[epoch['state']] += 1
+        observation = epoch['shared_file_observation']
+        rid = observation['round_id']
+        if rid in rounds:
+            assert rounds[rid] == observation, 'same physical observation has conflicting copies'
+        rounds[rid] = observation
+        references[rid] += 1
+rows = sorted(rounds.values(), key=lambda r: r['started_at'])
+assert len(rows) > 0 and sum(states.values()) == 2389
+assert all(references[r['round_id']] == r['replicas'] for r in rows)
+assert all(r['physical_resources_reserved'] is False for r in rows)
+assert all(type(r['elapsed_ms']) in (int, float) and math.isfinite(r['elapsed_ms'])
+           and r['elapsed_ms'] >= 0 for r in rows)
+assert all(r['started_at'] <= r['captured_at'] <= r['started_at'] + r['elapsed_ms']/1000
+           for r in rows)
+values = [r['elapsed_ms'] for r in rows]
+group = p.cg_path()
+report = dict(kind='retained_shared_file_rounds_d1064_v1',
+    run='D1047', linked_residency_epochs=sum(states.values()), unique_file_observations=len(rows),
+    residency_states=dict(states), file_observation_wall_ms=dict(timing_stats(values), sum=math.fsum(values)),
+    distinct_owner_epochs=len({(r['owner_id'], r['epoch']) for r in rows}),
+    successive_same_owner_epoch=sum((a['owner_id'], a['epoch']) == (b['owner_id'], b['epoch'])
+        for a, b in zip(rows, rows[1:])),
+    observations=rows, source_refs=[dict(path=str(summary_path), sha256=sha256(summary_path)), *source_refs],
+    script=dict(path=str(Path(__file__)), sha256=sha256(Path(__file__))),
+    scope=p.scope_identity(group.name), resource_snapshot={
+        name:(group/name).read_text().strip() for name in
+        ('memory.high','memory.max','memory.peak','memory.events','memory.swap.current','memory.swap.max')},
+    new_gpu_runs=0, causal_attribution_established=False,
+    caveats=[
+        'Deduplicate shared round_id; per-replica references are not separate physical observations.',
+        'Wall time includes all file-snapshot work, not exclusive CPU or pure lock waiting.',
+        'Same owner epoch does not certify unchanged filesystem allocation or external mutation absence.',
+        'Do not subtract the sum from request latency or infer a cache optimization is safe.',
+        'These observations do not cover all native HOST inventory/control work.'])
+with (OUT/'file_rounds.json').open('x') as stream:
+    json.dump(report, stream, indent=2, allow_nan=False)
+print(json.dumps({key: report[key] for key in ('linked_residency_epochs',
+    'unique_file_observations', 'file_observation_wall_ms', 'distinct_owner_epochs',
+    'successive_same_owner_epoch')}))

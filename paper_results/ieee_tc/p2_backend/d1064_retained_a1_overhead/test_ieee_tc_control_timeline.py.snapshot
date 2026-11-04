@@ -1,0 +1,436 @@
+"""Small exact timeline fixtures, no GPU/data regeneration."""
+import json
+from pathlib import Path
+import tempfile
+import unittest
+
+from scripts.analyze_control_path_overhead import (analyze_native_timeline,
+    summarize_dispatch_gate_intervals, summarize_dispatch_capacity_context)
+
+
+class ControlTimelineTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.paths = [self.root/name for name in ('projection.json','deployment.json','terminals.jsonl','watchdog.jsonl')]
+        self.rows = []
+        self.terminals = []
+        for i in range(2):
+            base = 100 + i
+            self.rows.append(dict(request_id=str(i), success=True, instance_id='gpu0',
+                scheduled_arrival_offset_s=i, arrival_released_offset_s=i,
+                dispatch_window_wait_ms=1000, overall_e2e_ms=5000,
+                native_token_timing=dict(native_clock_id='clock', controller_admitted_monotonic_s=base+2,
+                    native_dispatch_monotonic_s=base+3, native_last_token_monotonic_s=base+4,
+                    controller_completed_monotonic_s=base+5)))
+            self.terminals.append(dict(request_id=str(i),success=True,native_contract_matched=True,
+                                       instance_id='gpu0',clock_id='clock',at=base+6))
+        self.deployment = dict(plan=dict(count=2),arrival_start_s=100,clock_id='clock')
+        self.samples = [dict(event='resource_sample',monotonic=at,gpu=dict(
+            service_held_gpu_uuids=['gpu0'],devices=[dict(gpu_uuid='gpu0',gpu_utilization_percent=25)]))
+            for at in (100,101,102,103,104,105,106,107)]
+
+    def run_audit(self, **kwargs):
+        self.paths[0].write_text(json.dumps(dict(requests=self.rows)))
+        self.paths[1].write_text(json.dumps(self.deployment))
+        self.paths[2].write_text(''.join(json.dumps(r)+'\n' for r in self.terminals))
+        self.paths[3].write_text(''.join(json.dumps(r)+'\n' for r in self.samples))
+        return analyze_native_timeline(*self.paths,self.root/'output',**kwargs)
+
+    def fail_request(self, i=0):
+        self.rows[i].update(success=False,native_token_timing={},dispatch_window_wait_ms=0,
+            failure_observation=dict(clock_id='clock',exception_type='TimeoutError',
+                kind='controller_task_exception_v1',observed_monotonic_s=106.1+i))
+        self.terminals[i].update(success=False,native_contract_matched=False)
+
+    def control_outcome(self):
+        events = [dict(observed_at=at,queue_depth=2,active_requests=1,ready_capacity=2,
+            ready_instances=1,pending_instances=0,action='no_action',outcome='no_action')
+            for at in (100,106,107)]
+        path = self.root/'control.json'
+        path.write_text(json.dumps(dict(mechanism_events=dict(_ieee_control_events=events,
+            _ieee_runtime_quarantine_events=[dict(clock_id='clock',started_monotonic_s=106.5)]))))
+        return path
+
+    def test_exact_half_open_intervals_and_gap(self):
+        r = self.run_audit()
+        self.assertEqual(r['count'],2)
+        self.assertEqual(r['observation_s'],7)
+        p = r['phase_summaries']
+        for name in p:
+            self.assertEqual(p[name]['max_concurrent_requests'],2 if name == 'gate_to_terminal' else 1)
+        self.assertEqual(p['controller_completion_to_terminal']['mean_duration_s'],1)
+        self.assertEqual(p['native_dispatch_to_last_token']['total_request_seconds'],2)
+        self.assertEqual(r['sampled_gate_occupancy_counts'],{0:2,1:2,2:4})
+
+    def test_reject_wrong_clock(self):
+        self.terminals[0]['clock_id'] = 'other'
+        with self.assertRaisesRegex(ValueError,'timing domains'): self.run_audit()
+
+    def test_reject_wrong_replica(self):
+        self.terminals[0]['instance_id'] = 'other'
+        with self.assertRaisesRegex(ValueError,'replica'): self.run_audit()
+
+    def test_reject_incomplete_population(self):
+        self.rows.pop()
+        with self.assertRaisesRegex(ValueError,'population'): self.run_audit()
+
+    def test_reject_duplicate_request(self):
+        self.rows[1]['request_id'] = '0'
+        with self.assertRaisesRegex(ValueError,'population'): self.run_audit()
+
+    def test_reject_failed_terminal(self):
+        self.terminals[0]['success'] = False
+        with self.assertRaisesRegex(ValueError,'population'): self.run_audit()
+
+    def test_reject_missing_timestamp(self):
+        del self.rows[0]['native_token_timing']['native_dispatch_monotonic_s']
+        with self.assertRaises(KeyError): self.run_audit()
+
+    def test_reject_reordered_timestamp(self):
+        self.rows[0]['native_token_timing']['native_dispatch_monotonic_s'] = 99
+        with self.assertRaisesRegex(ValueError,'ordered'): self.run_audit()
+
+    def test_reject_missing_gpu_activity(self):
+        self.samples[0]['gpu']['devices'] = []
+        with self.assertRaisesRegex(ValueError,'activity'): self.run_audit()
+
+    def test_no_overwrite(self):
+        self.run_audit()
+        with self.assertRaises(FileExistsError): self.run_audit()
+
+    def test_failure_opt_in_retains_all_ids_without_imputation(self):
+        self.fail_request()
+        r = self.run_audit(allow_failed=True)
+        self.assertEqual(r['population'],dict(planned=2,terminal=2,native_success=1,failed=1))
+        self.assertEqual(r['phase_population'],'native_success_only')
+        self.assertEqual(r['phase_summaries']['gate_to_terminal']['n'],1)
+        import csv
+        with (self.root/'output/request_occupancy.csv').open() as f:
+            rows=list(csv.DictReader(f))
+        self.assertEqual({x['request_id'] for x in rows},{'0','1'})
+        self.assertEqual(rows[0]['arrival_to_gate_s'],'')
+        self.assertEqual(rows[0]['success'],'False')
+
+    def test_failed_requires_explicit_opt_in(self):
+        self.fail_request()
+        with self.assertRaisesRegex(ValueError,'population'): self.run_audit()
+
+    def test_mixed_success_flags_rejected_even_when_allow_failed(self):
+        self.rows[0]['success']=False
+        with self.assertRaisesRegex(ValueError,'population'): self.run_audit(allow_failed=True)
+
+    def test_failure_clock_rejected(self):
+        self.fail_request()
+        self.rows[0]['failure_observation']['clock_id']='other'
+        with self.assertRaisesRegex(ValueError,'failure timing'): self.run_audit(allow_failed=True)
+
+    def test_collected_failure_after_terminal_is_not_service_time(self):
+        self.fail_request()
+        self.rows[0]['failure_observation']['observed_monotonic_s']=108
+        r=self.run_audit(allow_failed=True)
+        self.assertEqual(r['failures'][0]['observation_minus_terminal_s'],2)
+
+    def test_task_failure_observed_before_terminal_rejected(self):
+        self.fail_request()
+        self.rows[0]['failure_observation']['observed_monotonic_s']=105
+        with self.assertRaisesRegex(ValueError,'producer boundary'): self.run_audit(allow_failed=True)
+
+    def test_returned_error_observed_before_terminal_is_valid(self):
+        self.fail_request()
+        self.rows[0]['failure_observation'].update(kind='native_request_execution_error_v1',observed_monotonic_s=105)
+        r=self.run_audit(allow_failed=True)
+        self.assertEqual(r['failures'][0]['observation_minus_terminal_s'],-1)
+
+    def test_all_failed_has_no_fabricated_success_latency(self):
+        self.fail_request(0)
+        self.fail_request(1)
+        r=self.run_audit(allow_failed=True)
+        self.assertEqual(r['population']['failed'],2)
+        self.assertIsNone(r['phase_summaries']['gate_to_terminal']['mean_duration_s'])
+        self.assertEqual(r['native_by_replica'],{})
+
+    def test_independent_control_history_phases(self):
+        self.fail_request()
+        r=self.run_audit(allow_failed=True,control_outcome_path=self.control_outcome())
+        c=r['control_observations']
+        self.assertEqual(c['first_failed_terminal_offset_s'],6)
+        self.assertAlmostEqual(c['first_failure_observation_offset_s'],6.1)
+        self.assertEqual(c['first_quarantine_offset_s'],6.5)
+        self.assertEqual(len(c['by_phase']),3)
+        for v in c['by_phase'].values():
+            self.assertEqual(v['samples'],1)
+            self.assertEqual(v['positive_queue_below_capacity_samples'],1)
+
+    def test_control_counts_rejected(self):
+        path=self.control_outcome()
+        x=json.loads(path.read_text())
+        x['mechanism_events']['_ieee_control_events'][0]['active_requests']=3
+        path.write_text(json.dumps(x))
+        with self.assertRaisesRegex(ValueError,'exceed ready'): self.run_audit(control_outcome_path=path)
+
+    def test_control_lifetime_does_not_extend_request_window(self):
+        path=self.control_outcome()
+        x=json.loads(path.read_text())
+        events=x['mechanism_events']['_ieee_control_events']
+        before=dict(events[0],observed_at=99)
+        after=dict(events[-1],observed_at=107.0008,queue_depth=0,active_requests=0)
+        x['mechanism_events']['_ieee_control_events']=[before,*events,after]
+        path.write_text(json.dumps(x))
+        r=self.run_audit(control_outcome_path=path)
+        c=r['control_observations']
+        self.assertEqual(r['observation_s'],7)
+        self.assertEqual(c['source_event_count'],5)
+        self.assertEqual(c['in_request_window_count'],3)
+        self.assertEqual(sum(v['samples'] for v in c['by_phase'].values()),3)
+        self.assertEqual([v['boundary'] for v in c['outside_request_window']],
+            ['before_request_window','after_request_window'])
+        self.assertEqual([v['event'] for v in c['outside_request_window']],[before,after])
+        import csv
+        with (self.root/'output/control_observations.csv').open() as f:
+            rows=list(csv.DictReader(f))
+        self.assertEqual([float(v['offset_s']) for v in rows],[0,6,7])
+
+    def test_control_outside_window_still_validates_counts(self):
+        path=self.control_outcome()
+        x=json.loads(path.read_text())
+        events=x['mechanism_events']['_ieee_control_events']
+        events.append(dict(events[-1],observed_at=108,active_requests=3))
+        path.write_text(json.dumps(x))
+        with self.assertRaisesRegex(ValueError,'exceed ready'):
+            self.run_audit(control_outcome_path=path)
+
+    def test_control_outside_window_still_validates_order_and_finiteness(self):
+        path=self.control_outcome()
+        x=json.loads(path.read_text())
+        events=x['mechanism_events']['_ieee_control_events']
+        for at in (98,float('nan'),float('inf')):
+            with self.subTest(at=at):
+                x['mechanism_events']['_ieee_control_events']=[dict(events[0],observed_at=99),
+                    *events,dict(events[-1],observed_at=at)]
+                path.write_text(json.dumps(x))
+                with self.assertRaisesRegex(ValueError,'control observation order'):
+                    self.run_audit(control_outcome_path=path)
+
+    def test_control_wrong_quarantine_clock_rejected(self):
+        path=self.control_outcome()
+        x=json.loads(path.read_text())
+        x['mechanism_events']['_ieee_runtime_quarantine_events'][0]['clock_id']='other'
+        path.write_text(json.dumps(x))
+        with self.assertRaisesRegex(ValueError,'quarantine clocks'): self.run_audit(control_outcome_path=path)
+
+
+class DispatchGateSplitTest(unittest.TestCase):
+    def setUp(self):
+        self.deployment = dict(arrival_start_s=100., clock_id='c', plan=dict(count=1))
+        self.rows = [dict(request_id='r', instance_id='i', success=True,
+            scheduled_arrival_offset_s=1., arrival_released_offset_s=2.,
+            admission_start_offset_s=3., dispatch_window_wait_ms=3000.,
+            admitted_offset_s=7., runtime_slot_wait_ms=2000.,
+            arrival_release_lateness_ms=1000., dispatch_admission_wait_ms=6000.,
+            native_token_timing=dict(native_clock_id='c',
+                controller_admitted_monotonic_s=107.1, controller_completed_monotonic_s=110.))]
+        self.terminals = [dict(request_id='r', instance_id='i', success=True,
+            native_contract_matched=True, clock_id='c', at=111.)]
+        self.activations = [dict(activation_id='i', target_replica='i', clock_id='c',
+            category='initial', trigger_at=90., engine_ready_at=100.)]
+
+    def result(self):
+        return summarize_dispatch_gate_intervals(self.rows, self.deployment,
+                                                self.terminals, self.activations)
+
+    def test_runtime_admission_is_not_gate_resumption(self):
+        result = self.result()
+        row = result['rows'][0]
+        self.assertEqual(row['pre_acquire_ms'], 1000.)
+        self.assertEqual(row['acquire_to_resume_ms'], 2000.)
+        self.assertEqual(row['gate_resumed_offset_s'], 5.)
+        self.assertEqual(row['runtime_admitted_offset_s'], 7.)
+        self.assertFalse(result['formal_qualification'])
+        self.assertIsNone(result['confidence_interval'])
+
+    def test_startup_overlap_is_union(self):
+        for identity, begin, end in [('a',102.5,104.), ('b',103.5,105.5)]:
+            self.activations.append(dict(activation_id=identity, target_replica=identity,
+                clock_id='c', category='natural_scaleout', trigger_at=begin, engine_ready_at=end))
+        row = self.result()['rows'][0]
+        self.assertEqual(row['pre_acquire_startup_overlap_ms'], 500.)
+        self.assertEqual(row['acquire_to_resume_startup_overlap_ms'], 2000.)
+
+    def test_incomplete_rejected(self):
+        self.deployment['plan']['count'] = 2
+        with self.assertRaisesRegex(ValueError, 'population'): self.result()
+
+    def test_bad_boundary_rejected(self):
+        self.rows[0]['admission_start_offset_s'] = 6.
+        with self.assertRaisesRegex(ValueError, 'ordered'): self.result()
+
+    def test_wrong_runtime_identity_rejected(self):
+        self.rows[0]['runtime_slot_wait_ms'] = 1500.
+        with self.assertRaisesRegex(ValueError, 'identity'): self.result()
+
+    def test_mixed_clock_rejected(self):
+        self.terminals[0]['clock_id'] = 'other'
+        with self.assertRaisesRegex(ValueError, 'same-clock'): self.result()
+
+    def test_nonfinite_rejected(self):
+        self.rows[0]['admission_start_offset_s'] = float('nan')
+        with self.assertRaisesRegex(ValueError, 'finite'): self.result()
+
+    def test_capacity_bounds_do_not_treat_pending_as_definite(self):
+        rows = self.result()['rows']
+        samples = [dict(offset_s=t, queue=1, active=0, capacity=1, pending=0)
+                   for t in (4.,6.,10.5)]
+        result = summarize_dispatch_capacity_context(rows, samples)
+        self.assertEqual([r['definitely_owned'] for r in result['rows']], [0,1,0])
+        self.assertEqual([r['possibly_owned'] for r in result['rows']], [1,1,1])
+        self.assertEqual(result['samples_with_unresumed_acquire'],1)
+        self.assertEqual(result['waiting_samples_capacity_definitely_covered'],0)
+
+    def test_capacity_sample_order_rejected(self):
+        c = dict(offset_s=4., queue=1, active=0, capacity=1, pending=0)
+        with self.assertRaisesRegex(ValueError, 'ordered'):
+            summarize_dispatch_capacity_context(self.result()['rows'], [c,c])
+
+    def test_capacity_bound_inversion_rejected(self):
+        rows = self.result()['rows']
+        rows[0]['native_completed_offset_s'] = 1.
+        with self.assertRaisesRegex(ValueError, 'ordered'):
+            summarize_dispatch_capacity_context(rows,
+                [dict(offset_s=4., queue=1, active=0, capacity=1, pending=0)])
+
+
+class RetainedNestedOverheadTest(unittest.TestCase):
+    def row(self):
+        return dict(routing_decision_us=2500., control_path_total_us=2500.,
+            lora_io_ms=3., dispatch_admission_wait_ms=20., dispatch_window_wait_ms=4.,
+            native_token_timing=dict(parent_rpc_transport='native_async_socket_v1',
+                parent_rpc_overhead_ms=4., parent_rpc_channel_acquire_ms=.1,
+                parent_rpc_response_pickup_delay_ms=3., parent_rpc_send_flush_ms=.2,
+                parent_rpc_thread_resume_delay_ms=0., worker_rpc_queue_ms=.3),
+            gpu_reference_evidence=dict(receipt=dict(load_and_acquire_ms=2.)))
+
+    def test_keeps_nested_spans_separate_and_does_not_mutate(self):
+        import copy
+        from scripts.ieee_tc.analyze_d455_stages import retained_nested_overhead
+        row = self.row()
+        before = copy.deepcopy(row)
+        result = retained_nested_overhead(row)
+        self.assertEqual(row, before)
+        self.assertEqual(result['routing_decision_ms'], 2.5)
+        self.assertEqual(result['native_load_and_acquire_ms'], 2.)
+        self.assertNotIn('sum', result)
+        self.assertNotIn('n_correct', result)
+
+    def test_invalid_and_missing_observations_do_not_become_zero(self):
+        from scripts.ieee_tc.analyze_d455_stages import retained_nested_overhead
+        for value in (None, True, -1., float('nan'), float('inf')):
+            row = self.row()
+            row['native_token_timing']['parent_rpc_overhead_ms'] = value
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                retained_nested_overhead(row)
+        row = self.row()
+        del row['native_token_timing']['worker_rpc_queue_ms']
+        with self.assertRaises(KeyError):
+            retained_nested_overhead(row)
+        row = self.row()
+        row['routing_decision_us'] = True
+        with self.assertRaises(ValueError):
+            retained_nested_overhead(row)
+
+    def test_unmeasured_transport_rejected(self):
+        from scripts.ieee_tc.analyze_d455_stages import retained_nested_overhead
+        row = self.row()
+        row['native_token_timing']['parent_rpc_transport'] = 'unknown'
+        with self.assertRaises(ValueError):
+            retained_nested_overhead(row)
+
+    def test_new_output_and_no_legacy_fallback(self):
+        from scripts.ieee_tc.analyze_d455_stages import analyze_retained_overhead
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaises(ValueError):
+                analyze_retained_overhead(Path(directory), [Path('/not-read')])
+            with self.assertRaises(ValueError):
+                analyze_retained_overhead(Path(directory)/'new', [])
+
+
+class RetainedStagePartitionTest(unittest.TestCase):
+    def test_sealed_candidate_preserves_prior_rows_and_rejects_mismatch(self):
+        import copy
+        from scripts.ieee_tc.analyze_d455_stages import with_d458_candidate
+        old = dict(results={'PrimeLoRA':{'metric':1}}, reference={'U':2},
+            matched_contract_sha256='contract', source_refs=[dict(path='/old',sha256='a')])
+        candidate = dict(previous_six_system_results=copy.deepcopy(old['results']),
+            reference=copy.deepcopy(old['reference']), matched_contract_sha256='contract',
+            refs=[dict(path='/d458_20261012/experiment_results_full.json',sha256='b')],
+            candidate={'metric':3})
+        snapshot=copy.deepcopy(old)
+        joined=with_d458_candidate(old,candidate)
+        self.assertEqual(old,snapshot)
+        self.assertEqual(joined['results']['PrimeLoRA'],old['results']['PrimeLoRA'])
+        self.assertEqual(joined['results']['PrimeLoRA_D458'],{'metric':3})
+        for key,value in [('previous_six_system_results',{}),('reference',{}),
+                          ('matched_contract_sha256','other'),('refs',[])]:
+            bad=copy.deepcopy(candidate)
+            bad[key]=value
+            with self.assertRaises(ValueError): with_d458_candidate(old,bad)
+        bad=copy.deepcopy(candidate)
+        bad['refs'].append(dict(path='/old',sha256='conflict'))
+        with self.assertRaises(ValueError): with_d458_candidate(old,bad)
+
+    def test_campaign_entry_imports_existing_statistics(self):
+        from scripts.ieee_tc.analyze_d455_stages import analyze
+        self.assertTrue(callable(analyze))
+
+    def row(self):
+        return dict(request_id='r', success=True, requested_completion_tokens=2,
+            scheduled_arrival_offset_s=0., arrival_released_offset_s=1.,
+            admission_start_offset_s=2., admitted_offset_s=4.,
+            dispatch_window_wait_ms=2000., arrival_release_lateness_ms=1000.,
+            runtime_slot_wait_ms=1000., dispatch_admission_wait_ms=4000.,
+            overall_ttft_ms=9000., overall_e2e_ms=12000., routing_decision_us=300000.,
+            external_arrival_timing=dict(planned_arrival_s=100.),
+            native_token_timing=dict(timing_contract='ieee_tc_native_v1', native_clock_id='c',
+                controller_admitted_monotonic_s=105., native_dispatch_monotonic_s=106.,
+                native_queued_monotonic_s=107., native_scheduled_monotonic_s=108.,
+                native_first_token_monotonic_s=109., native_last_token_monotonic_s=110.,
+                worker_completed_monotonic_s=111., controller_completed_monotonic_s=112.,
+                native_output_tokens=2, native_tpot_ms=1000.))
+
+    def analyze(self, row):
+        from scripts.analyze_control_path_overhead import partition_retained_request_stages
+        return partition_retained_request_stages(row, arrival_start_s=100., clock_id='c')
+
+    def test_complete_additive_partition_and_separate_nested_route(self):
+        result = self.analyze(self.row())
+        self.assertEqual(len(result['stages_ms']), 12)
+        self.assertTrue(all(v == 1000. for v in result['stages_ms'].values()))
+        self.assertEqual(sum(result['stages_ms'].values()), 12000.)
+        self.assertEqual(result['nested_routing_ms'], 300.)
+        self.assertEqual(result['max_identity_error_ms'], 0.)
+
+    def test_missing_fields_rejected(self):
+        row = self.row()
+        del row['runtime_slot_wait_ms']
+        with self.assertRaises(KeyError): self.analyze(row)
+
+    def test_order_clock_and_native_counts_rejected(self):
+        for field, value in [('native_clock_id','wrong'), ('native_output_tokens',1),
+                             ('native_first_token_monotonic_s', 105.)]:
+            row = self.row()
+            row['native_token_timing'][field] = value
+            with self.subTest(field=field), self.assertRaises(ValueError): self.analyze(row)
+
+    def test_invalid_boundary_and_stored_identity_rejected(self):
+        for field, value in [('admission_start_offset_s',4.),
+                             ('arrival_released_offset_s',float('nan')),
+                             ('overall_ttft_ms',9002.),('overall_e2e_ms',12002.),
+                             ('dispatch_window_wait_ms',-1.),('success',False)]:
+            row = self.row()
+            row[field] = value
+            with self.subTest(field=field), self.assertRaises(ValueError): self.analyze(row)
+
+
+if __name__ == '__main__':
+    unittest.main()
