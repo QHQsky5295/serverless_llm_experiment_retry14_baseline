@@ -1,0 +1,62 @@
+{
+  "kind": "d1058_metric_review_validation",
+  "date": "2026-11-04",
+  "source_head": "1c319029b9bfc79d6ae1cf59737e8eb07d2962fe",
+  "new_gpu_runs": 0,
+  "checks": [
+    {
+      "name": "source_and_derived_values_first_attempt",
+      "pass": false,
+      "exit_code": 5,
+      "scope": "primelora-tc-aux-c14a89240b804e3588b13ee2df3d1208.scope",
+      "reason": "New review JSON changed independent_numerical_proof from null to false for the out-of-scope W0 dLoRA row; exact source comparison caught it. Original CSV unchanged."
+    },
+    {
+      "name": "source_and_derived_values_after_fix",
+      "pass": true,
+      "exit_code": 0,
+      "scope": "primelora-tc-aux-e14bb7a20b804e3588b13ee2df3d1208.scope",
+      "source_rows": 21,
+      "measured_points": 20,
+      "pair_comparisons": 17,
+      "factorial_cells": 4,
+      "coverage": "All source CSV keys preserved; joint-response/U division; all factorial U/A/P95 values; GPU-reduction, joint-delta, P95-ratio arithmetic. Source42 identity and unknown numerical proof retained."
+    },
+    {
+      "name": "147_item_protected_manifest_sha_check",
+      "pass": true,
+      "exit_code": 0,
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json"
+    },
+    {
+      "name": "user_dirty_bytes_unchanged",
+      "pass": true,
+      "files": {
+        "configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+        "docs/ieee_tc/EXECUTION_STATUS.md": "41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374"
+      }
+    },
+    {
+      "name": "auxiliary_scopes_closed",
+      "pass": true,
+      "actual_state": "Both not-found/inactive"
+    },
+    {
+      "name": "git_diff_check",
+      "pass": true
+    },
+    {
+      "name": "bounded_credential_pattern_scan",
+      "pass": true,
+      "scope": "Only new D1058 report and observations JSON; no private keys, supplied password, or common token patterns matched; not an exhaustive security certification"
+    }
+  ],
+  "observation_file_sha256": "5e562cc5453ce126462392b6dc4ae622d22ff07d52ab19abe22ff3c9c086a823",
+  "production_code_changed": false,
+  "configuration_changed": false,
+  "metric_protocol_changed": false,
+  "old_results_changed": false,
+  "scope_limits": "JSON-only offline smoke, not an inference/correctness benchmark. Scope memory peaks were not sampled; no inference was run.",
+  "goal_status": "active",
+  "next_mainline": "D1057 ElasticOnly after communicating metric review; no Full rerun."
+}
