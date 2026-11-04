@@ -1,0 +1,65 @@
+{
+  "passed": true,
+  "tests_run": 56,
+  "names": [
+    "tests.test_ieee_tc_nohost_files",
+    "tests.test_ieee_tc_nohost",
+    "tests.test_ieee_tc_file_state_process"
+  ],
+  "failures": 0,
+  "errors": 0,
+  "elapsed_s": 101.81500772293657,
+  "sources": {
+    "faaslora/registry/schema.py": "ac5de54afbb501d2f393077682c89b3665dc845770b0b296cb577c40a529fb52",
+    "faaslora/experiment/instance_pool.py": "8fd827699178ad1c88bec3d5cf503ecd04815d89e3490c4b5d1223019679dfc1",
+    "faaslora/preloading/preloading_planner.py": "70dd729160c4198ca91abd4af27aa7e34bc917f85c9d792c49dc2278e9d3d68d",
+    "faaslora/preloading/planning_cpu.py": "538d34c5e776f8a5f0a661cbfc356deb92ff83da4fa1961f56812acbdc8c970d",
+    "tests/test_ieee_tc_nohost.py": "341b9948fd1a2ab3bd8c943220985977ddad2022e11be8d0fe72453fc54f311c",
+    "faaslora/memory/residency_manager.py": "93584c56c1038f591d37866ff87fc2ea97f1d336612596e9f4dc207b8488a76a",
+    "faaslora/memory/file_state_process.py": "01eeb79e3935ef7c41d780473777fa82732912bc94140b58845442893eeae8db",
+    "tests/test_ieee_tc_nohost_files.py": "212995336ea1fd10ded9ff1f16ef74e0062a8d89d4a061e82b8c6e030b927721",
+    "tests/test_ieee_tc_file_state_process.py": "ff69c8a2eb0bca96c0b11bfe0687ef624096dd5feed29aad3fe8024a80e7cb54"
+  },
+  "sources_after": {
+    "faaslora/registry/schema.py": "ac5de54afbb501d2f393077682c89b3665dc845770b0b296cb577c40a529fb52",
+    "faaslora/experiment/instance_pool.py": "8fd827699178ad1c88bec3d5cf503ecd04815d89e3490c4b5d1223019679dfc1",
+    "faaslora/preloading/preloading_planner.py": "70dd729160c4198ca91abd4af27aa7e34bc917f85c9d792c49dc2278e9d3d68d",
+    "faaslora/preloading/planning_cpu.py": "538d34c5e776f8a5f0a661cbfc356deb92ff83da4fa1961f56812acbdc8c970d",
+    "tests/test_ieee_tc_nohost.py": "341b9948fd1a2ab3bd8c943220985977ddad2022e11be8d0fe72453fc54f311c",
+    "faaslora/memory/residency_manager.py": "93584c56c1038f591d37866ff87fc2ea97f1d336612596e9f4dc207b8488a76a",
+    "faaslora/memory/file_state_process.py": "01eeb79e3935ef7c41d780473777fa82732912bc94140b58845442893eeae8db",
+    "tests/test_ieee_tc_nohost_files.py": "212995336ea1fd10ded9ff1f16ef74e0062a8d89d4a061e82b8c6e030b927721",
+    "tests/test_ieee_tc_file_state_process.py": "ff69c8a2eb0bca96c0b11bfe0687ef624096dd5feed29aad3fe8024a80e7cb54"
+  },
+  "source_unchanged": true,
+  "identity": {
+    "unit": "primelora-tc-test-cd16e738a09849be96e11379f95ab741.scope",
+    "invocation_id": "64c2b27f45c344548021530b18b9cc86",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-cd16e738a09849be96e11379f95ab741.scope",
+    "inode": 39139958
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-cd16e738a09849be96e11379f95ab741.scope",
+    "memory.current": 605835264,
+    "memory.peak": 1206452224,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 101514356\nuser_usec 87801737\nsystem_usec 13712618\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "performance_test": false,
+  "nohost_execution_qualified": false
+}

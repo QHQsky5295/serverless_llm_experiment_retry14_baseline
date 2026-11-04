@@ -1,0 +1,11 @@
+{
+  "reason": "git diff --cached --check: new blank line at test EOF",
+  "original_checkpoint_exit": 1,
+  "commit_created_before_stop": false,
+  "path": "tests/test_ieee_tc_nohost_files.py",
+  "tested_sha256": "dda3444550df6646f27a3c58d93d07f6e72fd3d2c3962ccd3b23d1991fb74a1d",
+  "final_sha256": "e4fc83f792f7eca74f2ba84cfb2ec489be96dfc16eddbf9366b79c855498c461",
+  "sole_change": "remove one trailing newline",
+  "source_logic_unchanged": true,
+  "no_performance_rerun": true
+}

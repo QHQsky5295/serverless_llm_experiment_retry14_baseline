@@ -286,7 +286,10 @@ class LocalSourceReferences:
     owner and may outlive the file read. No async work runs while the lock is held.
     """
 
-    def __init__(self, roots, *, file_cache_policy='planned_only'):
+    def __init__(self, roots, *, file_cache_policy='planned_only', independent_host_reuse=True):
+        if type(independent_host_reuse) is not bool:
+            raise ValueError('independent HOST reuse policy must be a bool')
+        self._independent_host_reuse = independent_host_reuse
         if file_cache_policy not in ('planned_only', 'demand_lru'):
             raise ValueError('unknown managed file cache policy')
         self.file_cache_policy = file_cache_policy
@@ -295,6 +298,10 @@ class LocalSourceReferences:
         if (len(set(self.roots.values())) != len(self.roots) or
                 any(a in b.parents for a in self.roots.values() for b in self.roots.values())):
             raise ValueError('HOST/NVMe owners require distinct nonoverlapping roots')
+        if not independent_host_reuse:
+            host = self.roots.get('host')
+            if host is None or (host.exists() and (not host.is_dir() or any(host.iterdir()))):
+                raise ValueError('NoHOST requires an initially empty managed HOST root')
         self.owner_id = uuid.uuid4().hex
         self.lock = threading.RLock()
         if os.environ.get('FAASLORA_TC_FILE_OWNER_TIMING') == 'local_lock_spans_v1':
@@ -325,6 +332,35 @@ class LocalSourceReferences:
         self._preparation_targets = None
         self._preparation_target_paths = None
         self.source_epoch = 0
+
+    @property
+    def independent_host_reuse(self):
+        return self._independent_host_reuse
+
+    def _host_reuse_metadata(self):
+        # Keep Full wire identities unchanged; the opt-in is explicit everywhere
+        # a consumer can infer a service tier from a physical file-owner view.
+        return {} if self.independent_host_reuse else {'independent_host_reuse': False}
+
+    def require_service_target(self, path):
+        """Validate a service copy without changing roots or physical budgets."""
+        parent = Path(path).resolve().parent
+        tiers = [tier for tier, root in self.roots.items() if parent == root]
+        if len(tiers) != 1:
+            raise ValueError('file service copy requires one managed tier')
+        self._require_service_tier(tiers[0])
+
+    def _require_service_tier(self, tier):
+        if tier == 'host' and not self.independent_host_reuse:
+            raise ValueError('NoHOST forbids independent HOST file service copies')
+
+    def require_service_source(self, path):
+        # Legacy materializers also accept individual files and unmanaged input.
+        # Do not let an unverified HOST copy take that path into NVMe service.
+        if not self.independent_host_reuse and path:
+            source, host = Path(path).resolve(), self.roots['host']
+            if source == host or host in source.parents:
+                self._require_service_tier('host')
 
     def subscribe_file_changes(self, subscriber_id, callback):
         """Callbacks only enqueue notifications; never perform IO under this lock."""
@@ -360,6 +396,7 @@ class LocalSourceReferences:
                 or any(c not in '0123456789abcdef' for c in content_sha256)):
             raise ValueError('file movement interest requires managed target/content/role')
         tier = next(t for t, root in self.roots.items() if target.parent == root)
+        self._require_service_tier(tier)
         with self.lock:
             if intent_id in self._file_movement_interests:
                 raise ValueError('duplicate live file movement interest')
@@ -386,6 +423,7 @@ class LocalSourceReferences:
                 record = self._validated_source(path)
                 rows.append(copy.deepcopy(record['public']))
             return dict(owner_id=self.owner_id, epoch=self.source_epoch, sources=rows,
+                        **self._host_reuse_metadata(),
                         scope='managed_file_copies_only', physical_resources_reserved=False)
 
     def _file_replacement_capacity(self):
@@ -706,6 +744,7 @@ class LocalSourceReferences:
                 if (tier not in self.roots or not isinstance(content, str) or len(content) != 64
                         or any(c not in '0123456789abcdef' for c in content)):
                     raise ValueError('file preparation target lacks owned tier/content identity')
+                self._require_service_tier(tier)
                 path = self.roots[tier] / aid
                 if path in normalized:
                     raise ValueError('duplicate target in file preparation plan')
@@ -762,6 +801,7 @@ class LocalSourceReferences:
                 for pid, row in sorted(self._file_preparation_plans.items())],
                 physical_resources_reserved=False, replacements=copy.deepcopy(self._file_replacement_events),
                 file_cache_policy=self.file_cache_policy,
+                **self._host_reuse_metadata(),
                 movement_interests=[dict(intent_id=key, **{**row, 'target': str(row['target'])})
                     for key, row in sorted(self._file_movement_interests.items())])
 
@@ -993,6 +1033,7 @@ class LocalSourceReferences:
                     raise RuntimeError('local copy exists without verified source publication: '
                                        + json.dumps(detail, sort_keys=True))
             return dict(kind='confirmed_file_sources_v1', owner_id=self.owner_id,
+                        **self._host_reuse_metadata(),
                         epoch=self.source_epoch, adapter_id=adapter_id,
                         captured_monotonic_s=time.monotonic(), clock_id=local_monotonic_clock_id(),
                         snapshot_holds_reference=False, sources=sources)
@@ -1040,6 +1081,7 @@ class LocalSourceReferences:
         matches = [tier for tier, root in self.roots.items() if source.parent == root]
         if len(matches) != 1 or not source.is_dir():
             raise ValueError('source must be an existing adapter directory in one managed tier')
+        self._require_service_tier(matches[0])
         observed = {}
         try:
             footprint = _local_file_inventory({matches[0]: source},
@@ -1057,6 +1099,7 @@ class LocalSourceReferences:
 
     def _install_source_lease(self, source, tier, info, footprint, record, *, adapter_id, lease_id):
         """Install from the same locked observation, without another tree scan."""
+        self._require_service_tier(tier)
         if not adapter_id or not lease_id or lease_id in self.released:
             raise ValueError('source reference requires an unused lease and adapter identity')
         identity = (adapter_id, str(source), tier, info.st_dev, info.st_ino)
@@ -1472,7 +1515,8 @@ class LocalSourceReferences:
                     tier=tier, representation='verified_regular_file_tree_v1',
                     content_sha256=row['content_sha256'], footprint_bytes=sum(
                         ((size+unit-1)//unit)*unit for size, _ in row['files'].values()),
-                    path=str(paths[tier]))) for tier, unit in units.items()})
+                    path=str(paths[tier]))) for tier, unit in units.items()
+                    if tier != 'host' or self.independent_host_reuse})
             self._preparation_targets = MappingProxyType(targets)
             self._preparation_target_paths = MappingProxyType(target_paths)
             self._preparation_target_binding = binding
@@ -1591,6 +1635,7 @@ class LocalSourceReferences:
                        for row in artifact['sources']}
             replacement = self._file_replacement_capacity_from_inventory(inventory, sources)
             return dict(kind='ieee_file_planning_sources_v1', owner_id=self.owner_id,
+                **self._host_reuse_metadata(),
                 epoch=self.source_epoch, clock_id=budget['clock_id'], captured_at=time.monotonic(),
                 artifacts=artifacts, budgets=budget, allocation_units_bytes=units,
                 managed_host=host, replacement_capacity=replacement,
@@ -1688,6 +1733,7 @@ class LocalSourceReferences:
 
     def publish_transfer(self, transfer_id, staging, target, publish, *, verified_files=None):
         with self.lock:
+            self.require_service_target(target)
             if (self._transfer_workspaces.get(transfer_id) != Path(staging) or
                     self.materializations.get(transfer_id) != Path(target).resolve() or
                     transfer_id not in self._prepared_transfers):
@@ -1713,6 +1759,7 @@ class LocalSourceReferences:
         not the legacy copy path's capacity admission or HOST memory residency.
         """
         with self.lock:
+            self.require_service_target(source)
             record = self._validated_source(Path(source).resolve(strict=True))
             if record is None or record['public']['adapter_id'] != Path(target).name:
                 raise ValueError('tier copy requires its original confirmed source identity')
@@ -1724,6 +1771,7 @@ class LocalSourceReferences:
         tiers = [tier for tier, root in self.roots.items() if path.parent == root]
         if len(tiers) != 1:
             raise ValueError('confirmed publication requires one managed tier')
+        self._require_service_tier(tiers[0])
         before_signatures, before_footprint = self._source_observation(Path(staging))
         expected_paths = {'.', *expected}
         expected_paths.update(str(parent) for name in expected for parent in Path(name).parents)
@@ -1791,6 +1839,7 @@ class LocalSourceReferences:
         target = Path(target).resolve()
         if target.parent not in self.roots.values() or type(budgeted) is not bool:
             raise ValueError('materialization destination is outside managed tiers')
+        self.require_service_target(target)
         transfer_id = uuid.uuid4().hex
         with self.lock:
             if self.file_cache_policy == 'demand_lru' and replacement_epoch is not None:
@@ -3944,10 +3993,12 @@ class ResidencyManager:
         if memory_config.get('file_state_process', False):
             from .file_state_process import ProcessLocalSourceReferences
             self.local_source_references = ProcessLocalSourceReferences(
-                roots, file_cache_policy=memory_config.get('file_cache_policy', 'planned_only'))
+                roots, file_cache_policy=memory_config.get('file_cache_policy', 'planned_only'),
+                independent_host_reuse=memory_config.get('independent_host_reuse', True))
         else:
             self.local_source_references = LocalSourceReferences(
-                roots, file_cache_policy=memory_config.get('file_cache_policy', 'planned_only'))
+                roots, file_cache_policy=memory_config.get('file_cache_policy', 'planned_only'),
+                independent_host_reuse=memory_config.get('independent_host_reuse', True))
         self.local_transfer_evidence: List[Dict[str, Any]] = []
         self._local_transfer_evidence_lock = threading.Lock()
         self._tracked_gpu_device_ids: Optional[Tuple[int, ...]] = None
@@ -4019,6 +4070,7 @@ class ResidencyManager:
         target = Path(target)
         if target.resolve().parent not in self.local_source_references.roots.values():
             raise ValueError('publication destination is outside managed tier roots')
+        self.local_source_references.require_service_target(target)
         with self.local_source_references.mutation(target, transfer_id=transfer_id) as allowed:
             if not allowed:
                 raise RuntimeError('publication conflicts with a live source reference')
@@ -4755,6 +4807,8 @@ class ResidencyManager:
         tier_dir = self._tier_cache_dir(target_tier)
         if tier_dir is None:
             return source_path or None
+        self.local_source_references.require_service_target(tier_dir / artifact_id)
+        self.local_source_references.require_service_source(source_path)
         # Confirmed copies use the same physical file allocation owner as
         # verified HTTP downloads. Do not hold its lock while copying bytes.
         if source_path:
@@ -4784,6 +4838,8 @@ class ResidencyManager:
         tier_dir = self._tier_cache_dir(target_tier)
         if tier_dir is None:
             return source_path or None
+        self.local_source_references.require_service_target(tier_dir / artifact_id)
+        self.local_source_references.require_service_source(source_path)
 
         src = Path(source_path) if source_path else None
         if src is None or not src.exists():

@@ -1,0 +1,68 @@
+{
+  "passed": true,
+  "tests_run": 15,
+  "names": [
+    "tests.test_ieee_tc_nohost_files",
+    "tests.test_ieee_tc_request_lifecycle.LocalSourceOwnership.test_replacement_is_deferred_but_same_copy_and_other_tier_remain_usable",
+    "tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_verified_host_copy_preserves_content_and_lower_tier_after_eviction",
+    "tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_corrupt_tier_copy_does_not_publish_fast_tier_or_invalidate_source"
+  ],
+  "failures": 0,
+  "errors": 0,
+  "elapsed_s": 17.922478578984737,
+  "sources": {
+    "faaslora/registry/schema.py": "ac5de54afbb501d2f393077682c89b3665dc845770b0b296cb577c40a529fb52",
+    "faaslora/experiment/instance_pool.py": "8fd827699178ad1c88bec3d5cf503ecd04815d89e3490c4b5d1223019679dfc1",
+    "faaslora/preloading/preloading_planner.py": "70dd729160c4198ca91abd4af27aa7e34bc917f85c9d792c49dc2278e9d3d68d",
+    "faaslora/preloading/planning_cpu.py": "538d34c5e776f8a5f0a661cbfc356deb92ff83da4fa1961f56812acbdc8c970d",
+    "tests/test_ieee_tc_nohost.py": "341b9948fd1a2ab3bd8c943220985977ddad2022e11be8d0fe72453fc54f311c",
+    "faaslora/memory/residency_manager.py": "1d488872184e9b3bbc374642adc5c7a0bbce5ee4bd0ba4476971b44d6229d7f0",
+    "faaslora/memory/file_state_process.py": "bc3d9a1ec7e4234666a33d203db89482b60aa56888bdf72b85809eb7ed4fec63",
+    "tests/test_ieee_tc_nohost_files.py": "dda3444550df6646f27a3c58d93d07f6e72fd3d2c3962ccd3b23d1991fb74a1d",
+    "tests/test_ieee_tc_file_state_process.py": "ff69c8a2eb0bca96c0b11bfe0687ef624096dd5feed29aad3fe8024a80e7cb54",
+    "tests/test_ieee_tc_request_lifecycle.py": "fb53b1740f2c97b471a5d642afae523c9e8da2ff9b132cb133eccdefd6a416f2"
+  },
+  "sources_after": {
+    "faaslora/registry/schema.py": "ac5de54afbb501d2f393077682c89b3665dc845770b0b296cb577c40a529fb52",
+    "faaslora/experiment/instance_pool.py": "8fd827699178ad1c88bec3d5cf503ecd04815d89e3490c4b5d1223019679dfc1",
+    "faaslora/preloading/preloading_planner.py": "70dd729160c4198ca91abd4af27aa7e34bc917f85c9d792c49dc2278e9d3d68d",
+    "faaslora/preloading/planning_cpu.py": "538d34c5e776f8a5f0a661cbfc356deb92ff83da4fa1961f56812acbdc8c970d",
+    "tests/test_ieee_tc_nohost.py": "341b9948fd1a2ab3bd8c943220985977ddad2022e11be8d0fe72453fc54f311c",
+    "faaslora/memory/residency_manager.py": "1d488872184e9b3bbc374642adc5c7a0bbce5ee4bd0ba4476971b44d6229d7f0",
+    "faaslora/memory/file_state_process.py": "bc3d9a1ec7e4234666a33d203db89482b60aa56888bdf72b85809eb7ed4fec63",
+    "tests/test_ieee_tc_nohost_files.py": "dda3444550df6646f27a3c58d93d07f6e72fd3d2c3962ccd3b23d1991fb74a1d",
+    "tests/test_ieee_tc_file_state_process.py": "ff69c8a2eb0bca96c0b11bfe0687ef624096dd5feed29aad3fe8024a80e7cb54",
+    "tests/test_ieee_tc_request_lifecycle.py": "fb53b1740f2c97b471a5d642afae523c9e8da2ff9b132cb133eccdefd6a416f2"
+  },
+  "source_unchanged": true,
+  "identity": {
+    "unit": "primelora-tc-test-8e9cc08e0e494a7d8a4cddaa6b97d12f.scope",
+    "invocation_id": "835fdde8465443d59bbf9d4c70e8e451",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-8e9cc08e0e494a7d8a4cddaa6b97d12f.scope",
+    "inode": 39141622
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-8e9cc08e0e494a7d8a4cddaa6b97d12f.scope",
+    "memory.current": 601817088,
+    "memory.peak": 899837952,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 17948534\nuser_usec 15517358\nsystem_usec 2431176\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "performance_test": false,
+  "nohost_execution_qualified": false
+}

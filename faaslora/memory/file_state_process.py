@@ -57,11 +57,12 @@ _COMPOSITE = frozenset({
 })
 
 
-def _initialize(roots, file_cache_policy):
+def _initialize(roots, file_cache_policy, independent_host_reuse=True):
     global _OWNER, _CONTEXTS, _EVENTS, _SEQUENCE
     from .residency_manager import LocalSourceReferences
 
-    _OWNER = LocalSourceReferences(roots, file_cache_policy=file_cache_policy)
+    _OWNER = LocalSourceReferences(roots, file_cache_policy=file_cache_policy,
+                                   independent_host_reuse=independent_host_reuse)
     _CONTEXTS, _EVENTS, _SEQUENCE = {}, [], 0
     _OWNER.subscribe_file_changes('process_receipts', lambda tiers: _EVENTS.append(tuple(tiers)))
 
@@ -88,6 +89,7 @@ def _end(kind, context_id):
 def _publish(staging, target, transfer_id):
     from ..storage.http_artifact_store import publish_directory
 
+    _OWNER.require_service_target(target)
     with _OWNER.mutation(target, transfer_id=transfer_id) as allowed:
         if not allowed:
             raise RuntimeError('publication conflicts with a live source reference')
@@ -99,6 +101,7 @@ def _dispatch(operation, args):
         return getattr(_OWNER, operation)(**args)
     if operation == 'identity':
         return dict(owner_id=_OWNER.owner_id, pid=os.getpid(),
+                    **_OWNER._host_reuse_metadata(),
                     roots={k: str(v) for k, v in _OWNER.roots.items()},
                     affinity=sorted(os.sched_getaffinity(0)),
                     cgroup=Path('/proc/self/cgroup').read_text(),
@@ -123,7 +126,9 @@ def _dispatch(operation, args):
         adapter_id, lease_id = args['adapter_id'], args['lease_id']
         with _OWNER.lock:
             view = _OWNER.source_snapshot(adapter_id)
-            sources = sorted(view['sources'], key=lambda row: (row['tier'] != 'host', row['path']))
+            sources = sorted((row for row in view['sources']
+                if row['tier'] != 'host' or _OWNER.independent_host_reuse),
+                key=lambda row: (row['tier'] != 'host', row['path']))
             if not sources:
                 return None
             source = sources[0]
@@ -524,7 +529,9 @@ class FileStateProcess:
     """
 
     def __init__(self, roots, *, file_cache_policy='planned_only', diagnostic_timing=False,
-                 diagnostic_journal=None):
+                 diagnostic_journal=None, independent_host_reuse=True):
+        if type(independent_host_reuse) is not bool:
+            raise ValueError('independent HOST reuse policy must be a bool')
         if type(diagnostic_timing) is not bool:
             raise TypeError('diagnostic_timing must be a bool')
         if diagnostic_journal is not None and not diagnostic_timing:
@@ -538,7 +545,7 @@ class FileStateProcess:
         frozen_roots = {key: str(Path(value).resolve()) for key, value in roots.items() if value}
         self._pool = ProcessPoolExecutor(max_workers=1,
             mp_context=multiprocessing.get_context('spawn'),
-            initializer=_initialize, initargs=(frozen_roots, file_cache_policy))
+            initializer=_initialize, initargs=(frozen_roots, file_cache_policy, independent_host_reuse))
 
     def submit(self, operation, **args):
         if operation not in _METHODS | _COMPOSITE:
@@ -749,16 +756,37 @@ class ProcessLocalSourceReferences:
     the caller performs body I/O outside the owner transaction.
     """
 
-    def __init__(self, roots, *, file_cache_policy='planned_only'):
+    def __init__(self, roots, *, file_cache_policy='planned_only', independent_host_reuse=True):
         self.roots = {key: Path(value).resolve() for key, value in roots.items() if value}
         self.file_cache_policy = file_cache_policy
         journal = _diagnostic_file_journal()
         self.process = FileStateProcess(self.roots, file_cache_policy=file_cache_policy,
+                                       independent_host_reuse=independent_host_reuse,
                                        diagnostic_timing=journal is not None,
                                        diagnostic_journal=journal)
         identity = self._call('identity')
         self.owner_id = identity['owner_id']
         self.identity = identity
+        self._independent_host_reuse = identity.get('independent_host_reuse', True)
+
+    @property
+    def independent_host_reuse(self):
+        return self._independent_host_reuse
+
+    def require_service_target(self, path):
+        # Identity is received from the immutable owner, not a mutable config.
+        parent = Path(path).resolve().parent
+        tiers = [tier for tier, root in self.roots.items() if parent == root]
+        if len(tiers) != 1:
+            raise ValueError('file service copy requires one managed tier')
+        if tiers[0] == 'host' and not self.independent_host_reuse:
+            raise ValueError('NoHOST forbids independent HOST file service copies')
+
+    def require_service_source(self, path):
+        if not self.independent_host_reuse and path:
+            source, host = Path(path).resolve(), self.roots['host']
+            if source == host or host in source.parents:
+                raise ValueError('NoHOST forbids independent HOST file service copies')
 
     def _call(self, operation, **args):
         return self.process.submit(operation, **args).result()
