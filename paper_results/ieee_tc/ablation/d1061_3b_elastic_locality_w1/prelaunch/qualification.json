@@ -1,0 +1,127 @@
+{
+  "passed": true,
+  "performance_result": false,
+  "variant": "ElasticLocality",
+  "raw_scenario": "tc_ieee_elastic_locality",
+  "parent_variant": "Full",
+  "parent_result": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion/full4000.json",
+    "sha256": "9efa154f7d9322e6ccac94541a7d323064d2bd868ee8642c8245755c42fde6e1",
+    "bytes": 53597
+  },
+  "parent_qualification": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1047_same_version_w1/prelaunch/qualification.json",
+    "sha256": "1539d442d9083d3061904deb3d5678010c80ac252564bdac0153cc4097fb910d",
+    "bytes": 6636
+  },
+  "config": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261104_d1061_3b_elastic_locality_w1.yaml",
+    "sha256": "6c5cbc48cb6e03da94010a429bb40dc46c45cee965e6410d6b0f24c3553557cc",
+    "bytes": 6606
+  },
+  "tests": 12,
+  "analyzer_tests": 25,
+  "reused_entry_tests": 20,
+  "sources": {
+    "scripts/run_all_experiments.py": "ae7d0b6cc736efef34d0faec1b687e05d9ae6dd33df59a0aae087027beaae933",
+    "faaslora/experiment/instance_pool.py": "a684ae63f14c9673b3cf9b6bd348904e1f260edfeb1b285f1e4d2d65f4bfad16",
+    "faaslora/experiment/experiment_stack.py": "d67132123c05da39f94afa216d434948c5f7125eb675982259a6fafb0a5251c8",
+    "tests/test_ieee_tc_launch.py": "36bd915630677003e50c3069083e36fde6a7af2c7f2d86d2f010e89653b8dbf6",
+    "tests/test_ieee_tc_service_routing.py": "ca07ca5e9a613fd2f13db666ef333fde1ca1092f8707234102ab11fa769c2e0b",
+    "tests/test_ieee_tc_request_lifecycle.py": "5c9164d3657ab542ef9cbf91cfa308de794935d990c3ff3d7045317a99ac7ab2",
+    "scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh": "28ee05d34392c4b35a98575f9a5bc95c37598b09c50e388d165441b98e4cebe4",
+    "configs/ieee_tc/20261104_d1061_3b_elastic_locality_w1.yaml": "6c5cbc48cb6e03da94010a429bb40dc46c45cee965e6410d6b0f24c3553557cc",
+    "scripts/ieee_tc/audit_d703_3b_full.py": "a2253619a308475c171499a2fea7d7d202d70b7c7d99e759db5e353b70ebfaf0",
+    "tests/test_ieee_tc_diagnostic_plot.py": "722f480a930793a55bcf22008be3ab12b5adeeabc1f997ac7c1ff96548d42c0d"
+  },
+  "reused_qualification": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1057_3b_elastic_only_w1/prelaunch/qualification.json",
+    "sha256": "24b2fa374d5535c683550dac87d2dd2d548d69144a022954360cd6d523f1a365",
+    "bytes": 5794
+  },
+  "reused_analyzer_tests": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1057_3b_elastic_only_w1/prelaunch/analyzer_tests.json",
+    "sha256": "54589047e630869285b12a85ba64273c60d05d17ed13154443634e034dfdd74a",
+    "bytes": 1908
+  },
+  "configuration_equal_except_locality_selector_slack_identity_and_paths": true,
+  "locality_load_slack": 1,
+  "locality_slack_selection": "D448 predeclared one-admitted-request slack; no performance search",
+  "test_scopes_removed": true,
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "workload": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "view_sha256": "8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W1",
+    "rate_scale": 1.0
+  },
+  "metric_protocol": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+    "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "bytes": 18511
+  },
+  "single_run_protocol": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+    "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+    "bytes": 4135
+  },
+  "reused_full_raw_scenario_verified": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1047_20261104/d1047_3b_event_busy_time_w1_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1047_3b_event_busy_time_w1_full.json",
+    "sha256": "006785f8673626ed53139b50f6576a78c116c8490860ea16da30a8b05fd03a24",
+    "bytes": 289724404
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_protected": {
+    "configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "docs/ieee_tc/EXECUTION_STATUS.md": "41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374"
+  },
+  "identity": {
+    "unit": "primelora-tc-aux-11d1061e42844a909e026738bd389002.scope",
+    "invocation_id": "72a90119c0db4642a271b387c785e2cd",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-11d1061e42844a909e026738bd389002.scope",
+    "inode": 39053042
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-11d1061e42844a909e026738bd389002.scope",
+    "memory.current": 106147840,
+    "memory.peak": 136073216,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 1686859\nuser_usec 1459608\nsystem_usec 227250\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "performance_replay_started": false,
+  "n_correct": null,
+  "formal_ranking_eligible": false,
+  "next_action": "Back up this checkpoint, then fresh resource/remote checks and one full 3B W1 ElasticLocality replay.",
+  "limitations": [
+    "Known source42 development workload; one observation, no CI.",
+    "CPU fixtures verify entry semantics, not measured mechanism execution or performance.",
+    "Independent full numerical LoRA correctness remains unproven; do not fill n_correct.",
+    "Remote health and inference resource checks must be fresh at actual launch.",
+    "Unrelated k3s unchanged; HydraServe isolated adaptation and existing runs are reused."
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "passed": true,
+  "tests_run": 12,
+  "tests": [
+    "tests.test_ieee_tc_service_routing.BinaryLocalityRoutingContract"
+  ],
+  "elapsed_s": 0.003936802968382835,
+  "sources": {
+    "scripts/run_all_experiments.py": "ae7d0b6cc736efef34d0faec1b687e05d9ae6dd33df59a0aae087027beaae933",
+    "faaslora/experiment/instance_pool.py": "a684ae63f14c9673b3cf9b6bd348904e1f260edfeb1b285f1e4d2d65f4bfad16",
+    "faaslora/experiment/experiment_stack.py": "d67132123c05da39f94afa216d434948c5f7125eb675982259a6fafb0a5251c8",
+    "tests/test_ieee_tc_launch.py": "36bd915630677003e50c3069083e36fde6a7af2c7f2d86d2f010e89653b8dbf6",
+    "tests/test_ieee_tc_service_routing.py": "ca07ca5e9a613fd2f13db666ef333fde1ca1092f8707234102ab11fa769c2e0b",
+    "tests/test_ieee_tc_request_lifecycle.py": "5c9164d3657ab542ef9cbf91cfa308de794935d990c3ff3d7045317a99ac7ab2",
+    "scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh": "28ee05d34392c4b35a98575f9a5bc95c37598b09c50e388d165441b98e4cebe4",
+    "configs/ieee_tc/20261104_d1061_3b_elastic_locality_w1.yaml": "6c5cbc48cb6e03da94010a429bb40dc46c45cee965e6410d6b0f24c3553557cc"
+  },
+  "identity": {
+    "unit": "primelora-tc-aux-11d1061e42844a909e026738bd389001.scope",
+    "invocation_id": "99f474db6f584722af45bfe6d67032d9",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-11d1061e42844a909e026738bd389001.scope",
+    "inode": 39052605
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-11d1061e42844a909e026738bd389001.scope",
+    "memory.current": 613404672,
+    "memory.peak": 613404672,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 9780571\nuser_usec 8418327\nsystem_usec 1362243\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "performance_test": false,
+  "config_only": true,
+  "reused_tests": 45,
+  "reused_qualification": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1057_3b_elastic_only_w1/prelaunch/qualification.json",
+    "sha256": "24b2fa374d5535c683550dac87d2dd2d548d69144a022954360cd6d523f1a365"
+  },
+  "configuration_equal_except_locality_selector_slack_identity_and_paths": true
+}

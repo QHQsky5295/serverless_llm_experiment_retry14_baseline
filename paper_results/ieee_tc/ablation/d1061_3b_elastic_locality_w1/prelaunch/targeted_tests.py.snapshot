@@ -1,0 +1,72 @@
+"""D1061: existing demand-only fixtures extended for ElasticLocality; no GPU replay."""
+import json
+import os
+from pathlib import Path
+import sys
+import time
+import unittest
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+NAMES = ['tests.test_ieee_tc_service_routing.BinaryLocalityRoutingContract']
+
+
+def main():
+    identity = p.scope_identity(p.cg_path().name)
+    assert os.sched_getaffinity(0) == {2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+    assert (p.cg_path()/'memory.high').read_text().strip() == str(3*p.GIB)
+    assert (p.cg_path()/'memory.max').read_text().strip() == str(4*p.GIB)
+    assert (p.cg_path()/'memory.swap.max').read_text().strip() == '0'
+    import yaml
+    from scripts.run_all_experiments import _ieee_system_variant_contract
+    from tests.test_ieee_tc_launch import elastic_locality_configuration_fixture
+    config = yaml.safe_load((ROOT/'configs/ieee_tc/20261104_d1061_3b_elastic_locality_w1.yaml').read_text())
+    parent = yaml.safe_load((ROOT/'configs/ieee_tc/20261104_d1057_3b_elastic_only_w1.yaml').read_text())
+    coordination, preloading = elastic_locality_configuration_fixture()
+    assert _ieee_system_variant_contract(config['resource_coordination'],
+        config['scenarios'][0]['preloading'], environment={}) == _ieee_system_variant_contract(
+            coordination, preloading, environment={})
+    assert config['resource_coordination'].pop('locality_load_slack') == 1
+    assert config['resource_coordination']['ieee_system_variant'] == 'elastic_locality_v1'
+    assert config['resource_coordination']['ieee_selection_strategy'] == 'gpu_locality'
+    config['resource_coordination']['ieee_system_variant'] = 'elastic_only_v1'
+    config['resource_coordination']['ieee_selection_strategy'] = 'load_only'
+    for c in (config, parent):
+        del c['experiment']['output_dir']
+        del c['storage']['nvme_cache_dir']; del c['storage']['host_cache_dir']
+    assert config['scenarios'][0]['name'] == 'tc_ieee_elastic_locality'
+    config['scenarios'][0]['name'] = 'tc_ieee_elastic_only'
+    assert config == parent
+    reuse_path = ROOT/'paper_results/ieee_tc/ablation/d1057_3b_elastic_only_w1/prelaunch/qualification.json'
+    prior = json.loads(reuse_path.read_text())
+    assert prior['passed'] and prior['tests'] == 20 and prior['analyzer_tests'] == 25
+    for name, sha in prior['sources'].items():
+        assert p.digest(ROOT/name) == sha, name
+    start = time.monotonic()
+    with (RAW/'targeted_tests.txt').open('x') as stream:
+        result = unittest.TextTestRunner(stream=stream, verbosity=2).run(
+            unittest.defaultTestLoader.loadTestsFromNames(NAMES))
+    report = dict(passed=result.wasSuccessful(), tests_run=result.testsRun,
+        tests=NAMES, elapsed_s=time.monotonic()-start,
+        sources={name:p.digest(ROOT/name) for name in (
+            'scripts/run_all_experiments.py', 'faaslora/experiment/instance_pool.py',
+            'faaslora/experiment/experiment_stack.py', 'tests/test_ieee_tc_launch.py',
+            'tests/test_ieee_tc_service_routing.py', 'tests/test_ieee_tc_request_lifecycle.py',
+            'scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh',
+            'configs/ieee_tc/20261104_d1061_3b_elastic_locality_w1.yaml')},
+        identity=identity, resources=p.cgroup_snapshot(p.cg_path()),
+        performance_test=False, config_only=True,
+        reused_tests=45, reused_qualification=dict(path=str(reuse_path),sha256=p.digest(reuse_path)),
+        configuration_equal_except_locality_selector_slack_identity_and_paths=True)
+    with (RAW/'targeted_tests.json').open('x') as output:
+        json.dump(report, output, indent=2)
+        output.write('\n')
+    print(json.dumps(report), flush=True)
+    sys.exit(0 if result.wasSuccessful() else 1)
+
+
+if __name__ == '__main__':
+    main()
