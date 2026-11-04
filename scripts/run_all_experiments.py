@@ -10336,6 +10336,8 @@ class ScenarioRunner:
             result['ieee_host_capacity_events'] = copy.deepcopy(self._ieee_host_capacity_events)
         if hasattr(self, '_ieee_residency_epochs'):
             result['ieee_residency_epochs'] = copy.deepcopy(self._ieee_residency_epochs)
+        if hasattr(self, '_ieee_residency_noop_rounds'):
+            result['ieee_residency_noop_rounds'] = copy.deepcopy(self._ieee_residency_noop_rounds)
         router = getattr(self, 'router', None)
         if router is not None and router.policy == 'ieee_confirmed':
             result['ieee_routing_selection'] = router.selection_contract() | {
@@ -14693,6 +14695,24 @@ class ScenarioRunner:
         policy = getattr(self, 'coord_cfg', {}).get('ieee_residency_file_observation')
         if policy not in (None, 'control_round_v1'):
             raise ValueError('unknown residency file observation policy')
+        demand = self._stack.hotness_tracker.snapshot()
+        if demand.total_arrivals == 0:
+            # Eq. (4): every h_a and hence every preparation benefit is zero.
+            # No insertion/replacement can be selected, irrespective of tier
+            # capacity. Elide this round, not a previous plan's empty result.
+            # Existing tasks still drain/reap normally. This does NOT publish a
+            # fresh native/file view, reserve resources, or bypass request-time
+            # source/admission checks. A later nonempty round takes fresh views.
+            if not hasattr(self, '_ieee_residency_noop_rounds'):
+                self._ieee_residency_noop_rounds = []
+            self._ieee_residency_noop_rounds.append(dict(
+                kind='ieee_residency_zero_demand_v1',
+                demand_observed_at=demand.observed_at,
+                window_seconds=demand.window_seconds,
+                total_arrivals=demand.total_arrivals, arrival_counts=dict(demand.counts),
+                target_replicas=[slot.instance_id for slot in eligible],
+                physical_resources_reserved=False))
+            return
         shared_files = None
         observation = None
         if policy == 'control_round_v1':
@@ -26832,6 +26852,7 @@ async def _finish_ieee_main_scenario(service, stack, claims, primary_error):
         # cannot be taken after an invariant/ownership failure.
         mechanism_events={field:getattr(service,field,None) for field in (
             '_ieee_activations','_ieee_initial_deployment','_ieee_residency_epochs',
+            '_ieee_residency_noop_rounds',
             '_ieee_file_preparation_plans','_ieee_gpu_preparation_plans',
             '_ieee_native_host_preparations','_ieee_control_events',
             '_ieee_proactive_diagnostic',

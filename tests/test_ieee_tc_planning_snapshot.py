@@ -318,9 +318,9 @@ class ControlRoundFileObservation(unittest.TestCase):
             with patch.object(files.owner, 'preparation_snapshot',
                               wraps=files.owner.preparation_snapshot) as read, \
                  patch.object(runner, '_run_ieee_owned_preparation_plan', side_effect=plan_only):
-                runner._schedule_ieee_residency_epochs()
+                await runner._schedule_ieee_residency_epochs()
                 first_tasks = dict(runner._ieee_residency_tasks)
-                runner._schedule_ieee_residency_epochs()
+                await runner._schedule_ieee_residency_epochs()
                 self.assertEqual(runner._ieee_residency_tasks, first_tasks)
                 self.assertEqual(read.call_count, 1)
                 await asyncio.gather(*first_tasks.values())
@@ -344,7 +344,7 @@ class ControlRoundFileObservation(unittest.TestCase):
                 self.assertEqual(read.call_count, 2)
                 # A new control round must re-read; no epoch/TTL reuse.
                 old_capture = views[0]['files']['captured_at']
-                runner._schedule_ieee_residency_epochs()
+                await runner._schedule_ieee_residency_epochs()
                 await asyncio.gather(*runner._ieee_residency_tasks.values())
                 runner._reap_ieee_residency_tasks()
                 self.assertEqual(read.call_count, 3)
@@ -368,7 +368,7 @@ class ControlRoundFileObservation(unittest.TestCase):
                 kw.pop('capacity_only')
                 return dict(plan=await runner._plan_ieee_preparation_for_slot(**kw))
             with patch.object(runner, '_run_ieee_owned_preparation_plan', side_effect=plan_only):
-                runner._schedule_ieee_residency_epochs()
+                await runner._schedule_ieee_residency_epochs()
                 await entered.wait()
                 pending = runner._ieee_residency_tasks[id(slots[0].engine)]
                 sibling = runner._ieee_residency_tasks[id(slots[1].engine)]
@@ -391,13 +391,13 @@ class ControlRoundFileObservation(unittest.TestCase):
         async def run():
             with patch.object(files.owner, 'preparation_snapshot', wraps=files.owner.preparation_snapshot) as read, \
                  patch.object(runner, '_run_ieee_owned_preparation_plan', side_effect=plan_only):
-                runner._schedule_ieee_residency_epochs()
+                await runner._schedule_ieee_residency_epochs()
                 await asyncio.gather(*runner._ieee_residency_tasks.values())
                 runner._reap_ieee_residency_tasks()
                 self.assertEqual(read.call_count, 2)
                 self.assertTrue(all('shared_file_observation' not in r for r in runner._ieee_residency_epochs))
                 slots.clear()
-                runner._schedule_ieee_residency_epochs()
+                await runner._schedule_ieee_residency_epochs()
                 self.assertEqual(read.call_count, 2)
         asyncio.run(run())
 
@@ -406,13 +406,13 @@ class ControlRoundFileObservation(unittest.TestCase):
         async def run():
             with self.assertRaisesRegex(ValueError, 'only for steady-state'):
                 await runner._plan_ieee_preparation_for_slot(slot=slots[0], mode='handoff',
-                    file_snapshot=runner._ieee_preparation_file_snapshot())
+                    file_snapshot=await runner._ieee_preparation_file_snapshot())
             slots[0].engine.ieee_gpu_reference.assert_not_awaited()
         asyncio.run(run())
 
     def test_received_shared_view_is_detached_and_still_uses_normal_executor(self):
         files, runner, slots, _ = self.make(count=1)
-        snapshot = runner._ieee_preparation_file_snapshot()
+        snapshot = asyncio.run(runner._ieee_preparation_file_snapshot())
         original = copy.deepcopy(snapshot)
         async def execute(**kw):
             self.assertEqual(kw['plan']['source_view']['files'], original)
@@ -444,7 +444,7 @@ class ControlRoundFileObservation(unittest.TestCase):
         async def run():
             try:
                 self.assertFalse((files.nvme/'a').exists())
-                runner._schedule_ieee_residency_epochs()
+                await runner._schedule_ieee_residency_epochs()
                 await asyncio.gather(*runner._ieee_residency_tasks.values())
                 runner._reap_ieee_residency_tasks()
                 self.assertEqual((files.nvme/'a'/'weights').read_bytes(), b'a'*12288)
@@ -453,6 +453,126 @@ class ControlRoundFileObservation(unittest.TestCase):
                 factory.check_clean(files, runner, owner)
             finally:
                 await queue.close()
+        asyncio.run(run())
+
+
+class ZeroDemandResidency(unittest.TestCase):
+    """The current Eq. (4) zero, not cached selection, elides one round."""
+
+    @classmethod
+    def setUpClass(cls):
+        fixtures.setUpModule()
+
+    @classmethod
+    def tearDownClass(cls):
+        fixtures.tearDownModule()
+
+    def make(self):
+        from faaslora.experiment.hotness_tracker import HotnessTracker
+        helper = ControlRoundFileObservation()
+        self.addCleanup(helper.doCleanups)
+        files, runner, slots, reports = helper.make(count=2)
+        clock = [100.]
+        runner._stack.hotness_tracker = HotnessTracker(None, window_seconds=5., clock=lambda: clock[0])
+        return files, runner, slots, clock
+
+    def test_empty_round_reads_no_owner_and_publishes_no_plan(self):
+        files, runner, slots, clock = self.make()
+        async def run():
+            with patch.object(runner, '_ieee_preparation_file_snapshot',
+                              new=AsyncMock(side_effect=AssertionError('empty file scan'))), \
+                 patch.object(runner, '_run_ieee_owned_preparation_plan',
+                              new=AsyncMock(side_effect=AssertionError('empty planning'))):
+                await runner._schedule_ieee_residency_epochs()
+            self.assertEqual(runner._ieee_residency_tasks, {})
+            self.assertEqual(runner._ieee_residency_epochs, [])
+            self.assertEqual(runner._ieee_residency_noop_rounds, [dict(
+                kind='ieee_residency_zero_demand_v1', demand_observed_at=100.,
+                window_seconds=5., total_arrivals=0, arrival_counts={},
+                target_replicas=[s.instance_id for s in slots], physical_resources_reserved=False)])
+            for slot in slots:
+                slot.engine.ieee_gpu_reference.assert_not_awaited()
+            self.assertFalse(files.owner.leases)
+            self.assertFalse(files.owner.materializations)
+        asyncio.run(run())
+
+    def test_expiry_boundary_and_new_arrival_resume_fresh_planning(self):
+        files, runner, slots, clock = self.make()
+        tracker = runner._stack.hotness_tracker
+        tracker.record_arrival('a')
+        plans = []
+        async def plan_only(**kw):
+            kw.pop('capacity_only')
+            plan = await runner._plan_ieee_preparation_for_slot(**kw)
+            plans.append(plan)
+            return dict(plan=plan)
+        async def run():
+            with patch.object(runner, '_run_ieee_owned_preparation_plan', side_effect=plan_only), \
+                 patch.object(files.owner, 'preparation_snapshot', wraps=files.owner.preparation_snapshot) as read:
+                clock[0] = 104.999
+                await runner._schedule_ieee_residency_epochs()
+                await asyncio.gather(*runner._ieee_residency_tasks.values())
+                runner._reap_ieee_residency_tasks()
+                self.assertEqual(len(plans), 2)
+                self.assertTrue(all(p['total_arrivals'] == 1 for p in plans))
+                self.assertEqual(read.call_count, 1)
+                clock[0] = 105.
+                await runner._schedule_ieee_residency_epochs()
+                self.assertEqual(len(plans), 2)
+                self.assertEqual(read.call_count, 1)
+                self.assertEqual(len(runner._ieee_residency_noop_rounds), 1)
+                tracker.record_arrival('d')
+                await runner._schedule_ieee_residency_epochs()
+                await asyncio.gather(*runner._ieee_residency_tasks.values())
+                runner._reap_ieee_residency_tasks()
+                self.assertEqual(len(plans), 4)
+                self.assertEqual(read.call_count, 2)
+                self.assertTrue(all(p['arrival_counts'] == {'d': 1} for p in plans[2:]))
+                for slot in slots:
+                    self.assertEqual(slot.engine.ieee_gpu_reference.await_count, 2)
+        asyncio.run(run())
+
+    def test_noop_leaves_existing_task_untouched_and_failure_visible(self):
+        _, runner, slots, _ = self.make()
+        async def run():
+            proceed = asyncio.Event()
+            async def existing():
+                await proceed.wait()
+                raise ValueError('existing preparation failure')
+            task = asyncio.create_task(existing())
+            runner._ieee_residency_tasks = {id(slots[0].engine): task}
+            await runner._schedule_ieee_residency_epochs()
+            self.assertFalse(task.done())
+            self.assertEqual(runner._ieee_residency_noop_rounds[0]['target_replicas'], [slots[1].instance_id])
+            proceed.set()
+            with self.assertRaisesRegex(ValueError, 'existing preparation failure'):
+                await task
+            with self.assertRaisesRegex(ValueError, 'existing preparation failure'):
+                runner._reap_ieee_residency_tasks()
+        asyncio.run(run())
+
+    def test_disabled_or_no_eligible_replica_does_not_sample_demand(self):
+        _, runner, slots, _ = self.make()
+        async def run():
+            with patch.object(runner._stack.hotness_tracker, 'snapshot',
+                              side_effect=AssertionError('not an eligible round')):
+                runner._hierarchical_residency_enabled = False
+                await runner._schedule_ieee_residency_epochs()
+                runner._hierarchical_residency_enabled = True
+                slots.clear()
+                await runner._schedule_ieee_residency_epochs()
+            self.assertFalse(hasattr(runner, '_ieee_residency_noop_rounds'))
+        asyncio.run(run())
+
+    def test_original_selector_has_no_positive_target_for_zero_demand(self):
+        _, runner, slots, _ = self.make()
+        async def run():
+            for slot in slots:
+                plan = await runner._plan_ieee_preparation_for_slot(slot=slot, mode='residency')
+                self.assertEqual(plan['total_arrivals'], 0)
+                self.assertTrue(all(not values for values in plan['selected'].values()))
+                self.assertFalse(plan['physical_resources_reserved'])
+                runner._stack.preloading_planner.validate_ieee_execution_plan(plan)
         asyncio.run(run())
 
 
