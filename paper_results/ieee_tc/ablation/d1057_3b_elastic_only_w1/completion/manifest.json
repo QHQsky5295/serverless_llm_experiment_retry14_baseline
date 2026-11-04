@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1057_3b_elastic_only_w1/completion/closure.json",
+      "sha256": "20a96c18046180a27b59c35fd62b6a49f3aa794cc9dbffb5547ae03663118b37",
+      "bytes": 2889
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1057_3b_elastic_only_w1/completion/collect_closed_evidence.py.snapshot",
+      "sha256": "e56fdd9aac65cb09537332d6b60795a6835563daa4c5c11b3a6ea3dfb8189919",
+      "bytes": 6437
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1057_3b_elastic_only_w1/completion/delivery_and_resources.json",
+      "sha256": "88bfde564a2f85e7f54ff2ffd99d6ffd36385f3af883d5430e9b6eec5bc27a7f",
+      "bytes": 15063
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1057_3b_elastic_only_w1/completion/full4000.json",
+      "sha256": "cbb4daf69ccd39e245d330f7098116000fd1b77bcf2bdb5f85a959d83b32b946",
+      "bytes": 27032
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1057_3b_elastic_only_w1/completion/native_descriptor.json",
+      "sha256": "d6c85cd7e82e3f02190782c507b0e616b120137932facf44285a8c1b2ae3ccb9",
+      "bytes": 576
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1057_3b_elastic_only_w1/completion/profile_bindings.json",
+      "sha256": "76261f59c7afb718ece63079ec8acd93475d42f27b013f53b698d8018683a021",
+      "bytes": 2742
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1057_3b_elastic_only_w1/completion/stages/diagnosis.json",
+      "sha256": "6410af0ac57939aaf5c2c52f956efb3eaefc4ee0a12dd196406fa2ef6c4d2186",
+      "bytes": 231142
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1057_3b_elastic_only_w1/completion/stages/requests.csv",
+      "sha256": "aafba355fadc35d19a8e852660b28b4358b6b38beabfa42bf5289320dfb562f3",
+      "bytes": 2338762
+    }
+  ]
+}

@@ -1,4 +1,76 @@
-# D1057：ElasticOnly 入口与统计支持已实现，性能回放尚未启动
+# D1057：ElasticOnly 入口与统计支持；完整回放已关闭
+
+## 当前交接：2026-11-04，结果已审计
+
+唯一一次 D1057 已完成 4,000/4,000 请求，GPU 已实际释放；不要重复启动。
+完整结果、机制核对与下一步见
+[D1057 观测分析](D1057_ELASTIC_ONLY_OUTCOME_20261104.md)。联合 SLO 为
+98.20%，物理 GPU 时间 6032.623108 GPU-s，P95 TTFT 695.139877 ms。
+与 D1047 Full 逐请求输入核对通过；本轮不支持 Full 在该复合消融中领先。
+数值 LoRA 正确性证明、已知开发 trace、单轮及远端监测限制全部保留。
+
+收尾已将原启动前 `remote_health.json` 按原字节保留到
+`remote_health_prelaunch.json`，完成后另建 health；未覆盖证据、未改远端。
+collector 与 comparison 已通过，结果在本项 curated 的 completion/ 和
+comparison/。两个用户 dirty 文件继续不改不暂存，本页与结果文档承担交接。
+以下运行中、待执行和“尚无结果”段落全部是历史记录，不代表当前状态。
+
+## 2026-11-04 10:21 CST：实际运行交接（尚未完成）
+
+10:28:31 CST 续查：原有 launcher/replay/service/watchdog 四个 PID 均仍存活，
+无需重启。当前 823 arrived、819 done/ok、0 failed；已观察到三次自然
+扩容和一次缩容。第一个 500-request phase 已完成，正在第二阶段。
+新鲜 watchdog sample 534 无 high/max/OOM/swap、外部 compute、逃逸 worker
+或保护中止；磁盘余 159860355072 B，低于下一任务 150 GiB 启动线但远高于
+本轮 100 GiB 停止线，不因此中止有效测量。收尾后按既有规则清理本次可重建
+缓存，再判断下一任务的空间。完整回执在 raw `live_checkpoint_001.json`。
+
+收尾复用提示：原 D1056 collector 会新建 raw parent `remote_health.json`，
+但 D1057 该名称已用于新鲜启动前 health。须先将这份启动前证据按原字节
+保留为 `remote_health_prelaunch.json` 并记录移动，之后再新建完成后 health；
+不能覆盖旧内容或直接复跑 collector。四个 analyzer 调用均显式使用
+`scenario='tc_ieee_elastic_only'`，逐请求 key 同样使用原始 ElasticOnly 身份。
+这些只是后续分析入口提示，本轮未执行重型分析、源码修改或远端操作。
+
+此前检查点 `ef2fc5d7` 已备份；后续仅指标解释文档更新到
+`432435be36b9d43c46075512c4f6eb65acd80251`。启动前逐项核验 D1057
+已测源文件、配置、Full 对照、协议及用户 dirty 文件 SHA，复用 45 项通过
+测试，不重复 CPU 测试、500-ID 资格、smoke 或 Full。147 项旧投稿保护清单
+未变；真实远端 health 通过，复用 D80 只读 gzip，未重启或调整远端。
+
+本次已重新完整读取当前目标（附件 `26a2d598-f71c-455b-90ae-41236c64b8cf`）、
+完整 PLAN、冻结 V1/单轮 V2 和执行规范。最新用户要求强调消融优势的论文
+说服力：它是后续机制改进目标，不能用来筛除负结果或改评价口径。已完成的
+四格目前并不证明 Full 全面领先；D1057 先补齐弹性与主动 adapter 管理的
+整体差异，尚不关闭 A1，更不替代 confirmed-state 受控证据。
+
+10:19 CST 经原有磁盘/内存/进程检查后实际启动一次完整 3B W1：
+
+- tmux：`tc-d1057-elastic-only-3b-w1`，启动 PID `3003757`。
+- 原始路径：`d1057_20261104/d1057_3b_elastic_only_w1/`。
+- service scope：`primelora-tc-svc-400b284d24a64dd0bd1e4544dcdcff5b.scope`。
+- aux scope：`primelora-tc-aux-8cc2ee0186604ef9914541ed526d7610.scope`。
+- 实际 scenario `tc_ieee_elastic_only`，W1 source/view SHA 与 Full 一致。
+- 10:21:31 CST 轻量监测：55 arrived、51 done/ok、0 failed；尚未结束。
+  同时监测到 2 张实际持有 GPU（包含启动中的副本，不等同于 live 摘要中
+  已就绪实例数）。服务内存约 9.71 GiB、swap 0、high/max/OOM 事件 0；
+  主机可用约 94.56 GiB，磁盘约 150.53 GiB，未出现外部 compute 或保护中止。
+
+新鲜核查见 raw parent 的 `fresh_launch_check.py/json` 和
+`remote_health.json`；当前监测证据在 `launch.launch/`。这些是启动/进度
+证据，不是最终性能、数值正确性或正式排名证明。日志的 legacy 5000ms
+达成率不能代替完成后冻结 D648 阈值下的联合 SLO。
+
+**下一动作：只监测这个已运行执行键，禁止重复启动。** 结果关闭后，复用
+D1056 collector 并显式传入 ElasticOnly scenario，检查完整输出、物理释放、
+实际机制触发并与同一 D1047 Full 比较。测量期间不构建、测试、压缩、推送
+或修改远端。新进度文档待测量结束再备份，避免备份影响测量。
+
+两个既有用户 dirty 文件仍保持原字节，故不改旧 `EXECUTION_STATUS.md`；
+本页承担当前交接。总体目标 active；ElasticLocality、LastKnown、NoHOST、
+7B 对应消融、受控机制、敏感性及论文交付范围不删减。
+
+以下保留此前实现记录和原始待执行说明；启动事实以上述时间戳记录为准。
 
 2026-11-04。本次继续完整 PLAN 的 A1/A5，不新增外部 baseline、不改变
 G1/G2、不重新运行 D1047 Full。上一次完成的是 D1058 指标取舍分析；

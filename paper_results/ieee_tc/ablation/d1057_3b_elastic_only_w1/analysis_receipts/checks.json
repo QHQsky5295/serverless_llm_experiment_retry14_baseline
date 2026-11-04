@@ -1,0 +1,55 @@
+{
+  "passed": true,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "user_dirty_unchanged": true,
+  "unchanged_first_service_tests_reused": 4,
+  "prelaunch_tests_reused": 45,
+  "backup_phase_new_gpu_runs": 0,
+  "routing_validation_counts": {
+    "Full": 4000,
+    "ElasticOnly": 4000
+  },
+  "completed_auxiliary_paths_removed": [
+    {
+      "unit": "primelora-tc-aux-11d1057e42844a909e026738bd389048.scope",
+      "invocation_id": "84665b24945d4bd999d8b4050383797f",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-11d1057e42844a909e026738bd389048.scope",
+      "inode": 39045290
+    },
+    {
+      "unit": "primelora-tc-aux-11d1057e42844a909e026738bd389049.scope",
+      "invocation_id": "7a6e0e0e1898470ba15e8ba5be07c90f",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-11d1057e42844a909e026738bd389049.scope",
+      "inode": 39048255
+    }
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1050_20261104/first_service_tests.json",
+      "sha256": "5a3b750cd406481adcf9e7a1c628d24753472367bcccd57c55245b5cac9f02a2",
+      "bytes": 700
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1057_3b_elastic_only_w1/comparison/manifest.json",
+      "sha256": "af3a53b3145bc06eecb61d02ec490b993c52874766c0f1ab52467cda869f6827",
+      "bytes": 2987
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1057_3b_elastic_only_w1/completion/manifest.json",
+      "sha256": "543fa02c7c767cc7ac9b9e5a8f1aaf3502cfdeb3e6a3571914ca61a4dc0b6e0b",
+      "bytes": 2236
+    }
+  ],
+  "planned_destinations": [
+    "origin/retry14_continuous_queue_v2",
+    "faaslora_origin/backup/d1057-elastic-only-20261104"
+  ],
+  "full_faaslora_v2_integrated": false
+}
