@@ -1,0 +1,77 @@
+"""D1061: adapt the existing D1053 allowlisted completion-backup workflow."""
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+BASE = ROOT/'paper_results/ieee_tc/ablation/d1061_3b_elastic_locality_w1'
+OUT = BASE/'completion'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+
+def read(path): return json.loads(path.read_text())
+def git(*args): return subprocess.check_output(['git', *args], cwd=ROOT, text=True).strip()
+def ref(path): return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False)
+        f.write('\n')
+
+
+identity = p.scope_identity(p.cg_path().name)
+assert os.sched_getaffinity(0) == {2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+for name, value in [('memory.high',3*p.GIB),('memory.max',4*p.GIB),('memory.swap.max',0)]:
+    assert (p.cg_path()/name).read_text().strip() == str(value)
+assert git('rev-parse','HEAD') == '509a4c29fde27bfb5e986e4960242ca0d1a544be'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+qualification = read(BASE/'prelaunch/qualification.json')
+receipts = BASE/'analysis_receipts'
+checks = read(receipts/'checks.json')
+assert checks['passed'] and checks['prelaunch_tests_reused'] == 57
+protected = p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))
+assert protected['pass'] and protected['entry_count'] == 147
+for name, sha in qualification['user_protected'].items():
+    assert p.digest(ROOT/name) == sha
+for name, sha in qualification['sources'].items():
+    assert p.digest(ROOT/name) == sha
+for section, key in [('completion','files'),('comparison','outputs')]:
+    for row in read(BASE/section/'manifest.json')[key]:
+        assert p.digest(Path(row['path'])) == row['sha256']
+assert (RAW/'backup_completion.py').read_bytes() == (receipts/'backup_completion.py.snapshot').read_bytes()
+save(receipts/'backup_format_correction.json', dict(
+    reason='First backup attempt stopped at cached diff --check: one extra EOF blank line in script snapshot.',
+    source_attempt=ref(RAW/'backup_attempt1.py.snapshot'),
+    formatted_script=ref(RAW/'backup_completion.py'),
+    snapshot_representation='Same backup code, removing only trailing blank line; original attempt retained in raw.',
+    performance_or_metric_data_changed=False, new_gpu_runs=0, checks_reused=ref(receipts/'checks.json')))
+with (receipts/'backup_resume.py.snapshot').open('x') as f:
+    f.write(Path(__file__).read_text())
+paths = ['docs/ieee_tc/D1061_ELASTIC_LOCALITY_W1_20261104.md',
+         'docs/ieee_tc/D1061_ELASTIC_LOCALITY_OUTCOME_20261104.md',
+         'docs/ieee_tc/D1062_LASTKNOWN_INFORMATION_BOUNDARY_20261104.md']
+for directory in (OUT, BASE/'comparison', receipts):
+    paths += [str(path.relative_to(ROOT)) for path in sorted(directory.rglob('*')) if path.is_file()]
+for name in paths:
+    assert not re.search(r'-----BEGIN (?:RSA |OPENSSH |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|Authorization:\s*Bearer\s+\S+', (ROOT/name).read_text()), name
+git('diff', '--check')
+git('add', '--', *paths)
+assert set(git('diff', '--cached', '--name-only').splitlines()) == set(paths)
+git('diff', '--cached', '--check')
+git('commit', '-m', 'D1061 preserve ElasticLocality ablation counterevidence and closure')
+head, verified = git('rev-parse', 'HEAD'), []
+for remote, branch in [('origin', 'refs/heads/retry14_continuous_queue_v2'),
+                       ('faaslora_origin', 'refs/heads/backup/d1061-elastic-locality-20261104')]:
+    subprocess.run(['git', 'push', remote, 'HEAD:'+branch], cwd=ROOT, check=True)
+    assert git('ls-remote', remote, branch).split()[0] == head
+    verified.append(dict(remote=remote, ref=branch, commit=head))
+for name, sha in qualification['user_protected'].items():
+    assert p.digest(ROOT/name) == sha, name
+save(RAW/'backup_completion.json', dict(passed=True, commit=head, verified=verified,
+    paths=paths, identity=identity, resources=p.cgroup_snapshot(p.cg_path()),
+    protected=protected, user_dirty_unchanged=True, full_faaslora_v2_integrated=False))
+print(json.dumps(dict(passed=True, commit=head, verified=verified)), flush=True)

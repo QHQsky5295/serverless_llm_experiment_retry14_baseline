@@ -1,5 +1,12 @@
 # D1061：3B W1 ElasticLocality 复合消融
 
+**最新状态（2026-11-04 12:04 CST）：本轮已完成且资源已释放。**
+4,000请求成功、458,224原生输出token，联合SLO=98.85%、P95 TTFT=658.336802ms、
+物理GPU时间6087.726524s。Full和ElasticOnly复用同一封存来源；结果、反例、
+机制核验及正确性限制见 `D1061_ELASTIC_LOCALITY_OUTCOME_20261104.md`。
+本页以下“正在运行/尚无完整结果”是带时间戳的过程记录，不是最新状态。
+不要重复执行本页启动命令，也不要重跑collector/comparator覆盖exclusive产物。
+
 2026-11-04。本项承接 D1057 完整结果，不是新的 Full 性能优化，也不是外部
 baseline。上一 goal turn 为 progress：ElasticOnly 4,000 请求及同输入比较完成，
 提交 `45a39118be4d01c8e64d5ef28b90dda760801967` 已核实备份到 origin V2 和
@@ -103,7 +110,55 @@ tmux new-session -d -s tc-d1061-elastic-locality-3b-w1 \
 与同一个D1047 Full、已完成D1057比较→保存全部结果与负例→备份。
 不把路由重试次数当请求数，不把同状态 shadow 选择差异当反事实时延。
 
-当前没有 D1061 性能结果。独立数据目录拒绝覆盖；147项历史投稿保护清单及
+### 实际启动回执（11:23 CST）
+
+配置和 prelaunch 已提交 `509a4c29fde27bfb5e986e4960242ca0d1a544be`，
+核实 origin 的 `retry14_continuous_queue_v2` 与 faaslora_origin 的
+`backup/d1061-elastic-locality-20261104` 均指向该提交。无生产代码更改。
+独立备份分支不是已完成 FaaSLoRA V2 集成。
+
+新鲜检查复用57项已完成检查，不重复执行；147项保护清单与用户两项文件
+无变化，远端已发布服务健康且配置未改。检查时磁盘可用161798410240 B、
+MemAvailable=108922072 KiB；正式入口另外应用原有资源准入规则。
+
+2026-11-04 11:23:04 CST 以本页命令启动唯一 tmux 会话
+`tc-d1061-elastic-locality-3b-w1`。实际服务资源域为
+`primelora-tc-svc-ec69a43561f146c6b31eb1e5b97a93ff.scope`，
+InvocationID=`ff91b533c8ee43a9a00930f2759b77bb`；实际辅助域为
+`primelora-tc-aux-214ba37df7f44307bf83bc4bfcbd8db8.scope`。
+启动时已观察到 exec_receipt、回放/监控日志和首次物理 allocation 记录，
+不据此宣称4,000请求完成。当前先等待这个执行键结束；不要重复启动、推送、
+压缩、构建或进行重型离线分析。下一步仍为本节上述释放后分析流程。
+
+11:24:54 CST 轻量观察：已提交至 index41，终态日志36条；最近一条为成功、
+原生token合同匹配。此为运行进度，不是最终成功率或完整正确性结论。
+当前 goal turn 为 progress（配置备份及唯一完整回放已启动），非 blocked。
+
+11:32:24 CST 继续核查：同一服务 InvocationID 仍为 running，终态日志847条。
+watchdog sample550：服务current=16139018240 B、peak=17558716416 B，
+host available=97262174208 B，swap0，high/max/OOM/kill0；无 foreign compute、
+escaped worker 或 abort reason。磁盘可用159499218944 B，当前高于100GiB停止线，
+但低于新重型任务150GiB启动线；本轮不做I/O维护，下一重型任务前按既有规则
+处理已确认可重建缓存或无损压缩封存证据，不能降低门槛。
+
+本 goal turn 另完成下一项 LastKnown 的只读接入核查，见
+`D1062_LASTKNOWN_INFORMATION_BOUNDARY_20261104.md`：发现同一来源类被路由和
+实际保护共同使用，因此陈旧化必须仅作用于独立排名视图；不可直接覆盖原始类。
+该文档尚未实现/测试，当前生产文件无修改。D1061继续同一执行键，不重启。
+
+11:36:25 CST verified wait：同一 InvocationID 仍 running，终态日志1288条。
+watchdog sample788 显示 memory high/max/OOM/kill0、swap0、无外部compute、
+无escaped worker、无abort；服务peak=18286776320 B，主机available=97240469504 B，
+磁盘free=158974271488 B。本轮不因过程指标好坏中断，不执行磁盘维护。
+
+等待时仅在本轮 raw 根目录派生 `collect_closed_evidence.py` 与 `compare.py`，
+复用 D1057，改为 ElasticLocality/scenario/实际提交身份，按每条快照重算
+`gpu_locality(slack=1)`。比较额外引用已封存 D1057 comparison，验证同一 Full
+参照和非目标配置后输出三方指标，不重跑 ElasticOnly。脚本尚未执行或做语法
+检查，不把准备好的脚本当作完成数据；结束/释放后先做轻量语法检查，再顺序
+运行collector和comparator，最后保存结果、分析回执及备份。生产源码未修改。
+
+当前没有 D1061 完整性能结果。独立数据目录拒绝覆盖；147项历史投稿保护清单及
 两项用户dirty文件继续原字节保留。EXECUTION_STATUS头部是旧D998且含用户修改，
 不覆盖不暂存；本页承担当前交接。actual FaaSLoRA V2分歧不强推，备份不等于
 最终集成。完整目标 active；LastKnown/NoHOST、7B A1/累积节点、受控A2–A5、

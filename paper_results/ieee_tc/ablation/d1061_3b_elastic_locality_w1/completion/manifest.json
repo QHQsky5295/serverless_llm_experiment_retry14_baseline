@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1061_3b_elastic_locality_w1/completion/closure.json",
+      "sha256": "086f0d34c5cd9000611b1c9f04060debc73b665305b0e58945333294311d5c62",
+      "bytes": 2925
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1061_3b_elastic_locality_w1/completion/collect_closed_evidence.py.snapshot",
+      "sha256": "c5395b87f32ae8170be2cf35ee63eacff879a6e483ed417c93428d96f86fcaa7",
+      "bytes": 6497
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1061_3b_elastic_locality_w1/completion/delivery_and_resources.json",
+      "sha256": "ed0d5b5a1ab47624e3339ae4b1bdd42d139a83cd9c38a822d62b79c82385d82e",
+      "bytes": 15081
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1061_3b_elastic_locality_w1/completion/full4000.json",
+      "sha256": "4a118b90f6895c929239bacb2459e53bd1e3ac20ebf5282aedd3f593f3e148b1",
+      "bytes": 19562
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1061_3b_elastic_locality_w1/completion/native_descriptor.json",
+      "sha256": "77a697f2cfeb5578ac77930b85fa73f3f1b7fa2c683208007bc5d8d851d0ae1d",
+      "bytes": 588
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1061_3b_elastic_locality_w1/completion/profile_bindings.json",
+      "sha256": "f95f5b6bc6a93974a5740ce49d6732a5d374ff7783a3b54abf62f108672ec73f",
+      "bytes": 2774
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1061_3b_elastic_locality_w1/completion/stages/diagnosis.json",
+      "sha256": "c7ac9a0c0704d3d98e56a8f6d7237738c178ace692c2647872d9fca494343445",
+      "bytes": 228776
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1061_3b_elastic_locality_w1/completion/stages/requests.csv",
+      "sha256": "ec8b9d7e97e1f8c35a6d1f4ced683bc86501b8e926a81e121e5403289b6f3320",
+      "bytes": 2293700
+    }
+  ]
+}

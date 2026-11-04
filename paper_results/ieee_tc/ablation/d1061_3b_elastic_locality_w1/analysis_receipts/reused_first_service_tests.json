@@ -1,0 +1,14 @@
+{
+  "kind": "transcribed_tool_execution_receipt",
+  "chunk_id": "4bd725",
+  "unit": "primelora-tc-aux-d1050000000000000000000000000006.scope",
+  "command": "python -m unittest tests.test_ieee_tc_handoff_analysis -v",
+  "tests_run": 4,
+  "unittest_elapsed_s": 0.001,
+  "exit_code": 0,
+  "passed": true,
+  "test_source_sha256": "d49bd1beb88306787590e11e9e4f1538f407f0d62e861ee7d0a26736f31f997a",
+  "analyzer_sha256": "7c72b0568b9eff81cf9292a25a6f0ce56addc060b0dc91e199c2dd53fa05a70f",
+  "cases": ["failed first dispatch retained", "unused initial epoch and distinct timing measures", "equal-clock dispatch ambiguity retained", "missing or mixed-clock evidence rejected"],
+  "performance_test": false
+}

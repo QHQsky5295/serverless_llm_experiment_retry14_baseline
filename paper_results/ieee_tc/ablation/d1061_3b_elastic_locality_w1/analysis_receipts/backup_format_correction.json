@@ -1,0 +1,21 @@
+{
+  "reason": "First backup attempt stopped at cached diff --check: one extra EOF blank line in script snapshot.",
+  "source_attempt": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1061_20261104/backup_attempt1.py.snapshot",
+    "sha256": "b8ef8450cfa279faa675557396c715e9bc12e3f3e491c16095a4523c74af5879",
+    "bytes": 7153
+  },
+  "formatted_script": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1061_20261104/backup_completion.py",
+    "sha256": "cbfc430033d25ef8963d618b9601fc81b7c19fa8a3131c13e098d28fa02a0370",
+    "bytes": 7152
+  },
+  "snapshot_representation": "Same backup code, removing only trailing blank line; original attempt retained in raw.",
+  "performance_or_metric_data_changed": false,
+  "new_gpu_runs": 0,
+  "checks_reused": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1061_3b_elastic_locality_w1/analysis_receipts/checks.json",
+    "sha256": "e013b86df64ecfd730abb7888fc8ac49f6916aaed9995e69f836847f9ece0a87",
+    "bytes": 2213
+  }
+}
