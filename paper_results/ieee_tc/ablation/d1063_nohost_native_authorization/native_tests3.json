@@ -1,0 +1,76 @@
+{
+  "passed": false,
+  "tests_run": 136,
+  "names": [
+    "tests.test_ieee_tc_nohost.NoHostNativeLifecycle",
+    "tests.test_ieee_tc_nohost_staging.NoHostStaging",
+    "tests.test_ieee_tc_nohost_native_authorization.NoHostNativeAuthorization",
+    "tests.test_ieee_tc_nohost_native_authorization.NoHostPrivateStorageObservation",
+    "tests.test_ieee_tc_nohost_sources.NoHostSourceAuthorization",
+    "tests.test_ieee_tc_nohost_sources.ProtectedFileCapacityWait",
+    "tests.test_ieee_tc_nohost_sources.CpuPreparationReleaseWitness",
+    "tests.test_ieee_tc_gpu_references.NativeDemandTransactions",
+    "tests.test_ieee_tc_gpu_references.ProtectedFileDemandTransactions",
+    "tests.test_ieee_tc_gpu_references.NativeProactiveTransactions",
+    "tests.test_ieee_tc_gpu_references.PrivateNativeHostConstruction",
+    "tests.test_ieee_tc_gpu_references.NativeFileHostPreparation",
+    "tests.test_ieee_tc_worker_observation.NativeHostFootprint",
+    "tests.test_ieee_tc_worker_observation.NativeHostRoutingProjection"
+  ],
+  "failures": 0,
+  "errors": 2,
+  "elapsed_s": 9.266704667825252,
+  "sources": {
+    "faaslora/memory/residency_manager.py": "358ae86c6acb3051adb2e8f881b5bcfb0bb46c4f7a8ce9b9640c7c80a448d382",
+    "faaslora/memory/gpu_monitor.py": "9a797055ba5a25e1eacda182bab38b7ef7f9d86ba61104b4dd59e1e6b621985a",
+    "scripts/run_all_experiments.py": "a3a9c18c71ee2a316ef95bd78cac9609ee278f5f3652f9fca284a7b1797dfc55",
+    "tests/test_ieee_tc_nohost.py": "9753b73e53f95f4b64cf2be88727954b6b975c796e25a4ef2947d637e183063d",
+    "tests/test_ieee_tc_nohost_staging.py": "4f2ce4acca667036066c013a6442965713eb5fe70f03da1a4b7c2e0d2c7f3555",
+    "tests/test_ieee_tc_nohost_sources.py": "9bc58ca294f818bd08699f9511fca700f1aa60fd780cf4a78bffdd1fd3dad556",
+    "tests/test_ieee_tc_nohost_native_authorization.py": "a491a9924c610afba2763d4660e2f00425f9a338af140cbea69cef38cd242c02",
+    "tests/test_ieee_tc_gpu_references.py": "54dcc52bb4cf6cfcc6a7b6824e015b26c0b3caa2d93d0840cddb6f28044f1849",
+    "tests/test_ieee_tc_worker_observation.py": "b32755a83be0da6af90419c146b0cbc811b05a2864ff3abba39ffa5ad7f03284"
+  },
+  "sources_after": {
+    "faaslora/memory/residency_manager.py": "358ae86c6acb3051adb2e8f881b5bcfb0bb46c4f7a8ce9b9640c7c80a448d382",
+    "faaslora/memory/gpu_monitor.py": "9a797055ba5a25e1eacda182bab38b7ef7f9d86ba61104b4dd59e1e6b621985a",
+    "scripts/run_all_experiments.py": "a3a9c18c71ee2a316ef95bd78cac9609ee278f5f3652f9fca284a7b1797dfc55",
+    "tests/test_ieee_tc_nohost.py": "9753b73e53f95f4b64cf2be88727954b6b975c796e25a4ef2947d637e183063d",
+    "tests/test_ieee_tc_nohost_staging.py": "4f2ce4acca667036066c013a6442965713eb5fe70f03da1a4b7c2e0d2c7f3555",
+    "tests/test_ieee_tc_nohost_sources.py": "9bc58ca294f818bd08699f9511fca700f1aa60fd780cf4a78bffdd1fd3dad556",
+    "tests/test_ieee_tc_nohost_native_authorization.py": "a491a9924c610afba2763d4660e2f00425f9a338af140cbea69cef38cd242c02",
+    "tests/test_ieee_tc_gpu_references.py": "54dcc52bb4cf6cfcc6a7b6824e015b26c0b3caa2d93d0840cddb6f28044f1849",
+    "tests/test_ieee_tc_worker_observation.py": "b32755a83be0da6af90419c146b0cbc811b05a2864ff3abba39ffa5ad7f03284"
+  },
+  "source_unchanged": true,
+  "identity": {
+    "unit": "primelora-tc-test-d635f95373c143ca9c1ab1b7db554a22.scope",
+    "invocation_id": "475afca916704c7c848945b34e3d7763",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-d635f95373c143ca9c1ab1b7db554a22.scope",
+    "inode": 39398486
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-d635f95373c143ca9c1ab1b7db554a22.scope",
+    "memory.current": 601776128,
+    "memory.peak": 608583680,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 9302900\nuser_usec 8125558\nsystem_usec 1177342\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "performance_test": false,
+  "nohost_execution_qualified": false
+}

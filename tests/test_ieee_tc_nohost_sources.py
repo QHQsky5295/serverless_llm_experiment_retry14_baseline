@@ -29,9 +29,13 @@ class NoHostSourceAuthorization(unittest.TestCase):
             file_state = files.source_snapshot(trace.adapter_id)
             source = dict(file_state['sources'][0], owner_id=file_state['owner_id'], epoch=file_state['epoch'])
             aid = InferenceEngine._lora_int_id(trace.adapter_id)
+            reference = files.acquire(path=source['path'], adapter_id=trace.adapter_id, lease_id='prior-file')
             loaded = owner.demand_load_and_acquire(lease_id='prior', adapter_int_id=aid,
                 lora_name=trace.adapter_id, lora_path=source['path'],
-                expected_owner_id=owner.owner_id, expected_epoch=owner.snapshot()['epoch'])
+                expected_owner_id=owner.owner_id, expected_epoch=owner.snapshot()['epoch'],
+                expected_content_sha256=source['content_sha256'],
+                file_source_witness=files.demand_witness(reference, content_sha256=source['content_sha256']))
+            files.release(lease_id='prior-file', expected_owner_id=files.owner_id)
             self.assertTrue(loaded['acquired'])
             owner.release(lease_id='prior', expected_owner_id=owner.owner_id)
             owner.manager.deactivate(aid)
@@ -56,19 +60,30 @@ class NoHostSourceAuthorization(unittest.TestCase):
 
     def test_cached_only_probe_does_not_acquire_inactive_nohost_backing(self):
         async def check():
-            runner, slot, _, _, owner, _ = native_reference_fixture()
+            setup = SelectedSourceAdmissionIntegration()
+            self.addCleanup(setup.doCleanups)
+            runner, slot, trace, plan, owner, _ = setup.build('remote')
             owner.host_allocation_check = Mock(return_value={'admitted': True})
             owner.configure_host_budget(expected_owner_id=owner.owner_id,
                 tensor_budget_bytes=4096, independent_host_reuse=False)
+            setup.file_source(runner, trace, publish=True)
+            files = runner._stack.residency_manager.local_source_references
+            source = files.source_snapshot(trace.adapter_id)['sources'][0]
+            reference = files.acquire(path=source['path'], adapter_id=trace.adapter_id, lease_id='prior-file')
+            aid = InferenceEngine._lora_int_id(trace.adapter_id)
+            receipt = owner.demand_load_and_acquire(lease_id='first', adapter_int_id=aid,
+                lora_name=trace.adapter_id, lora_path=source['path'], expected_owner_id=owner.owner_id,
+                expected_epoch=owner.snapshot()['epoch'], expected_content_sha256=source['content_sha256'],
+                file_source_witness=files.demand_witness(reference, content_sha256=source['content_sha256']))
+            self.assertTrue(receipt['acquired'])
+            files.release(lease_id='prior-file', expected_owner_id=files.owner_id)
+            owner.release(lease_id='first', expected_owner_id=owner.owner_id)
             helper = NativeCapacityWait()
-            first = await helper.acquire(runner, slot.engine, 'first', 'adapter-a')
-            aid = first.gpu_reference_evidence['intent']['adapter_int_id']
-            await runner._finish_runtime_request_reservation(first)
             owner.manager.deactivate(aid)
-            request = helper.bind(runner, slot.engine, 'probe', 'adapter-a')
+            request = helper.bind(runner, slot.engine, 'probe', trace.adapter_id)
             before = slot.engine.ieee_gpu_reference.await_count
             result = await runner._acquire_runtime_gpu_reference(request, slot.engine,
-                'adapter-a', cached_only=True)
+                trace.adapter_id, cached_only=True)
             self.assertIsNone(result)
             calls = slot.engine.ieee_gpu_reference.await_args_list[before:]
             self.assertEqual([c.kwargs['operation'] for c in calls], ['source_identity_snapshot'])
@@ -190,6 +205,9 @@ class ProtectedFileCapacityWait(unittest.TestCase):
 
 
 class CpuPreparationReleaseWitness(unittest.TestCase):
+    def test_source_specific_wait_joins_only_its_exact_cpu_release(self):
+        self.check_release_wait(mode='source-specific')
+
     def test_waiter_joins_cpu_release_ack_not_gpu_plan_completion(self):
         self.check_release_wait(mode='delayed')
 
@@ -227,13 +245,15 @@ class CpuPreparationReleaseWitness(unittest.TestCase):
                 reservation = RuntimeRequestReservation('waiting-request')
                 reservation.gpu_reference_engine = engine
                 reservation.gpu_reference_evidence['intent'] = dict(
-                    expected_owner_id=native.owner.owner_id, expected_epoch=snap['epoch'])
+                    expected_owner_id=native.owner.owner_id, expected_epoch=snap['epoch'],
+                    adapter_int_id=command['adapter_int_id'])
                 # Native owner creates the exact pin/lease witness. Restrict
                 # inspection to this real CPU blocker, not a synthetic plan ID.
                 blockers = native.owner._capacity_blockers('host')
                 blockers['candidates'] = [row for row in blockers['candidates']
                     if row['adapter_int_id'] == command['adapter_int_id']]
-                conflict = dict(snap, reason='all_cpu_entries_pinned', capacity_blockers=blockers)
+                conflict = dict(snap, reason=('nohost_backing_still_referenced'
+                    if mode == 'source-specific' else 'all_cpu_entries_pinned'), capacity_blockers=blockers)
                 if mode == 'early':
                     allow_release.set()
                     await asyncio.wait_for(movement, 2)

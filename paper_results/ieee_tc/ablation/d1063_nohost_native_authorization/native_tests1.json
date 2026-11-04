@@ -1,0 +1,68 @@
+{
+  "passed": true,
+  "tests_run": 109,
+  "names": [
+    "tests.test_ieee_tc_nohost.NoHostNativeLifecycle",
+    "tests.test_ieee_tc_nohost_staging.NoHostStaging",
+    "tests.test_ieee_tc_nohost_native_authorization.NoHostNativeAuthorization",
+    "tests.test_ieee_tc_nohost_sources.NoHostSourceAuthorization",
+    "tests.test_ieee_tc_nohost_sources.ProtectedFileCapacityWait",
+    "tests.test_ieee_tc_nohost_sources.CpuPreparationReleaseWitness",
+    "tests.test_ieee_tc_gpu_references.NativeDemandTransactions",
+    "tests.test_ieee_tc_gpu_references.ProtectedFileDemandTransactions",
+    "tests.test_ieee_tc_gpu_references.NativeProactiveTransactions",
+    "tests.test_ieee_tc_gpu_references.PrivateNativeHostConstruction"
+  ],
+  "failures": 0,
+  "errors": 0,
+  "elapsed_s": 9.353042969945818,
+  "sources": {
+    "faaslora/memory/residency_manager.py": "f5620d47051a29fca21ad32e30a202af05f364e8a850fbf599840b5d956539c7",
+    "scripts/run_all_experiments.py": "a3a9c18c71ee2a316ef95bd78cac9609ee278f5f3652f9fca284a7b1797dfc55",
+    "tests/test_ieee_tc_nohost.py": "9753b73e53f95f4b64cf2be88727954b6b975c796e25a4ef2947d637e183063d",
+    "tests/test_ieee_tc_nohost_staging.py": "4f2ce4acca667036066c013a6442965713eb5fe70f03da1a4b7c2e0d2c7f3555",
+    "tests/test_ieee_tc_nohost_sources.py": "9bc58ca294f818bd08699f9511fca700f1aa60fd780cf4a78bffdd1fd3dad556",
+    "tests/test_ieee_tc_nohost_native_authorization.py": "e2eac1f485bcb844657d721eb39e153cedeb0b9906ae5df7ec6ef463fe4cf7cd",
+    "tests/test_ieee_tc_gpu_references.py": "f60fc2f1510a45a2d6857486cf44c7f6132399ec4266f9080a612d9eed32cfe6"
+  },
+  "sources_after": {
+    "faaslora/memory/residency_manager.py": "f5620d47051a29fca21ad32e30a202af05f364e8a850fbf599840b5d956539c7",
+    "scripts/run_all_experiments.py": "a3a9c18c71ee2a316ef95bd78cac9609ee278f5f3652f9fca284a7b1797dfc55",
+    "tests/test_ieee_tc_nohost.py": "9753b73e53f95f4b64cf2be88727954b6b975c796e25a4ef2947d637e183063d",
+    "tests/test_ieee_tc_nohost_staging.py": "4f2ce4acca667036066c013a6442965713eb5fe70f03da1a4b7c2e0d2c7f3555",
+    "tests/test_ieee_tc_nohost_sources.py": "9bc58ca294f818bd08699f9511fca700f1aa60fd780cf4a78bffdd1fd3dad556",
+    "tests/test_ieee_tc_nohost_native_authorization.py": "e2eac1f485bcb844657d721eb39e153cedeb0b9906ae5df7ec6ef463fe4cf7cd",
+    "tests/test_ieee_tc_gpu_references.py": "f60fc2f1510a45a2d6857486cf44c7f6132399ec4266f9080a612d9eed32cfe6"
+  },
+  "source_unchanged": true,
+  "identity": {
+    "unit": "primelora-tc-test-12c9caf0bb5d493b94cb24745669da21.scope",
+    "invocation_id": "33aaca46c61b4640a10a53d25980e192",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-12c9caf0bb5d493b94cb24745669da21.scope",
+    "inode": 39394294
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-12c9caf0bb5d493b94cb24745669da21.scope",
+    "memory.current": 663699456,
+    "memory.peak": 678789120,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 9375206\nuser_usec 8135221\nsystem_usec 1239985\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "performance_test": false,
+  "nohost_execution_qualified": false
+}

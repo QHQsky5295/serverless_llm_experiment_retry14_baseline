@@ -8,10 +8,34 @@ from unittest.mock import Mock
 from tests import test_ieee_tc_gpu_references as native
 
 
+def install_protected_demands(test, fixture):
+    """Tiny file-owner wire fixtures; not real weight files or CUDA evidence."""
+    tmp = tempfile.TemporaryDirectory()
+    test.addCleanup(tmp.cleanup)
+    def path_for(aid):
+        path = Path(tmp.name) / f'adapter-{aid}'
+        path.mkdir(exist_ok=True)
+        return str(path)
+    def demand(lease='cold-1', aid=4, snapshot=None, **updates):
+        snapshot = snapshot or fixture.owner.snapshot()
+        path = path_for(aid)
+        info = Path(path).stat()
+        args = dict(lease_id=lease, adapter_int_id=aid, lora_name=f'adapter-{aid}',
+            lora_path=path, expected_owner_id=snapshot['owner_id'], expected_epoch=snapshot['epoch'],
+            expected_content_sha256='a' * 64)
+        if updates.get('required_source_tier') is None:
+            args['file_source_witness'] = dict(kind='protected_file_owner_turn_v1',
+                owner_id='fixture-file-owner', lease_id=f'file-{lease}', adapter_id=f'adapter-{aid}',
+                path=path, tier='nvme', device=info.st_dev, inode=info.st_ino, content_sha256='a' * 64)
+        return fixture.owner.demand_load_and_acquire(**(args | updates))
+    fixture.path_for, fixture.demand = path_for, demand
+
+
 class NoHostStaging(unittest.TestCase):
     def setUp(self):
         self.fixture = native.NativeDemandTransactions()
         self.fixture.setUp()
+        install_protected_demands(self, self.fixture)
         self.owner, self.manager = self.fixture.owner, self.fixture.manager
         for aid in tuple(self.manager._registered_adapters):
             self.manager.remove_adapter(aid)

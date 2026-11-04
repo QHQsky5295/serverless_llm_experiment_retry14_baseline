@@ -266,6 +266,7 @@ class NativeFileHostPreparation(unittest.TestCase):
         import sys
         worker = gpu_monitor.IEEEWorkerObservationExtension()
         worker.device, worker.rank = SimpleNamespace(type='cuda'), 0
+        self.manager.list_adapters = lambda: dict(self.manager._registered_adapters.cache)
         self.manager.moe_ep_load_spec, self.manager.modules = None, {'layer': object()}
         self.manager._get_lora_layer_weights = lambda *args: True
         def register(model):
@@ -352,6 +353,22 @@ class NativeFileHostPreparation(unittest.TestCase):
             loader.add_adapter.assert_not_called()
             self.assertEqual(before, (tuple(self.manager._registered_adapters),
                                      tuple(self.manager.lora_index_to_id)))
+            # A new same-ID private object is accounted alongside, never
+            # substituted for, the still-registered old model.
+            replacement = NativeAdapter()
+            replacement.id = 4
+            loader._load_adapter.return_value = replacement
+            result = owner.file_host_loader(adapter_int_id=4, lora_name='adapter-4',
+                lora_path='/existing/adapter-4', tensor_budget_bytes=1536,
+                reuse=False, register=False)
+            self.assertIs(result['_staged_model'], replacement)
+            self.assertIs(self.manager.list_adapters()[4], loaded)
+            self.assertIs(inventory.call_args.kwargs['private_model'], replacement)
+            self.assertNotIn(4, inventory.call_args.kwargs['staged_models'])
+            owner.host_allocation_check(lora_path=None, reuse=True, tensor_budget_bytes=1536,
+                                       _private_model=replacement)
+            self.assertIs(inventory.call_args.kwargs['private_model'], replacement)
+            self.assertIs(self.manager.list_adapters()[4], loaded)
 
 
 class PrivateNativeHostConstruction(unittest.TestCase):

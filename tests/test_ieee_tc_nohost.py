@@ -19,6 +19,7 @@ from tests.test_ieee_tc_service_routing import measured_source_payload
 from tests.test_ieee_tc_request_footprints import full_payload, scoped_payload
 from tests import test_ieee_tc_worker_observation as observation_tests
 from tests import test_ieee_tc_gpu_references as native_tests
+from tests.test_ieee_tc_nohost_staging import install_protected_demands
 
 
 class NoHostNativeLifecycle(unittest.TestCase):
@@ -31,6 +32,8 @@ class NoHostNativeLifecycle(unittest.TestCase):
         case.owner.host_allocation_check = Mock(return_value=dict(admitted=True))
         case.owner.configure_host_budget(expected_owner_id=case.owner.owner_id,
             tensor_budget_bytes=4096, independent_host_reuse=reuse)
+        if not reuse:
+            install_protected_demands(self, case)
         return case
 
     def inactive(self, case, aid=4):
@@ -90,7 +93,7 @@ class NoHostNativeLifecycle(unittest.TestCase):
         self.assertNotIn(4, case.manager._registered_adapters)
         self.assertEqual(case.owner.source_snapshot()['sources'], [])
         self.assertNotIn(4, case.owner._source_incarnations)
-        self.assertEqual(case.owner._sources[4], ('adapter-4', '/existing/adapter-4'))
+        self.assertEqual(case.owner._sources[4], ('adapter-4', case.path_for(4)))
 
     def test_gpu_backing_survives_terminal_request_and_plan_close(self):
         case = self.make()
@@ -113,7 +116,7 @@ class NoHostNativeLifecycle(unittest.TestCase):
         self.assertIn(4, case.owner._gpu_replacement_protection())
         self.assertEqual(self.close(case, 'q')['nohost_retired_adapter_ids'], [])
 
-    def test_external_pin_and_unsettled_build_protect_storage(self):
+    def test_external_pin_protects_but_independent_build_does_not_pin_old_storage(self):
         case = self.make()
         self.inactive(case)
         cpu = case.manager._registered_adapters
@@ -121,25 +124,24 @@ class NoHostNativeLifecycle(unittest.TestCase):
         self.assertEqual(self.close(case, 'pin')['nohost_retired_adapter_ids'], [])
         cpu._unpin(4)
         case.owner._native_host_build = SimpleNamespace(command={'adapter_int_id': 4})
-        self.assertEqual(self.close(case, 'build')['nohost_retired_adapter_ids'], [])
+        self.assertEqual(self.close(case, 'build')['nohost_retired_adapter_ids'], [4])
+        self.assertIsNotNone(case.owner._native_host_build)
         case.owner._native_host_build = None
-        self.assertEqual(self.close(case, 'settled')['nohost_retired_adapter_ids'], [4])
+        self.assertEqual(self.close(case, 'settled')['nohost_retired_adapter_ids'], [])
 
-    def test_file_fallback_host_reference_is_not_gpu_protection_but_prevents_cpu_retirement(self):
+    def test_independent_host_hold_and_file_fallback_are_not_authorized(self):
         case = self.make()
         self.inactive(case)
         snap = case.owner.snapshot()
-        held = case.owner.hold_host_source(lease_id='file', adapter_int_id=4,
-            lora_name='adapter-4', lora_path='/existing/adapter-4',
-            expected_owner_id=snap['owner_id'], expected_epoch=snap['epoch'],
-            reference_purpose='file_fallback')
-        self.assertTrue(held['held'])
-        self.assertNotIn(4, case.owner._gpu_replacement_protection())
-        self.assertEqual(self.close(case)['nohost_retired_adapter_ids'], [])
-        released = case.owner.release_host_source(lease_id='file', expected_owner_id=case.owner.owner_id)
-        self.assertEqual(released['nohost_retired_adapter_ids'], [4])
-        self.assertTrue(case.owner.release_host_source(lease_id='file',
-            expected_owner_id=case.owner.owner_id)['already_released'])
+        for purpose in ('file_fallback', 'demand_preparation'):
+            held = case.owner.hold_host_source(lease_id=purpose, adapter_int_id=4,
+                lora_name='adapter-4', lora_path=case.path_for(4),
+                expected_owner_id=snap['owner_id'], expected_epoch=snap['epoch'],
+                reference_purpose=purpose)
+            self.assertFalse(held['held'])
+            self.assertEqual(held['reason'], 'required_source_changed')
+            self.assertEqual(case.owner.snapshot(), snap)
+        self.assertFalse(case.owner._host_leases)
 
     def test_demand_replacement_finalizes_identity_and_idempotent_receipt(self):
         case = self.make()
@@ -187,9 +189,7 @@ class NoHostNativeLifecycle(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'retirement outcome invalidated'):
             case.owner.snapshot()
 
-    def test_proactive_deferral_does_not_retire_but_success_finalizes_once(self):
-        # Exercise the outer lifecycle boundary through the explicitly legacy
-        # diagnostic path, not the still-pending NoHOST priced transaction.
+    def test_legacy_proactive_cannot_reuse_inactive_backing(self):
         case = self.make()
         for aid in (4, 5):
             case.demand(lease=f'load-{aid}', aid=aid)
@@ -202,20 +202,21 @@ class NoHostNativeLifecycle(unittest.TestCase):
         def prepare(lease, admit):
             snap = case.owner.snapshot()
             return case.owner.proactive_host_prepare_and_acquire(lease_id=lease,
-                adapter_int_id=4, lora_name='adapter-4', lora_path='/existing/adapter-4',
+                adapter_int_id=4, lora_name='adapter-4', lora_path=case.path_for(4),
                 expected_owner_id=snap['owner_id'], expected_epoch=snap['epoch'],
                 capacity_only=False, decide=lambda *_: dict(admit=admit, reason='fixture'))
         before = case.owner.snapshot()
         deferred = prepare('defer', False)
         self.assertFalse(deferred['acquired'])
+        self.assertEqual(deferred['reason'], 'required_source_changed')
         self.assertEqual(case.owner.snapshot(), before)
         self.assertEqual(prepare('defer', True), deferred)
         result = prepare('commit', True)
-        self.assertEqual(result['nohost_retired_adapter_ids'], [6])
-        self.assertEqual(set(case.manager._registered_adapters), {4, 5})
-        self.assertEqual(result['epoch'], result['post_load_source_snapshot']['epoch'])
+        self.assertFalse(result['acquired'])
+        self.assertEqual(case.owner.snapshot(), before)
+        self.assertEqual(set(case.manager._registered_adapters), {4, 5, 6})
         self.assertEqual(prepare('commit', False), result)
-        self.assertEqual(case.owner._leases['commit'], result)
+        self.assertNotIn('commit', case.owner._leases)
 
     def private_case(self):
         case = native_tests.PrivateNativeHostConstruction()
@@ -250,7 +251,7 @@ class NoHostNativeLifecycle(unittest.TestCase):
         self.assertEqual(case.owner.staged_models(), {})
         self.assertEqual(case.owner.host_construction_reserved_bytes(), 0)
 
-    def test_completed_but_unsettled_build_keeps_target_until_cancel_join(self):
+    def test_completed_unsettled_private_object_survives_old_backing_retirement(self):
         case = self.private_case()
         build = case.begin(plan='private-plan')
         case.finish.set()
@@ -259,11 +260,12 @@ class NoHostNativeLifecycle(unittest.TestCase):
         case.owner._sources[4] = ('adapter-4', '/existing/adapter-4')
         case.owner._remember_source_object(4)
         before = self.close(case, 'private-plan')
-        self.assertEqual(before['nohost_retired_adapter_ids'], [])
+        self.assertEqual(before['nohost_retired_adapter_ids'], [4])
         self.assertEqual(case.owner.host_construction_reserved_bytes(), 300)
+        self.assertIsNotNone(build.model)
         receipt = case.owner.finish_file_host_construction(build, cancelled=True)
         self.assertFalse(receipt['held'])
-        self.assertEqual(receipt['nohost_retired_adapter_ids'], [4])
+        self.assertEqual(receipt['nohost_retired_adapter_ids'], [])
         self.assertEqual(case.owner.host_construction_reserved_bytes(), 0)
         self.assertTrue(build.settled)
         self.assertEqual(case.owner.source_snapshot()['registered_cpu_adapter_ids'], [])

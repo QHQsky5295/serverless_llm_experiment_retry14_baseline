@@ -2131,7 +2131,8 @@ class IEEEBackendGPUReferences:
             self._source_incarnations[adapter_int_id] = uuid.uuid4().hex
         self._source_objects[adapter_int_id] = weakref.ref(model)
 
-    def _validate_source_binding(self, adapter_int_id, source, expected_content_sha256=None):
+    def _validate_source_binding(self, adapter_int_id, source, expected_content_sha256=None,
+                                 *, _replacing_inactive=False):
         """Logical identity survives eviction; a physical file path need not.
 
         The controller holds a SHA-confirmed file source during loading. A
@@ -2185,6 +2186,16 @@ class IEEEBackendGPUReferences:
                 and staged.get('content_sha256') == expected_content_sha256
                 and staged['source'][0] == source[0]):
             raise ValueError(conflict('staged_source_mismatch', live=True))
+        if _replacing_inactive:
+            cpu, gpu = self._caches()
+            if (self._independent_host_reuse or adapter_int_id not in cpu
+                    or adapter_int_id in gpu or old is None
+                    or expected_content_sha256 is None or old[0] != source[0]
+                    or content != expected_content_sha256):
+                raise ValueError(conflict('inactive_backing_replacement_identity', live=True))
+            # Validation only. The old object is never relabelled: its actual
+            # references must clear and it must be retired before file loading.
+            return
         if old is None or old == source:
             return
         cpu, gpu = self._caches()
@@ -2252,14 +2263,8 @@ class IEEEBackendGPUReferences:
             content_sha256=staged['content_sha256'], source_id=staged['source_id'],
             construction_token=construction_token)
 
-    def _nohost_staging_join(self, adapter_int_id, staged, lease_id, file_source_witness):
-        """Authorize demand takeover in its existing serialized GPU turn.
-
-        A completed CPU movement's old lease is NOT a live HOST reference.
-        Its receipt identifies construction only; continuous unfinished GPU
-        preparation ownership plus this demand's protected file authorize the
-        join. No extra RPC or wait for proactive GPU soft admission is needed.
-        """
+    def _nohost_staging_proof(self, adapter_int_id, staged):
+        """Exact construction and still-pending ownership, not a cache hit."""
         operation = staged.get('preparation_operation')
         if (not isinstance(operation, dict)
                 or operation.get('kind') != 'nohost_staging_operation_v1'
@@ -2276,7 +2281,18 @@ class IEEEBackendGPUReferences:
                 or preparation['receipt'].get('native_host_source_id') != staged['source_id']):
             raise ValueError('NoHOST staging join lacks its settled construction receipt')
         plans = self._pending_staging_plans(adapter_int_id, staged)
-        if (not plans or file_source_witness is None
+        if not plans:
+            raise ValueError('NoHOST staging requires pending preparation')
+        return operation, plans
+
+    def _nohost_staging_join(self, adapter_int_id, staged, lease_id, file_source_witness):
+        """Join a live preparation, with this demand's protected file content.
+
+        The construction receipt is not a HOST reference; continuous pending
+        preparation plus the protected file authorizes this atomic takeover.
+        """
+        operation, plans = self._nohost_staging_proof(adapter_int_id, staged)
+        if (file_source_witness is None
                 or file_source_witness['adapter_id'] != staged['source'][0]
                 or file_source_witness['content_sha256'] != staged.get('content_sha256')):
             raise ValueError('NoHOST staging join requires pending preparation and protected content')
@@ -2296,7 +2312,18 @@ class IEEEBackendGPUReferences:
             del self._staged_host[aid]
             self.epoch += 1
 
-    def _retire_independent_host_copies(self):
+    def _nohost_backing_protection(self):
+        cpu, gpu = self._caches()
+        protected = (set(gpu) | set(self.manager.lora_index_to_id)
+            | cpu.pinned_items | gpu.pinned_items
+            | set(self._references) | set(self._host_references)
+            | set(self._staged_host_leases.values()))
+        # A private constructor owns a separate unpublished object and its
+        # peak reservation, not an unrelated registered copy of the same ID.
+        # Its lifetime remains guarded by _native_host_build/join settlement.
+        return protected
+
+    def _retire_independent_host_copies(self, *, _adapter_ids=None):
         """Retire unneeded CPU-only copies at an outer owner boundary.
 
         Never called by an observation or a native removal callback. In
@@ -2313,14 +2340,12 @@ class IEEEBackendGPUReferences:
         # a reference: once demand has replaced a GPU copy, its unused backing
         # cannot become an independent HOST cache just because a plan is open.
         # Proactive GPU-victim protection remains unchanged and uses all targets.
-        protected = (set(gpu) | set(slots) | cpu.pinned_items | gpu.pinned_items
-            | set(self._references) | set(self._host_references)
-            | set(self._staged_host_leases.values()))
-        if self._native_host_build is not None:
-            protected.add(self._native_host_build.command['adapter_int_id'])
+        protected = self._nohost_backing_protection()
         # Unknown native copies remain visible as unknown; do not infer their
         # identity/ownership or silently delete them as a successful ablation.
         candidates = sorted((set(cpu) & set(self._sources)) - protected)
+        if _adapter_ids is not None:
+            candidates = [aid for aid in candidates if aid in _adapter_ids]
         if not candidates:
             return []
         try:
@@ -2795,6 +2820,11 @@ class IEEEBackendGPUReferences:
             raise ValueError('HOST source lease is not unused')
         if expected_epoch > self.epoch or (expected_source_id is None and expected_epoch != self.epoch):
             return {'held': False, 'reason': 'stale_snapshot', **self.snapshot()}
+        if not self._independent_host_reuse:
+            # Existing operation-owned staging references are released through
+            # their original lease, but no new independent HOST read/fallback
+            # can be acquired. A GPU fallback must acquire an actual GPU lease.
+            return {'held': False, 'reason': 'required_source_changed', **self.snapshot()}
         cpu, _ = self._caches()
         if (adapter_int_id not in cpu
                 or (reference_purpose == 'demand_preparation' and adapter_int_id in self._gpu_confirmations)
@@ -2882,18 +2912,23 @@ class IEEEBackendGPUReferences:
         if expected_epoch != self.epoch:
             return dict(held=False, reason='stale_snapshot', **self.snapshot())
         source = (lora_name, lora_path)
-        self._validate_source_binding(adapter_int_id, source, expected_content_sha256)
-        if self._native_host_tensor_budget not in (None, native_host_tensor_budget_bytes):
-            raise ValueError('native HOST tensor sub-budget cannot change within a worker')
-        self._native_host_tensor_budget = native_host_tensor_budget_bytes
+        if self._independent_host_reuse:
+            self._validate_source_binding(adapter_int_id, source, expected_content_sha256)
         cpu, _ = self._caches()
         cached = adapter_int_id in cpu
         if cached and adapter_int_id not in self._sources:
             return dict(held=False, reason='unowned_native_adapter', **self.snapshot())
         if adapter_int_id in slots:
             return dict(held=False, reason='required_source_changed', **self.snapshot())
-        needs_staging = adapter_int_id in self._staged_host or (not cached and (
-            not self._independent_host_reuse or len(cpu) >= self.manager.capacity))
+        reload_backing = not self._independent_host_reuse and cached
+        if not self._independent_host_reuse:
+            self._validate_source_binding(adapter_int_id, source, expected_content_sha256,
+                _replacing_inactive=reload_backing)
+        if self._native_host_tensor_budget not in (None, native_host_tensor_budget_bytes):
+            raise ValueError('native HOST tensor sub-budget cannot change within a worker')
+        self._native_host_tensor_budget = native_host_tensor_budget_bytes
+        needs_staging = (not self._independent_host_reuse or adapter_int_id in self._staged_host
+            or (not cached and len(cpu) >= self.manager.capacity))
         if needs_staging:
             plan = self._preparation_plans.get(preparation_plan_id)
             if plan is None or adapter_int_id not in plan['pending']:
@@ -2909,6 +2944,12 @@ class IEEEBackendGPUReferences:
                 raise ValueError('NoHOST staging requires the selected immutable content')
         if not callable(self.file_host_loader):
             raise RuntimeError('native CPU-only loader is not attached')
+        if reload_backing and adapter_int_id in self._nohost_backing_protection():
+            blockers = self._capacity_blockers('host')
+            blockers['candidates'] = [row for row in blockers['candidates']
+                if row['adapter_int_id'] == adapter_int_id]
+            return dict(held=False, reason='nohost_backing_still_referenced',
+                capacity_blockers=blockers, **self.snapshot())
         return slots, identity, source, cpu, cached, needs_staging
 
     def begin_file_host_construction(self, **command):
@@ -2923,7 +2964,7 @@ class IEEEBackendGPUReferences:
             return state
         if not self._host_construction_plan_current(command):
             return dict(held=False, reason='preparation_plan_changed', **self.snapshot())
-        if state[4] or command['adapter_int_id'] in self._staged_host:
+        if (state[4] and self._independent_host_reuse) or command['adapter_int_id'] in self._staged_host:
             return self.prepare_file_host_and_hold(**command)
         if self._native_host_build is not None:
             return dict(held=False, reason='native_host_construction_busy', **self.snapshot())
@@ -2983,11 +3024,19 @@ class IEEEBackendGPUReferences:
             # for the same immutable content. It wins; never relabel that live
             # copy with the private build's historical path.
             if (aid in self._caches()[0]
-                    and self._sources.get(aid) != (command['lora_name'], command['lora_path'])):
+                    and self._sources.get(aid) != (command['lora_name'], command['lora_path'])
+                    and not (not self._independent_host_reuse
+                        and aid not in self.manager.lora_index_to_id
+                        and self._source_identity_matches(aid,
+                            (command['lora_name'], command['lora_path']),
+                            command.get('expected_content_sha256')))):
                 reason = reason or 'required_source_changed'
             state = None if reason is not None else self._file_host_preparation_state(**command)
             if isinstance(state, dict):
                 reason = state.get('reason', 'preparation_already_completed')
+            reload_backing = (reason is None and not self._independent_host_reuse and state[4])
+            if reload_backing:
+                duplicate = False  # The old backing is not an authorized source.
             discard = reason is not None or duplicate
             if discard:
                 build.model = None
@@ -3003,6 +3052,9 @@ class IEEEBackendGPUReferences:
                 receipt = dict(held=False, reason=reason, **self.snapshot())
             else:
                 if not duplicate:
+                    if reload_backing:
+                        if self._retire_independent_host_copies(_adapter_ids={aid}) != [aid]:
+                            raise RuntimeError('NoHOST construction lost its inactive replacement')
                     source = (command['lora_name'], command['lora_path'])
                     self._staged_host[aid] = dict(model=build.model, source=source,
                         content_sha256=command.get('expected_content_sha256'), source_id=uuid.uuid4().hex,
@@ -3076,6 +3128,9 @@ class IEEEBackendGPUReferences:
                     model = allocation.pop('_staged_model')
                     if (self._refresh(), tuple(cpu), tuple(cpu.pinned_items)) != before:
                         raise RuntimeError('unregistered staging mutated native residency')
+                    if not self._independent_host_reuse and cached:
+                        if self._retire_independent_host_copies(_adapter_ids={adapter_int_id}) != [adapter_int_id]:
+                            raise RuntimeError('NoHOST staging lost its inactive replacement')
                     self._staged_host[adapter_int_id] = dict(model=model, source=source,
                         content_sha256=expected_content_sha256,
                         source_id=uuid.uuid4().hex, allocation=allocation)
@@ -3258,7 +3313,8 @@ class IEEEBackendGPUReferences:
                          file_source_witness: Optional[Dict[str, Any]] = None,
                          release_host_lease_id: Optional[str] = None,
                          proactive_storage_witness=None,
-                         _preparation_host_precheck=None) -> Dict[str, Any]:
+                         _preparation_host_precheck=None,
+                         _staged_activation=None) -> Dict[str, Any]:
         """Native demand load -> completion -> pin, on one serialized worker.
 
         There is no await or controller-side load/query gap in this operation.
@@ -3303,6 +3359,8 @@ class IEEEBackendGPUReferences:
                 raise ValueError('file demand cannot replace a selected native-copy witness')
             validate_file_demand_witness(file_source_witness, lora_name=lora_name,
                 lora_path=lora_path, content_sha256=expected_content_sha256)
+            if not self._independent_host_reuse and file_source_witness['tier'] == 'host':
+                raise ValueError('NoHOST demand cannot use an independent HOST file source')
         slots = self._refresh()
         live_validation_epoch = self.epoch
         if expected_owner_id != self.owner_id:
@@ -3382,7 +3440,29 @@ class IEEEBackendGPUReferences:
         # historical epoch rule; no generic ignore-stale option is provided.
         if expected_source_id is None and file_source_witness is None and expected_epoch != self.epoch:
             return {'acquired': False, 'reason': 'stale_snapshot', **self.snapshot()}
-        self._validate_source_binding(adapter_int_id, source, expected_content_sha256)
+        cpu, gpu = self._caches()
+        staged_activation = False
+        if _staged_activation is not None:
+            model, source_id, content = _staged_activation
+            if (self._independent_host_reuse or loader is not self.preparation_loader
+                    or required_source_tier != 'host' or file_source_witness is not None
+                    or cpu.cache.get(adapter_int_id) is not model
+                    or self._source_incarnations.get(adapter_int_id) != source_id
+                    or content is None or expected_content_sha256 != content
+                    or self._source_contents.get(adapter_int_id) != content
+                    or adapter_int_id in slots):
+                raise ValueError('NoHOST activation lacks its same-turn staged object')
+            staged_activation = True
+        reload_backing = (not self._independent_host_reuse and adapter_int_id in cpu
+            and adapter_int_id not in slots and not staged_activation)
+        if not self._independent_host_reuse and adapter_int_id in cpu and adapter_int_id not in self._sources:
+            return {'acquired': False, 'reason': 'unowned_native_adapter', **self.snapshot()}
+        if not self._independent_host_reuse and required_source_tier == 'host' and not staged_activation:
+            return {'acquired': False, 'reason': 'required_source_changed', **self.snapshot()}
+        if reload_backing and file_source_witness is None:
+            return {'acquired': False, 'reason': 'required_source_changed', **self.snapshot()}
+        self._validate_source_binding(adapter_int_id, source, expected_content_sha256,
+            _replacing_inactive=reload_backing)
         if not callable(loader):
             raise RuntimeError('native demand loader is not attached')
         cpu, gpu = self._caches()
@@ -3407,6 +3487,15 @@ class IEEEBackendGPUReferences:
                 if source_tier == 'gpu' else self._source_incarnations.get(adapter_int_id))
             if current_source_id != expected_source_id:
                 return {'acquired': False, 'reason': 'required_source_changed', **self.snapshot()}
+        if (not self._independent_host_reuse and not gpu_confirmed
+                and not staged_activation and file_source_witness is None):
+            raise ValueError('NoHOST file demand requires its protected non-HOST source')
+        if reload_backing and adapter_int_id in self._nohost_backing_protection():
+            blockers = self._capacity_blockers('host')
+            blockers['candidates'] = [row for row in blockers['candidates']
+                if row['adapter_int_id'] == adapter_int_id]
+            return dict(acquired=False, reason='nohost_backing_still_referenced',
+                capacity_blockers=blockers, **self.snapshot())
         staging_join = None
         if not self._independent_host_reuse and staged is not None:
             staging_join = self._nohost_staging_join(
@@ -3433,7 +3522,8 @@ class IEEEBackendGPUReferences:
                     raise ValueError('registered preparation precheck used outside its HOST transaction')
                 host_check = _preparation_host_precheck(tensor_budget_bytes=self._native_host_tensor_budget)
             else:
-                host_check = self.host_allocation_check(lora_path=lora_path, reuse=cpu_hit or staged is not None,
+                host_check = self.host_allocation_check(lora_path=lora_path,
+                    reuse=(cpu_hit and not reload_backing) or staged is not None,
                     tensor_budget_bytes=self._native_host_tensor_budget)
             if not isinstance(host_check, dict) or type(host_check.get('admitted')) is not bool:
                 raise ValueError('native HOST allocation checker lacks an explicit outcome')
@@ -3473,6 +3563,11 @@ class IEEEBackendGPUReferences:
         start = time.monotonic()
         try:
             if not gpu_hit:
+                if reload_backing:
+                    retired = self._retire_independent_host_copies(_adapter_ids={adapter_int_id})
+                    if retired != [adapter_int_id]:
+                        raise RuntimeError('NoHOST file load did not retire its inactive backing')
+                    cpu_hit, source_tier = False, 'file'
                 if staged is not None:
                     # An arriving request may overtake proactive GPU admission.
                     # Reuse its already budgeted CPU object under the ordinary
@@ -3551,6 +3646,11 @@ class IEEEBackendGPUReferences:
                        proactive_admission_evaluated=False)
         if staging_join is not None:
             receipt['nohost_staging_join'] = staging_join
+        if reload_backing:
+            receipt['nohost_reloaded_inactive_backing'] = True
+        if staged_activation:
+            receipt.update(nohost_same_turn_staging_activation=True,
+                source_tier_before_acquisition='staging', native_staged_source_reused=True)
         if file_source_witness is not None:
             receipt.update(file_source_witness=dict(file_source_witness),
                 file_demand_transaction=dict(kind=IEEE_FILE_DEMAND_TRANSACTION,
@@ -3684,6 +3784,18 @@ class IEEEBackendGPUReferences:
         staged = self._staged_host.get(adapter_int_id)
         if staged is not None and adapter_int_id in self._staged_host_leases.values():
             return dict(acquired=False, reason='staged_source_still_referenced', **self.snapshot())
+        if not self._independent_host_reuse:
+            if staged is None:
+                return dict(acquired=False, reason='required_source_changed', **self.snapshot())
+            _, pending_plans = self._nohost_staging_proof(adapter_int_id, staged)
+            if (preparation_plan_id not in pending_plans or expected_content_sha256 is None
+                    or expected_content_sha256 != staged.get('content_sha256')):
+                raise ValueError('NoHOST activation lacks its pending staging operation')
+            if staged['source'] != (lora_name, lora_path):
+                # Preserve the physical source's own path. The controller must
+                # use the fresh staged path after matching immutable content;
+                # the frozen objective remains unchanged for pricing.
+                return dict(acquired=False, reason='required_source_changed', **self.snapshot())
         source = (lora_name, lora_path)
         staged_matches = (staged is not None and (
             staged['source'] == source
@@ -3880,6 +3992,8 @@ class IEEEBackendGPUReferences:
                     if self.proactive_host_activation_storage_witness is not None else None),
                 proactive_storage_witness=self.proactive_host_activation_storage_witness,
                 _preparation_host_precheck=_preparation_host_precheck,
+                _staged_activation=((staged['model'], staged['source_id'], staged['content_sha256'])
+                    if not self._independent_host_reuse and staged is not None else None),
                 expected_content_sha256=expected_content_sha256)
             if not receipt['acquired']:
                 self._poisoned = True

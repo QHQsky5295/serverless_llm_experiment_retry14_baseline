@@ -1,0 +1,140 @@
+{
+  "kind": "nohost_native_authorization_checkpoint_v1",
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_native_authorization/qualification.py",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/native_authorization/qualification.py",
+      "sha256": "15d91a3d5c7667ea92b1f9e9685736410771e2aa061983ff9f508d798dacab41",
+      "source_sha256": "15d91a3d5c7667ea92b1f9e9685736410771e2aa061983ff9f508d798dacab41",
+      "encoding": "identity"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_native_authorization/checkpoint.py",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/native_authorization/checkpoint.py",
+      "sha256": "8bdf338c8a2fb4a2b024b72b5dfea9d5c3182367a16d8f4eb5fdc754ea663cbe",
+      "source_sha256": "8bdf338c8a2fb4a2b024b72b5dfea9d5c3182367a16d8f4eb5fdc754ea663cbe",
+      "encoding": "identity"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_native_authorization/native_tests1.json",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/native_authorization/native_tests1.json",
+      "sha256": "ceeac22bd446959606e19b8024be2181e39d9dfede3bba162d166e534c2ec76d",
+      "source_sha256": "ceeac22bd446959606e19b8024be2181e39d9dfede3bba162d166e534c2ec76d",
+      "encoding": "identity"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_native_authorization/native_tests1.txt.gz",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/native_authorization/native_tests1.txt",
+      "sha256": "04fa514ec62f5082953b16a227f5fd69854630139632f91d5d81a4f5b277b1f7",
+      "source_sha256": "82bd3e6764df1353f377fd2a49d92b69cb5511301906a5d79e0bc0f36253479d",
+      "encoding": "gzip"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_native_authorization/native_tests2.json",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/native_authorization/native_tests2.json",
+      "sha256": "820dcfaf15e6ff40b855b4ab5e5b174192fe5d5bbea02ef75a1c4540af208fc0",
+      "source_sha256": "820dcfaf15e6ff40b855b4ab5e5b174192fe5d5bbea02ef75a1c4540af208fc0",
+      "encoding": "identity"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_native_authorization/native_tests2.txt.gz",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/native_authorization/native_tests2.txt",
+      "sha256": "1bfe8e3ed1b55d14b10008672979ea3f72608356ea703bc33b36b3ed34860f5c",
+      "source_sha256": "b6cb09d392b9f4445b70ff459197c13c95258240282b889f97097114f38b1ff7",
+      "encoding": "gzip"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_native_authorization/native_tests3.json",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/native_authorization/native_tests3.json",
+      "sha256": "e4b2d8e9dee7a41f893da1c0fbfdfad3c5cf8cf7615ff7b75621b7a656b1af07",
+      "source_sha256": "e4b2d8e9dee7a41f893da1c0fbfdfad3c5cf8cf7615ff7b75621b7a656b1af07",
+      "encoding": "identity"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_native_authorization/native_tests3.txt.gz",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/native_authorization/native_tests3.txt",
+      "sha256": "4c086eb1133141251f4d05263bfc91c3ae416630e8715c364359e86a4d8b6fa5",
+      "source_sha256": "0cd69a8904d70f3aa14872e10a08aacff01ef2c7151b3d6399730e43e1df8179",
+      "encoding": "gzip"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_native_authorization/native_tests4.json",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/native_authorization/native_tests4.json",
+      "sha256": "0fc05e6bbb5c5c070dea30c994af4a29baf41dc10cf53efee24ca4a484eeac87",
+      "source_sha256": "0fc05e6bbb5c5c070dea30c994af4a29baf41dc10cf53efee24ca4a484eeac87",
+      "encoding": "identity"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_native_authorization/native_tests4.txt.gz",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/native_authorization/native_tests4.txt",
+      "sha256": "2848db9197dfc0c6814e65259f4c9e57b144db77c20c7c2bb8aebfa891390558",
+      "source_sha256": "2ae1cb06bd225c564c18d8f0ce9692216f501a6d2a5aa6e8b5f09b9e511a5553",
+      "encoding": "gzip"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_native_authorization/bounded_qualification_base.py",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/qualification.py",
+      "sha256": "dbc878779bd245a3be5f72950e9d3c9c0c5a908ddf28378f366b6e9a68e60e32",
+      "source_sha256": "dbc878779bd245a3be5f72950e9d3c9c0c5a908ddf28378f366b6e9a68e60e32",
+      "encoding": "identity"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_nohost_native_authorization/backup_helpers_base.py",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261104/checkpoint.py",
+      "sha256": "3c19682d1a78ce94632c6b03d3f1bf7d7b432c2e48d7589090b0184615d03589",
+      "source_sha256": "3c19682d1a78ce94632c6b03d3f1bf7d7b432c2e48d7589090b0184615d03589",
+      "encoding": "identity"
+    }
+  ],
+  "tested_sources": {
+    "faaslora/memory/residency_manager.py": "358ae86c6acb3051adb2e8f881b5bcfb0bb46c4f7a8ce9b9640c7c80a448d382",
+    "faaslora/memory/gpu_monitor.py": "9a797055ba5a25e1eacda182bab38b7ef7f9d86ba61104b4dd59e1e6b621985a",
+    "scripts/run_all_experiments.py": "a3a9c18c71ee2a316ef95bd78cac9609ee278f5f3652f9fca284a7b1797dfc55",
+    "tests/test_ieee_tc_nohost.py": "9753b73e53f95f4b64cf2be88727954b6b975c796e25a4ef2947d637e183063d",
+    "tests/test_ieee_tc_nohost_staging.py": "4f2ce4acca667036066c013a6442965713eb5fe70f03da1a4b7c2e0d2c7f3555",
+    "tests/test_ieee_tc_nohost_sources.py": "9bc58ca294f818bd08699f9511fca700f1aa60fd780cf4a78bffdd1fd3dad556",
+    "tests/test_ieee_tc_nohost_native_authorization.py": "a491a9924c610afba2763d4660e2f00425f9a338af140cbea69cef38cd242c02",
+    "tests/test_ieee_tc_gpu_references.py": "b43c6735b80777d5eef296b5311bd6f745aa4cb8d3aada72753de2ec1f84fa2a",
+    "tests/test_ieee_tc_worker_observation.py": "b32755a83be0da6af90419c146b0cbc811b05a2864ff3abba39ffa5ad7f03284"
+  },
+  "user_protected": {
+    "configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "docs/ieee_tc/EXECUTION_STATUS.md": "41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374"
+  },
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "old_submission_seal": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "old_submission_seal_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json",
+  "performance_run": false,
+  "nohost_execution_qualified": false,
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-bc795bc14c0644e59b39f8b1f354251d.scope",
+    "memory.current": 13008896,
+    "memory.peak": 28659712,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 214253\nuser_usec 136161\nsystem_usec 78092\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "qualification_scope": "136 CPU checks; exact owner authorization, real CPU tensor private-object union and worker-closure fixtures; all attempts retained",
+  "remaining": "planner native-source eligibility, actual staged path, GPU/file fallback leases, runner/config, then one 3B W1 replay"
+}

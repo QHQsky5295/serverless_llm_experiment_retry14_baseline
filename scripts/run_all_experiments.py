@@ -18343,13 +18343,18 @@ class ScenarioRunner:
         evidence = reservation.gpu_reference_evidence
         intent = evidence['intent']
         blockers = receipt.get('capacity_blockers', {})
-        expected_tier = {'all_gpu_slots_pinned': 'gpu', 'all_cpu_entries_pinned': 'host'}[receipt['reason']]
+        expected_tier = {'all_gpu_slots_pinned': 'gpu', 'all_cpu_entries_pinned': 'host',
+            'nohost_backing_still_referenced': 'host'}[receipt['reason']]
         if (receipt['owner_id'] != intent['expected_owner_id']
                 or receipt['epoch'] != intent['expected_epoch']
                 or blockers.get('kind') != 'native_pinned_capacity_v1'
                 or blockers.get('tier') != expected_tier
                 or not isinstance(blockers.get('candidates'), list) or not blockers['candidates']):
             raise RuntimeError('native capacity conflict lacks exact blocking owners')
+        if receipt['reason'] == 'nohost_backing_still_referenced' and (
+                len(blockers['candidates']) != 1
+                or blockers['candidates'][0].get('adapter_int_id') != intent['adapter_int_id']):
+            raise ValueError('NoHOST reload wait must identify its exact inactive backing')
         witnesses = getattr(self, '_native_reference_witnesses', {})
         cpu_releases = getattr(self, '_native_cpu_preparation_releases', {})
         # Proactive native preparation has an explicit controller-owned task,
@@ -18868,7 +18873,8 @@ class ScenarioRunner:
                 evidence['state'] = 'rejected'
                 self._settle_native_reference_intent(reservation, 'gpu', 'no_acquisition')
                 return None
-            if receipt.get('reason') in ('all_gpu_slots_pinned', 'all_cpu_entries_pinned'):
+            if receipt.get('reason') in ('all_gpu_slots_pinned', 'all_cpu_entries_pinned',
+                    'nohost_backing_still_referenced'):
                 if ((held_host_source is not None and 'expected_source_id' in intent)
                         or 'file_source_witness' in intent):
                     # Exact-copy validation may legally survive unrelated epoch
