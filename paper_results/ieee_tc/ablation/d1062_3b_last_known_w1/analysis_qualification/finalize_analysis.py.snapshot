@@ -1,0 +1,53 @@
+"""Preserve both analysis attempts without changing the completed GPU replay."""
+import hashlib
+import json
+from pathlib import Path
+import shutil
+import subprocess
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+BASE = ROOT/'paper_results/ieee_tc/ablation/d1062_3b_last_known_w1'
+OUT = BASE/'analysis_qualification'
+
+def digest(path):
+    with path.open('rb') as f:
+        return hashlib.file_digest(f, 'sha256').hexdigest()
+
+def ref(path):
+    return dict(path=str(path), sha256=digest(path), bytes=path.stat().st_size)
+
+assert not OUT.exists()
+assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+for name, key in (('completion', 'files'), ('comparison', 'outputs')):
+    manifest = json.loads((BASE/name/'manifest.json').read_text())
+    for row in manifest[key]:
+        assert digest(Path(row['path'])) == row['sha256']
+tests = json.loads((RAW/'analysis_tests2.json').read_text())
+assert tests['passed'] and tests['tests_run'] == 16
+for name, sha in tests['sources'].items():
+    assert digest(ROOT/name) == sha
+subprocess.run(['git', 'diff', '--exit-code', 'd0c608c1', '--',
+    'scripts/run_all_experiments.py', 'faaslora/experiment/instance_pool.py',
+    'configs/ieee_tc/20261104_d1062_3b_last_known_w1.yaml'], cwd=ROOT, check=True)
+OUT.mkdir()
+files = ['analysis_tests1.json', 'analysis_tests1.txt', 'analysis_tests2.json',
+         'analysis_tests2.txt', 'postrun_pipeline.log', 'compare_attempt2.log']
+for name in files:
+    shutil.copyfile(RAW/name, OUT/name)
+for name in ('analysis_tests.py', 'postrun_pipeline.sh', 'finalize_analysis.py'):
+    shutil.copyfile(RAW/name, OUT/(name+'.snapshot'))
+report = dict(passed=True, performance_execution_count=1,
+    execution_commit='d0c608c1cc25960c81b19760530cf093ea3934f0',
+    serving_sources_unchanged=True, tests_run=16, comparison_attempts=2,
+    first_comparison=dict(passed=False, failure='analysis_semantics_error',
+        explanation='selected_reference_acquired is set after actual source protection; only the immutable ranking event denies reference authority.'),
+    second_comparison=dict(passed=True, preserved_source_measurement=True),
+    independent_numerical_proof=False, formal_ranking_eligible=False,
+    result_manifests=[ref(BASE/name/'manifest.json') for name in ('completion', 'comparison')],
+    analysis_sources=[ref(ROOT/name) for name in tests['sources']],
+    files=[ref(path) for path in sorted(OUT.iterdir())])
+with (OUT/'manifest.json').open('x') as f:
+    json.dump(report, f, indent=2, allow_nan=False)
+    f.write('\n')
+print(json.dumps(dict(passed=True, tests=16, gpu_replays=1, result_dir=str(BASE))))

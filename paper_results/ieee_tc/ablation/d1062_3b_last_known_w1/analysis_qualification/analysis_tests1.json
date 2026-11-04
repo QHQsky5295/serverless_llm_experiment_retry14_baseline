@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "tests_run": 14,
+  "names": [
+    "tests.test_ieee_tc_decode_overlap.LastKnownReceiptAnalysis",
+    "tests.test_ieee_tc_decode_overlap.RetainedRoutingLoad"
+  ],
+  "failures": 0,
+  "errors": 0,
+  "elapsed_s": 8.866637697909027,
+  "sources": {
+    "scripts/ieee_tc/analyze_d297_full.py": "019b96c23befcc39c7e31d9462df67f35f33e0219e09a5f40c1706f5756f9a50",
+    "tests/test_ieee_tc_decode_overlap.py": "4e82e148db6eeda43108d57e980a0051085fd6e155730e2943f4408e3c364eea"
+  },
+  "identity": {
+    "unit": "primelora-tc-aux-d1062000000000000000000000000006.scope",
+    "invocation_id": "b72dc7c8b0494275b12cd044eb4a757d",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d1062000000000000000000000000006.scope",
+    "inode": 39105854
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d1062000000000000000000000000006.scope",
+    "memory.current": 597794816,
+    "memory.peak": 597794816,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 9310853\nuser_usec 7972599\nsystem_usec 1338254\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "performance_test": false
+}

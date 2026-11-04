@@ -1,0 +1,90 @@
+{
+  "passed": true,
+  "performance_execution_count": 1,
+  "execution_commit": "d0c608c1cc25960c81b19760530cf093ea3934f0",
+  "serving_sources_unchanged": true,
+  "tests_run": 16,
+  "comparison_attempts": 2,
+  "first_comparison": {
+    "passed": false,
+    "failure": "analysis_semantics_error",
+    "explanation": "selected_reference_acquired is set after actual source protection; only the immutable ranking event denies reference authority."
+  },
+  "second_comparison": {
+    "passed": true,
+    "preserved_source_measurement": true
+  },
+  "independent_numerical_proof": false,
+  "formal_ranking_eligible": false,
+  "result_manifests": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1062_3b_last_known_w1/completion/manifest.json",
+      "sha256": "44430c0209b12fe642bbd0c473fb0d9924a95f2c0bd87fe581ee40c4132e94c6",
+      "bytes": 2220
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1062_3b_last_known_w1/comparison/manifest.json",
+      "sha256": "c62c42c0c3e0637ad0d71d0efb9be0ad154f684175727c457eb5b5cec61b599d",
+      "bytes": 3698
+    }
+  ],
+  "analysis_sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d297_full.py",
+      "sha256": "b93831dbbdf4556de4ad4094b1c7eecae646a1e79f8a80bd77602c259aabac1a",
+      "bytes": 152377
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_decode_overlap.py",
+      "sha256": "6d841dd39fc9a8fbebbee0dbd7a4e1507970b89e467f641e4241977371aafb87",
+      "bytes": 64235
+    }
+  ],
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1062_3b_last_known_w1/analysis_qualification/analysis_tests.py.snapshot",
+      "sha256": "d755bfdce9644bc13f55e2d7bce51e31b6fa90fc6d9715650f7fba45a3a23885",
+      "bytes": 1728
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1062_3b_last_known_w1/analysis_qualification/analysis_tests1.json",
+      "sha256": "061478e7ada294bca091725385f5895552838fafaf56d5bff73e4ed47e799e45",
+      "bytes": 1644
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1062_3b_last_known_w1/analysis_qualification/analysis_tests1.txt",
+      "sha256": "840367a40161e9d89e6823d5abd1f54084ef60785108cd7c36b7979aac30518a",
+      "bytes": 2666
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1062_3b_last_known_w1/analysis_qualification/analysis_tests2.json",
+      "sha256": "f2ac685568a3957e3d79f89373ddc262f51d4ac5108e373164b0f3f3a549f0dc",
+      "bytes": 1644
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1062_3b_last_known_w1/analysis_qualification/analysis_tests2.txt",
+      "sha256": "b4394652988537067ab86cdf32bee98518bdaba0739b9f9ed81240bb673914c6",
+      "bytes": 3052
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1062_3b_last_known_w1/analysis_qualification/compare_attempt2.log",
+      "sha256": "73b223958d671d635c40b6fc159cb3da92e5979ca1f04b3192deff975de7997e",
+      "bytes": 1676
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1062_3b_last_known_w1/analysis_qualification/finalize_analysis.py.snapshot",
+      "sha256": "3756e7b8401afe4eed672aa642a904c1cfe7cf3349f3a17e524a661dbc37bbe0",
+      "bytes": 2728
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1062_3b_last_known_w1/analysis_qualification/postrun_pipeline.log",
+      "sha256": "a4085d104ddf026691e4e6905efa000aabba086d746c62ba24f406ef3b060eb3",
+      "bytes": 23758
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1062_3b_last_known_w1/analysis_qualification/postrun_pipeline.sh.snapshot",
+      "sha256": "81acd309da4a8d583f9185e317cb69f8604981ee0a7139983b5931f9958aa6a5",
+      "bytes": 1708
+    }
+  ]
+}

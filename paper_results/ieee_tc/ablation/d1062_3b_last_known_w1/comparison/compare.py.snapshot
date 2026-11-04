@@ -1,0 +1,187 @@
+"""D1062: same-input Full/LastKnown observations, using existing audit helpers."""
+import collections
+import csv
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import ijson
+import yaml
+
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+BASE=ROOT/'paper_results/ieee_tc/ablation/d1062_3b_last_known_w1'
+OUT=BASE/'comparison'
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.check_d299_full_context import sealed_matrix_row, matched_relative_observation
+from scripts.ieee_tc.audit_d389_scaleup_handoff_labels import activation_first_services
+from scripts.ieee_tc.analyze_d297_full import last_known_routing_receipt
+
+def read(path): return json.loads(path.read_text())
+def ref(path): return dict(path=str(path),sha256=p.digest(path),bytes=path.stat().st_size)
+def save(path,value):
+    with path.open('x') as f:
+        json.dump(value,f,indent=2,allow_nan=False); f.write('\n')
+def event_sha(value):
+    return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest()
+def stats(values):
+    values=sorted(values)
+    if not values: return dict(n=0,mean=None,p95=None,max=None)
+    return dict(n=len(values),mean=sum(values)/len(values),p95=values[(95*len(values)+99)//100-1],max=values[-1])
+
+identity=p.scope_identity(p.cg_path().name); group=Path(identity['path'])
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+assert (group/'memory.high').read_text().strip()==str(3*p.GIB)
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+assert p.check_plan()=='d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+assert not OUT.exists()
+configs=[yaml.safe_load((ROOT/'configs/ieee_tc'/name).read_text()) for name in (
+    '20261104_d1047_3b_event_busy_time_w1.yaml','20261104_d1062_3b_last_known_w1.yaml')]
+for value in configs:
+    del value['experiment']['output_dir']; del value['storage']['nvme_cache_dir']; del value['storage']['host_cache_dir']
+assert configs[1]['resource_coordination'].pop('ieee_routing_information_view')=='last_known_source_sample_hold_v1'
+assert configs[1]['resource_coordination'].pop('ieee_routing_source_hold_s')==.5
+assert configs[0]==configs[1]
+delta=configs[0]['resource_coordination']['service_bin_ms']
+slo=ROOT/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json'
+references=ROOT/'paper_results/ieee_tc/main_comparison/d657_3b_references/resident_references.json'
+budget=read(references)['W1']['B_gpu_seconds']
+full_dir=ROOT/'paper_results/ieee_tc/ablation/d1061_3b_elastic_locality_w1/comparison'
+for entry in read(full_dir/'manifest.json')['outputs']:
+    assert p.digest(Path(entry['path']))==entry['sha256']
+prior=read(full_dir/'comparison.json')
+metrics={'Full':prior['results']['Full']}
+stages={'Full':prior['stages']['Full']}
+mechanisms={'Full':read(full_dir/'mechanisms.json')['Full']}
+sources=[ref(x) for x in (slo,references,full_dir/'manifest.json',full_dir/'comparison.json',full_dir/'mechanisms.json')]
+requests={}; routing=[]; dispatches=[]; final_events=set()
+for variant,completion in (
+    ('Full',ROOT/'paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion'),
+    ('LastKnown',BASE/'completion')):
+    for entry in read(completion/'manifest.json')['files']:
+        assert p.digest(Path(entry['path']))==entry['sha256']
+    audit=read(completion/'full4000.json')
+    closed=read(completion/'delivery_and_resources.json')
+    assert audit['passed'] and closed['passed'] and closed['all_allocations_released']
+    source=next(r for r in audit['source_refs'] if Path(r['path']).name.startswith('experiment_results_full'))
+    result=Path(source['path']); assert p.digest(result)==source['sha256']
+    run=result.parent; launch=read(run/'launch.json')
+    assert launch['pass'] and launch['native_gpu_context_release_confirmed']
+    with (completion/'stages/requests.csv').open() as f: stage=list(csv.DictReader(f))
+    assert len(stage)==len({r['request_id'] for r in stage})==4000
+    if variant=='LastKnown':
+        row=sealed_matrix_row(dict(audit=audit,source_plan=launch['external_replay']['plan'],
+            native_output_token_total=sum(int(r['output_tokens']) for r in stage)),
+            source_kind='prime_full_audit',system='PrimeLoRA',run='D1062',workload='W1',slo_sha=p.digest(slo))
+        row.update(variant=variant,scenario='tc_ieee_full',n_correct=None,formal_ranking_eligible=False,
+            budget_gpu_seconds=budget,within_budget=row['physical_gpu_seconds']<=budget,
+            remote=closed['remote'],physical_allocations=closed['physical_allocation_count'],
+            scale_up_events=closed['control']['completed_scale_up_events'],scale_down_events=closed['control']['scale_down_events'])
+        metrics[variant]=row
+        stages[variant]=dict(count=4000,mean_ms={k:sum(float(r[k]) for r in stage)/4000 for k in (
+            'arrival_to_admission_ms','admission_to_acquired_ms','executable_to_engine_ms',
+            'engine_entry_to_queue_ms','native_engine_queue_ms','native_prefill_ms')},
+            dispatch_tiers=dict(collections.Counter(r['tier'] for r in stage)))
+    projected={}
+    with result.open('rb') as f:
+        for request in ijson.items(f,'detailed_results.tc_ieee_full.requests.item',use_float=True):
+            n,e=request['native_token_timing'],request['external_arrival_timing']
+            rid=request['request_id']; assert rid not in projected and request['success']
+            projected[rid]=dict(adapter=request['adapter_id'],prompt=request['canonical_prompt_sha256'],
+                prompt_tokens_sha=n['native_prompt_token_ids_sha256'],source_item_sha=e['source_item_sha256'],
+                target=request['requested_completion_tokens'],actual=request['completion_tokens'],
+                generation=request['generation_contract'],output_sha=request['completion_token_ids_sha256'])
+            if variant=='LastKnown':
+                routing.append(last_known_routing_receipt(request,delta_ms=delta,hold_interval_s=.5))
+                final_events.add(event_sha(request['gpu_reference_evidence']['routing_snapshot']['ranking_information_view']))
+                dispatches.append(dict(request_id=rid,instance_id=request['instance_id'],adapter_id=request['adapter_id'],
+                    readiness_tier_before_dispatch=request['readiness_tier_before_dispatch'],clock_id=n['native_clock_id'],
+                    dispatch_monotonic_s=n['native_dispatch_monotonic_s'],first_token_monotonic_s=n['native_first_token_monotonic_s'],
+                    arrival_monotonic_s=e['planned_arrival_s'],success=request['success']))
+    assert len(projected)==4000; requests[variant]=projected
+    sources += [ref(x) for x in (result,run/'launch.json',completion/'manifest.json',completion/'full4000.json',completion/'stages/requests.csv')]
+    if variant=='Full': continue
+    outcome=run/'launch.launch/physical_deployment/main_outcome.json'
+    with outcome.open('rb') as f: activations=list(ijson.items(f,'mechanism_events._ieee_activations.item',use_float=True))
+    assert activations and all(a['policy']=='full' for a in activations)
+    mechanism=dict(activations=activations,first_services=activation_first_services(activations,dispatches,
+        clock_id=launch['external_replay']['clock_id']),plans={})
+    for key in ('_ieee_file_preparation_plans','_ieee_gpu_preparation_plans','_ieee_native_host_preparations','_ieee_residency_epochs'):
+        count=0; reasons=collections.Counter(); states=collections.Counter(); decisions=collections.Counter()
+        with outcome.open('rb') as f:
+            for plan in ijson.items(f,'mechanism_events.'+key+'.item',use_float=True):
+                count+=1; reasons[plan.get('trigger_reason','not_recorded')]+=1; states[plan.get('state','not_recorded')]+=1
+                if key=='_ieee_gpu_preparation_plans':
+                    assert plan['capacity_only'] is False
+                    for attempt in plan['attempts']:
+                        receipt=attempt.get('receipt')
+                        if receipt is not None and receipt.get('proactive_admission_evaluated') is True:
+                            decisions[receipt['admission']['reason']]+=1
+        mechanism['plans'][key]=dict(count=count,reasons=dict(reasons),states=dict(states),admission_decisions=dict(decisions))
+    event_count=0; phases=collections.Counter(); reasons=collections.Counter(); disagreement=0
+    matched_events=collections.Counter(); previous=0.
+    with outcome.open('rb') as f:
+        for event in ijson.items(f,'mechanism_events._ieee_routing_information_events.item',use_float=True):
+            assert event['kind']=='last_known_source_sample_hold_v1' and event['hold_interval_s']==.5
+            assert event['observed_monotonic_s']>=previous; previous=event['observed_monotonic_s']
+            assert event['counterfactual_latency_generated'] is False and event['executable_reference_granted'] is False
+            event_count+=1; phases[event['phase']]+=1; disagreement+=event['choice_disagreement']
+            reasons.update(r['reason'] for r in event['candidates'])
+            digest=event_sha(event)
+            if digest in final_events: matched_events[digest]+=1
+    assert len(final_events)==4000 and set(matched_events)==final_events and all(v==1 for v in matched_events.values())
+    mechanism['all_routing_event_journal']=dict(count=event_count,phase_counts=dict(phases),reason_counts=dict(reasons),
+        choice_disagreements=disagreement,matched_final_request_events=4000,
+        all_event_history_EWMA_replayed=False)
+    mechanism['final_request_routing']=dict(requests=4000,
+        choice_disagreements=sum(r['choice_disagreement'] for r in routing),
+        selected_gpu_false_ready_at_acquisition=sum(r['selected_gpu_false_ready_at_acquisition'] for r in routing),
+        selected_gpu_missed_ready_at_acquisition=sum(r['selected_gpu_missed_ready_at_acquisition'] for r in routing),
+        prior_attempts=sum(r['prior_attempts'] for r in routing),
+        feasible_candidates=sum(r['feasible_count'] for r in routing),
+        source_class_disagreements=sum(c['source_class_disagreement'] for r in routing for c in r['candidates']),
+        age_statistics={k:stats([c[k] for r in routing for c in r['candidates']]) for k in (
+            'controller_hold_age_s','native_observation_age_s','file_observation_age_s','source_observation_age_s','oldest_input_age_s')},
+        unselected_physical_truth_known=False,counterfactual_latency_generated=False,
+        caveat='Selected acquisition is later than routing; temporal mismatch is not simultaneous global state truth.')
+    mechanisms[variant]=mechanism; sources.append(ref(outcome))
+assert metrics['Full']['source_plan']==metrics['LastKnown']['source_plan']
+assert requests['Full'].keys()==requests['LastKnown'].keys()
+changes=[]
+for rid,a in requests['Full'].items():
+    b=requests['LastKnown'][rid]
+    assert {k:v for k,v in a.items() if k!='output_sha'}=={k:v for k,v in b.items() if k!='output_sha'}
+    assert a['actual']==a['target'] and a['generation']=='fixed_length_greedy_v1'
+    if a['output_sha']!=b['output_sha']: changes.append(dict(request_id=rid,Full=a['output_sha'],LastKnown=b['output_sha']))
+report=dict(kind='d1062_full_last_known_w1_observation_v1',results=metrics,stages=stages,
+    Full_relative_to_LastKnown=matched_relative_observation(metrics['Full'],metrics['LastKnown']),
+    mean_stage_differences_ms={k:stages['Full']['mean_ms'][k]-stages['LastKnown']['mean_ms'][k] for k in stages['Full']['mean_ms']},
+    matched_input_requests=4000,exact_output_hash_count=4000-len(changes),output_hash_changes=changes,
+    same_configuration_except_information_view_and_exclusive_paths=True,hold_interval_s=.5,
+    confidence_interval=None,n_correct=None,independent_holdout=False,independent_numerical_proof=False,
+    formal_ranking_eligible=False,source_refs=sources,plan_sha256=p.check_plan(),
+    metric_protocol_sha256=p.digest(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+    single_run_protocol_sha256=p.digest(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md'))
+OUT.mkdir(parents=True,exist_ok=False)
+save(OUT/'comparison.json',report); save(OUT/'mechanisms.json',mechanisms); save(OUT/'routing.json',routing)
+with (OUT/'metrics.csv').open('x',newline='') as f:
+    w=csv.writer(f,lineterminator='\n'); w.writerow(['variant','offered','joint_good','joint_slo','gpu_seconds',
+        'gpu_seconds_per_offered','mean_ttft_ms','p95_ttft_ms','mean_tpot_ms','p95_tpot_ms','mean_e2e_ms','remote_transfers','wire_bytes'])
+    for variant,r in metrics.items():
+        m=r['metrics']; w.writerow([variant,4000,r['counts']['joint_pass'],r['joint_slo'],r['physical_gpu_seconds'],
+            r['gpu_seconds_per_offered_request'],m['ttft_ms']['mean'],m['ttft_ms']['p95_type1'],
+            m['tpot_ms']['mean'],m['tpot_ms']['p95_type1'],m['e2e_ms']['mean'],r['remote']['transfers'],r['remote']['wire_bytes']])
+with (OUT/'compare.py.snapshot').open('x') as f: f.write(Path(__file__).read_text())
+save(OUT/'manifest.json',dict(passed=True,identity=identity,resources=p.cgroup_snapshot(group),
+    analysis_sources=[ref(x) for x in (Path(__file__),ROOT/'scripts/ieee_tc/analyze_d297_full.py',
+        ROOT/'tests/test_ieee_tc_decode_overlap.py',ROOT/'scripts/ieee_tc/check_d299_full_context.py',
+        ROOT/'scripts/ieee_tc/audit_d389_scaleup_handoff_labels.py')],
+    outputs=[ref(x) for x in sorted(OUT.iterdir()) if x.is_file()]))
+print(json.dumps(dict(passed=True,matched_requests=4000,output_hash_changes=len(changes),
+    Full_relative_to_LastKnown=report['Full_relative_to_LastKnown'],
+    routing=mechanisms['LastKnown']['final_request_routing'])),flush=True)

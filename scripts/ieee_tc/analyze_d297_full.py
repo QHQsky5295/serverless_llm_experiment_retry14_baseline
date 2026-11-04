@@ -1018,6 +1018,157 @@ def inspect_retained_lifecycle(output, *, contrast=('d315', 'd318')):
         outputs={p.name:sha256(p) for p in sorted(OUT.iterdir())}, no_figures=True))
 
 
+def last_known_routing_receipt(request, *, delta_ms, hold_interval_s):
+    """D1062: reconstruct ranking without treating its held tier as authority.
+
+    This checks recorded estimates, not an independent replay of every EWMA
+    update. The acquired source is a later observation on the selected replica;
+    no simultaneous physical truth exists for unselected shadow candidates.
+    """
+    from dataclasses import asdict, replace
+    from faaslora.experiment.instance_pool import (
+        ReplicaRoutingSnapshot, ServiceObservationClass, ServiceComponents)
+
+    def require(ok, message):
+        if not ok:
+            raise ValueError(message)
+
+    def finite(value):
+        return type(value) in (int, float) and math.isfinite(value)
+
+    def close(a, b):
+        return finite(a) and finite(b) and math.isclose(a, b, abs_tol=1e-9, rel_tol=1e-12)
+
+    require(finite(delta_ms) and delta_ms > 0 and finite(hold_interval_s)
+            and hold_interval_s > 0, 'positive frozen routing and hold intervals required')
+    rid, adapter = request['request_id'], request['adapter_id']
+    evidence = request['gpu_reference_evidence']
+    snap = evidence['routing_snapshot']
+    require(request['success'] is True and adapter is not None,
+            'completed adapter request required')
+    require(snap['kind'] == 'ieee_predecision_last_known_source_view_v1'
+            and type(snap['selected_reference_acquired']) is bool,
+            'explicit LastKnown routing and selected-source protection evidence required')
+    contract = snap['selection_contract']
+    require(contract['owner_policy'] == 'ieee_confirmed'
+            and contract['strategy'] == 'service_bins'
+            and contract['locality_load_slack'] is None, 'unchanged Full routing formula required')
+    event = snap['ranking_information_view']
+    require(event['kind'] == 'last_known_source_sample_hold_v1'
+            and event['hold_interval_s'] == hold_interval_s
+            and event['request_id'] == rid and event['adapter_id'] == adapter
+            and event['phase'] in ('request_dispatch', 'prefetch_reconciliation')
+            and event['counterfactual_latency_generated'] is False
+            and event['executable_reference_granted'] is False,
+            'request-local final ranking event required')
+    now = event['observed_monotonic_s']
+    admitted = request['native_token_timing']['controller_admitted_monotonic_s']
+    require(finite(now) and finite(admitted) and 0 < now <= admitted,
+            'ranking must precede actual admission')
+    received = []
+    for raw in snap['candidates']:
+        received.append(ReplicaRoutingSnapshot(**(raw | dict(
+            active_adapters=frozenset(raw['active_adapters']),
+            service_class=ServiceObservationClass(**raw['service_class']) if raw['service_class'] else None,
+            service=ServiceComponents(**raw['service']) if raw['service'] else None))))
+    ids = {r.replica_id for r in received}
+    records = event['candidates']
+    require(received and len(ids) == len(received) and len({r.epoch for r in received}) == 1
+            and all(r.request_id == rid and r.adapter_id == adapter for r in received)
+            and set(snap['sources']) == ids and len(records) == len(ids)
+            and {r['replica_id'] for r in records} == ids,
+            'complete unique same-request candidate populations required')
+    by_id = {r['replica_id']: r for r in records}
+    ranking, observations = [], []
+    for row in received:
+        record = by_id[row.replica_id]
+        require(record['feasible'] is row.feasible, 'information view changed feasibility')
+        if not row.feasible:
+            require(record['reason'] == 'infeasible', 'infeasible row must remain unchanged')
+            ranking.append(row)
+            continue
+        source = snap['sources'][row.replica_id]
+        held = record['held_source']
+        require(record['owner_identity'] == [row.replica_id, source['native_owner_id'], source['file_owner_id']],
+                'held observation belongs to another physical owner')
+        require(record['received_class'] == asdict(row.service_class)
+                and record['received_service'] == asdict(row.service), 'received evidence changed')
+        visible = ServiceObservationClass(**record['ranking_class'])
+        expected = replace(row.service_class, **{k: held[k]
+            for k in ('tier', 'representation', 'footprint_bin')})
+        require(visible == expected, 'non-source class dimensions must remain live')
+        service = ServiceComponents(**record['ranking_service'])
+        require(visible != row.service_class or service == row.service,
+                'unchanged class must retain the live estimate')
+        for key in ('admitted_requests', 'pending_loads', 'gpu_utilization_pct',
+                    'last_dispatch_at', 'available_slots'):
+            require(record[key] == getattr(row, key), 'non-target live routing input changed')
+        published, native, file = (held[k] for k in
+            ('published_at', 'native_captured_at', 'file_captured_at'))
+        require(all(finite(t) and 0 < t <= published <= now for t in (native, file))
+                and type(held['source_native']) is bool, 'causal held observation required')
+        age = now - published
+        require(0 <= age < hold_interval_s, 'hold expired without refresh')
+        expected_ages = dict(controller_hold_age_s=age, native_observation_age_s=now-native,
+            file_observation_age_s=now-file,
+            source_observation_age_s=now-(native if held['source_native'] else file),
+            oldest_input_age_s=now-min(native, file))
+        require(all(close(record[k], v) for k, v in expected_ages.items()),
+                'observation ages must be recomputed from timestamps')
+        require(record['reason'] in ('bootstrap', 'refresh', 'hold'), 'unknown publication reason')
+        if record['reason'] != 'hold':
+            require(age == 0 and visible == row.service_class
+                    and native == source['native_captured_monotonic_s']
+                    and file == source['file_captured_monotonic_s']
+                    and held['source_native'] is source['source']['native'],
+                    'new publication must bind the received observation')
+        require(record['tier_disagreement'] is (visible.tier != row.service_class.tier)
+                and record['source_class_disagreement'] is (visible != row.service_class),
+                'view disagreement flags do not match the observations')
+        ranking.append(replace(row, service_class=visible, service=service))
+        observations.append(dict(replica_id=row.replica_id, reason=record['reason'],
+            selected=row.replica_id == snap['selected_replica_id'],
+            received_tier=row.service_class.tier, ranking_tier=visible.tier,
+            tier_disagreement=record['tier_disagreement'],
+            source_class_disagreement=record['source_class_disagreement'], **expected_ages))
+    received_winner = min((r for r in received if r.feasible), key=lambda r: r.routing_key(delta_ms))
+    ranked_winner = min((r for r in ranking if r.feasible), key=lambda r: r.routing_key(delta_ms))
+    selected_id = snap['selected_replica_id']
+    require(selected_id == request['instance_id'] == ranked_winner.replica_id
+            == event['ranking_view_choice']
+            and event['received_view_choice'] == received_winner.replica_id
+            and event['choice_disagreement'] is (selected_id != received_winner.replica_id),
+            'actual choice must follow held ranking, not the received shadow')
+    require(snap['sources'][selected_id]['routing_information_view'] == event,
+            'selected source must bind the same request-local ranking event')
+    selected_received = next(r for r in received if r.replica_id == selected_id)
+    require(request['readiness_tier_before_dispatch'] == selected_received.service_class.tier,
+            'dispatch source was overwritten by the held ranking class')
+    # The ranking event never grants a reference. The enclosing historical
+    # routing record is subsequently annotated by _ieee_protect_selected_source
+    # when its *actual* source is protected. Remote needs no local-copy lease.
+    admission = evidence['source_admission']
+    require(evidence['confirmed_dispatch_snapshot'] is True
+            and admission['kind'] == 'selected_source_admission_v1'
+            and admission['source']['tier'] == selected_received.service_class.tier
+            and snap['selected_reference_acquired'] is (
+                selected_received.service_class.tier not in ('remote', 'backbone')),
+            'post-selection source protection differs from actual dispatch source')
+    acquired_tier = evidence['receipt']['source_tier_before_acquisition']
+    require(acquired_tier in ('gpu', 'host', 'file', 'staging'), 'native acquisition source required')
+    return dict(request_id=rid, phase=event['phase'], selected_replica_id=selected_id,
+        received_view_choice=received_winner.replica_id,
+        choice_disagreement=event['choice_disagreement'], candidate_count=len(received),
+        feasible_count=len(observations), ranking_tier=ranked_winner.service_class.tier,
+        dispatch_tier=request['readiness_tier_before_dispatch'], acquired_tier=acquired_tier,
+        selected_gpu_false_ready_at_acquisition=(ranked_winner.service_class.tier == 'gpu' and acquired_tier != 'gpu'),
+        selected_gpu_missed_ready_at_acquisition=(ranked_winner.service_class.tier != 'gpu' and acquired_tier == 'gpu'),
+        prior_attempts=len(evidence.get('prior_routing_attempts', [])), candidates=observations,
+        unselected_physical_truth_known=False, counterfactual_latency_generated=False,
+        historical_EWMA_replayed=False,
+        caveat='Acquisition is later than ranking; selected temporal disagreement is not simultaneous global truth or a causal latency estimate.')
+
+
 def routing_load_consistency(requests, *, clock_id, admitted_edges, delta_ms):
     """D320: conservative witnessed ownership, not exact reserve/release replay.
 

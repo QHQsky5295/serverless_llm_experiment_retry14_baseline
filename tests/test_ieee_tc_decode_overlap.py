@@ -13,7 +13,7 @@ from scripts.ieee_tc.analyze_d297_full import (
     audit_preparation_attribution, decode_overlap_summary, native_load_overlap_summary, prefill_overlap_summary,
     lifecycle_gaps, paired_timeline_groups, inspect_retained_lifecycle, capacity_phase_groups,
     partition_activation_readiness, calibration_exposure,
-    routing_load_consistency, inspect_retained_routing_load,
+    routing_load_consistency, inspect_retained_routing_load, last_known_routing_receipt,
     routing_length_diagnosis, inspect_retained_routing_lengths,
     lifecycle_pair_decomposition, inspect_retained_service_lifecycle,
     proactive_load_overlap_summary,
@@ -151,6 +151,158 @@ class RetainedRoutingLoad(unittest.TestCase):
             routing_length_diagnosis(candidates, requests[:2])
         with tempfile.TemporaryDirectory() as root, self.assertRaises(FileExistsError):
             inspect_retained_routing_lengths(root)
+
+
+class LastKnownReceiptAnalysis(unittest.TestCase):
+    """Hand-written observations, independent of the online projection helper."""
+
+    def fixture(self):
+        request = RetainedRoutingLoad().requests()[0]
+        request['readiness_tier_before_dispatch'] = 'host'
+        evidence = request['gpu_reference_evidence']
+        evidence['receipt'] = dict(source_tier_before_acquisition='host')
+        evidence['prior_routing_attempts'] = []
+        evidence['confirmed_dispatch_snapshot'] = True
+        evidence['source_admission'] = dict(kind='selected_source_admission_v1', source=dict(tier='host'))
+        snap = evidence['routing_snapshot']
+        snap.update(kind='ieee_predecision_last_known_source_view_v1',
+            selected_reference_acquired=True,
+            selection_contract=dict(owner_policy='ieee_confirmed', strategy='service_bins', locality_load_slack=None))
+        a = snap['candidates'][0]
+        a['service_class'].update(tier='host', representation='tensor')
+        a['service'] = dict(d_ms=50., t_ms=2., o_ms=3.)
+        b = copy.deepcopy(a)
+        b['replica_id'] = 'b'
+        b['service']['d_ms'] = 20.
+        snap['candidates'].append(b)
+        snap['sources'] = {k: dict(native_owner_id='native-'+k, file_owner_id='file',
+            native_captured_monotonic_s=8.8, file_captured_monotonic_s=8.8,
+            source=dict(native=True)) for k in ('a', 'b')}
+        records = []
+        for row in (a, b):
+            is_a = row['replica_id'] == 'a'
+            visible = dict(row['service_class'], tier='gpu' if is_a else 'host')
+            published, native, file = (8.8, 8.7, 8.6) if is_a else (9., 8.8, 8.8)
+            records.append(dict(replica_id=row['replica_id'], feasible=True,
+                reason='hold' if is_a else 'bootstrap',
+                owner_identity=[row['replica_id'], 'native-'+row['replica_id'], 'file'],
+                received_class=copy.deepcopy(row['service_class']), ranking_class=visible,
+                received_service=copy.deepcopy(row['service']),
+                ranking_service=dict(d_ms=0., t_ms=2., o_ms=3.) if is_a else copy.deepcopy(row['service']),
+                held_source=dict(tier=visible['tier'], representation='tensor', footprint_bin=0,
+                    published_at=published, native_captured_at=native, file_captured_at=file, source_native=True),
+                controller_hold_age_s=9.-published, native_observation_age_s=9.-native,
+                file_observation_age_s=9.-file, source_observation_age_s=9.-native,
+                oldest_input_age_s=9.-min(native,file),
+                tier_disagreement=is_a, source_class_disagreement=is_a,
+                **{k:row[k] for k in ('admitted_requests','pending_loads','gpu_utilization_pct',
+                    'last_dispatch_at','available_slots')}))
+        event = dict(kind='last_known_source_sample_hold_v1', hold_interval_s=.5,
+            request_id='r0', adapter_id='x', phase='request_dispatch', observed_monotonic_s=9.,
+            candidates=records, received_view_choice='b', ranking_view_choice='a',
+            choice_disagreement=True, counterfactual_latency_generated=False, executable_reference_granted=False)
+        snap['ranking_information_view'] = event
+        snap['sources']['a']['routing_information_view'] = event
+        return request
+
+    def check(self, request):
+        return last_known_routing_receipt(request, delta_ms=1., hold_interval_s=.5)
+
+    def test_held_ranking_is_distinct_from_received_and_acquired_source(self):
+        request = self.fixture()
+        saved = copy.deepcopy(request)
+        result = self.check(request)
+        self.assertEqual(request, saved)
+        self.assertTrue(result['choice_disagreement'])
+        self.assertTrue(result['selected_gpu_false_ready_at_acquisition'])
+        self.assertEqual((result['ranking_tier'], result['dispatch_tier']), ('gpu','host'))
+        self.assertFalse(result['unselected_physical_truth_known'])
+        self.assertFalse(result['counterfactual_latency_generated'])
+        self.assertFalse(result['historical_EWMA_replayed'])
+        self.assertAlmostEqual(result['candidates'][0]['source_observation_age_s'], .3)
+
+    def test_non_target_state_changes_are_rejected(self):
+        for field in ('admitted_requests','pending_loads','gpu_utilization_pct',
+                      'last_dispatch_at','available_slots'):
+            request = self.fixture()
+            record = request['gpu_reference_evidence']['routing_snapshot']['ranking_information_view']['candidates'][0]
+            record[field] += 1
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                self.check(request)
+        request = self.fixture()
+        request['gpu_reference_evidence']['routing_snapshot']['ranking_information_view']['candidates'][0]['ranking_class']['prompt_bin'] = 1
+        with self.assertRaises(ValueError):
+            self.check(request)
+
+    def test_wrong_owner_age_and_expired_publication_rejected(self):
+        for case in ('owner','age','expired','future'):
+            request = self.fixture()
+            record = request['gpu_reference_evidence']['routing_snapshot']['ranking_information_view']['candidates'][0]
+            if case == 'owner': record['owner_identity'][1] = 'replaced'
+            elif case == 'age': record['source_observation_age_s'] = 0.
+            elif case == 'expired': record['held_source']['published_at'] = 8.5
+            else: record['held_source']['native_captured_at'] = 10.
+            with self.subTest(case=case), self.assertRaises(ValueError):
+                self.check(request)
+
+    def test_wrong_formula_choice_or_incomplete_population_rejected(self):
+        for case in ('choice','duplicate','missing','legacy','post_admission'):
+            request = self.fixture()
+            snap = request['gpu_reference_evidence']['routing_snapshot']
+            event = snap['ranking_information_view']
+            if case == 'choice': event['received_view_choice'] = 'a'
+            elif case == 'duplicate': event['candidates'][1] = copy.deepcopy(event['candidates'][0])
+            elif case == 'missing': del snap['sources']['b']
+            elif case == 'legacy': snap['kind'] = 'ieee_predecision_received_view_v1'
+            else: event['observed_monotonic_s'] = 11.
+            with self.subTest(case=case), self.assertRaises(ValueError):
+                self.check(request)
+
+    def test_live_estimate_is_not_replaced_when_class_unchanged(self):
+        request = self.fixture()
+        request['gpu_reference_evidence']['routing_snapshot']['ranking_information_view']['candidates'][1]['ranking_service']['d_ms'] = 21.
+        with self.assertRaises(ValueError):
+            self.check(request)
+
+    def test_dispatch_tier_cannot_be_relabelled_as_held_gpu(self):
+        request = self.fixture()
+        request['readiness_tier_before_dispatch'] = 'gpu'
+        with self.assertRaises(ValueError):
+            self.check(request)
+
+    def test_local_source_protection_is_distinct_from_ranking_authority(self):
+        request = self.fixture()
+        snap = request['gpu_reference_evidence']['routing_snapshot']
+        snap['selected_reference_acquired'] = False
+        with self.assertRaises(ValueError):
+            self.check(request)
+        snap['selected_reference_acquired'] = True
+        snap['ranking_information_view']['executable_reference_granted'] = True
+        with self.assertRaises(ValueError):
+            self.check(request)
+
+    def test_remote_dispatch_does_not_claim_a_local_source_reference(self):
+        request = self.fixture()
+        evidence = request['gpu_reference_evidence']
+        snap = evidence['routing_snapshot']
+        snap['selected_reference_acquired'] = False
+        request['readiness_tier_before_dispatch'] = 'remote'
+        evidence['source_admission']['source']['tier'] = 'remote'
+        snap['candidates'][0]['service_class']['tier'] = 'remote'
+        snap['ranking_information_view']['candidates'][0]['received_class']['tier'] = 'remote'
+        self.check(request)
+        snap['selected_reference_acquired'] = True
+        with self.assertRaises(ValueError):
+            self.check(request)
+
+    def test_later_acquisition_is_separate_and_prior_attempts_are_not_new_requests(self):
+        request = self.fixture()
+        request['gpu_reference_evidence']['receipt']['source_tier_before_acquisition'] = 'gpu'
+        request['gpu_reference_evidence']['prior_routing_attempts'] = [{},{}]
+        result = self.check(request)
+        self.assertFalse(result['selected_gpu_false_ready_at_acquisition'])
+        self.assertEqual(result['prior_attempts'], 2)
+        self.assertEqual(result['dispatch_tier'], 'host')
 
 
 class RetainedLifecycle(unittest.TestCase):

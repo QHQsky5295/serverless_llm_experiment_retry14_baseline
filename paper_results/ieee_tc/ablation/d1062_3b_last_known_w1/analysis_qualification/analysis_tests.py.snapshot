@@ -1,0 +1,34 @@
+"""Targeted post-replay analysis tests; serving source remains frozen."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+import unittest
+
+ROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW=Path(__file__).resolve().parent
+sys.path.insert(0,str(ROOT))
+from scripts import ieee_tc_preflight as p
+
+identity=p.scope_identity(p.cg_path().name); group=p.cg_path()
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+assert (group/'memory.high').read_text().strip()==str(3*p.GIB)
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+names=['tests.test_ieee_tc_decode_overlap.LastKnownReceiptAnalysis',
+       'tests.test_ieee_tc_decode_overlap.RetainedRoutingLoad']
+tag=sys.argv[1]; start=time.monotonic()
+with (RAW/(tag+'.txt')).open('x') as stream:
+    result=unittest.TextTestRunner(stream=stream,verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames(names))
+report=dict(passed=result.wasSuccessful(),tests_run=result.testsRun,names=names,
+    failures=len(result.failures),errors=len(result.errors),elapsed_s=time.monotonic()-start,
+    sources={name:p.digest(ROOT/name) for name in (
+        'scripts/ieee_tc/analyze_d297_full.py','tests/test_ieee_tc_decode_overlap.py')},
+    identity=identity,resources=p.cgroup_snapshot(group),performance_test=False)
+with (RAW/(tag+'.json')).open('x') as f:
+    json.dump(report,f,indent=2,allow_nan=False);f.write('\n')
+print(json.dumps(report),flush=True)
+sys.exit(0 if result.wasSuccessful() else 1)
