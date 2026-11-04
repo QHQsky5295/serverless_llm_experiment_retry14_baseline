@@ -1,0 +1,9 @@
+2026-11-05T00:49:45+08:00
+2026-11-05T01:10:46+08:00
+true
+Running scope as unit: primelora-tc-test-cad6734c8234460ea661a22258cee72e.scope
+{"variant": "Full", "counts": {"N": 4000, "joint_pass": 3836, "ttft_pass": 3972, "tpot_pass": 3858}, "gpu_seconds": 6182.715970784891, "activations": 10, "plan_counts": {"_ieee_file_preparation_plans": 2397, "_ieee_gpu_preparation_plans": 1267, "_ieee_native_host_preparations": 730, "_ieee_residency_epochs": 2389}}
+{"variant": "NoHOST", "counts": {"N": 4000, "joint_pass": 3852, "ttft_pass": 3986, "tpot_pass": 3864}, "gpu_seconds": 6213.232770129107, "activations": 10, "plan_counts": {"_ieee_file_preparation_plans": 2361, "_ieee_gpu_preparation_plans": 1204, "_ieee_native_host_preparations": 766, "_ieee_residency_epochs": 2352}}
+{"passed": true, "matched_requests": 4000, "output_hash_changes": 229, "Full_relative_to_NoHOST": {"gpu_seconds_relative_reduction": 0.004911581534644713, "joint_slo_difference_percentage_points": -0.40000000000000036, "p95_ttft_relative_reduction": -0.038279687066977236, "both_observed_protocol_feasible": true, "scope": "Raw single-run differences; constrained G1 comparison requires both rows feasible."}}
+2026-11-05T01:11:27+08:00
+comparison_exit_code=0

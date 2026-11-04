@@ -1,0 +1,82 @@
+{
+  "kind": "d1063_nohost_completion_checkpoint_v1",
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_3b_nohost_w1/publication/backup_completion.py",
+      "sha256": "e87b26e534ca6593292020e5835c3e5ff4acc4e12c567dc8220e5c3029f7ee2b",
+      "bytes": 5418,
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261105/backup_completion.py",
+        "sha256": "e87b26e534ca6593292020e5835c3e5ff4acc4e12c567dc8220e5c3029f7ee2b",
+        "bytes": 5418
+      }
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_3b_nohost_w1/publication/postrun_pipeline.sh",
+      "sha256": "7d4ef7a18ffe7c0776dba24f192ff581aa4c235e34a6bce201d6fe1ff8fb8e18",
+      "bytes": 1270,
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261105/postrun_pipeline.sh",
+        "sha256": "7d4ef7a18ffe7c0776dba24f192ff581aa4c235e34a6bce201d6fe1ff8fb8e18",
+        "bytes": 1270
+      }
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_3b_nohost_w1/publication/compare_after_closure.sh",
+      "sha256": "684fb0c0fcb8d652177c711ed9cb58eca259fa1b5b5f0cfa5aa50850dcebee3d",
+      "bytes": 1331,
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261105/compare_after_closure.sh",
+        "sha256": "684fb0c0fcb8d652177c711ed9cb58eca259fa1b5b5f0cfa5aa50850dcebee3d",
+        "bytes": 1331
+      }
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_3b_nohost_w1/publication/postrun_pipeline.txt",
+      "sha256": "a253e45547d8c22f12faf31535a50f4a27f7f88e10d5162ab5a9a4f86aeb8af5",
+      "bytes": 19524,
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261105/postrun_pipeline.log",
+        "sha256": "a253e45547d8c22f12faf31535a50f4a27f7f88e10d5162ab5a9a4f86aeb8af5",
+        "bytes": 19524
+      }
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_3b_nohost_w1/publication/compare_after_closure.txt",
+      "sha256": "d837bd6729b7600d5ebf6ecfd620ab8fbc4e74494273b613289b8f07bfdcbfdf",
+      "bytes": 1232,
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261105/compare_after_closure.log",
+        "sha256": "d837bd6729b7600d5ebf6ecfd620ab8fbc4e74494273b613289b8f07bfdcbfdf",
+        "bytes": 1232
+      }
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1063_3b_nohost_w1/publication/fresh_launch_check.json",
+      "sha256": "c557db5f68478d841277817ce9a08302ed0688561f301c8da1ec808dd7ccb488",
+      "bytes": 4158,
+      "source": {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261105/d1063_3b_nohost_w1_fresh_launch_check.json",
+        "sha256": "c557db5f68478d841277817ce9a08302ed0688561f301c8da1ec808dd7ccb488",
+        "bytes": 4158
+      }
+    }
+  ],
+  "protected": {
+    "configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "docs/ieee_tc/EXECUTION_STATUS.md": "41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374"
+  },
+  "old_submission_seal": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "full_faaslora_v2_integrated": false,
+  "formal_ranking_eligible": false,
+  "n_correct": null,
+  "remaining": "Full optimization, 7B A1/cumulative, controlled A2-A5, M2, S1-S13, CE/Pareto, reviewer documents, figures and final V2 integration remain active."
+}

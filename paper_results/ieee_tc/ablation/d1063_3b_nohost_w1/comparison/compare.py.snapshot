@@ -1,0 +1,222 @@
+"""D1063: adapt D1050 sealed comparisons to NoHOST; post-run only, no inference."""
+import collections
+import csv
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import ijson
+import yaml
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+BASE = ROOT/'paper_results/ieee_tc/ablation/d1063_3b_nohost_w1'
+OUT = BASE/'comparison'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.check_d299_full_context import sealed_matrix_row, matched_relative_observation
+from scripts.ieee_tc.audit_d389_scaleup_handoff_labels import activation_first_services
+
+def read(path): return json.loads(path.read_text())
+def ref(path): return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, allow_nan=False); f.write('\n')
+
+identity = p.scope_identity(p.cg_path().name)
+group = Path(identity['path'])
+assert os.sched_getaffinity(0) == {2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+assert (group/'memory.high').read_text().strip() == str(3*p.GIB)
+assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip() == '0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'], text=True).strip()
+assert p.check_plan() == 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+qualification_path = RAW/'d1063_3b_nohost_w1_fresh_launch_check.json'
+qualification = read(qualification_path)
+assert qualification['passed']
+configs = [yaml.safe_load((ROOT/'configs/ieee_tc'/n).read_text()) for n in (
+    '20261104_d1047_3b_event_busy_time_w1.yaml','20261105_d1063_3b_nohost_w1.yaml')]
+for c in configs:
+    del c['experiment']['output_dir']; del c['storage']['nvme_cache_dir']; del c['storage']['host_cache_dir']
+assert configs[0]['resource_coordination']['ieee_handoff_policy'] == 'full'
+assert configs[1]['scenarios'][0]['preloading'].pop('independent_host_reuse') is False
+assert configs[0] == configs[1]
+slo = ROOT/'paper_results/ieee_tc/protocols/20261017_3b_slo_d648_frozen.json'
+references = ROOT/'paper_results/ieee_tc/main_comparison/d657_3b_references/resident_references.json'
+budget = read(references)['W1']['B_gpu_seconds']
+source_refs = [ref(slo), ref(references), ref(qualification_path)]
+metrics, requests, mechanisms, stages = {}, {}, {}, {}
+for variant, runid, completion in (
+    ('Full','D1047',ROOT/'paper_results/ieee_tc/p2_backend/d1047_same_version_w1/completion'),
+    ('NoHOST','D1063',BASE/'completion')):
+    for entry in read(completion/'manifest.json')['files']:
+        assert p.digest(Path(entry['path'])) == entry['sha256']
+    audit = read(completion/'full4000.json')
+    closed = read(completion/'delivery_and_resources.json')
+    assert closed['passed'] and closed['all_allocations_released']
+    result_ref = next(r for r in audit['source_refs'] if Path(r['path']).name.startswith('experiment_results_full'))
+    result = Path(result_ref['path'])
+    assert p.digest(result) == result_ref['sha256']
+    run = result.parent
+    launch = read(run/'launch.json')
+    assert launch['pass'] and launch['native_gpu_context_release_confirmed']
+    clock = launch['external_replay']['clock_id']
+    with (completion/'stages/requests.csv').open() as f: stage = list(csv.DictReader(f))
+    assert len(stage) == len({r['request_id'] for r in stage}) == 4000
+    row = sealed_matrix_row(dict(audit=audit, source_plan=launch['external_replay']['plan'],
+        native_output_token_total=sum(int(r['output_tokens']) for r in stage)),
+        source_kind='prime_full_audit', system='PrimeLoRA', run=runid, workload='W1', slo_sha=p.digest(slo))
+    row.update(variant=variant, n_correct=None, formal_ranking_eligible=False,
+        budget_gpu_seconds=budget, within_budget=row['physical_gpu_seconds']<=budget,
+        remote=closed['remote'], physical_allocations=closed['physical_allocation_count'],
+        scale_up_events=closed['control']['completed_scale_up_events'],
+        scale_down_events=closed['control']['scale_down_events'])
+    metrics[variant] = row
+    stages[variant] = dict(count=4000, mean_ms={key:sum(float(r[key]) for r in stage)/4000 for key in (
+        'arrival_to_admission_ms','admission_to_acquired_ms','executable_to_engine_ms',
+        'engine_entry_to_queue_ms','native_engine_queue_ms','native_prefill_ms')},
+        dispatch_tiers=dict(collections.Counter(r['tier'] for r in stage)))
+    projected, dispatches = {}, []
+    native_sources = collections.Counter()
+    staged_joins = 0
+    with result.open('rb') as f:
+        for r in ijson.items(f,'detailed_results.tc_ieee_full.requests.item',use_float=True):
+            n, e = r['native_token_timing'], r['external_arrival_timing']
+            native = r['gpu_reference_evidence']['receipt']
+            native_sources[native['source_tier_before_acquisition']] += 1
+            staged_joins += native.get('native_staged_source_reused',False) is True
+            if variant == 'NoHOST':
+                assert native['independent_host_reuse'] is False
+                assert r['readiness_tier_before_dispatch'] in ('gpu','nvme','remote')
+                assert native['source_tier_before_acquisition'] in ('gpu','file','staging')
+            rid = r['request_id']; assert rid not in projected and r['success']
+            projected[rid] = dict(adapter=r['adapter_id'], prompt=r['canonical_prompt_sha256'],
+                prompt_tokens_sha=n['native_prompt_token_ids_sha256'], source_item_sha=e['source_item_sha256'],
+                target=r['requested_completion_tokens'], actual=r['completion_tokens'],
+                generation=r['generation_contract'], output_sha=r['completion_token_ids_sha256'])
+            dispatches.append(dict(request_id=rid, instance_id=r['instance_id'],
+                adapter_id=r['adapter_id'], readiness_tier_before_dispatch=r['readiness_tier_before_dispatch'],
+                clock_id=n['native_clock_id'], dispatch_monotonic_s=n['native_dispatch_monotonic_s'],
+                first_token_monotonic_s=n['native_first_token_monotonic_s'],
+                arrival_monotonic_s=e['planned_arrival_s'], success=r['success']))
+    assert len(projected) == 4000
+    requests[variant] = projected
+    outcome = run/'launch.launch/physical_deployment/main_outcome.json'
+    with outcome.open('rb') as f:
+        activations = list(ijson.items(f,'mechanism_events._ieee_activations.item',use_float=True))
+    mechanism = dict(activations=activations,
+        first_services=activation_first_services(activations,dispatches,clock_id=clock),
+        native_acquisition_sources=dict(native_sources), staged_demand_joins=staged_joins, plans={})
+    for key in ('_ieee_file_preparation_plans','_ieee_gpu_preparation_plans',
+                '_ieee_native_host_preparations','_ieee_residency_epochs'):
+        count, reasons, states, handoff = 0, collections.Counter(), collections.Counter(), []
+        with outcome.open('rb') as f:
+            for plan in ijson.items(f,'mechanism_events.'+key+'.item',use_float=True):
+                count += 1; reasons[plan.get('trigger_reason','not_recorded')] += 1
+                states[plan.get('state','not_recorded')] += 1
+                if plan.get('trigger_reason') == 'handoff':
+                    handoff.append({k:plan[k] for k in ('plan_id','target_replica','activation_id',
+                        'trigger_reason','objective_sha256','planning_sha256','state','started_at','finished_at',
+                        'targets','registration','results','attempts') if k in plan})
+        mechanism['plans'][key] = dict(count=count,reasons=dict(reasons),states=dict(states),handoff_records=handoff)
+    if variant == 'NoHOST':
+        assert activations and all(a['policy']=='full' for a in activations)
+        mechanism['independent_host_reuse']=False
+        mechanism['backing_and_staging_retained']=True
+    mechanisms[variant] = mechanism
+    source_refs += [ref(path) for path in (completion/'full4000.json', completion/'delivery_and_resources.json',
+        completion/'manifest.json',completion/'stages/requests.csv',result,outcome,run/'launch.json')]
+    print(json.dumps(dict(variant=variant,counts=row['counts'],gpu_seconds=row['physical_gpu_seconds'],
+        activations=len(activations),plan_counts={k:v['count'] for k,v in mechanism['plans'].items()})),flush=True)
+assert metrics['Full']['source_plan'] == metrics['NoHOST']['source_plan']
+assert requests['Full'].keys() == requests['NoHOST'].keys()
+output_changes = []
+for rid, a in requests['Full'].items():
+    b = requests['NoHOST'][rid]
+    assert {k:v for k,v in a.items() if k!='output_sha'} == {k:v for k,v in b.items() if k!='output_sha'}
+    assert a['actual'] == a['target'] and a['generation']=='fixed_length_greedy_v1'
+    if a['output_sha'] != b['output_sha']: output_changes.append(dict(request_id=rid,Full=a['output_sha'],NoHOST=b['output_sha']))
+OUT.mkdir(parents=True,exist_ok=False)
+report = dict(kind='d1063_full_nohost_w1_observation_v1',results=metrics,
+    Full_relative_to_NoHOST=matched_relative_observation(metrics['Full'],metrics['NoHOST']),
+    mean_stage_differences_ms={k:stages['Full']['mean_ms'][k]-stages['NoHOST']['mean_ms'][k]
+        for k in stages['Full']['mean_ms']}, stages=stages,
+    matched_input_requests=4000,exact_output_hash_count=4000-len(output_changes),output_hash_changes=output_changes,
+    same_configuration_except_independent_host_reuse_and_paths=True,confidence_interval=None,
+    n_correct=None,independent_holdout=False,independent_numerical_proof=False,formal_ranking_eligible=False,
+    source_refs=source_refs,plan_sha256=p.check_plan(),
+    metric_protocol_sha256=p.digest(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+    single_run_sha256=p.digest(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md'),
+    caveats=['Single source42 development observation per configuration; no CI or global-optimum claim.',
+        'All-zero-update 3B pool cannot distinguish nonzero LoRA arithmetic; raw n_correct remains unknown.',
+        'NoHOST disables independent HOST reuse, not GPU backing, transient staging or OS page cache.',
+        'Natural closed-loop activations/targets may differ. This is not controlled same-plan A2/A4.',
+        'Plan count/completion is not proof of physical work before engine-ready or use by first request.',
+        'Output hash differences are retained for audit, not interpreted as correctness failures or silently discarded.'])
+save(OUT/'comparison.json',report); save(OUT/'mechanisms.json',mechanisms)
+with (OUT/'metrics.csv').open('x',newline='') as f:
+    w=csv.writer(f,lineterminator='\n'); w.writerow(['variant','offered','joint_good','joint_slo',
+        'gpu_seconds','gpu_seconds_per_offered','mean_ttft_ms','p95_ttft_ms','mean_tpot_ms','p95_tpot_ms',
+        'mean_e2e_ms','remote_transfers','wire_bytes'])
+    for variant,r in metrics.items():
+        m=r['metrics'];w.writerow([variant,4000,r['counts']['joint_pass'],r['joint_slo'],r['physical_gpu_seconds'],
+            r['gpu_seconds_per_offered_request'],m['ttft_ms']['mean'],m['ttft_ms']['p95_type1'],
+            m['tpot_ms']['mean'],m['tpot_ms']['p95_type1'],m['e2e_ms']['mean'],r['remote']['transfers'],r['remote']['wire_bytes']])
+with (OUT/'compare.py.snapshot').open('x') as f: f.write(Path(__file__).read_text())
+# Complete the already prescribed 3B A1 table from sealed comparisons, never
+# choose another Full run or silently replace an unfavorable observation.
+a1 = {'Full': metrics['Full']}
+a1_sources = []
+for variant, directory in (
+    ('ElasticOnly','d1057_3b_elastic_only_w1'),
+    ('ElasticLocality','d1061_3b_elastic_locality_w1'),
+    ('FixedFull','d1053_3b_fixed_full_w1'),
+    ('LastKnown','d1062_3b_last_known_w1'),
+    ('NoRouting','d1055_3b_no_routing_w1'),
+    ('NoHandoff','d1050_3b_no_handoff_w1'),
+    ('R0H0','d1056_3b_r0h0_w1'),
+    ('DelayedHandoff','d1054_3b_delayed_handoff_w1'),
+    ('CapacityOnly','d1052_3b_capacity_only_w1'),
+):
+    folder = ROOT/'paper_results/ieee_tc/ablation'/directory/'comparison'
+    previous_path, manifest_path = folder/'comparison.json', folder/'manifest.json'
+    manifest = read(manifest_path)
+    entry = next(item for item in manifest['outputs'] if Path(item['path']) == previous_path)
+    assert p.digest(previous_path) == entry['sha256']
+    previous = read(previous_path)
+    assert previous['matched_input_requests'] == 4000
+    assert previous['metric_protocol_sha256'] == report['metric_protocol_sha256']
+    assert previous.get('single_run_sha256',previous.get('single_run_protocol_sha256')) == report['single_run_sha256']
+    for key in ('run','source_plan','physical_gpu_seconds','counts','metrics'):
+        assert previous['results']['Full'][key] == metrics['Full'][key], (variant,key)
+    row = previous['results'][variant]
+    assert row['source_plan'] == metrics['Full']['source_plan']
+    assert row['n_correct'] is None and row['formal_ranking_eligible'] is False
+    a1[variant] = row
+    a1_sources.extend([ref(previous_path),ref(manifest_path)])
+a1['NoHOST'] = metrics['NoHOST']
+assert len(a1) == 11
+save(OUT/'a1_matrix.json',dict(kind='3b_w1_a1_single_run_observations_v1',results=a1,
+    canonical_full_run='D1047',full_relative_to_variants={variant:matched_relative_observation(a1['Full'],row)
+        for variant,row in a1.items() if variant!='Full'},
+    source_refs=a1_sources+[ref(OUT/'comparison.json')],
+    n_correct=None,formal_ranking_eligible=False,confidence_interval=None,
+    same_source_trace=True,scope='Natural closed-loop A1, not controlled causal decomposition or external baselines.'))
+with (OUT/'a1_matrix.csv').open('x',newline='') as f:
+    w=csv.writer(f,lineterminator='\n')
+    w.writerow(['variant','run','offered','joint_good','joint_slo','physical_gpu_seconds',
+        'gpu_seconds_per_offered','mean_ttft_ms','p95_ttft_ms','mean_tpot_ms','p95_tpot_ms',
+        'mean_e2e_ms','remote_transfers','wire_bytes','within_budget','n_correct','formal_ranking_eligible'])
+    for variant,row in a1.items():
+        m=row['metrics']
+        w.writerow([variant,row['run'],row['counts']['N'],row['counts']['joint_pass'],row['joint_slo'],
+            row['physical_gpu_seconds'],row['gpu_seconds_per_offered_request'],m['ttft_ms']['mean'],
+            m['ttft_ms']['p95_type1'],m['tpot_ms']['mean'],m['tpot_ms']['p95_type1'],m['e2e_ms']['mean'],
+            row['remote']['transfers'],row['remote']['wire_bytes'],row['within_budget'],None,False])
+save(OUT/'manifest.json',dict(passed=True,identity=identity,resources=p.cgroup_snapshot(group),
+    analysis_sources=[ref(Path(__file__)),ref(ROOT/'scripts/ieee_tc/audit_d389_scaleup_handoff_labels.py'),
+        ref(ROOT/'scripts/ieee_tc/check_d299_full_context.py')],
+    outputs=[ref(x) for x in sorted(OUT.iterdir()) if x.is_file()]))
+print(json.dumps(dict(passed=True,matched_requests=4000,output_hash_changes=len(output_changes),
+    Full_relative_to_NoHOST=report['Full_relative_to_NoHOST'])),flush=True)

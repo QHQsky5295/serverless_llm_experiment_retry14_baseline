@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "n": 4000,
+  "independent_host_reuse": false,
+  "dispatch_tiers": {
+    "remote": 133,
+    "gpu": 3303,
+    "nvme": 564
+  },
+  "native_sources": {
+    "file": 689,
+    "gpu": 3306,
+    "staging": 5
+  },
+  "staged_demand_joins": 5,
+  "retired_ids_in_demand_receipts": 0,
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1063_20261105/d1063_3b_nohost_w1/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1063_3b_nohost_w1.json",
+    "sha256": "58eb4e5b14ad62160228833e053669b3ef85794a8d03df09e1602a3b7aa6c2c6",
+    "bytes": 296100955
+  }
+}
