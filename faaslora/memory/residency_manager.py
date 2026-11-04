@@ -2309,12 +2309,13 @@ class IEEEBackendGPUReferences:
         slots = self._refresh()
         cpu, gpu = self._caches()
         # Unlike GPU-victim eligibility, ALL HOST references protect CPU
-        # storage, including file_fallback references. Completed siblings are
-        # protected until the whole plan closes, not merely until pending=0.
+        # storage, including file_fallback references. A plan is intent, not
+        # a reference: once demand has replaced a GPU copy, its unused backing
+        # cannot become an independent HOST cache just because a plan is open.
+        # Proactive GPU-victim protection remains unchanged and uses all targets.
         protected = (set(gpu) | set(slots) | cpu.pinned_items | gpu.pinned_items
             | set(self._references) | set(self._host_references)
-            | set(self._staged_host_leases.values())
-            | {aid for plan in self._preparation_plans.values() for aid in plan['identity'][1]})
+            | set(self._staged_host_leases.values()))
         if self._native_host_build is not None:
             protected.add(self._native_host_build.command['adapter_int_id'])
         # Unknown native copies remain visible as unknown; do not infer their
@@ -2824,14 +2825,14 @@ class IEEEBackendGPUReferences:
         if expected_owner_id != self.owner_id:
             raise ValueError('HOST source owner changed')
         if lease_id in self._host_released:
-            return {'released': True, 'already_released': True, **self.snapshot()}
+            return {'released': True, 'already_released': True, 'lease_id': lease_id, **self.snapshot()}
         if lease_id in self._staged_host_leases:
             del self._staged_host_leases[lease_id]
             self._host_released.add(lease_id)
             self._collect_staged_host()
             self.epoch += 1
             return self._finish_nohost_operation(
-                {'released': True, 'already_released': False, **self.snapshot()})
+                {'released': True, 'already_released': False, 'lease_id': lease_id, **self.snapshot()})
         if lease_id not in self._host_leases:
             raise ValueError('unknown HOST source lease')
         aid = self._host_leases[lease_id]['adapter_int_id']
@@ -2847,7 +2848,7 @@ class IEEEBackendGPUReferences:
         self._host_released.add(lease_id)
         self.epoch += 1
         return self._finish_nohost_operation(
-            {'released': True, 'already_released': False, **self.snapshot()})
+            {'released': True, 'already_released': False, 'lease_id': lease_id, **self.snapshot()})
 
     def _file_host_preparation_state(self, *, lease_id, adapter_int_id, lora_name,
                                      lora_path, expected_owner_id, expected_epoch,

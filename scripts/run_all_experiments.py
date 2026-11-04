@@ -18351,6 +18351,7 @@ class ScenarioRunner:
                 or not isinstance(blockers.get('candidates'), list) or not blockers['candidates']):
             raise RuntimeError('native capacity conflict lacks exact blocking owners')
         witnesses = getattr(self, '_native_reference_witnesses', {})
+        cpu_releases = getattr(self, '_native_cpu_preparation_releases', {})
         # Proactive native preparation has an explicit controller-owned task,
         # but it is not a request lease and therefore cannot be represented by
         # the per-request witness map.  A capacity wait may join that task's
@@ -18403,6 +18404,17 @@ class ScenarioRunner:
                         or len(set(ids)) != len(ids) or (expected_tier == 'gpu' and kind == 'host' and ids)):
                     raise ValueError('invalid native capacity blocker lease set')
                 for lease in ids:
+                    cpu_release = cpu_releases.get((receipt['owner_id'], lease)) if kind == 'host' else None
+                    if cpu_release is not None:
+                        # CPU staging can become registered backing while its
+                        # movement is still releasing the pin. Wait for that
+                        # exact ACK, never the unrelated GPU admission/plan.
+                        if (cpu_release['engine'] is not reservation.gpu_reference_engine
+                                or cpu_release['adapter_int_id'] != aid):
+                            valid = False
+                        else:
+                            refs.append(cpu_release['completion'])
+                        continue
                     preparation_plan_id = preparation_by_lease.get(lease)
                     if preparation_plan_id is not None:
                         matches = [task for task, plan_id in active_preparation_tasks
@@ -18565,6 +18577,10 @@ class ScenarioRunner:
                              if source.adapter_int_id == native_id), None)
             if selected is not None and selected.adapter_id != adapter_id:
                 raise ValueError('native cached integer ID belongs to another adapter')
+            if selected is not None and selected.tier != 'gpu' and not selected.host_reuse_allowed:
+                # Physical CPU backing is still audited, but NoHOST cannot
+                # promote it to an independently reusable service source.
+                selected = None
             compact = dict(value)
             compact['selected_source_identity'] = asdict(selected) if selected else None
             compact['acquisition_observation_scope'] = 'native_identity_only_v1'
@@ -18853,15 +18869,18 @@ class ScenarioRunner:
                 self._settle_native_reference_intent(reservation, 'gpu', 'no_acquisition')
                 return None
             if receipt.get('reason') in ('all_gpu_slots_pinned', 'all_cpu_entries_pinned'):
-                if held_host_source is not None and 'expected_source_id' in intent:
+                if ((held_host_source is not None and 'expected_source_id' in intent)
+                        or 'file_source_witness' in intent):
                     # Exact-copy validation may legally survive unrelated epoch
                     # advances. Bind waiting to this NEW atomic capacity receipt,
                     # not to the older source-hold epoch. No capacity is granted.
                     if (receipt['owner_id'] != intent['expected_owner_id']
                             or receipt['epoch'] < intent['expected_epoch']):
-                        raise ValueError('held HOST capacity receipt changed native ownership')
+                        raise ValueError('protected source capacity receipt changed native ownership')
                     intent['expected_epoch'] = receipt['epoch']
-                    del intent['expected_source_id']
+                    intent.pop('expected_source_id', None)
+                    if use_native_capacity_witness:
+                        intent['expected_source_id'] = None
                 # This explicit worker outcome has no native load/pin side
                 # effects. Cancellation while waiting may release our source
                 # hold; interrupted acquisition RPCs above remain unresolved.
@@ -19023,7 +19042,8 @@ class ScenarioRunner:
             aid = InferenceEngine._lora_int_id(reservation.adapter_id)
             if aid in native.unknown_native_adapter_ids:
                 raise ValueError('source admission found an unowned native adapter')
-            if any(row.adapter_int_id == aid for row in native.sources):
+            if any(row.adapter_int_id == aid and (row.tier == 'gpu' or row.host_reuse_allowed)
+                   for row in native.sources):
                 evidence['native_source_conflict'] = 'faster native source appeared before admission'
                 self._ieee_invalidate_route_scope(slot, reservation.adapter_id)
                 return False
@@ -21663,6 +21683,12 @@ class ScenarioRunner:
                     expected_epoch=observed['epoch'], native_host_tensor_budget_bytes=budget,
                     preparation_plan_id=plan_id, expected_content_sha256=content)
                 evidence.update(state='native_pending', command=command)
+                releases = getattr(self, '_native_cpu_preparation_releases', None)
+                if releases is None:
+                    releases = self._native_cpu_preparation_releases = {}
+                completion = asyncio.get_running_loop().create_future()
+                releases[(owner_id, command['lease_id'])] = dict(engine=engine,
+                    adapter_int_id=aid, completion=completion)
                 known = False
                 receipt, cancelled = await settle(engine.ieee_gpu_reference(
                     operation='prepare_file_host_and_hold', **command))
@@ -21675,10 +21701,16 @@ class ScenarioRunner:
                         raise ValueError('native HOST preparation changed protected identity')
                     released, interrupted = await settle(engine.ieee_gpu_reference(operation='release_host_source',
                         lease_id=command['lease_id'], expected_owner_id=owner_id))
-                    if checked(released).get('released') is not True:
+                    if (checked(released).get('released') is not True
+                            or released.get('lease_id') != command['lease_id']
+                            or type(released.get('epoch')) is not int
+                            or released['epoch'] < receipt['epoch']):
                         raise RuntimeError('native HOST preparation pin release unacknowledged')
                     evidence['release_receipt'] = released
+                    completion.set_result('released')
                     cancelled |= interrupted
+                else:
+                    completion.set_result('no_acquisition')
                 known = True
                 evidence['state'] = 'completed' if receipt['held'] else 'deferred'
                 if cancelled:
@@ -21693,6 +21725,11 @@ class ScenarioRunner:
                 try:
                     return await materialize()
                 except BaseException as exc:
+                    command = evidence.get('command')
+                    release = getattr(self, '_native_cpu_preparation_releases', {}).get(
+                        (owner_id, command['lease_id'])) if command else None
+                    if release is not None and not release['completion'].done():
+                        release['completion'].set_result('unresolved')
                     if not known:
                         raise UnresolvedTransferOperation('native HOST loading/release outcome unresolved') from exc
                     raise

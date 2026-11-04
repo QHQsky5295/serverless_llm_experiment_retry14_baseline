@@ -1,0 +1,73 @@
+{
+  "passed": true,
+  "tests_run": 67,
+  "names": [
+    "tests.test_ieee_tc_nohost.NoHostNativeLifecycle",
+    "tests.test_ieee_tc_nohost_staging",
+    "tests.test_ieee_tc_nohost_sources.NoHostSourceAuthorization",
+    "tests.test_ieee_tc_nohost_sources.ProtectedFileCapacityWait",
+    "tests.test_ieee_tc_nohost_sources.CpuPreparationReleaseWitness",
+    "tests.test_ieee_tc_request_lifecycle.NativeCapacityWait",
+    "tests.test_ieee_tc_request_lifecycle.SelectedSourceAdmissionIntegration.test_file_and_remote_sources_load_from_confirmed_reference_not_legacy_hint",
+    "tests.test_ieee_tc_request_lifecycle.ControllerNativeReferenceLifecycle.test_cached_native_weights_do_not_require_the_original_file",
+    "tests.test_ieee_tc_route_identity_cache.RouteIdentityCacheQualification.test_selected_file_recheck_retires_disproved_absence_before_retry",
+    "tests.test_ieee_tc_transfer_pressure.OwnedNativeHostMovement",
+    "tests.test_ieee_tc_transfer_pressure.AutomaticGPUReplacement.test_native_eviction_before_gpu_action_closes_epoch_and_fresh_same_key_serves",
+    "tests.test_ieee_tc_transfer_pressure.AutomaticGPUReplacement.test_native_eviction_before_source_staging_closes_epoch_and_fresh_plan_serves",
+    "tests.test_ieee_tc_transfer_pressure.AutomaticGPUReplacement.test_incomplete_or_foreign_absence_witness_is_not_supersession"
+  ],
+  "failures": 0,
+  "errors": 0,
+  "elapsed_s": 10.074780595023185,
+  "sources": {
+    "faaslora/memory/residency_manager.py": "3f1bb07eb539b54334cf34b612873dc624a6ce14f55d321dcca96bcd71100b69",
+    "scripts/run_all_experiments.py": "843e50ff019498488ed49b48b0658ec5ca245153244fb6aa10f993ac95a14f01",
+    "tests/test_ieee_tc_nohost.py": "f8a5a46501e7ec7df4ed53e2d54c3f87809518de59661fd4d29fe54bbb937419",
+    "tests/test_ieee_tc_nohost_staging.py": "bcff8dc211204de062ba1d015544967afe9813e0c4ecafda7849078eef1841d8",
+    "tests/test_ieee_tc_nohost_sources.py": "aa904770710c4d024d3697a8863ff338c39dfe6142b4b5b9653a63db37597198",
+    "tests/test_ieee_tc_request_lifecycle.py": "fb53b1740f2c97b471a5d642afae523c9e8da2ff9b132cb133eccdefd6a416f2",
+    "tests/test_ieee_tc_transfer_pressure.py": "dc2b13ee638c55639d93173643d9058152be90da3a2450b5a6bdf109e905634c",
+    "tests/test_ieee_tc_route_identity_cache.py": "021d1e3120679172df186a07112874ec418e307c23892c867deb51b16d31aa23"
+  },
+  "sources_after": {
+    "faaslora/memory/residency_manager.py": "3f1bb07eb539b54334cf34b612873dc624a6ce14f55d321dcca96bcd71100b69",
+    "scripts/run_all_experiments.py": "843e50ff019498488ed49b48b0658ec5ca245153244fb6aa10f993ac95a14f01",
+    "tests/test_ieee_tc_nohost.py": "f8a5a46501e7ec7df4ed53e2d54c3f87809518de59661fd4d29fe54bbb937419",
+    "tests/test_ieee_tc_nohost_staging.py": "bcff8dc211204de062ba1d015544967afe9813e0c4ecafda7849078eef1841d8",
+    "tests/test_ieee_tc_nohost_sources.py": "aa904770710c4d024d3697a8863ff338c39dfe6142b4b5b9653a63db37597198",
+    "tests/test_ieee_tc_request_lifecycle.py": "fb53b1740f2c97b471a5d642afae523c9e8da2ff9b132cb133eccdefd6a416f2",
+    "tests/test_ieee_tc_transfer_pressure.py": "dc2b13ee638c55639d93173643d9058152be90da3a2450b5a6bdf109e905634c",
+    "tests/test_ieee_tc_route_identity_cache.py": "021d1e3120679172df186a07112874ec418e307c23892c867deb51b16d31aa23"
+  },
+  "source_unchanged": true,
+  "identity": {
+    "unit": "primelora-tc-test-5b1a83b5d1774d93a7fbc3e22e22e72a.scope",
+    "invocation_id": "eb5e53e976d24f1ba8e4e150f4a978d1",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-5b1a83b5d1774d93a7fbc3e22e22e72a.scope",
+    "inode": 39381570
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-5b1a83b5d1774d93a7fbc3e22e22e72a.scope",
+    "memory.current": 603709440,
+    "memory.peak": 608714752,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 10094760\nuser_usec 8796591\nsystem_usec 1298168\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "performance_test": false,
+  "nohost_execution_qualified": false
+}

@@ -102,14 +102,16 @@ class NoHostNativeLifecycle(unittest.TestCase):
         self.assertIs(case.manager._registered_adapters.cache[4], backing)
         self.assertIn(4, case.manager._active_adapters)
 
-    def test_completed_plan_sibling_protected_until_all_plans_close(self):
+    def test_open_plan_intent_does_not_keep_inactive_cpu_backing(self):
         case = self.make()
         self.inactive(case)
         for plan_id in ('p', 'q'):
             case.owner._preparation_plans[plan_id] = dict(identity=('sha', (4,)), pending=set())
-        self.assertEqual(self.close(case, 'p')['nohost_retired_adapter_ids'], [])
-        self.assertIn(4, case.manager._registered_adapters)
-        self.assertEqual(self.close(case, 'q')['nohost_retired_adapter_ids'], [4])
+        self.assertEqual(self.close(case, 'p')['nohost_retired_adapter_ids'], [4])
+        self.assertNotIn(4, case.manager._registered_adapters)
+        self.assertIn('q', case.owner._preparation_plans)
+        self.assertIn(4, case.owner._gpu_replacement_protection())
+        self.assertEqual(self.close(case, 'q')['nohost_retired_adapter_ids'], [])
 
     def test_external_pin_and_unsettled_build_protect_storage(self):
         case = self.make()
@@ -144,6 +146,9 @@ class NoHostNativeLifecycle(unittest.TestCase):
         for aid in (4, 5):
             case.demand(lease=f'load-{aid}', aid=aid)
             case.release(f'load-{aid}')
+        for plan_id, pending in (('pending-plan', {4}), ('completed-plan', set())):
+            case.owner._preparation_plans[plan_id] = dict(identity=('sha', (4,)), pending=pending)
+        self.assertIn(4, case.owner._gpu_replacement_protection())
         result = case.demand(lease='replace', aid=6)
         self.assertEqual(result['nohost_retired_adapter_ids'], [4])
         self.assertEqual(set(case.manager._registered_adapters), {5, 6})
@@ -152,6 +157,8 @@ class NoHostNativeLifecycle(unittest.TestCase):
         self.assertEqual(case.demand(lease='replace', aid=6), result)
         self.assertEqual(case.owner._leases['replace'], result)
         self.assertEqual(case.owner.snapshot()['nohost_retired_cpu_copies'], 1)
+        self.assertEqual(set(case.owner._preparation_plans), {'pending-plan', 'completed-plan'})
+        self.assertIn(4, case.owner._gpu_replacement_protection())
 
     def test_failed_demand_does_not_collect_other_cpu_sources(self):
         case = self.make()
