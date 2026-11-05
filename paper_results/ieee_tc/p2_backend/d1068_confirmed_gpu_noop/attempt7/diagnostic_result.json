@@ -29,6 +29,19 @@
     "scale_up_events": 8,
     "scale_down_events": 7
   },
+  "request_contract_audit": {
+    "request_terminals": 4000,
+    "unique_request_ids": 4000,
+    "success_true": 4000,
+    "native_contract_matched_true": 4000,
+    "error_type_null": 4000,
+    "completion_token_source_vllm_token_ids": 4000,
+    "target_tokens_sum": 458224,
+    "reported_total_output_tokens": 458224,
+    "contract_consistent": true,
+    "semantic_correctness_proven": false,
+    "request_terminals_sha256": "9f65fae8f8dd3b2e41f41ba4e4de264a8959316cfbfb289552d63ecc0bcee4b3"
+  },
   "mechanism_evidence": {
     "confirmed_gpu_no_preparation_proofs": 794,
     "zero_demand_residency_noops": 87,
