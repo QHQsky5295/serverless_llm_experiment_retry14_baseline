@@ -1,0 +1,50 @@
+"""Resume the staged allowlist, preserving sealed RFC4180 CSV bytes."""
+import importlib.util
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+
+RAW=Path(__file__).parent
+spec=importlib.util.spec_from_file_location('checkpoint',RAW/'checkpoint_completion.py')
+m=importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+c,p,ROOT,OUT=m.c,m.p,m.ROOT,m.OUT
+
+def main():
+    assert c.git('rev-parse','HEAD')=='00f2a8730b8d9fd3bb5309c900c1694360d6b45f'
+    assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+    manifest=OUT/'completion_checkpoint.json'
+    payload=json.loads(manifest.read_text())
+    paths=[Path(r['path']) for r in payload['files']]+[manifest]
+    for entry in payload['files']+payload['tested_sources']:
+        assert p.digest(Path(entry['path']))==entry['sha256']
+    for name,digest in c.PROTECTED.items():
+        assert p.digest(ROOT/name)==digest
+    assert set(c.git('diff','--cached','--name-only').splitlines())=={str(x.relative_to(ROOT)) for x in paths}
+    snapshot=OUT/'checkpoint_completion_resume.py.snapshot'
+    with snapshot.open('xb') as stream: stream.write(Path(__file__).read_bytes())
+    paths += [snapshot,OUT/'backup_completion_failure.md']
+    pattern=r'-----BEGIN (?:RSA |OPENSSH |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|Authorization:\s*Bearer\s+\S+'
+    for path in paths:
+        assert not re.search(pattern,path.read_text())
+    relative=[str(x.relative_to(ROOT)) for x in paths]
+    c.git('add','--',*relative)
+    assert set(c.git('diff','--cached','--name-only').splitlines())==set(relative)
+    c.git('-c','core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol','diff','--cached','--check')
+    c.git('commit','-m','D1066 close zero-demand replay with mixed SLO and resource evidence')
+    head=c.git('rev-parse','HEAD')
+    verified=[]
+    for remote,branch in [('origin','refs/heads/retry14_continuous_queue_v2'),('faaslora_origin','refs/heads/backup/d1066-zero-demand-20261105')]:
+        subprocess.run(['git','push',remote,'HEAD:'+branch],cwd=ROOT,check=True)
+        assert c.git('ls-remote',remote,branch).split()[0]==head
+        verified.append(dict(remote=remote,ref=branch,commit=head))
+    for name,digest in c.PROTECTED.items():
+        assert p.digest(ROOT/name)==digest
+    c.write_json(RAW/'completion_backup.json',dict(passed=True,commit=head,verified=verified,
+        paths=relative,user_dirty_unchanged=True,full_faaslora_v2_integrated=False,
+        resources=p.cgroup_snapshot(p.cg_path())))
+    print(json.dumps(dict(passed=True,commit=head,verified=verified)))
+
+if __name__=='__main__': main()

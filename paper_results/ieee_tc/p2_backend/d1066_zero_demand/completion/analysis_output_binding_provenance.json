@@ -1,0 +1,32 @@
+{
+  "original_config": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml",
+    "sha256": "263bdcd6ff255108ddaffdd9ce46898d7f12be15948d7fe3d7ac27d5ea8828d2",
+    "bytes": 6164
+  },
+  "result": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1066_20261105/d1066_3b_zero_demand_w1_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1066_3b_zero_demand_w1_full.json",
+    "sha256": "e0e85d33e33ea9ec31612e76785c6c0e6dbbb21ba2fc8a3d9297bca49c6dc809",
+    "bytes": 289369156
+  },
+  "launch": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1066_20261105/d1066_3b_zero_demand_w1_full/launch.json",
+    "sha256": "5eccac9da38b52cece241c70632bf67f16ca31a837bf94749d4f54f4a8769af7",
+    "bytes": 12270
+  },
+  "changed_fields": {
+    "experiment.output_dir": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1066_20261105/d1066_3b_zero_demand_w1_full"
+  },
+  "reason": "Recorded runtime output override; no serving-policy or measurement change",
+  "first_collector_failure": "config/run output binding differs",
+  "original_collector": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1066_20261105/collect_closed_evidence.py",
+    "sha256": "914504326f23944a9a0d33e820e5294c88ee2435618545da7dc74be7a634001f",
+    "bytes": 6086
+  },
+  "reused_metric": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1066_zero_demand/completion/full4000.json",
+    "sha256": "551b5b46c55cd0232284909a357a312b80b95a6c221bb122cb19b98cd8709978",
+    "bytes": 61945
+  }
+}

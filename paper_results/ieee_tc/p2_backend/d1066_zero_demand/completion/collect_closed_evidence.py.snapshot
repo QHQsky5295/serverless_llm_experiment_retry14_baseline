@@ -1,0 +1,115 @@
+"""D1066: resume closed-run analysis after verified output-directory override."""
+import collections
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import ijson
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+RUN = RAW/'d1066_3b_zero_demand_w1_full'
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d1066_zero_demand/completion'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d703_3b_full import (audit_closed_outcome,
+    reevaluate_common_slo, audit_profile_bindings, diagnose_common_slo)
+from scripts.ieee_tc.export_d701_3b_profile import matched_remote_transfers
+from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
+
+def read(path): return json.loads(path.read_text())
+def ref(path): return dict(path=str(path),sha256=p.digest(path),bytes=path.stat().st_size)
+def save(path, value):
+    with path.open('x') as f:
+        json.dump(value,f,indent=2,allow_nan=False); f.write('\n')
+
+identity=p.scope_identity(p.cg_path().name)
+group=Path(identity['path'])
+assert os.sched_getaffinity(0)=={2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES']==''
+assert (group/'memory.high').read_text().strip()==str(3*p.GIB)
+assert (group/'memory.max').read_text().strip()==str(4*p.GIB)
+assert (group/'memory.swap.max').read_text().strip()=='0'
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+launch=read(RUN/'launch.json')
+assert all(launch[k] is True for k in ('pass','service_path_removed','native_gpu_context_release_confirmed'))
+config=ROOT/'configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml'
+# Preserve the successful first metric analysis; do not re-run/overwrite it.
+metric_path=OUT/'full4000.json'
+assert read(metric_path)['source_run']==str(RUN) and read(metric_path)['passed']
+for source in read(metric_path)['source_refs']:
+    assert p.digest(Path(source['path']))==source['sha256']
+# This is an analysis projection, not a new execution config.
+# The run used the original YAML plus the recorded FAASLORA_OUTPUT_DIR override.
+assert launch['command'][3]=='configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml'
+result=next(RUN.glob('experiment_results_full*.json'))
+with result.open('rb') as stream:
+    metadata=next(ijson.items(stream,'metadata',use_float=True))
+assert metadata['applied_env_overrides']['FAASLORA_OUTPUT_DIR']==str(RUN)
+original_config=config
+import yaml
+projection=yaml.safe_load(config.read_text())
+projection['experiment']['output_dir']=str(RUN)
+config=OUT/'analysis_output_binding.json'
+save(config,projection)
+save(OUT/'analysis_output_binding_provenance.json',dict(
+    original_config=ref(original_config), result=ref(result), launch=ref(RUN/'launch.json'),
+    changed_fields={'experiment.output_dir':str(RUN)},
+    reason='Recorded runtime output override; no serving-policy or measurement change',
+    first_collector_failure='config/run output binding differs',
+    original_collector=ref(RAW/'collect_closed_evidence.py'),
+    reused_metric=ref(metric_path)))
+audit_profile_bindings(RUN,OUT/'profile_bindings.json',OUT/'full4000.json',config,
+    ROOT/'paper_results/ieee_tc/p2_backend/d1031_3b_startup_memory_profile/export/manifest.json')
+diagnose_common_slo(RUN,OUT/'stages',OUT/'full4000.json')
+metric=read(OUT/'full4000.json')
+assert metric['passed'] and metric['counts']['n']==4000 and metric['n_correct'] is None
+assert read(OUT/'profile_bindings.json')['n']==4000
+result=next(RUN.glob('experiment_results_full*.json'))
+kinds, hashes=collections.Counter(),collections.Counter()
+with result.open('rb') as f:
+    for r in ijson.items(f,'detailed_results.tc_ieee_full.requests.item',use_float=True):
+        receipt=r['gpu_reference_evidence']['receipt']['native_host_descriptor']
+        kinds[receipt['kind']]+=1; hashes[receipt['sha256']]+=1
+assert kinds=={'fresh_native_tensor_descriptor_v1':4000}
+assert hashes=={'b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044':4000}
+save(OUT/'native_descriptor.json',dict(passed=True,requests=4000,kinds=dict(kinds),library_sha256_counts=dict(hashes),source=ref(result)))
+outcome=RUN/'launch.launch/physical_deployment/main_outcome.json'
+with outcome.open('rb') as f: transfers=next(ijson.items(f,'remote_transfers',use_float=True))
+remote='/home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-026842a3bec74f1b9e012bb813642067.jsonl'
+journal=subprocess.check_output(['ssh','-o','BatchMode=yes','-o','ConnectTimeout=8','primelora-artifact-174','cat',remote],text=True,timeout=60)
+client=HttpArtifactStoreClient(endpoint='http://192.168.4.174:18080',
+    token=Path('/home/qhq/.config/primelora-tc-d75/artifact.token').read_text().strip(),
+    timeout_s=5,required_delivery_mode='prepublished_gzip_v1')
+health=client.health()
+assert health['ok'] and health['clock_id']=='remote-process-monotonic:b7a04b62f38c4ae6adabb4da5c0fd8dc'
+matched=matched_remote_transfers(dict(remote_transfers=transfers),journal,health['clock_id'])
+with (RAW/'remote_transfers.jsonl').open('x') as f:
+    for row in matched: f.write(json.dumps(row,sort_keys=True)+'\n')
+save(RAW/'remote_health.json',{'3b':health,'collection_phase':'post_run_existing_service'})
+assert p.digest(original_config)=='263bdcd6ff255108ddaffdd9ce46898d7f12be15948d7fe3d7ac27d5ea8828d2'
+audit_closed_outcome(RUN,OUT/'delivery_and_resources.json',OUT/'full4000.json',config,'existing_unmonitored')
+samples=foreign=escaped=0
+with (RUN/'launch.launch/watchdog.jsonl').open() as f:
+    for line in f:
+        row=json.loads(line)
+        if row['event']=='resource_sample':
+            samples+=1; foreign+=len(row['gpu']['foreign_compute_processes']); escaped+=len(row['gpu']['escaped_owned_processes'])
+assert samples and foreign==0 and escaped==0
+# The runner overrides YAML cache paths; inspect the actual per-run paths.
+cache=RAW/'d1066_3b_zero_demand_w1_full_nvme'
+host=Path('/dev/shm/tc-d1066_3b_zero_demand_w1_full')
+assert not cache.exists() or not any(cache.iterdir())
+assert not host.exists() or not any(host.iterdir())
+seal=p.verify_seal(RAW.parent.parent/'slora_qualification/d435_20261011/protected_before.json')
+assert seal['pass'] and seal['entry_count']==147
+assert p.digest(ROOT/'configs/generated/lora_manifest_1000.json')=='3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+assert p.digest(ROOT/'docs/ieee_tc/EXECUTION_STATUS.md')=='41a4db5bc464dfb885b20d2b5ac321a3631a1a02291d64ac823735505957e374'
+save(OUT/'closure.json',dict(passed=True,source_commit='00f2a8730b8d9fd3bb5309c900c1694360d6b45f',
+    n_correct=None,ranking_eligible=False,development_only=True,requests=4000,
+    resource_samples=samples,foreign_compute_samples=foreign,escaped_owned_samples=escaped,
+    work_caches_empty=True,cache_paths=[str(cache),str(host)],protected_files_unchanged=147,auxiliary_identity=identity,
+    auxiliary_resources=p.cgroup_snapshot(group),source_refs=[ref(x) for x in (result,RUN/'launch.json',config,Path(__file__))]))
+with (OUT/'collect_closed_evidence.py.snapshot').open('x') as f: f.write(Path(__file__).read_text())
+save(OUT/'manifest.json',dict(files=[ref(x) for x in sorted(OUT.rglob('*')) if x.is_file()]))
+print(json.dumps(dict(passed=True,requests=4000,transfers=len(matched),wire_bytes=sum(r['transferred_bytes'] for r in transfers))))

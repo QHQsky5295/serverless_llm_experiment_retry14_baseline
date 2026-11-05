@@ -1,0 +1,85 @@
+"""D1066 result-only checkpoint; reuse D1063 protected-file and seal helpers."""
+import importlib.util
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).parent
+spec = importlib.util.spec_from_file_location('prior_checkpoint', RAW.parent/'d1063_20261104/checkpoint.py')
+c = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(c)
+p = c.p
+OUT = ROOT/'paper_results/ieee_tc/p2_backend/d1066_zero_demand'
+
+def main():
+    assert c.git('rev-parse', 'HEAD') == '00f2a8730b8d9fd3bb5309c900c1694360d6b45f'
+    assert c.git('branch', '--show-current') == 'retry14_continuous_queue_v2'
+    assert not c.git('diff', '--cached', '--name-only')
+    assert os.sched_getaffinity(0) == {2, 3, 26, 27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+    group = p.cg_path()
+    assert (group/'memory.max').read_text().strip() == str(4*p.GIB)
+    assert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()
+    initial = json.loads((OUT/'manifest.json').read_text())
+    for source in initial['sources']:
+        assert p.digest(Path(source['path'])) == source['sha256'], source['path']
+    for name, digest in c.PROTECTED.items():
+        assert p.digest(ROOT/name) == digest, name
+    assert p.check_plan() == initial['plan_sha256']
+    closed = json.loads((OUT/'completion/closure.json').read_text())
+    analysis = json.loads((OUT/'completion_analysis.json').read_text())
+    assert closed['passed'] and analysis['passed'] and analysis['matched_request_inputs']
+    assert analysis['noop_window_ingress_counts'] == {'0': 89}
+    for entry in json.loads((OUT/'completion/manifest.json').read_text())['files']:
+        assert p.digest(Path(entry['path'])) == entry['sha256']
+    for entry in analysis['source_refs']:
+        assert p.digest(Path(entry['path'])) == entry['sha256']
+    seal = p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))
+    assert seal['pass'] and seal['entry_count'] == 147
+    c.git('diff', '--check')
+    paths = [ROOT/'docs/ieee_tc/D1066_ZERO_DEMAND_RESIDENCY_20261105.md']
+    paths += [OUT/name for name in ('analyze_completion.py', 'completion_analysis.json',
+        'completion_analysis_failures.md', 'comparison_sources.json', 'comparison_sources_v2.json')]
+    paths += [x for dirname in ('completion', 'overhead_comparison') for x in (OUT/dirname).rglob('*') if x.is_file()]
+    snapshot = OUT/'checkpoint_completion.py.snapshot'
+    with snapshot.open('xb') as stream:
+        stream.write(Path(__file__).read_bytes())
+    paths.append(snapshot)
+    manifest = OUT/'completion_checkpoint.json'
+    c.write_json(manifest, dict(kind='d1066_completed_development_checkpoint_v1',
+        run_source_commit=c.git('rev-parse','HEAD'), performance_run_completed=True,
+        formal_ranking_eligible=False, numerical_correctness_qualified=False,
+        decision='partial_accept_exact_zero_work_elision_not_full_net_benefit',
+        old_submission_seal=seal, protected=c.PROTECTED, plan_sha256=p.check_plan(),
+        tested_sources=initial['sources'], reused_tests=initial['tests'],
+        files=[dict(path=str(x),sha256=p.digest(x),bytes=x.stat().st_size) for x in paths],
+        scope=p.scope_identity(group.name),resources=p.cgroup_snapshot(group),
+        full_faaslora_v2_integrated=False))
+    paths.append(manifest)
+    pattern = r'-----BEGIN (?:RSA |OPENSSH |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|Authorization:\s*Bearer\s+\S+'
+    for path in paths:
+        assert not re.search(pattern,path.read_text()), path
+    relative = [str(path.relative_to(ROOT)) for path in paths]
+    assert not (set(relative) & set(c.PROTECTED))
+    c.git('add','--',*relative)
+    assert set(c.git('diff','--cached','--name-only').splitlines()) == set(relative)
+    c.git('diff','--cached','--check')
+    c.git('commit','-m','D1066 close zero-demand replay with mixed SLO and resource evidence')
+    head = c.git('rev-parse','HEAD')
+    verified=[]
+    for remote,branch in [('origin','refs/heads/retry14_continuous_queue_v2'),
+                          ('faaslora_origin','refs/heads/backup/d1066-zero-demand-20261105')]:
+        subprocess.run(['git','push',remote,'HEAD:'+branch],cwd=ROOT,check=True)
+        assert c.git('ls-remote',remote,branch).split()[0] == head
+        verified.append(dict(remote=remote,ref=branch,commit=head))
+    for name,digest in c.PROTECTED.items():
+        assert p.digest(ROOT/name) == digest
+    c.write_json(RAW/'completion_backup.json',dict(passed=True,commit=head,verified=verified,
+        paths=relative,user_dirty_unchanged=True,full_faaslora_v2_integrated=False,
+        resources=p.cgroup_snapshot(group)))
+    print(json.dumps(dict(passed=True,commit=head,verified=verified)))
+
+if __name__ == '__main__':
+    main()

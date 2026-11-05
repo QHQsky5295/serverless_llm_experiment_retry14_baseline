@@ -1,5 +1,83 @@
 # D1066：零需求轮次的精确空规划消除
 
+## 当前结论：完整回放已结束，部分采纳，不关闭 Full 净收益问题
+
+2026-11-05：上一 goal turn 为 VERIFIED_WAIT；本次为 PROGRESS，完成终态、
+原生计量、真实远端、机制触发和同输入阶段分析。以下已结束结论覆盖本页
+后面的历史“仍在运行”段落；不重复启动 D1066。目标保持 active。
+
+| 3B W1 指标 | 原 Full D1047 | D1066 | 本次变化 |
+|---|---:|---:|---:|
+| 成功且原生固定输出数量核对通过 | 4000 | 4000 | 相同 |
+| 联合 TTFT/TPOT 达成率 | 95.900% | 95.175% | −0.725 个百分点 |
+| 生命周期物理 GPU-s | 6182.715971 | 6161.766579 | 降低 0.339% |
+| P95 TTFT，ms | 1114.091001 | 1079.033689 | 降低 3.147% |
+| 平均 TTFT，ms | 454.156048 | 462.314012 | 增加 1.796% |
+| P95 TPOT，ms/token | 31.774061 | 33.133573 | 增加 4.279% |
+| 平均 E2E，ms | 2323.526111 | 2360.400788 | 增加 1.587% |
+| 规划 worker CPU 累计，s | 506.734154 | 451.373079 | 降低约 10.93% |
+| 规划 CPU 事务数 | 2407 | 2148 | −259 |
+| 共享文件观察次数 | 1048 | 960 | −88 |
+
+完整输入、请求/adapter、到达、prompt/native-prompt、target、generation
+逐请求相同。新的 no-op journal 有 89 个真实控制轮次、249 个副本目标；每行
+需求计数均为零，独立 ingress 也确认所有对应 (t−5,t] 窗口无到达。并非把
+旧运行的 260 个保守认证 epoch 当作本轮实际消除数。非零轮仍完整观察/规划。
+2129 个 residency epoch、2139 个 owned execution 事务、9 个初始化 GPU
+objective；file plans 为 completed 1341、superseded 794、cancelled 4。
+worker CPU 均值仍约 210.136 ms，与原 210.525 ms 接近；省掉空轮没有解决
+有需求时每轮的主要计算量。其累计时间与请求重叠，不能从 E2E 直接扣除。
+
+判断按冻结 V1/V2，而非单独 TPOT 或 CE：本轮 3807/4000 达到既定 95%
+时延要求，且 U 小于 W1 预算 6754.783565 GPU-s；G1 的资源观测值略好、
+P95 TTFT 略好，但联合 SLO 观测非劣不成立。保留该公式保持的精确空计算
+消除作为**部分采纳的开发实现**，不声称综合优势、稳健收益或正式 G1/G2
+资格。独立数值 adapter 正确性仍未知，n_correct=null、ranking_eligible=false。
+
+原 A1 完整 11 组继续以 D1047 为 canonical Full，D1066 单列为开发候选，
+不将新 Full 静默混入旧版本消融矩阵。之前 ElasticOnly（98.200%、
+6032.623108 GPU-s、695.139877 ms）与 ElasticLocality（98.850%、
+6087.726524 GPU-s、658.336802 ms）仍在资源和尾延迟上领先 D1066。
+这两者只属消融，不放入外部论文 baseline 表。当前证据不能支撑 Full 净收益。
+
+### 来源、失败与资源闭环
+
+- 原始运行完整结束于约 02:57；launcher SHA
+  `5eccac9da38b52cece241c70632bf67f16ca31a837bf94749d4f54f4a8769af7`。
+  已确认实际 GPU 释放、服务域消失，分析前再次核对无 GPU compute 进程。
+- 4000 请求完整 profile/native descriptor，TTFT/TPOT/E2E 重算及阶段恒等式
+  误差均 0；dispatch tier 为 GPU 3296、NVMe 569、HOST 5、Remote 130。
+- 真正远端 132 次、306360162 线上字节；客户端/服务端 ID、SHA、字节一一
+  相符，请求内无打包，与原 D1047 的总传输相同。不推断通信量贡献。
+- 2265 次资源采样：峰值 21814685696 B，high/max/OOM/kill/swap 均零，
+  无 foreign/escaped GPU 进程；10 个实际 GPU allocation 全部释放。
+  远端仍是 existing_unmonitored，未补造持续 CPU/外部干扰监控。
+- 首次收集在已成功的指标重算后，因原 YAML 输出目录与入口环境覆盖值
+  不同而停下。恢复版核对实际 metadata 和 launch 命令，只生成分析用目录
+  绑定投影；不更改策略或源 YAML，不覆盖指标或重跑 GPU。
+- 机制比较首次遇到旧/新 manifest 的历史 analyzer SHA 冲突，保留失败源集，
+  只绑定实际读取的数据源并保留原 manifests。详见 completion_analysis_failures.md。
+- 新结果与分析在 `paper_results/ieee_tc/p2_backend/d1066_zero_demand/`，
+  包括 completion、overhead_comparison、completion_analysis.json。
+  147 项旧投稿文件及两项用户 dirty SHA 保持不变；未清理唯一资产或失败数据。
+
+### 下一主线与退出条件
+
+不重复 D1066，不再沿“零需求轮”追加性能运行，不为小改善画优胜图。
+下一步使用已记录的规划子阶段与既有调用/代码历史，定位**有需求轮次**的
+剩余计算或请求执行干扰；只有存在新的具体证据，才登记一个公式保持的
+候选。D130 已融合生成/验证事务，D163/D741 已消除重复消费展开；不把这些
+已完成优化重新实施，也不删去实时物理准入或以扩大阈值换达标。
+新的开发版若形成足够优势，再统一同版本主比较与受影响消融；不能仅因
+比父版本低 0.34% GPU-s 就关闭“机制是否值得”的审稿问题。
+
+完整未完成范围不变：Full净收益、7B A1与两个累积点、受控A2–A5、M2、
+S1–S13、CE/价格/Pareto、B1/B2/C1/C2/C3、公式推导/创新性/两轮审稿文档、
+IEEE图表、同版本最终来源统一及实际 FaaSLoRA V2 集成。共享 k3s 不操作，
+HydraServe 已完成的隔离适配不重开。下一检查点仅提交本轮白名单资料。
+
+---
+
 2026-11-05。D1065 为 PROGRESS；本轮为 PROGRESS，新增保留日志证据、
 一个公式保持的候选及边界测试。目标 active；此页作为增量交接，保护用户
 dirty 的 EXECUTION_STATUS.md，不把其 D998 历史头部当当前进度。
@@ -92,3 +170,48 @@ HydraServe 已采用隔离 rootless Podman 完成两模型既定比较；不操�
 两个累积点、受控A2–A5、M2、S1–S13、CE/价格/Pareto、B1/B2/C1/C2/C3、
 公式推导/新颖性/两轮审稿文档、IEEE图表、最终同版本来源统一及V2集成。
 本页登记不是启动/完成回执，实际运行状态须由PID、launcher和终态文件确认。
+
+## 已实际启动：2026-11-05 02:20，仍在运行
+
+02:19:01 通过 tmux `tc-d1066-full` 启动上述唯一完整 W1；02:20:36 的
+请求发生器已有 26 条 created/submitted，服务最近进度为 15 成功、0失败。
+这是运行进度，不是完整 SLO/资源结论；日志的 legacy 5000ms 与 CE 不用来
+判断冻结协议达标。`launch.json` 尚不存在，不能重复启动。
+
+启动检查点 `00f2a8730b8d9fd3bb5309c900c1694360d6b45f` 已核实推送至
+origin/retry14_continuous_queue_v2 和
+faaslora_origin/backup/d1066-zero-demand-20261105；实际 FaaSLoRA V2
+分歧未强推。备份回执位于 raw 根 backup.json。本段监测交接尚未另推，
+正常收尾后纳入下一检查点，不在测量中做维护或大规模扫描。
+
+- launcher PID 939560；publisher PID 939569/start_ticks 332359024；watchdog PID 939611。
+- service scope `primelora-tc-svc-9747084b1402435396b34bfb162e2855.scope`，
+  InvocationID `358b24a83ce2488a8fa6f9b1895d4e57`，active/running。
+- auxiliary scope `primelora-tc-aux-e32de4b3394749fcbe8b5cd5aa0c190c.scope`。
+- 部署时刻3323591.461606342，业务起点3323651.461606342，正好60秒。
+- W1 count/source_count=4000，source SHA
+  `4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d`，
+  view SHA `8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f`。
+- watchdog sample92：peak16252030976B、high/max/OOM/kill/swap均0，
+  主机可用95221972992B、磁盘161541894144B，无foreign/escaped，无warning/abort。
+  这是一次轻量采样，完整资源结论留待终态审计。
+
+接续只监测此 D1066；结束后确认实际释放，复用 D1047 的完整收集器/原生
+计量分析，另统计新 no-op journal。不得中途修改配置/代码、额外 GPU 测试、
+远端重启或清理压缩。负结果保留，完整实验范围与数值正确性限制不变。
+
+## 同一运行监测：2026-11-05 02:26，VERIFIED_WAIT
+
+已重新读取目标、完整计划与现有交接。上一 goal turn 为 PROGRESS（实现、
+测试、备份及实际启动），本轮为 VERIFIED_WAIT，不将监测计为新性能实验。
+02:22、02:23、02:25、02:26 均直接核对上述 launcher/publisher/watchdog
+PID 和相同 service InvocationID；三者持续存活，scope active/running。
+日志完成数从190→387→500→624，全部记录成功；第一段完成后的空闲期随后
+正常进入第二段，未重启。02:26:49 最新日志640到达、624完成、0失败。
+
+watchdog sample459：服务峰值17.703GiB，high/max/OOM/kill/swap均0；
+主机可用91.464GiB、磁盘149.096GiB，无warning/abort，当前无foreign/escaped。
+磁盘低于下一重型任务启动线但高于本轮停止线，测量中不清理。未产生完整
+launch终态，不计算最终SLO/资源排名、不换候选。下一仍监测同一运行，
+结束后实际释放→完整计量/新no-op证据→相对D1047及消融组解释→接受或撤销。
+本轮没有服务代码、配置、远端、基线或论文修改，也没有新增实验/重复运行。

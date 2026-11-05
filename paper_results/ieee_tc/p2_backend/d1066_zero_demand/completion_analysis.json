@@ -1,0 +1,136 @@
+{
+  "kind": "zero_demand_completion_analysis_d1066_v1",
+  "passed": true,
+  "noop_rounds": 89,
+  "noop_replica_targets": 249,
+  "noop_window_ingress_counts": {
+    "0": 89
+  },
+  "residency_epochs": 2129,
+  "residency_states": {
+    "completed": 1332,
+    "superseded": 793,
+    "cancelled": 4
+  },
+  "unique_file_observations": 960,
+  "file_observation_wall_ms": {
+    "count": 960,
+    "mean": 61.41774390853243,
+    "p50_type1": 40.51890689879656,
+    "p95_type1": 77.52601383253932,
+    "sum": 58961.03415219113
+  },
+  "file_plan_states": {
+    "completed": 1341,
+    "superseded": 794,
+    "cancelled": 4
+  },
+  "file_plan_targets": 2143,
+  "file_plan_results": 718,
+  "differences": {
+    "physical_gpu_seconds": {
+      "parent": 6182.715970784891,
+      "candidate": 6161.766579016112,
+      "absolute_improvement": 20.949391768779606,
+      "relative_improvement": 0.003388380101523586
+    },
+    "ttft_ms_mean": {
+      "parent": 454.1560476301238,
+      "candidate": 462.3140121198958,
+      "absolute_improvement": -8.157964489771985,
+      "relative_improvement": -0.01796291061704861
+    },
+    "ttft_ms_p95_type1": {
+      "parent": 1114.0910014510155,
+      "candidate": 1079.0336891077459,
+      "absolute_improvement": 35.05731234326959,
+      "relative_improvement": 0.03146718921309858
+    },
+    "tpot_ms_mean": {
+      "parent": 17.417030418550947,
+      "candidate": 17.870217578376998,
+      "absolute_improvement": -0.45318715982605084,
+      "relative_improvement": -0.026019771966601116
+    },
+    "tpot_ms_p95_type1": {
+      "parent": 31.774061266332865,
+      "candidate": 33.13357279134485,
+      "absolute_improvement": -1.3595115250119818,
+      "relative_improvement": -0.04278683526214799
+    },
+    "e2e_ms_mean": {
+      "parent": 2323.5261109228013,
+      "candidate": 2360.400788132916,
+      "absolute_improvement": -36.874677210114896,
+      "relative_improvement": -0.015870136787690288
+    },
+    "e2e_ms_p95_type1": {
+      "parent": 5001.507240347564,
+      "candidate": 5074.920678976923,
+      "absolute_improvement": -73.413438629359,
+      "relative_improvement": -0.014678262991829113
+    }
+  },
+  "joint_slo_difference_pp": -0.7249999999999979,
+  "matched_request_inputs": true,
+  "numerical_correctness_qualified": false,
+  "n_correct": null,
+  "ranking_eligible": false,
+  "confidence_interval": null,
+  "new_gpu_runs": 0,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1066_20261105/d1066_3b_zero_demand_w1_full/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "77002777070956fb5157aa0d4841b564f820578050b3c0c3439fc8c48e3b649d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1066_20261105/d1066_3b_zero_demand_w1_full/launch.launch/service_ingress.jsonl",
+      "sha256": "7dbe5734c1220b4795330957713b9cb0d0578bcb3c279934acd7af1fe090cfb1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1066_zero_demand/comparison_sources_v2.json",
+      "sha256": "5035288d9eb5a0c4fb8a100bcbf827ccb41b5d44d845beaf9b0272d98da598d6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1066_zero_demand/completion/closure.json",
+      "sha256": "cd96c0b3d9e5480af070ed212f3bbce64be421d7f43de20987eca02e7dd0e7d0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1066_zero_demand/overhead_comparison/summary.json",
+      "sha256": "2c00abc0865c30719fcbe948696e73b7b4082fb4369fc7e1985ad0d044ec1687"
+    }
+  ],
+  "script": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1066_zero_demand/analyze_completion.py",
+    "sha256": "97bf4af54714e182a5a01fe2fc0d67046fdb4fc5d3d940a016263ad8b45e2776"
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-fa63dc02ed184196ac508b0b2a93dfaa.scope",
+    "memory.current": 56741888,
+    "memory.peak": 65871872,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 24285148\nuser_usec 22987408\nsystem_usec 1297740\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "caveats": [
+    "No-op rounds and per-replica avoided opportunities are distinct counts.",
+    "Historical 260 was only a conservative bound, not the exact number removed here.",
+    "Live request ingress is an independent observation, not a replacement for the authoritative demand journal.",
+    "Closed-loop histories differ; less planning CPU is not an additive subtraction from TTFT/E2E.",
+    "One fixed known trace; neither numerical adapter correctness nor general performance dominance is established."
+  ]
+}
