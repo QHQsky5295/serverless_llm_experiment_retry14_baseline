@@ -1,0 +1,35 @@
+{
+  "code_head": "f31e5377c9b8051b525abab0186eaa911d7ad669",
+  "wrapper": {
+    "path": "scripts/ieee_tc/run_d1000_3b_route_confirmed_arrival_prefetch_w1.sh",
+    "sha256": "28ee05d34392c4b35a98575f9a5bc95c37598b09c50e388d165441b98e4cebe4"
+  },
+  "config": {
+    "path": "configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml",
+    "sha256": "263bdcd6ff255108ddaffdd9ce46898d7f12be15948d7fe3d7ac27d5ea8828d2"
+  },
+  "trace": {
+    "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "view_sha256": "8a7fa829c4902a761efcf58c765580cbdb5e0f367e3c2245ea43417409e9494f"
+  },
+  "adapter_subset_sha256": "6c5fc286e3cef00efdd6b84e26c841f3b09d20b17a57b8f6a394b8d27bb1e86b",
+  "native_descriptor": {
+    "mode": "descriptor",
+    "library": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so",
+    "sha256": "b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044"
+  },
+  "raw_result_root": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1068_20261105/d1068_3b_full_residency_noop_w1_20261105_attempt7",
+  "raw_files": {
+    "experiment_results.json": "ba02c516fc7dee58f8027c2a2a482cdecaa9e38accfbec04170d17c5091d98f4",
+    "launch.json": "f5c090c23e775e6baa31e8008d7a22ba15a36985cfb3d8b9315b713e81689ce2",
+    "main_outcome.json": "cde0cd0c555564390a28fd803d7cc345e21b0f200413be89d46a212ac35d54d4",
+    "summary.json": "8e41429d517be7eb25f0b684adb83c1c095623e16db5e2e9d7c6c6fa210dca77",
+    "physical_resource_summary.json": "dfce208493e00d5559d6c9cf51c179f70536f9c20f18cba57ce4511db1586c1f",
+    "exec_receipt.json": "0627b4e20c198bc8d786cbb9669f450c594dc64b517dc4408eae9da44fdca443",
+    "watchdog.jsonl": "88b6a7d48af26bff7b2176dd10fda8f3a2fc2195dd1287a854415cd86504eeba",
+    "service.log": "6751b977d9b3a2bed138097edd6df11b7a4f4eca4730e86662591d3a69d7a6aa",
+    "replay.jsonl": "03eb5bb34313c42ca42c5350156415671e2bf5f33bcabf797d62c6e0cd8b813f",
+    "service_ingress.jsonl": "5a89fdc8d929ad76426fbfe5a24eae0761b7f6798772f7d6f6c303f64663e95b"
+  }
+}

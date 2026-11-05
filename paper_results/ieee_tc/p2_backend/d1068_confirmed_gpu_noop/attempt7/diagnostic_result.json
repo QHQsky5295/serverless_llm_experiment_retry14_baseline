@@ -1,0 +1,66 @@
+{
+  "campaign": "D1068",
+  "attempt": 7,
+  "model": "Llama-3.2-3B-Instruct",
+  "workload": "W1",
+  "scenario": "tc_ieee_full",
+  "status": "completed_diagnostic_native_descriptor_verified",
+  "formal_comparison_qualified": false,
+  "canonical_ranking_eligible": false,
+  "qualification_boundary": {
+    "native_host_descriptor_verified": true,
+    "observed_descriptor_kind": "fresh_native_tensor_descriptor_v1",
+    "formal_run": false,
+    "trace_role": "exploratory",
+    "n_correct": null,
+    "reason_not_canonical": "The existing D1000 wrapper intentionally records this mechanism replay as exploratory; the native descriptor is correct, but the run is not a frozen formal G1/G2 comparison and arithmetic correctness was not independently established."
+  },
+  "run": {
+    "planned_requests": 4000,
+    "completed_requests": 4000,
+    "failed_requests": 0,
+    "run_completed": true,
+    "generation_contract": "fixed_length_greedy_v1",
+    "total_input_tokens": 2594938,
+    "total_output_tokens": 458224,
+    "total_tokens": 3053162,
+    "remote_artifact_transfers": 132,
+    "request_time_pack_count": 0,
+    "scale_up_events": 8,
+    "scale_down_events": 7
+  },
+  "mechanism_evidence": {
+    "confirmed_gpu_no_preparation_proofs": 794,
+    "zero_demand_residency_noops": 87,
+    "confirmed_file_copy_noops": 6,
+    "serialized_event_counts": {
+      "ieee_confirmed_gpu_no_preparation_v1": 1588,
+      "ieee_residency_zero_demand_v1": 174,
+      "ieee_confirmed_file_copy_v1": 12
+    },
+    "counting_rule": "The public/private event serialization duplicates the event-kind records. Logical counts use the confirmed_gpu_no_preparation flag and one coordination_after_shutdown.ieee_residency_noop_rounds array; duplicated records are not additional executions.",
+    "remote_delivery_mode": "prepublished_gzip_v1",
+    "remote_request_packing": false
+  },
+  "diagnostic_metrics_only": {
+    "avg_ttft_ms": 2235.297490900266,
+    "p95_ttft_ms": 1667.3487724736303,
+    "p99_ttft_ms": 66575.95518504734,
+    "avg_tpot_ms": 17.782316634402633,
+    "avg_e2e_ms": 4154.920010734815,
+    "p95_e2e_ms": 5956.075941189186,
+    "p99_e2e_ms": 69367.16312951397,
+    "legacy_slo_attainment_5000ms": 0.9615,
+    "physical_gpu_seconds_observed": 6054.364375863224,
+    "infra_gpu_seconds_total": 7265.094304039609,
+    "metric_use": "mechanism/lifecycle diagnostic only; do not use as formal G1/G2 ranking or as a causal delta against D1047"
+  },
+  "lifecycle": {
+    "physical_measurement_complete": true,
+    "open_lease_ids": [],
+    "cleanup_complete": true,
+    "native_gpu_context_release_confirmed": true,
+    "worker_failure_evidence_retained": "/home/qhq/serverless_llm_experiment/results/worker_failures/faaslora_worker_3d094zga_engine_dead_1793876240"
+  },
+  "next_action": "Use the event and lifecycle evidence for D1068 documentation. Do not create another short replay. A future formal ranking point, if required, must be registered under a new formal protocol key with formal trace identity and an independent correctness contract; it must not overwrite this diagnostic."
+}
