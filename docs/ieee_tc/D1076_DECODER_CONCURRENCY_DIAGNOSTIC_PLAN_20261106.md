@@ -33,3 +33,19 @@ short-output TPOT, TTFT and dispatch/admission, native decode timing, GPU
 seconds, scale events, OOM/watchdog status, and GPU release. No threshold or
 seed selection is permitted after observation.
 
+## D1076 prefix attempt outcome
+
+The 1,000-request prefix did not enter serving. The existing frozen service
+profile rejected the runtime-cap override with:
+
+```
+ValueError: service profile model/configuration/context mismatch
+```
+
+The profile is bound to the D1047 `max_num_seqs=8` runtime context. No request
+was served and no performance result was collected. The failed launch is
+retained for provenance; we do not bypass the profile identity check or
+reinterpret this as evidence against lower decoder concurrency. A valid
+`max_num_seqs=4` candidate would first require a new measured service profile,
+so D1074 remains the only valid current control-policy diagnostic.
+
