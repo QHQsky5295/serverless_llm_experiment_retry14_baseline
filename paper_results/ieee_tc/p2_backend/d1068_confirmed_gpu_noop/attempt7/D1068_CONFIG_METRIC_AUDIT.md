@@ -40,6 +40,12 @@ among other differences:
   instances and an 85--87 s engine activation. Its first request therefore
   accumulated about 107.4 s of dispatch-window wait. D992's retained run
   started with one live instance and its first activations were about 37 s.
+* The recorded pre-replay deployment accounting is 154.311 s for D1068,
+  including 154.151 s of primary-engine initialization, versus 52.672 s
+  (52.509 s initialization) in D1047. This is lifecycle evidence and is
+  included in GPU-s/cost accounting but excluded from request TTFT by the
+  frozen metric boundary. It still explains why the D1068 initial owner was
+  not a like-for-like warm-start state when the first arrivals were observed.
 
 These are lifecycle and protocol differences, not consequences that can be
 attributed to the confirmed-GPU no-preparation proof. The lower physical
