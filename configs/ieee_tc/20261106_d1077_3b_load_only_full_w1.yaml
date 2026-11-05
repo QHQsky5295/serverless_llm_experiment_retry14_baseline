@@ -150,12 +150,6 @@ scenarios:
 - name: tc_ieee_full
   baseline_type: faaslora_full
   preloading:
-    file_cache_policy: demand_lru
-    enabled: true
-    hierarchical_residency_enabled: true
-    dynamic_forwarding_enabled: false
-    gpu_dynamic_forwarding_enabled: false
-    host_promotion_on_nvme_hit_enabled: true
     nvme_capacity_mb: 16384
     host_capacity_mb: 16384
     online_hotness_window_s: 5
