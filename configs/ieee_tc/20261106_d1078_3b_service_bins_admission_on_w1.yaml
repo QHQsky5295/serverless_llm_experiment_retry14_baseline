@@ -120,7 +120,7 @@ resource_coordination:
     context:
       backend_environment_sha256: cf38bbf8d3b80b30d88ac38e27722d389a24ae516565708cfc924937589079cf
       resource_envelope_sha256: e631b2a30c9c26e2201afb968a17e8980b32b677e81d57e79fa1d1b79435dc3d
-      input_contract_sha256: 98ed0e7cde515e44d3f41cde602053537a145cea0e1ed7ddc589c3f7fc2b45db8
+      input_contract_sha256: 98ed0e7cde515e44d3f41cde602053537a145cea0e1ed7ddc589c3f7fc2b45db
     ewma_beta: 0.5
   ieee_initial_control_policy: observed_arrivals_v1
   ieee_cpu_frontend_policy: fixed_uuid_cpu_frontend_v1
