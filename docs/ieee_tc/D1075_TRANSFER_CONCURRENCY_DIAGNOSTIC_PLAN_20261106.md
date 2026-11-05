@@ -33,3 +33,21 @@ TPOT distribution, dispatch/admission wait, LoRA I/O, transfer concurrency,
 GPU seconds, scale events, OOM/watchdog status, and release confirmation. No
 thresholds or seeds may be changed after seeing the result.
 
+## D1075 prefix attempt outcome
+
+The registered 1,000-request prefix attempt was rejected before serving by the
+existing online-binding invariant:
+
+```
+ValueError: IEEE transfer pressure limit must match the actual shared movement owner
+```
+
+The attempted override changed `max_concurrent_loads` to 1 while the frozen
+native admission profile and shared movement owner were both calibrated for
+`transfer_limit=3`. No request was served, no performance data was collected,
+and the failed launch is retained as a failed run key. We do not rewrite the
+profile or bypass this invariant. A valid concurrency experiment would first
+need a separately measured native profile with the new transfer limit, as
+required by the existing D1011/D1012 precedent; it is therefore not part of
+the current optimization loop.
+
