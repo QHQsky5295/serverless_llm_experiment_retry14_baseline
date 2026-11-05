@@ -1,0 +1,195 @@
+{
+  "kind": "d1067_d1066_existing_planner_interval_partition_v1",
+  "passed": true,
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1066_20261105/d1066_3b_zero_demand_w1_full/launch.launch/physical_deployment/main_outcome.json",
+    "sha256": "77002777070956fb5157aa0d4841b564f820578050b3c0c3439fc8c48e3b649d",
+    "bytes": 394580111
+  },
+  "context": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1066_zero_demand/completion/delivery_and_resources.json",
+    "sha256": "1451b2e12014c90120c5a2afa964e80ebf8ef6795aeb07f287e0b197d9ee0ff9"
+  },
+  "reused_script": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d750_20261023/planner.py",
+    "sha256": "76e81ba80fb4dc70c172055263f0c2c85d0b165d6c552cc650d9a83d90715ade"
+  },
+  "script_sha256": "7813b170ae209859562b151835779235edc37b8d0da1141bfc40bc4c5b4fdf47",
+  "scope": {
+    "unit": "primelora-tc-test-3da81ffcbba54c21a7dfda1a24192afc.scope",
+    "invocation_id": "54fc3b9290354744b3ebea3abd133694",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-3da81ffcbba54c21a7dfda1a24192afc.scope",
+    "inode": 39693375
+  },
+  "events": 2148,
+  "groups": [
+    {
+      "operation": "initialized_gpu_objective",
+      "n": 9,
+      "states": {
+        "completed": 9
+      },
+      "metrics": {
+        "parent_freeze_ms": {
+          "count": 9,
+          "mean": 11.642489013158613,
+          "p50_type1": 12.01920723542571,
+          "p95_type1": 13.179983012378216,
+          "total": 104.78240111842752
+        },
+        "async_wait_for_planner_ms": {
+          "count": 9,
+          "mean": 64.03778239877687,
+          "p50_type1": 0.00857887789607048,
+          "p95_type1": 357.95188695192337,
+          "total": 576.3400415889919
+        },
+        "child_dispatch_ms": {
+          "count": 9,
+          "mean": 7.569464906636211,
+          "p50_type1": 4.094949923455715,
+          "p95_type1": 26.474461890757084,
+          "total": 68.1251841597259
+        },
+        "child_elapsed_ms": {
+          "count": 9,
+          "mean": 31.179083821674187,
+          "p50_type1": 31.48323018103838,
+          "p95_type1": 33.77587394788861,
+          "total": 280.6117543950677
+        },
+        "child_finish_to_parent_join_ms": {
+          "count": 9,
+          "mean": 3.453794401139021,
+          "p50_type1": 2.0329486578702927,
+          "p95_type1": 13.421440031379461,
+          "total": 31.08414961025119
+        },
+        "input_bytes": {
+          "count": 9,
+          "mean": 1034361.8888888889,
+          "p50_type1": 1036692,
+          "p95_type1": 1089534,
+          "total": 9309257
+        },
+        "output_bytes": {
+          "count": 9,
+          "mean": 250076.66666666666,
+          "p50_type1": 250588,
+          "p95_type1": 251099,
+          "total": 2250690
+        },
+        "initialized_execution_bytes": {
+          "count": 9,
+          "mean": 0,
+          "p50_type1": 0,
+          "p95_type1": 0,
+          "total": 0
+        },
+        "worker_cpu_ms": {
+          "count": 9,
+          "mean": 31.17277455555229,
+          "p50_type1": 31.478133999998548,
+          "p95_type1": 33.76040800000624,
+          "total": 280.55497099997064
+        }
+      }
+    },
+    {
+      "operation": "owned_execution_epoch",
+      "n": 2139,
+      "states": {
+        "completed": 2139
+      },
+      "metrics": {
+        "parent_freeze_ms": {
+          "count": 2139,
+          "mean": 8.81521405531124,
+          "p50_type1": 8.410136681050062,
+          "p95_type1": 11.819446925073862,
+          "total": 18855.74286431074
+        },
+        "async_wait_for_planner_ms": {
+          "count": 2139,
+          "mean": 169.0098161031085,
+          "p50_type1": 165.45978002250195,
+          "p95_type1": 622.0248020254076,
+          "total": 361511.9966445491
+        },
+        "child_dispatch_ms": {
+          "count": 2139,
+          "mean": 14.424770214046731,
+          "p50_type1": 2.817959990352392,
+          "p95_type1": 17.418113071471453,
+          "total": 30854.583487845957
+        },
+        "child_elapsed_ms": {
+          "count": 2139,
+          "mean": 210.92531459938078,
+          "p50_type1": 178.31935081630945,
+          "p95_type1": 473.44166366383433,
+          "total": 451169.2479280755
+        },
+        "child_finish_to_parent_join_ms": {
+          "count": 2139,
+          "mean": 15.313192955146414,
+          "p50_type1": 8.068621158599854,
+          "p95_type1": 22.951511200517416,
+          "total": 32754.91973105818
+        },
+        "input_bytes": {
+          "count": 2139,
+          "mean": 826004.9658719028,
+          "p50_type1": 835149,
+          "p95_type1": 859082,
+          "total": 1766824622
+        },
+        "output_bytes": {
+          "count": 2139,
+          "mean": 1431200.5909303413,
+          "p50_type1": 1448423,
+          "p95_type1": 1513490,
+          "total": 3061338064
+        },
+        "initialized_execution_bytes": {
+          "count": 2139,
+          "mean": 137736.793828892,
+          "p50_type1": 238838,
+          "p95_type1": 239835,
+          "total": 294619002
+        },
+        "worker_cpu_ms": {
+          "count": 2139,
+          "mean": 210.8894455390369,
+          "p50_type1": 178.30225200000882,
+          "p95_type1": 473.39654299997846,
+          "total": 451092.5240079999
+        },
+        "frozen_validation_ms": {
+          "count": 2139,
+          "mean": 39.013428544967866,
+          "p50_type1": 38.846306037157774,
+          "p95_type1": 42.47210267931223,
+          "total": 83449.72365768626
+        },
+        "execution_objectives_ms": {
+          "count": 2139,
+          "mean": 12.066900236606111,
+          "p50_type1": 16.95342967286706,
+          "p95_type1": 20.27140511199832,
+          "total": 25811.09960610047
+        },
+        "unpartitioned_child_wall_ms": {
+          "count": 2139,
+          "mean": 159.84498581780682,
+          "p50_type1": 125.27673039585352,
+          "p95_type1": 417.29233833029866,
+          "total": 341908.42466428876
+        }
+      }
+    }
+  ],
+  "new_gpu_replays": 0,
+  "production_changes": false,
+  "limitation": "Worker wall residual includes decoding, input construction, optimization, hashing and output serialization; it is NOT measured knapsack time. Async queue/dispatch/return delays are not controller CPU. No causal TTFT subtraction or performance gain is inferred."
+}

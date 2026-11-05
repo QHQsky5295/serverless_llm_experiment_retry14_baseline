@@ -1,0 +1,37 @@
+{
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1066_20261105/d1066_3b_zero_demand_w1_full/launch.launch/physical_deployment/main_outcome.json",
+    "sha256": "77002777070956fb5157aa0d4841b564f820578050b3c0c3439fc8c48e3b649d",
+    "bytes": 394580111
+  },
+  "groups": {
+    "explicit_reused_gpu": {
+      "n": 27,
+      "metrics_ms": {
+        "count": 27,
+        "mean": 2.801110312618591,
+        "p50_type1": 0.07901201024651527,
+        "p95_type1": 0.2114148810505867,
+        "total": 75.62997844070196
+      },
+      "native_load_invoked": {
+        "False": 27
+      }
+    },
+    "reuse_flag_absent": {
+      "n": 693,
+      "metrics_ms": {
+        "count": 693,
+        "mean": 0.03958638881106053,
+        "p50_type1": 0.03710296005010605,
+        "p95_type1": 0.05109887570142746,
+        "total": 27.43336744606495
+      },
+      "native_load_invoked": {
+        "True": 693
+      }
+    }
+  },
+  "interpretation": "Aggregate observed preparation-acquisition fences only; not request/release fences, CPU time, or causal TTFT subtraction. Missing reuse flag is not proof of non-reuse.",
+  "decision": "Do not remove completion barriers or reopen D305 on this evidence."
+}
