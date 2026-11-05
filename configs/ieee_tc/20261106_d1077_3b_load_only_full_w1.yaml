@@ -112,16 +112,16 @@ resource_coordination:
     sha256: 4f364ef488323fb63e568f9e413c6d9105597c5c7a88a470e8d732af44dd8ba5
     context:
       backend_environment_sha256: cf38bbf8d3b80b30d88ac38e27722d389a24ae516565708cfc924937589079cf
-      resource_envelope_sha256: e631b2a30c9c26e2201afb968a17e8980b32b677e81d57fa1d1b79435dc3d
-      input_contract_sha256: 98ed0e7cde515e44d3f41cde602053537a145cea0e1ed7ddc589c3f7fc2b45db8
+      resource_envelope_sha256: e631b2a30c9c26e2201afb968a17e8980b32b677e81d57e79fa1d1b79435dc3d
+      input_contract_sha256: 98ed0e7cde515e44d3f41cde602053537a145cea0e1ed7ddc589c3f7fc2b45db
     ewma_beta: 0.5
   ieee_preparation_profile:
     path: /home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1031_3b_startup_memory_profile/export/preparation.json
     sha256: d8d66fcfac1b7c613c01efe53934507cffebe552b0a3c1374022d44941b6a870
     context:
       backend_environment_sha256: cf38bbf8d3b80b30d88ac38e27722d389a24ae516565708cfc924937589079cf
-      resource_envelope_sha256: e631b2a30c9c26e2201afb968a17e8980b32b677e81d57fa1d1b79435dc3d
-      input_contract_sha256: 98ed0e7cde515e44d3f41cde602053537a145cea0e1ed7ddc589c3f7fc2b45db8
+      resource_envelope_sha256: e631b2a30c9c26e2201afb968a17e8980b32b677e81d57e79fa1d1b79435dc3d
+      input_contract_sha256: 98ed0e7cde515e44d3f41cde602053537a145cea0e1ed7ddc589c3f7fc2b45db
     ewma_beta: 0.5
   ieee_initial_control_policy: observed_arrivals_v1
   ieee_cpu_frontend_policy: fixed_uuid_cpu_frontend_v1
