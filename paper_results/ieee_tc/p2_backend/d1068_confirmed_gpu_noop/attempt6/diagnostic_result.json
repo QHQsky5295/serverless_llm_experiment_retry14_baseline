@@ -1,0 +1,45 @@
+{
+  "campaign": "D1068",
+  "attempt": 6,
+  "model": "Llama-3.2-3B-Instruct",
+  "workload": "W1",
+  "scenario": "tc_ieee_full",
+  "status": "completed_diagnostic_not_canonical",
+  "formal_comparison_qualified": false,
+  "ineligibility_reason": "The replay was launched directly and did not export the frozen native HOST descriptor environment; the recorded descriptor was python_tensor_descriptor_v1.",
+  "question": "Does the confirmed-GPU no-preparation proof trigger during a full 4000-request 3B W1 replay without changing the source publication contract?",
+  "run": {
+    "planned_requests": 4000,
+    "terminal_requests": 4000,
+    "failed_requests": 0,
+    "run_completed": true,
+    "generation_contract": "fixed_length_greedy_v1",
+    "total_input_tokens": 2594938,
+    "total_output_tokens": 458224,
+    "total_tokens": 3053162,
+    "remote_artifact_transfers": 132,
+    "request_time_pack_count": 0,
+    "scale_up_events": 9,
+    "scale_down_events": 7
+  },
+  "mechanism_evidence": {
+    "confirmed_gpu_no_preparation_proofs": 744,
+    "zero_demand_residency_noops": 89,
+    "confirmed_file_copy_noops": 8,
+    "counting_rule": "Count the confirmed_gpu_no_preparation_v1 flag and the first coordination_after_shutdown.ieee_residency_noop_rounds array once; the public/private copies in main_outcome are not independent events.",
+    "source_contract_preserved": true,
+    "remote_delivery_mode": "prepublished_gzip_v1",
+    "remote_request_packing": false
+  },
+  "diagnostic_metrics_only": {
+    "avg_ttft_ms": 3025.0758937513456,
+    "p95_ttft_ms": 2309.947708225807,
+    "avg_tpot_ms": 19.284922008777126,
+    "avg_e2e_ms": 5070.720770418178,
+    "p95_e2e_ms": 7720.50834433173,
+    "legacy_slo_attainment_5000ms": 0.9555,
+    "physical_gpu_seconds_observed": 6343.703178935684,
+    "metric_use": "diagnostic only; not a G1/G2 ranking or a comparison against D1047"
+  },
+  "next_action": "Run one proper D1068 3B W1 replay with the existing wrapper or the explicit frozen native descriptor environment, keeping the same trace, adapter subset, configuration, and generation contract. Do not reuse this attempt for performance ranking or create a short substitute run."
+}

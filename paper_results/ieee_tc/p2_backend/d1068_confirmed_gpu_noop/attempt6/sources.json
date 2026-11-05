@@ -1,0 +1,28 @@
+{
+  "code_head": "fdeea80f7f27485da6ed10daed786596b0eac922",
+  "config": {
+    "path": "configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml",
+    "sha256": "263bdcd6ff255108ddaffdd9ce46898d7f12be15948d7fe3d7ac27d5ea8828d2"
+  },
+  "trace": {
+    "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d"
+  },
+  "adapter_subset_sha256": "6c5fc286e3cef00efdd6b84e26c841f3b09d20b17a57b8f6a394b8d27bb1e86b",
+  "raw_result_root": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1068_20261105/d1068_3b_full_residency_noop_w1_20261105_attempt6",
+  "raw_files": {
+    "experiment_results.json": "ab4eaf0d9aa9f11418d2d0143808dac74e203269be73f025aa23f401d9e8af09",
+    "launch.json": "59325e1aac1d8ba90b0e1a60178e6ba43b8846b0bde7e65f6b4e3b0b6e9ffeae",
+    "main_outcome.json": "a678182d2967a6ad74445a53b0ca9482591134b6fe4edf86e62286896b8e34c1",
+    "summary.json": "7332428fd5e0a9357009af1f86b70ae0fe2cbd62fc4a2c029effb643f3c9e5dc",
+    "physical_resource_summary.json": "9025e04da80c790eb49a7ddc7ef291ec383cb1e582e94ffebe9db61dbf9322c7",
+    "exec_receipt.json": "35d12455f5b986887a7943e96a9a61b751b6420c1ed8fb98f1b3c9491f12856f",
+    "watchdog.jsonl": "9111e34f85b3f8055ab2e6cc6859d895c3485c1d2e2a6503a5005989b71689c2",
+    "service.log": "4a8af81c39f5778ece459beb15caf48a43057f7f88b32d6efee741a9ff557be2"
+  },
+  "expected_but_not_present": {
+    "native_descriptor_sha256": "b76733db910a0041409ce375e7b5a281dabadd6d0e5796699bf8fe574e293044",
+    "native_descriptor_library": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d747_20261023/_ieee_native_host_descriptor.cpython-312-x86_64-linux-gnu.so",
+    "observed_descriptor_kind": "python_tensor_descriptor_v1"
+  }
+}
