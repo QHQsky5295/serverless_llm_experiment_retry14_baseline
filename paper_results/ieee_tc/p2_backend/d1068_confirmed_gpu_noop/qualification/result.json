@@ -1,0 +1,37 @@
+{
+  "kind": "d1068_confirmed_gpu_noop_qualification_v1",
+  "date": "2026-11-05",
+  "status": "passed_bounded_cpu_qualification",
+  "tests": {
+    "confirmed_gpu_noop_has_no_plan_and_matches_original_empty_selection": "pass",
+    "noop_non_gpu_or_unknown_demand_keeps_original_complete_plan": "pass",
+    "noop_still_rejects_bad_native_file_identity_and_demand": "pass",
+    "noop_nohost_has_identical_empty_selection": "pass",
+    "spawned_noop_detaches_and_next_observation_is_not_cached": "pass",
+    "residency_noop_keeps_publication_and_never_registers_empty_execution": "pass",
+    "control_round_existing_fresh_file_read": "pass",
+    "control_round_existing_disabled_path": "pass",
+    "validated_plan_membership_regression": "pass"
+  },
+  "test_scope": "CPU-only; no GPU replay or numerical model correctness claim",
+  "negative_attempt": "An earlier five-test invocation was manually interrupted during the final spawned worker's local Humming compilation to avoid an unbounded resource wait; four tests had passed before interruption. The final test then passed in a single-test rerun.",
+  "invariants": [
+    "full native/file identity and budget validation still runs",
+    "no stale state, TTL, future demand, or compact native report is used",
+    "no-op has no plan hash, execution objectives, reservation, or empty registration",
+    "the same validated native source publication is retained",
+    "a later positive non-GPU demand creates a normal validated plan",
+    "NoHOST produces the same empty selection only when its native GPU proof holds"
+  ],
+  "source_sha256": {
+    "faaslora/preloading/planning_cpu.py": "fea6932f7cd29bf1152f7705e4bf20c4c698b7a65d7fd98505a6c1ccc0625bca",
+    "faaslora/preloading/preloading_planner.py": "3a9885f6d632fe0b50d9531a96bbc8659c7409b1bfcbbdd5dd2a7f924391face",
+    "scripts/run_all_experiments.py": "82490fbd40bbfd189ec11298c742d4e819043a8fa72b8591551aed983114b93b",
+    "tests/test_ieee_tc_planning_cpu.py": "969db79188f44b558f0989b1ba8381a72a198733bce7c6cbd6c5b4d0ffc0af90",
+    "tests/test_ieee_tc_planning_snapshot.py": "ee69ece8875948e6b8388e5fdd551334225d0bda62fdc5a537a5de0daabcd673",
+    "tests/test_ieee_tc_transfer_pressure.py": "4816fcdaa40334244a861febe532a295221c4fe7bd42b099f79621b0ecc18f31"
+  },
+  "gpu_replays": 0,
+  "n_correct": null,
+  "formal_ranking_eligible": false
+}

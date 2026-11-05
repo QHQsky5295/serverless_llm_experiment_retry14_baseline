@@ -7,6 +7,8 @@ the caller's service cgroup. Pickle is ONLY local parent-generated IPC, not an
 artifact, network protocol, or file format accepted from another party.
 """
 import asyncio
+import hashlib
+import json
 import multiprocessing
 import os
 import pickle
@@ -27,6 +29,57 @@ class FrozenCostEpoch:
 
     def snapshot(self):
         return self.sequence, dict(self.estimates)
+
+
+@dataclass(frozen=True, slots=True, init=False, eq=False)
+class ConfirmedGPUPreparationNoop:
+    """Local proof of no positive preparation, never an executable plan/lease."""
+    _payload: bytes
+    _native_source_publication: object
+
+    @classmethod
+    def _from_worker_result(cls, payload, receipt):
+        from ..experiment.instance_pool import NativeSourceSnapshot
+        publication = receipt.get('_native_source_publication')
+        if (type(payload) is not bytes
+                or receipt.get('operation') != 'owned_execution_epoch'
+                or receipt.get('confirmed_gpu_no_preparation') is not True
+                or receipt.get('plan_sha256') is not None
+                or type(publication) is not tuple or len(publication) != 2
+                or type(publication[0]) is not NativeSourceSnapshot):
+            raise ValueError('no preparation requires a completed same-epoch proof')
+        witness = pickle.loads(payload)
+        if (not isinstance(witness, dict)
+                or witness.get('kind') != 'ieee_confirmed_gpu_no_preparation_v1'
+                or witness.get('physical_resources_reserved') is not False):
+            raise ValueError('no-preparation proof payload is invalid')
+        digest = witness.get('witness_sha256')
+        unsigned = dict(witness)
+        unsigned.pop('witness_sha256', None)
+        expected = hashlib.sha256(json.dumps(unsigned, sort_keys=True,
+            separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+        if digest != expected or receipt.get('no_preparation_witness_sha256') != digest:
+            raise ValueError('no-preparation proof hash mismatch')
+        value = object.__new__(cls)
+        object.__setattr__(value, '_payload', payload)
+        object.__setattr__(value, '_native_source_publication', publication)
+        return value
+
+    def snapshot(self):
+        return pickle.loads(self._payload)
+
+    def native_source_publication(self):
+        return self._native_source_publication
+
+    def __reduce_ex__(self, protocol):
+        raise TypeError('no-preparation proofs are local-only; export a snapshot')
+
+
+def completed_owned_preparation(payload, receipt):
+    """Decode only completed local worker outcomes; no exception fallback."""
+    cls = (ConfirmedGPUPreparationNoop if receipt.get('confirmed_gpu_no_preparation') is True
+           else ValidatedPreparationPlan)
+    return cls._from_worker_result(payload, receipt)
 
 
 @dataclass(frozen=True, slots=True, init=False, eq=False)
@@ -213,17 +266,27 @@ def execute_planning_message(message):
     validation_seconds = None
     objectives_seconds = None
     execution_payload = None
+    no_preparation = False
     if operation in ('owned_epoch', 'owned_execution_epoch'):
         args = dict(args)
         mode, demand, costs = (args.pop(name) for name in ('mode', 'demand', 'costs'))
+        elide = args.pop('elide_confirmed_gpu_residency', False)
+        if elide and (operation != 'owned_execution_epoch' or mode != 'residency'
+                      or args['native_snapshot'] is None):
+            raise ValueError('no-preparation proof is only for initialized residency execution')
         profiles = args['profiles']
-        inputs = owned_preparation_inputs(**args)
-        plan = planner.generate_ieee_epoch(mode=mode, options=inputs['options'],
-            budgets=inputs['budgets'], demand=demand, costs=costs,
-            source_snapshot_id=inputs['source_snapshot_id'],
-            source_view=inputs['source_view'], size_edges_bytes=profiles.size_edges_bytes)
-        value = dict(plan, source_view=inputs['source_view'])
-        if operation == 'owned_execution_epoch':
+        inputs = owned_preparation_inputs(**args,
+            residency_noop_demand=demand if elide else None)
+        no_preparation = 'no_preparation' in inputs
+        if no_preparation:
+            plan, value = None, inputs['no_preparation']
+        else:
+            plan = planner.generate_ieee_epoch(mode=mode, options=inputs['options'],
+                budgets=inputs['budgets'], demand=demand, costs=costs,
+                source_snapshot_id=inputs['source_snapshot_id'],
+                source_view=inputs['source_view'], size_edges_bytes=profiles.size_edges_bytes)
+            value = dict(plan, source_view=inputs['source_view'])
+        if operation == 'owned_execution_epoch' and not no_preparation:
             # This private plan has never left the computation owner. Validate
             # the exact epoch once, then freeze plan AND selected set together.
             # No second parent->worker round trip or mutable public alias.
@@ -259,16 +322,19 @@ def execute_planning_message(message):
         worker_cpu_seconds=time.process_time()-cpu, input_bytes=len(message),
         output_bytes=len(payload), initialized_execution_bytes=(
             0 if execution_payload is None else len(execution_payload)),
-        plan_sha256=plan['plan_sha256'],
+        plan_sha256=None if no_preparation else plan['plan_sha256'],
         cpu_affinity=sorted(os.sched_getaffinity(0)),
         cgroup=cgroup)
     if operation == 'owned_execution_epoch':
-        receipt.update(frozen_execution_validated=True,
-            frozen_validation_seconds=validation_seconds, plan_keys=tuple(value[0]),
-            execution_objectives_prepared=True, execution_objectives_seconds=objectives_seconds,
+        receipt.update(frozen_execution_validated=not no_preparation,
+            frozen_validation_seconds=validation_seconds, plan_keys=() if no_preparation else tuple(value[0]),
+            execution_objectives_prepared=not no_preparation, execution_objectives_seconds=objectives_seconds,
             _initialized_execution_payload=execution_payload,
             _native_source_publication=(None if inputs['native_source_state'] is None else
                 (inputs['native_source_state'], args['native_snapshot'].get('device_uuid'))))
+        if no_preparation:
+            receipt.update(confirmed_gpu_no_preparation=True,
+                no_preparation_witness_sha256=value['witness_sha256'], cost_sequence=costs.sequence)
     return payload, receipt
 
 
@@ -328,7 +394,7 @@ class IEEEPlanningCPU:
                     event['state'] = 'cancelled_result_discarded'
                     raise asyncio.CancelledError()
                 if operation == 'owned_execution_epoch':
-                    return ValidatedPreparationPlan._from_worker_result(payload, receipt)
+                    return completed_owned_preparation(payload, receipt)
                 return pickle.loads(payload)
             except BaseException as exc:
                 event.update(error_type=type(exc).__name__, joined_monotonic_s=time.monotonic())

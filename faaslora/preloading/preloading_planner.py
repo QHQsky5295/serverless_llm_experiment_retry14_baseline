@@ -699,9 +699,19 @@ def copy_ieee_preparation_plan(plan):
     return copy.deepcopy(plan, {id(view): detached})
 
 
+def _validate_preparation_demand(demand):
+    if (type(demand.total_arrivals) is not int or demand.total_arrivals < 0
+            or sum(demand.counts.values()) != demand.total_arrivals
+            or any(not isinstance(a, str) or not a or type(n) is not int or n <= 0
+                   for a, n in demand.counts.items())
+            or not math.isfinite(demand.observed_at)
+            or not math.isfinite(demand.window_seconds) or demand.window_seconds <= 0):
+        raise ValueError('IEEE preparation requires one complete arrival-window snapshot')
+
+
 def owned_preparation_inputs(*, native_snapshot, file_snapshot, identities,
                              adapter_int_ids, profiles, expected_clock_id, received_at,
-                             activation_id=None):
+                             activation_id=None, residency_noop_demand=None):
     """Compose actual per-replica sources and physical-owner insertion budgets.
 
     Native GPU/HOST and shared HOST/NVMe files are all retained in the view.
@@ -830,6 +840,37 @@ def owned_preparation_inputs(*, native_snapshot, file_snapshot, identities,
                 raise ValueError('planning target changed frozen content or tier')
             target_key = FrozenPreparationProfiles.source_class(target, profiles.size_edges_bytes)
             options.append(PreparationOption(aid, source_key, target_key, target['footprint_bytes']))
+    if residency_noop_demand is not None:
+        # All owner, identity, source and budget checks above still run on this
+        # received epoch. This is NOT a cached plan or a compact native report.
+        demand = residency_noop_demand
+        _validate_preparation_demand(demand)
+        if (native is not None and demand.total_arrivals > 0
+                and set(demand.counts).issubset(source_rows)
+                and all(source_rows[aid]['selected_source']['tier'] == 'gpu'
+                        for aid in demand.counts)):
+            # A positive-demand GPU source has no faster target. Every other
+            # option has h=0, so neither insertions nor replacements can improve
+            # Eq.(4). No solver/execution plan is constructed or certified.
+            witness = dict(kind='ieee_confirmed_gpu_no_preparation_v1', mode='residency',
+                clock_id=expected_clock_id, received_at=received_at,
+                native_owner_id=native.owner_id, native_epoch=native.epoch,
+                native_captured_at=native.captured_monotonic_s,
+                file_owner_id=files['owner_id'], file_epoch=files['epoch'],
+                file_captured_at=files['captured_at'], profile_id=profiles.profile_id,
+                demand_observed_at=demand.observed_at, window_seconds=demand.window_seconds,
+                total_arrivals=demand.total_arrivals, arrival_counts=dict(demand.counts),
+                physical_resources_reserved=False,
+                positive_gpu_sources=[dict(adapter_id=aid, adapter_int_id=native_by_name[aid].adapter_int_id,
+                    rank=native_by_name[aid].rank, content_sha256=identities[aid]['content_sha256'],
+                    gpu_slot=native_by_name[aid].gpu_slot,
+                    gpu_confirmed_monotonic_s=native_by_name[aid].gpu_confirmed_monotonic_s,
+                    source_id=native_by_name[aid].source_id, path=native_by_name[aid].lora_path)
+                    for aid in sorted(demand.counts)])
+            digest = hashlib.sha256(json.dumps(witness, sort_keys=True,
+                separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+            return dict(no_preparation=dict(witness, witness_sha256=digest),
+                        native_source_state=native)
     view = dict(kind='ieee_owned_preparation_view_v1', native=native_snapshot, files=file_snapshot,
         adapter_int_ids=dict(adapter_int_ids), sources=source_rows,
         remaining_bytes={tier.value: value for tier, value in budgets.items()},
@@ -2108,13 +2149,7 @@ class PreloadingPlanner:
         """
         if mode not in ('handoff', 'residency') or not isinstance(source_snapshot_id, str) or not source_snapshot_id:
             raise ValueError('IEEE planning needs mode and received source snapshot identity')
-        if (type(demand.total_arrivals) is not int or demand.total_arrivals < 0
-                or sum(demand.counts.values()) != demand.total_arrivals
-                or any(not isinstance(a, str) or not a or type(n) is not int or n <= 0
-                       for a, n in demand.counts.items())
-                or not math.isfinite(demand.observed_at)
-                or not math.isfinite(demand.window_seconds) or demand.window_seconds <= 0):
-            raise ValueError('IEEE preparation requires one complete arrival-window snapshot')
+        _validate_preparation_demand(demand)
         # Copy received inputs before construction; class estimates are obtained
         # once, not separately while a completion can update a later candidate.
         options, budgets = tuple(options), dict(budgets)

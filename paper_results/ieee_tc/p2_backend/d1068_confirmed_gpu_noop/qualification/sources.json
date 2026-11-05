@@ -1,0 +1,14 @@
+{
+  "kind": "d1068_source_manifest_v1",
+  "sources": [
+    {"path": "faaslora/preloading/planning_cpu.py", "sha256": "fea6932f7cd29bf1152f7705e4bf20c4c698b7a65d7fd98505a6c1ccc0625bca"},
+    {"path": "faaslora/preloading/preloading_planner.py", "sha256": "3a9885f6d632fe0b50d9531a96bbc8659c7409b1bfcbbdd5dd2a7f924391face"},
+    {"path": "scripts/run_all_experiments.py", "sha256": "82490fbd40bbfd189ec11298c742d4e819043a8fa72b8591551aed983114b93b"},
+    {"path": "tests/test_ieee_tc_planning_cpu.py", "sha256": "969db79188f44b558f0989b1ba8381a72a198733bce7c6cbd6c5b4d0ffc0af90"},
+    {"path": "tests/test_ieee_tc_planning_snapshot.py", "sha256": "ee69ece8875948e6b8388e5fdd551334225d0bda62fdc5a537a5de0daabcd673"},
+    {"path": "tests/test_ieee_tc_transfer_pressure.py", "sha256": "4816fcdaa40334244a861febe532a295221c4fe7bd42b099f79621b0ecc18f31"}
+  ],
+  "metric_protocol_v1": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "metric_protocol_single_run_v2": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+}

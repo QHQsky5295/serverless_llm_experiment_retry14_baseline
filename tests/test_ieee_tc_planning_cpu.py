@@ -6,12 +6,14 @@ import os
 import pickle
 import time
 import unittest
+from dataclasses import replace
 from collections.abc import Mapping
 from unittest.mock import patch
 
 from faaslora.preloading.planning_cpu import (
     IEEEPlanningCPU, execute_planning_message, freeze_owned_planning,
-    ValidatedPreparationPlan, execution_preparation_input, execution_preparation_bundle)
+    ValidatedPreparationPlan, ConfirmedGPUPreparationNoop, completed_owned_preparation,
+    execution_preparation_input, execution_preparation_bundle)
 from faaslora.registry.schema import StorageTier
 
 
@@ -117,6 +119,138 @@ class PlanningCPU(unittest.IsolatedAsyncioTestCase):
             profiles=runner._preparation_profiles, costs=slot.preparation_cost_model,
             expected_clock_id=local_monotonic_clock_id(), received_at=time.monotonic(), demand=demand)
         return args, runner, slot
+
+    async def test_confirmed_gpu_noop_has_no_plan_and_matches_original_empty_selection(self):
+        args, runner, _ = await asyncio.to_thread(self.inputs)
+        args['demand'] = replace(args['demand'], counts={'b': 7}, total_arrivals=7)
+        limit = runner._stack.preloading_planner.max_dp_buffer_bytes
+        original, _ = execute_planning_message(pickle.dumps(('owned_execution_epoch', limit, args)))
+        self.assertTrue(all(not values for values in pickle.loads(original)[1].values()))
+        args['elide_confirmed_gpu_residency'] = True
+        with patch('faaslora.preloading.preloading_planner.freeze_preparation_source_view',
+                   side_effect=AssertionError('no-op must not build the full source image')), \
+             patch.object(runner._stack.preloading_planner.__class__, 'generate_ieee_epoch',
+                   side_effect=AssertionError('no-op must not invoke selection')):
+            payload, receipt = execute_planning_message(pickle.dumps(('owned_execution_epoch', limit, args)))
+        proof = completed_owned_preparation(payload, receipt)
+        self.assertIs(type(proof), ConfirmedGPUPreparationNoop)
+        self.assertIsNone(receipt['plan_sha256'])
+        self.assertFalse(receipt['frozen_execution_validated'])
+        self.assertFalse(receipt['execution_objectives_prepared'])
+        witness = proof.snapshot()
+        self.assertNotIn('plan_sha256', witness)
+        self.assertFalse(witness['physical_resources_reserved'])
+        self.assertEqual(witness['arrival_counts'], {'b': 7})
+        self.assertEqual(witness['positive_gpu_sources'][0]['gpu_slot'], 0)
+        native, _ = proof.native_source_publication()
+        self.assertEqual(native.epoch, args['native_snapshot']['epoch'])
+        witness['arrival_counts'].clear()
+        self.assertEqual(proof.snapshot()['arrival_counts'], {'b': 7})
+        with self.assertRaisesRegex(TypeError, 'local-only'):
+            pickle.dumps(proof)
+        with self.assertRaises(ValueError):
+            ValidatedPreparationPlan._from_worker_result(payload, receipt)
+
+    async def test_noop_non_gpu_or_unknown_demand_keeps_original_complete_plan(self):
+        args, runner, _ = await asyncio.to_thread(self.inputs)
+        limit = runner._stack.preloading_planner.max_dp_buffer_bytes
+        for counts in ({'a': 1}, {'c': 1}, {'d': 1}, {'b': 1, 'a': 1}, {'unknown': 1}, {}):
+            with self.subTest(counts=counts):
+                args['demand'] = replace(args['demand'], counts=counts, total_arrivals=sum(counts.values()))
+                args.pop('elide_confirmed_gpu_residency', None)
+                old, _ = execute_planning_message(pickle.dumps(('owned_execution_epoch', limit, args)))
+                args['elide_confirmed_gpu_residency'] = True
+                new, receipt = execute_planning_message(pickle.dumps(('owned_execution_epoch', limit, args)))
+                self.assertIs(type(completed_owned_preparation(new, receipt)), ValidatedPreparationPlan)
+                old, new = pickle.loads(old), pickle.loads(new)
+                self.assertEqual(old[:2], new[:2])
+                # The existing execution identity is deliberately newly allocated.
+                old[2].pop('file_plan_id'); new[2].pop('file_plan_id')
+                if old[2]['file'] is None:
+                    self.assertEqual(old[2], new[2])
+
+    async def test_noop_still_rejects_bad_native_file_identity_and_demand(self):
+        args, runner, _ = await asyncio.to_thread(self.inputs)
+        args['demand'] = replace(args['demand'], counts={'b': 1}, total_arrivals=1)
+        args['elide_confirmed_gpu_residency'] = True
+        limit = runner._stack.preloading_planner.max_dp_buffer_bytes
+        mutations = [
+            lambda a: a['native_snapshot']['sources'][0].update(gpu_confirmed_monotonic_s=None)
+                if a['native_snapshot']['sources'][0]['gpu_slot'] is not None else
+                a['native_snapshot']['sources'][1].update(gpu_confirmed_monotonic_s=None),
+            lambda a: a['native_snapshot'].update(clock_id='different-clock'),
+            lambda a: a['file_snapshot']['artifacts']['d'].update(content_sha256='changed'),
+            lambda a: a['identities']['b'].update(rank=999),
+            lambda a: a.update(demand=replace(a['demand'], total_arrivals=2)),
+            lambda a: a.update(demand=replace(a['demand'], counts={'b': True})),
+            lambda a: a.update(demand=replace(a['demand'], window_seconds=float('inf'))),
+            lambda a: a.update(mode='handoff'),
+        ]
+        for index, mutation in enumerate(mutations):
+            with self.subTest(index=index):
+                changed = copy.deepcopy(args)
+                mutation(changed)
+                with self.assertRaises((ValueError, KeyError)):
+                    execute_planning_message(pickle.dumps(('owned_execution_epoch', limit, changed)))
+
+    async def test_noop_nohost_has_identical_empty_selection(self):
+        args, runner, _ = await asyncio.to_thread(self.inputs)
+        args['native_snapshot']['independent_host_reuse'] = False
+        args['file_snapshot']['independent_host_reuse'] = False
+        args['demand'] = replace(args['demand'], counts={'b': 1}, total_arrivals=1)
+        limit = runner._stack.preloading_planner.max_dp_buffer_bytes
+        original, _ = execute_planning_message(pickle.dumps(('owned_execution_epoch', limit, args)))
+        self.assertTrue(all(not row for row in pickle.loads(original)[1].values()))
+        args['elide_confirmed_gpu_residency'] = True
+        payload, receipt = execute_planning_message(pickle.dumps(('owned_execution_epoch', limit, args)))
+        self.assertIs(type(completed_owned_preparation(payload, receipt)), ConfirmedGPUPreparationNoop)
+
+    async def test_spawned_noop_detaches_and_next_observation_is_not_cached(self):
+        args, runner, _ = await asyncio.to_thread(self.inputs)
+        args['demand'] = replace(args['demand'], counts={'b': 2}, total_arrivals=2)
+        args['elide_confirmed_gpu_residency'] = True
+        worker = IEEEPlanningCPU()
+        self.addAsyncCleanup(worker.close)
+        limit = runner._stack.preloading_planner.max_dp_buffer_bytes
+        task = asyncio.create_task(worker.run('owned_execution_epoch', limit, args))
+        await asyncio.sleep(0)
+        args['demand'] = replace(args['demand'], counts={'a': 2})
+        proof = await task
+        self.assertEqual(proof.snapshot()['arrival_counts'], {'b': 2})
+        self.assertNotEqual(worker.events[0]['worker_pid'], os.getpid())
+        next_plan = await worker.run('owned_execution_epoch', limit, args)
+        self.assertIs(type(next_plan), ValidatedPreparationPlan)
+        self.assertTrue(next_plan['selected']['gpu'])
+
+    async def test_residency_noop_keeps_publication_and_never_registers_empty_execution(self):
+        from faaslora.experiment.hotness_tracker import HotnessTracker
+        from unittest.mock import AsyncMock
+        args, runner, slot = await asyncio.to_thread(self.inputs)
+        runner._stack.hotness_tracker = HotnessTracker(None, clock=lambda: 100.)
+        runner._stack.hotness_tracker.record_arrival('b')
+        runner._coordination_enabled = True
+        try:
+            with patch.object(runner, '_run_ieee_file_preparation_plan', new_callable=AsyncMock,
+                              return_value=[]) as execute, \
+                 patch.object(runner, '_ieee_publish_validated_planning_sources') as publish:
+                record = {}
+                outcome = await runner._execute_ieee_residency_epoch(slot, record)
+                self.assertEqual(record['state'], 'no_preparation')
+                self.assertIsNone(record['plan_sha256'])
+                self.assertIsNone(outcome['plan'])
+                execute.assert_not_awaited()
+                publish.assert_called_once()
+                self.assertEqual(publish.call_args.args[1].epoch, args['native_snapshot']['epoch'])
+                runner._stack.hotness_tracker.record_arrival('a')
+                next_record = {}
+                await runner._execute_ieee_residency_epoch(slot, next_record)
+                self.assertEqual(next_record['state'], 'completed')
+                self.assertIsInstance(next_record['plan_sha256'], str)
+                execute.assert_awaited_once()
+                self.assertEqual(publish.call_count, 2)
+        finally:
+            if getattr(runner._stack, '_ieee_planning_cpu', None) is not None:
+                await runner._stack._ieee_planning_cpu.close()
 
     async def test_exact_plan_validation_detachment_and_actual_process_envelope(self):
         # Fixture construction contains its own small asyncio.run calls.

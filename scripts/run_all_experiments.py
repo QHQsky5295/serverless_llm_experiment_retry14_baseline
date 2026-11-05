@@ -14744,8 +14744,12 @@ class ScenarioRunner:
             # Registered before the first await, including source collection.
             shared = {} if file_snapshot is None else dict(file_snapshot=file_snapshot)
             result = await self._run_ieee_owned_preparation_plan(slot=slot, mode='residency',
-                capacity_only=not self._coordination_enabled, **shared)
-            record.update(state=result.get('state', 'completed'), plan_sha256=result['plan']['plan_sha256'])
+                capacity_only=not self._coordination_enabled, elide_confirmed_gpu_residency=True, **shared)
+            if result.get('state') == 'no_preparation':
+                record.update(state='no_preparation', plan_sha256=None,
+                              no_preparation=result['no_preparation'])
+            else:
+                record.update(state=result.get('state', 'completed'), plan_sha256=result['plan']['plan_sha256'])
             if record['state'] == 'superseded':
                 record['preparation_supersession'] = result['preparation_supersession']
                 if 'native_registration_rejection' in result:
@@ -21850,7 +21854,8 @@ class ScenarioRunner:
             return await references.call_async('preparation_snapshot', **kwargs)
         return references.preparation_snapshot(**kwargs)
 
-    async def _plan_ieee_preparation_for_slot(self, *, slot, mode, file_snapshot=None):
+    async def _plan_ieee_preparation_for_slot(self, *, slot, mode, file_snapshot=None,
+                                             elide_confirmed_gpu_residency=False):
         """Read the real backend and file owners, then run the IEEE selector.
 
         No manually supplied candidate sizes, cache hints or tier latencies.
@@ -21876,11 +21881,13 @@ class ScenarioRunner:
         native = await observed_engine.ieee_gpu_reference(operation='routing_source_snapshot')
         files = (await self._ieee_preparation_file_snapshot()
                  if file_snapshot is None else file_snapshot)
+        optimization = ({'elide_confirmed_gpu_residency': True}
+                        if elide_confirmed_gpu_residency else {})
         plan = await self._stack.plan_ieee_owned_preparation_async(mode=mode, native_snapshot=native,
             file_snapshot=files, identities=self._ieee_artifact_identities,
             adapter_int_ids={aid: InferenceEngine._lora_int_id(aid) for aid in self._ieee_artifact_identities},
             profiles=self._preparation_profiles, costs=slot.preparation_cost_model,
-            expected_clock_id=local_monotonic_clock_id(), received_at=time.monotonic())
+            expected_clock_id=local_monotonic_clock_id(), received_at=time.monotonic(), **optimization)
         # The pure worker already validates this full graph. Reuse only its
         # immutable route projection instead of validating it on the request
         # loop a second time. Cancelled worker results never reach this point.
@@ -21890,14 +21897,23 @@ class ScenarioRunner:
         return plan
 
     async def _run_ieee_owned_preparation_plan(self, *, slot, mode, activation_id=None,
-                                              capacity_only=False, file_snapshot=None):
+                                              capacity_only=False, file_snapshot=None,
+                                              elide_confirmed_gpu_residency=False):
         """Plan once from real owners, then execute that unchanged mixed epoch.
 
         Requires an initialized engine. Activation-time pre-init layout/profile
         inheritance and remaining-candidate joint replacement are separate gates.
         """
         shared = {} if file_snapshot is None else dict(file_snapshot=file_snapshot)
+        if elide_confirmed_gpu_residency:
+            shared['elide_confirmed_gpu_residency'] = True
         plan = await self._plan_ieee_preparation_for_slot(slot=slot, mode=mode, **shared)
+        from faaslora.preloading.planning_cpu import ConfirmedGPUPreparationNoop
+        if type(plan) is ConfirmedGPUPreparationNoop:
+            # No file/GPU target exists. Do not invent an executable plan hash,
+            # register empty ownership, or publish this observation as a lease.
+            return dict(plan=None, results=[], state='no_preparation',
+                        no_preparation=plan.snapshot())
         from faaslora.preloading.preloading_planner import PreparationPlanSuperseded
         try:
             result = await self._run_ieee_file_preparation_plan(plan=plan, target_engine=slot.engine,

@@ -310,6 +310,7 @@ class ControlRoundFileObservation(unittest.TestCase):
 
         async def plan_only(**kw):
             self.assertEqual(kw.pop('capacity_only'), False)
+            kw.pop('elide_confirmed_gpu_residency')
             plan = await runner._plan_ieee_preparation_for_slot(**kw)
             plans[kw['slot'].instance_id] = plan.snapshot()
             return dict(plan=plan)
@@ -366,6 +367,7 @@ class ControlRoundFileObservation(unittest.TestCase):
             slots[0].engine.ieee_gpu_reference.side_effect = slow
             async def plan_only(**kw):
                 kw.pop('capacity_only')
+                kw.pop('elide_confirmed_gpu_residency')
                 return dict(plan=await runner._plan_ieee_preparation_for_slot(**kw))
             with patch.object(runner, '_run_ieee_owned_preparation_plan', side_effect=plan_only):
                 await runner._schedule_ieee_residency_epochs()
@@ -387,6 +389,7 @@ class ControlRoundFileObservation(unittest.TestCase):
         runner.coord_cfg.pop('ieee_residency_file_observation')
         async def plan_only(**kw):
             kw.pop('capacity_only')
+            kw.pop('elide_confirmed_gpu_residency')
             return dict(plan=await runner._plan_ieee_preparation_for_slot(**kw))
         async def run():
             with patch.object(files.owner, 'preparation_snapshot', wraps=files.owner.preparation_snapshot) as read, \
@@ -503,6 +506,7 @@ class ZeroDemandResidency(unittest.TestCase):
         plans = []
         async def plan_only(**kw):
             kw.pop('capacity_only')
+            kw.pop('elide_confirmed_gpu_residency')
             plan = await runner._plan_ieee_preparation_for_slot(**kw)
             plans.append(plan)
             return dict(plan=plan)

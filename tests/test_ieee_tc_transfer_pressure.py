@@ -25,13 +25,13 @@ def setUpModule():
     # Use the SAME serialized message and selector without spawning a process
     # for every small fixture. Real spawn/cancel/containment is tested separately.
     import pickle
-    from faaslora.preloading.planning_cpu import execute_planning_message, ValidatedPreparationPlan
+    from faaslora.preloading.planning_cpu import execute_planning_message, completed_owned_preparation
     async def inline(worker, operation, limit, args):
         value, receipt = execute_planning_message(pickle.dumps((operation, limit, args), protocol=5))
         worker.events.append({key: value for key, value in receipt.items()
                               if key not in ('_native_source_publication', '_initialized_execution_payload')})
         if operation == 'owned_execution_epoch':
-            return ValidatedPreparationPlan._from_worker_result(value, receipt)
+            return completed_owned_preparation(value, receipt)
         return pickle.loads(value)
     global _planning_cpu_patch
     _planning_cpu_patch = patch('faaslora.preloading.planning_cpu.IEEEPlanningCPU.run', inline)
