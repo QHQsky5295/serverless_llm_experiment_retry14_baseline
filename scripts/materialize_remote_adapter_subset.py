@@ -111,6 +111,15 @@ def main() -> int:
     parser.add_argument("--endpoint", required=True)
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--output-subset", required=True)
+    parser.add_argument(
+        "--content-manifest",
+        default="",
+        help=(
+            "Optional frozen artifact_content_v1 index. Required for HTTP "
+            "staging so each response is checked against the qualified "
+            "file-level content identity."
+        ),
+    )
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--timeout-s", type=float, default=300.0)
     parser.add_argument("--token-env", default="PRIME_REMOTE_TOKEN")
@@ -146,6 +155,17 @@ def main() -> int:
     if file_source_root is None:
         client_cls = _load_client(main_repo)
         client = client_cls(endpoint=args.endpoint, timeout_s=float(args.timeout_s), token_env=args.token_env)
+        if args.content_manifest:
+            manifest_path = Path(args.content_manifest).expanduser().resolve()
+            if not manifest_path.is_file():
+                raise RuntimeError(f"content manifest not found: {manifest_path}")
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            client.configure_content_manifest(manifest)
+            print(
+                f"[remote-materialize] frozen_content_manifest={manifest_path} "
+                f"sha256={client.content_manifest_sha256}",
+                flush=True,
+            )
 
     t0 = time.perf_counter()
     rows: List[Dict[str, Any]] = []
@@ -169,7 +189,11 @@ def main() -> int:
                 max(0.0, float(args.bandwidth_mbps or 0.0)),
             )
         assert client is not None
-        ok, elapsed_ms, size_bytes = client.download_artifact(adapter_id, str(dst))
+        ok, elapsed_ms, size_bytes = client.download_artifact(
+            adapter_id,
+            str(dst),
+            require_content_manifest=bool(args.content_manifest),
+        )
         return {
             "adapter_id": adapter_id,
             "ok": bool(ok),
