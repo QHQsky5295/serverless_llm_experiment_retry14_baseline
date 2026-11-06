@@ -34,6 +34,16 @@
       "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1089_3b_nohost_w1/completion/stages/requests.csv",
       "sha256": "a7faeafff340925283a76de67835239b35045cf4420480eb651a22bc15037361",
       "bytes": 2339852
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1089_3b_nohost_w1/completion/versus_d1082_full_w1.json",
+      "sha256": "26aab544bc5e51c58cc24e73bce15250e9489608e4c522babf6f0a15063bdbd7",
+      "bytes": 1807
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1089_3b_nohost_w1/collect_completion.py",
+      "sha256": "a8c07b8274d2d06db54f11d814076fc522363e8695c15d2b14ceefb1f6611124",
+      "bytes": 6273
     }
   ],
   "raw_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1089_20261107/d1089_3b_nohost_w1",
