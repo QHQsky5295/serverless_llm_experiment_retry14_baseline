@@ -1,0 +1,105 @@
+{
+  "kind": "ieee_tc_a1_confirmed_state_information_comparison_v1",
+  "comparison": "D1088 LastKnown W1 versus D1082 Full W1",
+  "model": "Llama-3.2-3B-Instruct",
+  "workload": {
+    "requests": 4000,
+    "logical_adapters": 500,
+    "trace_profile": "W1",
+    "source_trace_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "generation_contract": "fixed_length_greedy_v1",
+    "bandwidth_limit_mode": "local_sim_no_delay"
+  },
+  "runs": {
+    "last_known": {
+      "run_id": "d1088_20261106",
+      "run_tag": "d1088_3b_last_known_w1",
+      "scenario": "tc_ieee_full",
+      "variant": "LastKnown",
+      "implementation_commit": "462f9987944d68370be7e411abb9252980a3e2b1",
+      "physical_gpu_seconds": 6092.278720126022,
+      "gpu_seconds_per_offered_request": 1.5230696800315055,
+      "joint_slo_fraction": 0.963,
+      "joint_slo_pass": 3852,
+      "ttft_mean_ms": 456.09130110463593,
+      "ttft_p95_ms": 1135.2179236710072,
+      "tpot_mean_ms": 17.21642476859976,
+      "e2e_mean_ms": 2322.1258707992965,
+      "e2e_p95_ms": 5006.382566876709,
+      "scale_up_events": 8,
+      "scale_down_events": 7,
+      "remote_transfer_count": 132,
+      "remote_transfer_bytes": 306360162,
+      "remote_transfer_outcome": "sent",
+      "remote_delivery_mode": "prepublished_gzip_v1",
+      "request_time_packing": false
+    },
+    "full": {
+      "run_id": "d1082_20261106",
+      "run_tag": "d1082_3b_host_budget_projection_w1",
+      "scenario": "tc_ieee_full",
+      "variant": "Full",
+      "implementation_commit": "462f9987944d68370be7e411abb9252980a3e2b1",
+      "physical_gpu_seconds": 5393.347900303081,
+      "gpu_seconds_per_offered_request": 1.3483369750757702,
+      "joint_slo_fraction": 0.96625,
+      "joint_slo_pass": 3865,
+      "ttft_mean_ms": 436.3548407688504,
+      "ttft_p95_ms": 1044.666805304587,
+      "tpot_mean_ms": 17.622541036219452,
+      "e2e_mean_ms": 2333.3915855011437,
+      "e2e_p95_ms": 5029.881117865443
+    }
+  },
+  "last_known_minus_full": {
+    "physical_gpu_seconds_relative_percent": 12.959127294266784,
+    "joint_slo_fraction_delta_percentage_points": -0.3250000000000086,
+    "ttft_mean_relative_percent": 4.523029995727832,
+    "ttft_p95_relative_percent": 8.667942535038131,
+    "tpot_mean_relative_percent": -2.304527291410493,
+    "e2e_mean_relative_percent": -0.482804291052058,
+    "e2e_p95_relative_percent": -0.467179053303488
+  },
+  "information_view_evidence": {
+    "policy": "last_known_source_sample_hold_v1",
+    "hold_interval_s": 0.5,
+    "routing_information_events": 8046,
+    "phase_counts": {"arrival_prefetch": 4000, "request_dispatch": 4046},
+    "reason_counts": {"bootstrap": 611, "hold": 10824, "refresh": 8658, "infeasible": 604},
+    "choice_disagreement_events": 15,
+    "tier_disagreement_candidate_rows": 49,
+    "source_class_disagreement_candidate_rows": 49,
+    "counterfactual_latency_generated": 0,
+    "executable_reference_granted": 0,
+    "controller_hold_age_s": {"mean": 0.020994612509603064, "p95": 0.17675277683883905, "max": 0.4969679261557758},
+    "native_observation_age_s": {"mean": 2.3808580568941267, "p95": 6.08752191439271, "max": 32.460938203148544},
+    "source_observation_age_s": {"mean": 2.0000311240234687, "p95": 5.830759737174958, "max": 32.460938203148544},
+    "selected_source_revalidation_preserved": true
+  },
+  "mechanism_evidence": {
+    "handoff_plan_count": 8,
+    "preparation_state": "pending",
+    "file_preparation_plans": 1166,
+    "gpu_preparation_plans": 1165,
+    "native_host_preparations": 777,
+    "residency_epochs": 2071,
+    "route_cache_requests": 8046,
+    "confirmed_snapshot_hits": 8389,
+    "planning_snapshot_hits": 8288,
+    "selected_conflict_invalidations": 19,
+    "source_observation_collections": 4153,
+    "source_observation_joined": 3893
+  },
+  "interpretation": {
+    "status": "last_known_worse_on_tail_and_resource_in_this_single_run",
+    "paper_claim": "In the current same-version W1 run, restricting router information to a 0.5 s sample-and-hold view increases physical GPU-s by 12.959%, P95 TTFT by 8.668%, and lowers joint SLO by 0.325 percentage points relative to Full. This supports a bounded information-view effect in this workload, while the 15 final choice disagreements and 49 candidate tier disagreements show that the intervention is small rather than a wholesale removal of confirmation.",
+    "causal_limit": "The result is one seed and one W1 trace. It does not prove global optimality, universal benefit of confirmed propagation, or that every latency difference is caused by the 15 choice changes. Actual source protection and dispatch semantics were retained.",
+    "ranking_limit": "Both 3B runs have n_correct=null and ranking_eligible=false; use for mechanism diagnosis, not formal numerical adapter correctness ranking."
+  },
+  "source_refs": {
+    "last_known_completion": "paper_results/ieee_tc/ablation/d1088_3b_last_known_w1/completion/full4000.json",
+    "full_completion": "paper_results/ieee_tc/p2_backend/d1082_host_budget_projection/completion/full4000.json",
+    "remote_health_clock": "remote-process-monotonic:6b0ae30e27cb4f49a8a067dcf60be827",
+    "remote_journal_sha256": "f66e428466abec3f37dd0f6f728704ca2a8a5cc4f4e907379441e7b0afb2b77a"
+  }
+}

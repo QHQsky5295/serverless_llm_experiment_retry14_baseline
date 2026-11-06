@@ -1,0 +1,71 @@
+{
+  "passed": true,
+  "run_id": "d1088_20261106",
+  "run_tag": "d1088_3b_last_known_w1",
+  "scenario": "tc_ieee_full",
+  "variant": "LastKnown",
+  "requests_planned": 4000,
+  "requests_arrived": 4000,
+  "requests_successful": 4000,
+  "requests_failed": 0,
+  "joint_slo_pass": 3852,
+  "joint_slo_fraction": 0.963,
+  "physical_gpu_seconds": 6092.278720126022,
+  "physical_measurement_complete": true,
+  "numerical_adapter_correctness_qualified": false,
+  "ranking_eligible": false,
+  "remote_transfer_count": 132,
+  "remote_transfer_outcomes": {
+    "sent": 132
+  },
+  "remote_transfer_bytes_read": 306360162,
+  "request_time_packing": false,
+  "remote_service_closed_after_collection": true,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1088_20261106/d1088_3b_last_known_w1/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1088_3b_last_known_w1.json",
+      "sha256": "eb878b0eda3694daab86ebaa596ea114a5ea3147ee7975f13eedc7d40255863d",
+      "bytes": 384734527
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1088_20261106/d1088_3b_last_known_w1/launch.json",
+      "sha256": "f7b2a2db18c75cdbcdf7d78d8c6ad24db928cb3843048c3f90aba5838b613d2f",
+      "bytes": 12264
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1088_20261106/d1088_3b_last_known_w1/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "23c9b4e37b71e170ba95e011916ac03804896d32b817be7d964682e7be172750",
+      "bytes": 517549749
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1088_20261106/d1088_3b_last_known_w1/remote_transfers_remote.jsonl",
+      "sha256": "f66e428466abec3f37dd0f6f728704ca2a8a5cc4f4e907379441e7b0afb2b77a",
+      "bytes": 110449
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1088_20261106/remote_health_post.json",
+      "sha256": "9d12b039c1236d0cbfbcc9d8519b82eb953c9cbdb393993f6165e1883676153d",
+      "bytes": 362
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1088_3b_last_known_w1/completion/full4000.json",
+      "sha256": "298fbfb6ff1d6de345133de877cdc2970d6cfc28a2a9485cde369c1c12efd98a",
+      "bytes": 48960
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1088_3b_last_known_w1/completion/delivery_and_resources.json",
+      "sha256": "baedc0e19cc90c1c074b8508f514db5e5f383b110d69391aed17b337d6021b1a",
+      "bytes": 15529
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1088_3b_last_known_w1/completion/analysis_output_binding.yaml",
+      "sha256": "2e8a4917c49401af8fda5b8f8983d8e1305684333cb779a2a508563515d216e3",
+      "bytes": 5933
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1088_3b_last_known_w1/collect_completion.py",
+      "sha256": "07cac1116d2ff94b64a392c1246abdeb6ad3ab1b3604f40ce17ef560ad8bd4d9",
+      "bytes": 6208
+    }
+  ]
+}

@@ -86,3 +86,32 @@ revalidation、scale-up/down 和 handoff/preparation 触发计数。
 `n_correct=null` 或 `ranking_eligible=false` 必须原样保留；本轮用于 confirmed-state
 机制诊断，不进入正式跨系统数值正确性排名。结果若与 Full 方向相反或差异很小，
 均按 trade-off/未分辨解释，不筛选 seed、不调整 hold 周期、不修改公式。
+
+## 完成结果与论文判断
+
+D1088 已完成并闭合：4,000/4,000 请求成功终态，launcher、回放、watchdog 返回
+0，物理 allocation-union 完整释放。D648 联合 TTFT/TPOT SLO 为 3,852/4,000
+（96.300%），平均 TTFT 456.091 ms，P95 TTFT 1,135.218 ms，平均 TPOT
+17.216 ms，平均 E2E 2,322.126 ms，P95 E2E 5,006.383 ms；物理 GPU-s 为
+6,092.2787，即 1.523070 GPU-s/offered-request。`n_correct=null`，故
+`ranking_eligible=false`，只用于机制诊断。
+
+远端健康 clock 为
+`remote-process-monotonic:6b0ae30e27cb4f49a8a067dcf60be827`；132/132 条
+transfer 均为 `outcome=sent`、`prepublished_gzip_v1`，总读取字节
+306,360,162，未发生请求期打包。服务在 post-run health 与 journal 收集后停止。
+
+与同当前实现的 D1082 Full W1 相比，LastKnown 的物理 GPU-s 高 12.959%，P95
+TTFT 高 8.668%，联合 SLO 低 0.325 个百分点；平均 TPOT 低 2.305%，平均 E2E
+低 0.483%。因此本轮支持一个受限结论：在该 W1 轨迹中，限制 router 的已确认
+来源信息会带来更差的尾延迟、SLO 与资源结果，但不证明所有 workload 下确认
+传播都必然有益，也不能把全部差异机械归因于少量选择变化。完整对照见
+`paper_results/ieee_tc/ablation/d1088_3b_last_known_w1/completion/versus_d1082_full_w1.json`。
+
+信息视图审计显示 8,046 个事件（arrival-prefetch 4,000、request-dispatch
+4,046），其中最终纯选择分歧 15 次，候选 tier/source-class 分歧各 49 行；未
+生成反事实 latency，未授予 executable reference。controller hold age 平均
+20.995 ms、P95 176.753 ms、最大 496.968 ms；底层 source observation age
+平均 2.000 s、P95 5.831 s、最大 32.461 s，二者已分开记录。Full 的 handoff、
+preparation、residency 与 selected-source revalidation 保持启用，因而该实验
+确实隔离了信息视图而不是移除 tiered cache 或物理确认。
