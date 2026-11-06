@@ -1,0 +1,29 @@
+{
+  "kind": "ieee_tc_invalid_run_record_v1",
+  "run_id": "d1086_20261106",
+  "run_tag": "d1086_3b_elastic_locality_w1",
+  "scenario": "tc_ieee_elastic_locality",
+  "status": "invalid_for_comparison",
+  "reason": "The required remote artifact service was not active during the run.",
+  "evidence": {
+    "planned_requests": 4000,
+    "replay_completed": true,
+    "launcher_pass": true,
+    "formal_comparison_qualified": false,
+    "remote_transfer_count": 132,
+    "remote_transfer_state_counts": {"not_published": 132},
+    "remote_transferred_bytes": 0,
+    "remote_delivery_mode_count": {"null": 132},
+    "service_log_error": "RemoteArtifactError: download failed",
+    "mechanism_contract_qualified": false
+  },
+  "interpretation": "This run is retained as a failed execution audit. Its latency, SLO, tier counts, and physical GPU time are not used for the ElasticLocality comparison because the remote artifact path was unavailable and the demand-loading path repeatedly failed.",
+  "source_refs": {
+    "result_sha256": "666d214fa8a4118dab1550f20f6522e722e790384c1f21b75d99879b2b33038a",
+    "launch_sha256": "ec417c283399e38567b67be445149a0ead527d391ae1d7b6f3a35d0f32346271",
+    "main_outcome_sha256": "46c996f09e86d701085357f7fb46d5ceb9c658e5df36ff215fb1d1ff9959a584",
+    "service_log_sha256": "874b842881321b9ffa63c98178e9db0c6c737375db7493964dde7bdd8667e2e6",
+    "replay_sha256": "71468016213080858a51d7c7b1cd78b7708505e8df869437363290109d5b400b"
+  },
+  "replacement_policy": "Use a new frozen execution key only after starting and health-checking the remote service; never overwrite this raw run or promote it to a result table."
+}

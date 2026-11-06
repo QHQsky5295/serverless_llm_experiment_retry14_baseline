@@ -85,3 +85,17 @@ trade-off 或未分辨，而不是筛选结果、修改 slack 或人工削弱对
 
 本轮不生成论文图，先保存可复核表格、JSON、请求级证据和 SHA manifest；完成后
 再提交当前仓库并推送一个带日期的 FaaSLoRA backup 分支。
+
+## D1086 执行审计：无效，不进入比较
+
+D1086 的回放已完成且资源已释放，但执行前没有启动远端 artifact service。原始
+`main_outcome` 明确记录 `formal_comparison_qualified=false`；132 条远程传输均为
+`not_published`、传输字节为 0，service log 反复出现
+`RemoteArtifactError: download failed`，机制执行资格也为 false。因此这不是
+一个“远端有效但效果较差”的结果，而是一次失败执行审计：其 TTFT、SLO、tier
+计数和 GPU-s 全部禁止进入 ElasticLocality 对照。
+
+失败记录保存在
+`paper_results/ieee_tc/ablation/d1086_3b_elastic_locality_w1/d1086_invalid_remote_service.json`。
+不覆盖 D1061 或 D1085，也不复用 D1086 执行键；替代运行必须使用新 run key，
+并在启动前通过远端 `systemctl --user is-active` 与健康回执确认服务已发布。
