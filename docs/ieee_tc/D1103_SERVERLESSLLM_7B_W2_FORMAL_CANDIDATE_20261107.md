@@ -18,7 +18,7 @@ ServerlessLLM 的官方调度、路由、扩缩容或 LoRA 加载策略。
 
 W2 map SHA 为 `48c72e39bfff13874de70a73a8a7ca26ff7be5246d5ee5a3a59dfb06bd502300`，
 source trace SHA 为 `efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c`，
-W2 view SHA 为 `5734bd88587c75dacc0d5c7534ad5b4d5d2a67aa0980f9b203dd87135d3adce7`。
+本次实际 W2 view SHA 为 `7fd426bf7d98bdabe973b0a39c3d990d80b252ee093bf7e5076f31e882c82767`。
 
 ## 资格规则
 
