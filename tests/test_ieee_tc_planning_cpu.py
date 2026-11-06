@@ -99,6 +99,95 @@ class ValidatedPlanMembership(unittest.TestCase):
         self.assertEqual(actual, expected)
 
 
+class PositiveDemandOptions(unittest.TestCase):
+    """Sparse work representation retains dense authoritative source/victim state."""
+    def inputs(self, mode='residency', counts=None):
+        from faaslora.preloading.preloading_planner import owned_preparation_inputs
+        fixture = PlanningCPU()
+        self.addCleanup(fixture.doCleanups)
+        args, runner, _ = fixture.inputs(mode)
+        args = dict(args)
+        mode, demand, costs = (args.pop(name) for name in ('mode', 'demand', 'costs'))
+        if counts is not None:
+            demand = replace(demand, counts=counts, total_arrivals=sum(counts.values()))
+        inputs = owned_preparation_inputs(**args)
+        kwargs = dict(mode=mode, demand=demand, costs=costs,
+            options=inputs['options'], budgets=inputs['budgets'],
+            source_snapshot_id=inputs['source_snapshot_id'], source_view=inputs['source_view'],
+            size_edges_bytes=args['profiles'].size_edges_bytes)
+        return runner._stack.preloading_planner, kwargs
+
+    @staticmethod
+    def without_plan_hashes(value):
+        if isinstance(value, dict):
+            return {key: PositiveDemandOptions.without_plan_hashes(item)
+                for key, item in value.items() if key not in ('plan_sha256', 'planning_sha256')}
+        if isinstance(value, (tuple, list)):
+            return type(value)(PositiveDemandOptions.without_plan_hashes(item) for item in value)
+        return value
+
+    def test_selection_sources_victims_and_execution_objectives_equal(self):
+        from faaslora.preloading.planning_cpu import _execution_objectives
+        for mode in ('handoff', 'residency'):
+            for counts in ({}, {'a': 3}, {'b': 4}, {'a': 1, 'd': 2}):
+                with self.subTest(mode=mode, counts=counts):
+                    planner, args = self.inputs(mode, counts)
+                    plans, objectives = [], []
+                    for sparse in (False, True):
+                        plan = planner.generate_ieee_epoch(**args, positive_demand_only=sparse)
+                        plan['source_view'] = args['source_view']
+                        selected = planner.validate_ieee_execution_plan(plan)
+                        with patch('faaslora.preloading.planning_cpu.uuid.uuid4') as uuid4:
+                            uuid4.return_value.hex = 'test-same-execution-id'
+                            objective = _execution_objectives(plan, selected, args['size_edges_bytes'])
+                        plans.append(plan)
+                        objectives.append(self.without_plan_hashes(objective))
+                    dense, sparse = plans
+                    self.assertEqual(dense['selected'], sparse['selected'])
+                    self.assertEqual(dense['diagnostics'], sparse['diagnostics'])
+                    self.assertEqual(dense['source_view'], sparse['source_view'])
+                    self.assertEqual(dense['source_snapshot_id'], sparse['source_snapshot_id'])
+                    self.assertEqual(sparse['options'], [r for r in dense['options'] if r['demand_fraction']])
+                    self.assertEqual(sparse['excluded_zero_demand_options'], len(dense['options'])-len(sparse['options']))
+                    self.assertEqual(objectives[0], objectives[1])
+
+    def test_zero_demand_duplicate_and_conflicting_sources_are_still_rejected(self):
+        planner, args = self.inputs(counts={})
+        option = args['options'][0]
+        for added in (option, replace(option, source=replace(option.source,
+                layout_id=option.source.layout_id + '-conflict'))):
+            # The duplicate is invalid even though it would not be executed.
+            args['options'] = (option, added)
+            with self.assertRaisesRegex(ValueError, 'duplicate target|conflicting source'):
+                planner.generate_ieee_epoch(**args, positive_demand_only=True)
+
+    def test_missing_positive_cost_is_not_replaced_by_zero(self):
+        planner, args = self.inputs(counts={'a': 1})
+        args['costs'] = replace(args['costs'], estimates=())
+        with self.assertRaises(KeyError):
+            planner.generate_ieee_epoch(**args, positive_demand_only=True)
+        args['demand'] = replace(args['demand'], counts={}, total_arrivals=0)
+        result = planner.generate_ieee_epoch(**args, positive_demand_only=True)
+        self.assertEqual(result['options'], [])
+
+    def test_representation_metadata_is_hash_bound_and_legacy_plans_validate(self):
+        planner, args = self.inputs(counts={'a': 1})
+        for sparse in (False, True):
+            plan = planner.generate_ieee_epoch(**args, positive_demand_only=sparse)
+            plan['source_view'] = args['source_view']
+            planner.validate_ieee_execution_plan(plan)
+            if sparse:
+                changed = copy.deepcopy(plan)
+                changed['excluded_zero_demand_options'] += 1
+                with self.assertRaisesRegex(ValueError, 'frozen planning inputs'):
+                    planner.validate_ieee_execution_plan(changed)
+                changed['option_scope'] = 'unrecognized'
+                with self.assertRaisesRegex(ValueError, 'option representation'):
+                    planner.validate_ieee_execution_plan(changed)
+            else:
+                self.assertNotIn('option_scope', plan)
+
+
 class PlanningCPU(unittest.IsolatedAsyncioTestCase):
     def inputs(self, mode='residency'):
         from faaslora.clock import local_monotonic_clock_id
@@ -429,6 +518,10 @@ class PlanningCPU(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(validate.call_count, 1)
         sealed = ValidatedPreparationPlan._from_worker_result(payload, receipt)
         self.assertEqual(tuple(sealed.snapshot()), receipt['plan_keys'])
+        self.assertEqual(receipt['option_scope'], 'positive_demand_v1')
+        self.assertEqual(receipt['excluded_zero_demand_options'],
+                         sealed['excluded_zero_demand_options'])
+        self.assertEqual(receipt['materialized_positive_demand_options'], len(sealed['options']))
         with patch('faaslora.preloading.planning_cpu.pickle.loads',
                    side_effect=AssertionError('actual worker receipt membership decoded payload')):
             self.assertIn('source_view', sealed)

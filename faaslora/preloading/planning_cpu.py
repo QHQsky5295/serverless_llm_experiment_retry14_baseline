@@ -284,7 +284,8 @@ def execute_planning_message(message):
             plan = planner.generate_ieee_epoch(mode=mode, options=inputs['options'],
                 budgets=inputs['budgets'], demand=demand, costs=costs,
                 source_snapshot_id=inputs['source_snapshot_id'],
-                source_view=inputs['source_view'], size_edges_bytes=profiles.size_edges_bytes)
+                source_view=inputs['source_view'], size_edges_bytes=profiles.size_edges_bytes,
+                positive_demand_only=True)
             value = dict(plan, source_view=inputs['source_view'])
         if operation == 'owned_execution_epoch' and not no_preparation:
             # This private plan has never left the computation owner. Validate
@@ -335,6 +336,10 @@ def execute_planning_message(message):
         if no_preparation:
             receipt.update(confirmed_gpu_no_preparation=True,
                 no_preparation_witness_sha256=value['witness_sha256'], cost_sequence=costs.sequence)
+        else:
+            receipt.update(option_scope=plan['option_scope'],
+                excluded_zero_demand_options=plan['excluded_zero_demand_options'],
+                materialized_positive_demand_options=len(plan['options']))
     return payload, receipt
 
 

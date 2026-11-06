@@ -2139,7 +2139,8 @@ class PreloadingPlanner:
 
     def generate_ieee_epoch(self, *, mode: str, options, budgets, demand,
                             costs: PreparationCostModel, source_snapshot_id: str,
-                            source_view=None, size_edges_bytes=None):
+                            source_view=None, size_edges_bytes=None,
+                            positive_demand_only=False):
         """Build Eq.(4) inputs once, then use Eq.(5) or Eq.(6–7).
 
         This is the actual planning entry, separate from legacy priority. Source
@@ -2159,6 +2160,7 @@ class PreloadingPlanner:
         counts = dict(demand.counts)
         sequence, estimates = costs.snapshot()
         candidates, inputs = [], []
+        excluded_zero_demand_options = 0
         seen, sources = set(), {}
         for option in sorted(options, key=lambda o: (o.artifact_id, o.target.tier)):
             pair = (option.artifact_id, option.target.tier)
@@ -2167,6 +2169,13 @@ class PreloadingPlanner:
             seen.add(pair)
             sources[option.artifact_id] = option.source
             h = counts.get(option.artifact_id, 0)/demand.total_arrivals if demand.total_arrivals else 0.
+            if positive_demand_only and not h:
+                # These options never enter the solver below. Keep the complete
+                # source_view (including zero-demand residents/victims), and
+                # validate duplicate/source identities above, but do not build
+                # executable-plan rows for mathematically absent work.
+                excluded_zero_demand_options += 1
+                continue
             # Zero demand implies zero benefit without estimating unsupported
             # unused classes; do not replace a missing positive-demand d by zero.
             d_source = estimates[option.source] if h else None
@@ -2186,6 +2195,9 @@ class PreloadingPlanner:
             options=inputs, cost_estimates=[dict(**{'class': asdict(key)}, load_ms=value)
                 for key, value in sorted(estimates.items(), key=lambda item: (
                     item[0].tier, item[0].representation, item[0].layout_id, item[0].size_bin))])
+        if positive_demand_only:
+            frozen.update(option_scope='positive_demand_v1',
+                excluded_zero_demand_options=excluded_zero_demand_options)
         victims = file_victims = None
         if mode == 'residency' and source_view is not None:
             frozen.update(replacement_policy='owned_native_and_file_replacement_v2',
@@ -2238,6 +2250,12 @@ class PreloadingPlanner:
             estimates = frozen_preparation_costs(plan['cost_estimates'])
         else:
             estimates = None  # Preserved historical file/native-only diagnostic plans.
+        if 'option_scope' in plan:
+            keys += ('option_scope', 'excluded_zero_demand_options')
+            if (plan['option_scope'] != 'positive_demand_v1'
+                    or type(plan['excluded_zero_demand_options']) is not int
+                    or plan['excluded_zero_demand_options'] < 0):
+                raise ValueError('invalid preparation option representation')
         if 'replacement_policy' in plan:
             keys += ('replacement_policy', 'size_edges_bytes')
             if (plan['replacement_policy'] not in ('owned_native_gpu_replacement_v1',
@@ -2257,6 +2275,8 @@ class PreloadingPlanner:
                  if plan['total_arrivals'] else 0.)
             if h != row['demand_fraction']:
                 raise ValueError('preparation execution changed frozen demand')
+            if 'option_scope' in plan and not h:
+                raise ValueError('positive-demand preparation contains a zero-demand option')
             if h:
                 if estimates is not None and (estimates[PreparationClass(**row['source'])] != row['source_load_ms']
                         or (0. if row['target']['tier'] == 'gpu' else
