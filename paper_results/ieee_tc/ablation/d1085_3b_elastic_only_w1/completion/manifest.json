@@ -1,0 +1,41 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1085_3b_elastic_only_w1/completion/analysis_output_binding.yaml",
+      "sha256": "39074019612823c81c2d5b513afe90815e42742ef3b60a71561a271bb613e1fe",
+      "bytes": 6260
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1085_3b_elastic_only_w1/completion/closure.json",
+      "sha256": "12af8b10ebfcb131fb55131a8cb55b29284d0daa8f62a0bb84c68f31d156dc4c",
+      "bytes": 3189
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1085_3b_elastic_only_w1/completion/delivery_and_resources.json",
+      "sha256": "7f2662f5f50718b22e078ad242495006066e5b857c24b45707f7ae778d4724ca",
+      "bytes": 15102
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1085_3b_elastic_only_w1/completion/full4000.json",
+      "sha256": "f1d1a2daf6da1cbec9e3c9595970f854008d36ec4c1b78375d3f62fd555a1685",
+      "bytes": 21823
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1085_3b_elastic_only_w1/completion/profile_bindings.json",
+      "sha256": "f39d4a503fdb16bb3b2f4040f96479a87da2d1e0bb379bd52a1565de56233329",
+      "bytes": 2783
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1085_3b_elastic_only_w1/completion/stages/diagnosis.json",
+      "sha256": "f7d23092b47fad760f413b78ac79084aeff99e2a6f8607b19b01c59eb060afb7",
+      "bytes": 229379
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1085_3b_elastic_only_w1/completion/stages/requests.csv",
+      "sha256": "e390834088f1e49d615ef858000be77bfa61e6f9d9f0183c6a4e1da6bae5d5d5",
+      "bytes": 2334208
+    }
+  ],
+  "raw_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1085_20261106/d1085_3b_elastic_only_w1",
+  "raw_result_sha256": "efa2b876e2c8a81e3542c7c761942babf8846c7bb10d42fe42ac7233ac6d25d3"
+}

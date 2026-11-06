@@ -1,0 +1,89 @@
+{
+  "kind": "ieee_tc_a1_same_version_descriptive_comparison_v1",
+  "comparison": "D1085 ElasticOnly W1 versus D1082 Full W1",
+  "model": "Llama-3.2-3B-Instruct",
+  "workload": {
+    "requests": 4000,
+    "logical_adapters": 500,
+    "trace_profile": "W1",
+    "source_trace_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "generation_contract": "fixed_length_greedy_v1",
+    "bandwidth_limit_mode": "local_sim_no_delay"
+  },
+  "runs": {
+    "elastic_only": {
+      "run_id": "d1085_20261106",
+      "run_tag": "d1085_3b_elastic_only_w1",
+      "scenario": "tc_ieee_elastic_only",
+      "implementation_commit": "462f9987944d68370be7e411abb9252980a3e2b1",
+      "physical_gpu_seconds": 6072.000783551484,
+      "gpu_seconds_per_offered_request": 1.518000195887871,
+      "joint_slo_fraction": 0.9865,
+      "joint_slo_pass": 3946,
+      "ttft_mean_ms": 322.02085528697353,
+      "ttft_p95_ms": 666.5246202610433,
+      "tpot_mean_ms": 14.78657681035259,
+      "e2e_mean_ms": 1912.3488822325598,
+      "e2e_p95_ms": 4066.9238814152777,
+      "scale_up_events": 8,
+      "scale_down_events": 7,
+      "scale_up_first_service_samples": 8,
+      "scale_up_first_service_planned_match_rate": 0.0,
+      "remote_transfer_count": 132,
+      "feature_gates": {
+        "readiness_routing_enabled": false,
+        "scale_up_handoff_enabled": false,
+        "hierarchical_residency_enabled": false,
+        "coordination_enabled": false,
+        "effective_capacity_admission_enabled": false
+      }
+    },
+    "full": {
+      "run_id": "d1082_20261106",
+      "run_tag": "d1082_3b_host_budget_projection_w1",
+      "scenario": "tc_ieee_full",
+      "implementation_commit": "462f9987944d68370be7e411abb9252980a3e2b1",
+      "physical_gpu_seconds": 5393.347900303081,
+      "gpu_seconds_per_offered_request": 1.3483369750757702,
+      "joint_slo_fraction": 0.96625,
+      "joint_slo_pass": 3865,
+      "ttft_mean_ms": 436.3548407688504,
+      "ttft_p95_ms": 1044.666805304587,
+      "tpot_mean_ms": 17.622541036219452,
+      "e2e_mean_ms": 2333.3915855011437,
+      "e2e_p95_ms": 5029.881117865443,
+      "scale_up_events": 6,
+      "scale_down_events": 5,
+      "scale_up_first_service_samples": 6,
+      "scale_up_first_service_planned_match_rate": 0.0,
+      "remote_transfer_count": 132,
+      "feature_gates": {
+        "readiness_routing_enabled": false,
+        "scale_up_handoff_enabled": true,
+        "hierarchical_residency_enabled": true,
+        "coordination_enabled": true,
+        "effective_capacity_admission_enabled": false
+      }
+    }
+  },
+  "elastic_only_minus_full": {
+    "physical_gpu_seconds_relative_percent": 12.583146791073252,
+    "gpu_seconds_per_offered_request_relative_percent": 12.583146791073252,
+    "joint_slo_fraction_delta_percentage_points": 2.024999999999999,
+    "ttft_mean_relative_percent": -26.20206648342028,
+    "ttft_p95_relative_percent": -36.19739644482061,
+    "tpot_mean_relative_percent": -16.09282236902232,
+    "e2e_mean_relative_percent": -18.044236804692012,
+    "e2e_p95_relative_percent": -19.144731533114655
+  },
+  "interpretation": {
+    "status": "tradeoff_not_uniform_win",
+    "paper_claim": "On this W1 single-run descriptive comparison, ElasticOnly has lower latency and higher common-SLO attainment, while Full uses fewer physical GPU-seconds. The observation does not support attributing the latency benefit to adapter-management mechanisms, nor does it establish ranking because 3B numerical adapter correctness is structurally unqualified (n_correct=null).",
+    "causal_limit": "The variants share the same current implementation, trace, model, and generation contract, but this is one seed and one workload profile; the comparison is not a confidence interval or a global optimality claim."
+  },
+  "source_refs": {
+    "elastic_only_completion": "paper_results/ieee_tc/ablation/d1085_3b_elastic_only_w1/completion/full4000.json",
+    "full_completion": "paper_results/ieee_tc/p2_backend/d1082_host_budget_projection/completion/full4000.json",
+    "elastic_only_closure_sha256": "f1d1a2daf6da1cbec9e3c9595970f854008d36ec4c1b78375d3f62fd555a1685"
+  }
+}
