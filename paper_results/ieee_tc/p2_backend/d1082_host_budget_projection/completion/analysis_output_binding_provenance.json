@@ -1,0 +1,21 @@
+{
+  "original_config": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml",
+    "sha256": "263bdcd6ff255108ddaffdd9ce46898d7f12be15948d7fe3d7ac27d5ea8828d2",
+    "bytes": 6164
+  },
+  "launch": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1082_20261106/d1082_3b_host_budget_projection_w1/launch.json",
+    "sha256": "bfae36bf3ac637bef3c69ee30d285645c22598f69638693ea9836d7dfc3a42ee",
+    "bytes": 12280
+  },
+  "result": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1082_20261106/d1082_3b_host_budget_projection_w1/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1082_3b_host_budget_projection_w1.json",
+    "sha256": "4cdad88548637e631cfc314b76e67541c4f345d30d744b804e6c0094e3bcf1c3",
+    "bytes": 283851103
+  },
+  "changed_fields": {
+    "experiment.output_dir": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1082_20261106/d1082_3b_host_budget_projection_w1"
+  },
+  "reason": "Bind the recorded output override, not serving or evaluation."
+}
