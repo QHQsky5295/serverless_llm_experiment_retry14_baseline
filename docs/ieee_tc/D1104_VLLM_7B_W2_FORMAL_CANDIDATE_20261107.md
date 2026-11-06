@@ -4,7 +4,9 @@ D1104 is the first 7B serverful baseline after the completed ServerlessLLM audit
 It uses the same W2 request view, adapter subset, generation contract, real HTTP
 artifact endpoint, GPU set, and replay protocol as D1103. The vLLM runtime is the
 independent qualified vLLM 0.30.0 environment; no PrimeLoRA routing, admission,
-elasticity, or residency logic is injected into this baseline.
+elasticity, or residency logic is injected into this baseline. Llama-2 7B uses the
+qualified `static_remote` registration path: the selected adapters are materialized
+before vLLM startup and their staging time is included in lifecycle accounting.
 
 ## Frozen identity
 
@@ -33,7 +35,7 @@ stopped cleanly, and resource evidence is complete. A failure is retained as an
 observed compatibility or resource result; it is not replaced by a more favorable
 configuration. The run does not tune vLLM against PrimeLoRA results.
 
-The vLLM runner is `scripts/run_vllm_resident_reference_v1.sh`, which wraps the
-existing fair vLLM runner and records the common resident protocol. This candidate
-registration precedes execution; final metrics and the validity decision will be
-recorded in a separate D1104 outcome document.
+The vLLM runner is `scripts/run_vllm_fair_experiment.sh` with
+`VLLM_LORA_REGISTRATION_MODE=static_remote`. This candidate registration precedes
+execution; final metrics and the validity decision will be recorded in a separate
+D1104 outcome document.
