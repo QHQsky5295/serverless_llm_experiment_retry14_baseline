@@ -1,0 +1,41 @@
+{
+  "new_run": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1084_same_version_w2/completion/full4000.json",
+    "sha256": "21b1a49ea97de357ad1bc7388870252923890ee92a10ad7f3e5042be0a416a21",
+    "bytes": 47885
+  },
+  "old_run": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1045_event_busy_time/completion/full4000.json",
+    "sha256": "5da67242cf1ad257b6a5f4bb44aa50ef4d2398d096807b624de07d1d7f3188c2",
+    "bytes": 54769
+  },
+  "new": {
+    "workload": "W2",
+    "joint_slo_fraction": 0.96425,
+    "joint_pass": 3857,
+    "p95_ttft_ms": 1706.1685393564403,
+    "mean_ttft_ms": 546.9376636859961,
+    "mean_tpot_ms": 15.289459330645633,
+    "mean_e2e_ms": 2229.361578940414,
+    "physical_gpu_seconds": 8277.798965328373,
+    "gpu_seconds_per_offered_request": 2.069449741332093
+  },
+  "old": {
+    "workload": "W2",
+    "joint_slo_fraction": 0.95825,
+    "joint_pass": 3833,
+    "p95_ttft_ms": 1672.3241172730923,
+    "mean_ttft_ms": 559.5194875029847,
+    "mean_tpot_ms": 15.520169184281484,
+    "mean_e2e_ms": 2269.643469467992,
+    "physical_gpu_seconds": 8182.401820929721,
+    "gpu_seconds_per_offered_request": 2.0456004552324303
+  },
+  "relative_change_new_minus_old_over_old": {
+    "p95_ttft_ms": 0.02023795610777597,
+    "physical_gpu_seconds": 0.011658819315697278,
+    "gpu_seconds_per_offered_request": 0.011658819315697207,
+    "joint_slo_fraction": 0.006000000000000005
+  },
+  "interpretation": "W2 is a complete same-version observation under the frozen D648 contract. The canonical resource value is the physical allocation union, not the legacy result JSON infrastructure field. This comparison is descriptive; the two runs are not a controlled single-mechanism causal pair."
+}

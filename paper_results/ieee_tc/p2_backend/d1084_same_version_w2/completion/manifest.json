@@ -1,0 +1,46 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1084_same_version_w2/completion/analysis_output_binding.yaml",
+      "sha256": "e826ce577771884e4f79981be414fece971ce6a59a0b5832e2b86a9699f627c2",
+      "bytes": 5866
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1084_same_version_w2/completion/closure.json",
+      "sha256": "3679d07b9a5333e8eac76b01769a9a1c6b6ee93a71ceec0f9f5fc9b62777f1cf",
+      "bytes": 3173
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1084_same_version_w2/completion/delivery_and_resources.json",
+      "sha256": "44425bb38541001bcf8c7c3247d7c1f01852eca9ba5be1b9186df3e102ddcd17",
+      "bytes": 9286
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1084_same_version_w2/completion/full4000.json",
+      "sha256": "21b1a49ea97de357ad1bc7388870252923890ee92a10ad7f3e5042be0a416a21",
+      "bytes": 47885
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1084_same_version_w2/completion/profile_bindings.json",
+      "sha256": "926787f1a64d1ac555e2ce4f86dfec0c3c1b02e29b1df7b36f964ad3fe7fb294",
+      "bytes": 2822
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1084_same_version_w2/completion/stages/diagnosis.json",
+      "sha256": "9b5796fd4e5ca18eb3077bf6a58c8d593ad54dffa32094022998b18969430b5f",
+      "bytes": 233855
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1084_same_version_w2/completion/stages/requests.csv",
+      "sha256": "ba0dfdb169a12e75e9a6695b81bdec7dc2270227d60998810692282a9d4b9b63",
+      "bytes": 2347348
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1084_same_version_w2/completion/versus_d1045.json",
+      "sha256": "122dbf40fd627eefcd2a281c37c04f31e83d65b25c629d28cd4aeacecb4a1f65",
+      "bytes": 1810
+    }
+  ],
+  "raw_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1084_20261106/d1084_3b_host_budget_projection_w2",
+  "raw_run_sha256": "dcb8daebc116d322ee553ac145e31a138434a311ad1f6aa06eaf9bee01f46e21"
+}
