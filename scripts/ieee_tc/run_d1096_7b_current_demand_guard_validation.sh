@@ -2,7 +2,9 @@
 set -euo pipefail
 
 ROOT=/home/qhq/serverless_llm_experiment_retry14_baseline
-RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1096_20261107/7b_current_demand_guard_validation
+RUN_TAG=${FAASLORA_RUN_TAG:-d1096_7b_current_demand_guard_validation}
+RUN_DATE=${FAASLORA_RUN_DATE:-d1096_20261107}
+RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/${RUN_DATE}/${RUN_TAG}
 cd "$ROOT"
 mkdir -p "$RAW"
 exec >"$RAW/launcher.log" 2>&1
@@ -62,10 +64,10 @@ export FAASLORA_SHARED_TRACE_PATH=/home/qhq/serverless_llm_baselines/results/pap
 export FAASLORA_SHARED_ADAPTER_SUBSET_PATH="${FAASLORA_SHARED_TRACE_PATH%_trace.json}_adapter_subset.json"
 export FAASLORA_TRACE_ROLE=validation
 export FAASLORA_FORMAL_RUN=0
-export FAASLORA_RESULTS_TAG=d1096_7b_current_demand_guard_validation
+export FAASLORA_RESULTS_TAG="$RUN_TAG"
 export FAASLORA_OUTPUT_DIR="$RAW"
-export FAASLORA_NVME_CACHE_DIR=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1096_20261107/7b_nvme_current_demand_guard_validation
-export FAASLORA_HOST_CACHE_DIR=/dev/shm/tc-d1096-7b-current-demand-guard-validation
+export FAASLORA_NVME_CACHE_DIR=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/${RUN_DATE}/${RUN_TAG}/nvme
+export FAASLORA_HOST_CACHE_DIR=/dev/shm/tc-${RUN_TAG//_/-}
 export FAASLORA_TC_LAUNCH_OUTPUT="$RAW/launch.json"
 export FAASLORA_TC_PREDICTED_GROWTH_GIB=32
 export FAASLORA_TC_NVML_BINDING=/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/site-packages/pynvml.py
