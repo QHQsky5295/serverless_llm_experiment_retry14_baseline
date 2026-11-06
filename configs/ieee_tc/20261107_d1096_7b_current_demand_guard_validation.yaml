@@ -45,7 +45,7 @@ model:
   ieee_native_host_workspace:
     kind: native_host_workspace_contract_v1
     dtype: torch.float16
-    source_audit_sha256: 224b9337ecaba2590ac888d0e3b9eb41a17074ce77b952e98e935259adf60f
+    source_audit_sha256: 224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f
     max_resident_pinned_bytes: 33554432
     max_transient_tensor_bytes: 67143184
   ieee_native_host_allocator_policy: uncached_background_v1
