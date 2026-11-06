@@ -1,0 +1,77 @@
+{
+  "kind": "d1082_host_budget_projection_checkpoint_v1",
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1082_host_budget_projection/component_01.json",
+      "sha256": "837eed723de2885d237667151a1748395e2ab76339ba73e41ed7ba6bfa96a2c0",
+      "bytes": 10973
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1082_host_budget_projection/qualify.py",
+      "sha256": "379ab2db08cd8600cbfc164f001f2a1028fadc57ad4885df348a6225ddca9b47",
+      "bytes": 6818
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1082_host_budget_projection/tests_01.json",
+      "sha256": "a8cbe99245e4da99d61d1c746d69a22bd2119bd91e6a8fd2958e00380a7d6c76",
+      "bytes": 11820
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1082_host_budget_projection/tests_02_integrated.json",
+      "sha256": "5ba6c60a735e201193af86a81de9b8b48a561734a22a90782857d0917e6a3754",
+      "bytes": 12016
+    }
+  ],
+  "tested_sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+      "sha256": "49688edeeba4d84e63b1ba1ec557fcb3f055e04567c367256cf21034cb394fa8",
+      "bytes": 144619
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_worker_observation.py",
+      "sha256": "8dbbf27fe5dc05fca4a2548a520813feac139f22ed2378db7b25114c9c3cb859",
+      "bytes": 110336
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_hit_host_transaction.py",
+      "sha256": "8a7b7c7c954e7e7f98d6c6cbe7a9fc5b5f684c2b58b1df50b016f6d5f534f23a",
+      "bytes": 45749
+    }
+  ],
+  "protected_unchanged": 144,
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "tests": 52,
+  "native_library_reused": "D747",
+  "candidate_serving_performance_measured": false,
+  "new_gpu_runs": 0,
+  "qualification_identity": {
+    "unit": "primelora-tc-aux-c6cc3cc528a548baed99993eca3d08ae.scope",
+    "invocation_id": "63b1d7f882be4f7fa87a7e152fdb4d1e",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-c6cc3cc528a548baed99993eca3d08ae.scope",
+    "inode": 40437239
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-c6cc3cc528a548baed99993eca3d08ae.scope",
+    "memory.current": 10977280,
+    "memory.peak": 27021312,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 198517\nuser_usec 110730\nsystem_usec 87786\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "prior_qualification_sources": "tests_01/component_01 precede the two consumer call-site flags and added validation test; their historical hashes are retained, not rewritten."
+}

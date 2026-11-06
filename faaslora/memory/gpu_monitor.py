@@ -44,7 +44,8 @@ from .native_host_descriptor import native_host_descriptor
 
 def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
                               include_tensor_views: bool = True,
-                              requested_adapter_ids=None, private_model=None) -> Dict[str, Any]:
+                              requested_adapter_ids=None, private_model=None,
+                              include_adapter_footprints: bool = True) -> Dict[str, Any]:
     """Storage reachable from dense native CPU adapters, without materialization.
 
     A LoRAModel clone/packed layer may share a storage. Charge its capacity once
@@ -61,9 +62,17 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
     An explicit requested_adapter_ids scope measures only those current native
     objects. Its induced union/exclusive edges have distinct field names: they
     are never a complete-cache footprint or reclaimable-memory observation.
+
+    Budget-only consumers can omit per-adapter footprint tables while retaining
+    the complete fresh allocation/alias union. Every current tensor and its
+    pinning is still checked; this is a consumer projection, not a state cache.
     """
     if type(include_tensor_views) is not bool:
         raise ValueError('native HOST tensor-view projection requires an explicit boolean')
+    if (type(include_adapter_footprints) is not bool
+            or (not include_adapter_footprints
+                and (include_tensor_views or requested_adapter_ids is not None))):
+        raise ValueError('HOST allocation projection requires complete scope without tensor views')
     models = manager.list_adapters()  # Native read-only cache copy, no LRU touch.
     if requested_adapter_ids is not None:
         if (not isinstance(requested_adapter_ids, (list, tuple))
@@ -92,7 +101,8 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
         # reference path. Errors must propagate; never silently change mode.
         graph = descriptor(models, include_tensor_views)
         return _ieee_host_inventory_result(graph['host_allocations'],
-            graph['host_adapter_footprints'], graph.get('host_tensor_views'),
+            graph['host_adapter_footprints'] if include_adapter_footprints else None,
+            graph.get('host_tensor_views'),
             include_tensor_views, staged_models, requested_adapter_ids)
     allocations = {}
     views = []
@@ -138,8 +148,9 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
             role = 'private' if is_private else 'staged' if aid in (staged_models or {}) else 'registered'
             if role not in allocation['object_roles']:
                 allocation['object_roles'].append(role)
-        dtype = str(tensor.dtype)
-        adapter_dtypes[aid].add(dtype)
+        if include_adapter_footprints:
+            dtype = str(tensor.dtype)
+            adapter_dtypes[aid].add(dtype)
         if include_tensor_views:
             views.append({'adapter_int_id': aid, 'name': name,
                 'allocation_id': allocation['allocation_id'], 'shape': list(tensor.shape),
@@ -160,8 +171,9 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
             raise ValueError('native HOST model identity/rank/modules are invalid')
         if getattr(model, 'is_3d_lora_weight', False):
             raise ValueError('3D native HOST representation is not qualified')
-        used, packed = set(), False
-        adapter_dtypes.setdefault(aid, set())
+        used, packed = (set() if include_adapter_footprints else None), False
+        if include_adapter_footprints:
+            adapter_dtypes.setdefault(aid, set())
         for name, layer in sorted(model.loras.items()):
             if not isinstance(name, str) or not name:
                 raise ValueError('native HOST module name is invalid')
@@ -184,16 +196,20 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
                 if left is None or right is None:
                     raise ValueError('native HOST adapter has an incomplete A/B pair')
                 present = True
-                used.add(add(left, aid, f'{name}.lora_a[{index}]'))
-                used.add(add(right, aid, f'{name}.lora_b[{index}]'))
+                left_id = add(left, aid, f'{name}.lora_a[{index}]')
+                right_id = add(right, aid, f'{name}.lora_b[{index}]')
+                if include_adapter_footprints:
+                    used.add(left_id)
+                    used.add(right_id)
             if not present:
                 raise ValueError('native HOST module contains no usable A/B pair')
             packed |= is_packed
-        adapters.append({'adapter_int_id': aid, 'rank': model.rank, 'allocation_ids': sorted(used),
-                         'representation': 'native_cpu_dense_ab_v1', 'has_packed_modules': packed})
-        if private_model is not None:
-            adapters[-1]['object_role'] = ('private' if is_private else
-                'staged' if aid in (staged_models or {}) else 'registered')
+        if include_adapter_footprints:
+            adapters.append({'adapter_int_id': aid, 'rank': model.rank, 'allocation_ids': sorted(used),
+                             'representation': 'native_cpu_dense_ab_v1', 'has_packed_modules': packed})
+            if private_model is not None:
+                adapters[-1]['object_role'] = ('private' if is_private else
+                    'staged' if aid in (staged_models or {}) else 'registered')
     physical = list(allocations.values())
     for adapter in adapters:
         used = [physical[index] for index in adapter['allocation_ids']]
@@ -203,14 +219,14 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
         adapter['exclusive_storage_bytes'] = sum(row['allocated_bytes'] for row in used
                                                 if len(row['adapter_ids']) == 1)
         adapter['dtypes'] = sorted(adapter_dtypes[adapter['adapter_int_id']])
-    result = _ieee_host_inventory_result(physical, adapters, views,
+    result = _ieee_host_inventory_result(physical, adapters if include_adapter_footprints else None, views,
         include_tensor_views, staged_models, requested_adapter_ids)
     if private_model is not None:
         # This is a physical-object union for allocation, never a routing or
         # eviction graph. Same-ID objects retain separate footprint rows.
         result['host_footprint_scope'] = 'native_registered_staged_and_private_object_union'
         result['host_private_adapter_ids'] = [private_model.id]
-        for row in result['host_adapter_footprints']:
+        for row in result.get('host_adapter_footprints', ()):
             row.pop('exclusive_storage_bytes')
     return result
 
@@ -220,7 +236,8 @@ def _ieee_host_inventory_result(physical, adapters, views, include_tensor_views,
     """Apply the same accounting scope to either freshly validated graph."""
     result = {'host_allocations': physical,
             **({'host_tensor_views': views} if include_tensor_views else {}),
-            'host_adapter_footprints': adapters,
+            **({'host_adapter_footprints': adapters} if adapters is not None else
+               {'host_inventory_projection': 'complete_allocation_union_v1'}),
             'host_tensor_storage_bytes': sum(row['allocated_bytes'] for row in physical),
             'host_footprint_scope': ('native_registered_and_staged_tensor_storage_capacity'
                                      if staged_models else 'native_registered_tensor_storage_capacity'),
@@ -1467,6 +1484,7 @@ class IEEEWorkerObservationExtension:
                     before = _ieee_pinned_host_observation(_ieee_lora_host_inventory(manager,
                         staged_models=staged_models,
                         include_tensor_views=False,
+                        include_adapter_footprints=False,
                         **({'private_model': _private_model} if _private_model is not None else {})))
                 else:
                     if not reuse or proactive or lora_path is not None or _private_model is not None:
@@ -1583,6 +1601,7 @@ class IEEEWorkerObservationExtension:
                         staged = {**staged, adapter_int_id: loaded}
                 after = _ieee_pinned_host_observation(_ieee_lora_host_inventory(manager,
                     staged_models=staged, include_tensor_views=False,
+                    include_adapter_footprints=False,
                     **({'private_model': private} if private is not None else {})))
                 if not after['available'] or after['accounted_tensor_bytes'] > tensor_budget_bytes:
                     raise RuntimeError('CPU-only preparation exceeded its accounted tensor sub-budget')

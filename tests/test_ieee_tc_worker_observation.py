@@ -259,6 +259,116 @@ class NativeHostFootprint(unittest.TestCase):
         self.assertFalse(result['host_allocator_overhead_included'])
 
 
+class NativeHostBudgetProjection(unittest.TestCase):
+    """A fresh complete allocation union, not a cached or target-scoped budget."""
+
+    def pair(self, native, **kwargs):
+        full = monitor._ieee_lora_host_inventory(native, include_tensor_views=False, **kwargs)
+        compact = monitor._ieee_lora_host_inventory(native, include_tensor_views=False,
+            include_adapter_footprints=False, **kwargs)
+        self.assertNotIn('host_adapter_footprints', compact)
+        self.assertEqual(compact['host_inventory_projection'], 'complete_allocation_union_v1')
+        self.assertEqual({k: v for k, v in compact.items() if k != 'host_inventory_projection'},
+                         {k: v for k, v in full.items() if k != 'host_adapter_footprints'})
+        # All five storage totals and live allocator arithmetic must be equal.
+        with patch.object(monitor, '_ieee_pinned_host_allocator_stats',
+                          return_value=(16384, 8192, 8, 4)):
+            self.assertEqual(monitor._ieee_pinned_host_observation(compact),
+                             monitor._ieee_pinned_host_observation(full))
+        return compact
+
+    def test_complete_shared_packed_and_empty_unions_match(self):
+        native, models = NativeHostFootprint().native_models()
+        self.pair(native)
+        layer = models[8].loras['shared']
+        models[8].loras['shared'] = SimpleNamespace(
+            lora_a=[layer.lora_a[:1, :4], None], lora_b=[layer.lora_b[:4, :1], None])
+        self.pair(native)
+        models.clear()
+        self.assertEqual(self.pair(native)['host_tensor_storage_bytes'], 0)
+
+    def test_staged_and_same_id_private_objects_preserve_alias_roles(self):
+        import torch
+        native, models = NativeHostFootprint().native_models()
+        layer = models[8].loras['shared']
+        staged = SimpleNamespace(id=9, rank=4, loras={'mixed': SimpleNamespace(
+            lora_a=layer.lora_a, lora_b=torch.empty((4, 8)))})
+        private = SimpleNamespace(id=7, rank=4, loras={'mixed': SimpleNamespace(
+            lora_a=layer.lora_a, lora_b=torch.empty((4, 8)))})
+        self.pair(native, staged_models={9: staged})
+        self.pair(native, private_model=private)
+        self.pair(native, staged_models={9: staged}, private_model=private)
+
+    def test_every_alias_view_is_fresh_and_mutations_are_visible(self):
+        import torch
+        native, models = NativeHostFootprint().native_models()
+        observed = []
+        original = torch.Tensor.is_pinned
+        def record(tensor):
+            observed.append(id(tensor))
+            return original(tensor)
+        with patch.object(torch.Tensor, 'is_pinned', record):
+            first = self.pair(native)
+        self.assertEqual(len(observed), 12)  # six views in each of two paths
+        self.assertEqual(observed[:6], observed[6:])
+        models[8].loras['shared'].lora_b = torch.empty((16, 16), dtype=torch.float64)
+        self.assertGreater(self.pair(native)['host_tensor_storage_bytes'], first['host_tensor_storage_bytes'])
+        models[8].loras['shared'].lora_b.untyped_storage().resize_(4096)
+        self.assertGreater(self.pair(native)['host_tensor_storage_bytes'], 4096)
+        with patch.object(torch.Tensor, 'is_pinned', return_value=True):
+            self.assertTrue(all(row['pinned'] for row in self.pair(native)['host_allocations']))
+
+    def test_invalid_scope_and_alias_mismatch_are_not_omitted(self):
+        import torch
+        native, models = NativeHostFootprint().native_models()
+        for args in ({'include_tensor_views': True}, {'requested_adapter_ids': [7]},
+                     {'include_adapter_footprints': 0}):
+            kwargs = dict(include_tensor_views=False, include_adapter_footprints=False)
+            kwargs.update(args)
+            with self.subTest(args=args), self.assertRaisesRegex(ValueError, 'allocation projection'):
+                monitor._ieee_lora_host_inventory(native, **kwargs)
+        incompatible = models[7].loras['shared'].lora_b
+        with patch.object(torch.Tensor, 'is_pinned', lambda tensor: tensor is incompatible):
+            with self.assertRaisesRegex(ValueError, 'inconsistent capacity/pinning'):
+                monitor._ieee_lora_host_inventory(native, include_tensor_views=False,
+                    include_adapter_footprints=False)
+        models[8].loras['shared'].hidden = {'nested': [torch.empty((2, 2))]}
+        with self.assertRaisesRegex(ValueError, 'unsupported.*hidden'):
+            monitor._ieee_lora_host_inventory(native, include_tensor_views=False,
+                include_adapter_footprints=False)
+
+    def test_existing_native_graph_mode_has_same_explicit_projection(self):
+        native, _ = NativeHostFootprint().native_models()
+        full = monitor._ieee_lora_host_inventory(native, include_tensor_views=False)
+        graph = Mock(return_value=full)
+        with patch.object(monitor, 'native_host_descriptor', return_value=(
+                graph, {'kind': 'fresh_native_host_graph_v1'})):
+            projected = monitor._ieee_lora_host_inventory(native, include_tensor_views=False,
+                include_adapter_footprints=False)
+        graph.assert_called_once()
+        self.assertEqual(projected['host_allocations'], full['host_allocations'])
+        self.assertNotIn('host_adapter_footprints', projected)
+
+    def test_invalid_models_and_tensors_still_fail_before_budget_use(self):
+        import torch
+        mutations = (
+            lambda models: setattr(models[7], 'rank', 0),
+            lambda models: setattr(models[7], 'is_3d_lora_weight', True),
+            lambda models: setattr(models[7], 'loras', {}),
+            lambda models: setattr(models[7].loras['private'], 'lora_a', torch.empty((2, 3, 4))),
+            lambda models: setattr(models[7].loras['private'], 'lora_a', torch.empty((2, 3)).to_sparse()),
+            lambda models: setattr(models[7].loras['private'], 'lora_a', torch.empty((2, 3), device='meta')),
+            lambda models: setattr(models[7].loras['private'], 'lora_b', None),
+        )
+        for mutation in mutations:
+            native, models = NativeHostFootprint().native_models()
+            mutation(models)
+            for projected in (False, True):
+                with self.subTest(mutation=mutation, projected=projected), self.assertRaises(ValueError):
+                    monitor._ieee_lora_host_inventory(native, include_tensor_views=False,
+                        include_adapter_footprints=not projected)
+
+
 class NativeHostRoutingProjection(unittest.TestCase):
     def native_models(self):
         return NativeHostFootprint().native_models()

@@ -800,6 +800,7 @@ class NativeWorkerRecheck(unittest.TestCase):
             after = recheck(before_check=before, tensor_budget_bytes=2048)
             self.assertEqual(before, after)
             inventory.assert_called_once()
+            self.assertIs(inventory.call_args.kwargs['include_adapter_footprints'], False)
             self.assertEqual(allocator.call_count, 2)
             self.assertEqual(owner.host_workspace_check.call_count, 2)
             self.assertEqual(owner.host_construction_reserved_bytes.call_count, 2)

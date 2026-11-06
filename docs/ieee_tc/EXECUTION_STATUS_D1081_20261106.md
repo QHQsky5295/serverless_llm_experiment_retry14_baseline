@@ -15,7 +15,13 @@ P95 TTFT1043.464586ms。旧Full为95.90%、6182.715971、1114.091001ms；
 launcher/watchdog均已退出，实际服务域消失；两个分析域已空并停止。
 174既有3B unit收集后按原身份停止，7B/k3s未动。工作缓存正常释放，
 144旧投稿hash和两项用户dirty SHA不变。无新GPU运行或图表。
-当前待本结果检查点备份；不要把原实现备份误称结果已推送。
+结果检查点64fab5706f81aba73e2c5415dc6c02734efe6134已推送并ls-remote核验
+origin/retry14_continuous_queue_v2与faaslora_origin/
+backup/d1081-full-w1-outcome-20261106。实际FaaSLoRA V2分歧未强推，备份
+不等于最终集成。本后置状态在下一检查点纳入，不影响已封存的16文件备份。
+backup域退出0、峰值23724032B、保护事件全0，已空并停止。
+默认diff检查仅发现生成CSV的CRLF；按cr-at-eol合法换行检查通过，未改任何
+已封存数据字节。白名单/实际token/密钥模式检查通过，无用户文件暂存。
 以下为保留的启动与监测历史，不代表当前仍在等待。
 
 先读目标、完整 PrimeLoRA-PLAN.md、V1和单轮V2。用户dirty的
