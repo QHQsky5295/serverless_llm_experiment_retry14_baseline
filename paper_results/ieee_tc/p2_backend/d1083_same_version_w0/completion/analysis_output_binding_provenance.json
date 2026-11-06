@@ -1,0 +1,21 @@
+{
+  "original_config": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml",
+    "sha256": "263bdcd6ff255108ddaffdd9ce46898d7f12be15948d7fe3d7ac27d5ea8828d2",
+    "bytes": 6164
+  },
+  "launch": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1083_20261106/d1083_3b_host_budget_projection_w0/launch.json",
+    "sha256": "9f32912a71f12297d0ef7d52e932cf3087f24c6bfac3a755af01dfc89646ba97",
+    "bytes": 12280
+  },
+  "result": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1083_20261106/d1083_3b_host_budget_projection_w0/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1083_3b_host_budget_projection_w0.json",
+    "sha256": "05f94d5689fe7d38131b7573bfcf3ef367834c9db6948465ea99bedfa550a41f",
+    "bytes": 275783418
+  },
+  "changed_fields": {
+    "experiment.output_dir": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1083_20261106/d1083_3b_host_budget_projection_w0"
+  },
+  "reason": "Bind the recorded output override, not serving or evaluation. W0 is the actual replay view."
+}

@@ -1,0 +1,3553 @@
+{
+  "kind": "retained_nested_overhead_d1064_v1",
+  "reports": {
+    "d1046_3b_event_busy_time_w0_full": {
+      "input_contract_sha256": "e6c42cdacdc829c63e86ed9493572f931089ef4b85d1b80292b0c65dc8ed30ba",
+      "scenario": "tc_ieee_full",
+      "sealed_metrics": {
+        "ttft_ms": {
+          "count": 4000,
+          "mean": 355.6546860074159,
+          "p50_type1": 286.25959623605013,
+          "p95_type1": 744.6254063397646
+        },
+        "tpot_ms": {
+          "count": 4000,
+          "mean": 15.364418184041014,
+          "p50_type1": 13.643640153868883,
+          "p95_type1": 26.32481658032962
+        },
+        "e2e_ms": {
+          "count": 4000,
+          "mean": 2016.5438711479073,
+          "p50_type1": 1614.7828754037619,
+          "p95_type1": 4325.355837587267
+        }
+      },
+      "observed_joint_fraction": 0.9785,
+      "physical_gpu_seconds": 7967.349446525332,
+      "n_correct": null,
+      "max_partition_error_ms": 0.0,
+      "groups": {
+        "all": {
+          "count": 4000,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 4000,
+              "mean": 13.154105141409673,
+              "p50_type1": 2.8870138339698315,
+              "p95_type1": 38.70864911004901
+            },
+            "release_to_acquire_ms": {
+              "count": 4000,
+              "mean": 21.270255123032257,
+              "p50_type1": 17.38441316410899,
+              "p95_type1": 39.25465606153011
+            },
+            "acquire_to_resume_ms": {
+              "count": 4000,
+              "mean": 0.5451626024441794,
+              "p50_type1": 0.052446965128183365,
+              "p95_type1": 0.07155910134315491
+            },
+            "runtime_slot_wait_ms": {
+              "count": 4000,
+              "mean": 108.62108526553493,
+              "p50_type1": 89.60637683048844,
+              "p95_type1": 222.3098985850811
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 4000,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 4000,
+              "mean": 71.3253070799401,
+              "p50_type1": 22.03474286943674,
+              "p95_type1": 278.4988139756024
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 4000,
+              "mean": 36.43335873144679,
+              "p50_type1": 26.27813257277012,
+              "p95_type1": 122.72325670346618
+            },
+            "native_engine_queue_ms": {
+              "count": 4000,
+              "mean": 1.2493786308914423,
+              "p50_type1": 0.026880763471126556,
+              "p95_type1": 0.7667499594390392
+            },
+            "native_prefill_ms": {
+              "count": 4000,
+              "mean": 103.0560334327165,
+              "p50_type1": 108.94783306866884,
+              "p95_type1": 157.04912412911654
+            },
+            "native_decode_ms": {
+              "count": 4000,
+              "mean": 1615.9678420930868,
+              "p50_type1": 1234.1621560044587,
+              "p95_type1": 3867.0114129781723
+            },
+            "worker_completion_notification_ms": {
+              "count": 4000,
+              "mean": 31.64255662483629,
+              "p50_type1": 26.98083082213998,
+              "p95_type1": 103.7877150811255
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 4000,
+              "mean": 13.278786422568373,
+              "p50_type1": 1.3236948288977146,
+              "p95_type1": 50.13173632323742
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 4000,
+              "mean": 7.1575651575,
+              "p50_type1": 6.532657,
+              "p95_type1": 8.067101
+            },
+            "control_path_total_ms": {
+              "count": 4000,
+              "mean": 7.1575651575,
+              "p50_type1": 6.532657,
+              "p95_type1": 8.067101
+            },
+            "lora_io_ms": {
+              "count": 4000,
+              "mean": 33.75080352916848,
+              "p50_type1": 0.0,
+              "p95_type1": 131.9130132906139
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 4000,
+              "mean": 143.59060813242104,
+              "p50_type1": 113.43270819634199,
+              "p95_type1": 301.07897566631436
+            },
+            "dispatch_window_wait_ms": {
+              "count": 4000,
+              "mean": 21.815417725476436,
+              "p50_type1": 17.448621336370707,
+              "p95_type1": 39.66315696015954
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 4000,
+              "mean": 14.400846082367934,
+              "p50_type1": 2.4553928524255753,
+              "p95_type1": 51.52500234544277
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 4000,
+              "mean": 0.01810578175354749,
+              "p50_type1": 0.008620787411928177,
+              "p95_type1": 0.013918150216341019
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 4000,
+              "mean": 12.377980887889862,
+              "p50_type1": 0.3554821014404297,
+              "p95_type1": 49.46589469909668
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 4000,
+              "mean": 0.1263532736338675,
+              "p50_type1": 0.13246480375528336,
+              "p95_type1": 0.17082085832953453
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 4000,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 4000,
+              "mean": 1.7879262566566467,
+              "p50_type1": 1.7693042755126953,
+              "p95_type1": 2.7077198028564453
+            },
+            "native_load_and_acquire_ms": {
+              "count": 4000,
+              "mean": 16.244566432898864,
+              "p50_type1": 1.1361907236278057,
+              "p95_type1": 95.00496368855238
+            }
+          }
+        },
+        "phase_1": {
+          "count": 500,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 500,
+              "mean": 7.5574063109233975,
+              "p50_type1": 2.9775709845125675,
+              "p95_type1": 24.353832006454468
+            },
+            "release_to_acquire_ms": {
+              "count": 500,
+              "mean": 27.7285079928115,
+              "p50_type1": 17.38441316410899,
+              "p95_type1": 31.769031193107367
+            },
+            "acquire_to_resume_ms": {
+              "count": 500,
+              "mean": 0.050270539708435535,
+              "p50_type1": 0.05348585546016693,
+              "p95_type1": 0.0705961138010025
+            },
+            "runtime_slot_wait_ms": {
+              "count": 500,
+              "mean": 93.91496492922306,
+              "p50_type1": 85.57761600241065,
+              "p95_type1": 172.27535508573055
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 500,
+              "mean": 81.02133359294385,
+              "p50_type1": 22.18411723151803,
+              "p95_type1": 467.8196241147816
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 500,
+              "mean": 30.702668506652117,
+              "p50_type1": 25.82337986677885,
+              "p95_type1": 113.66059491410851
+            },
+            "native_engine_queue_ms": {
+              "count": 500,
+              "mean": 0.7040059585124254,
+              "p50_type1": 0.027224887162446976,
+              "p95_type1": 0.24368520826101303
+            },
+            "native_prefill_ms": {
+              "count": 500,
+              "mean": 103.91688496340066,
+              "p50_type1": 110.43873615562916,
+              "p95_type1": 155.49960685893893
+            },
+            "native_decode_ms": {
+              "count": 500,
+              "mean": 1925.0001076804474,
+              "p50_type1": 1534.289421979338,
+              "p95_type1": 4011.0250688157976
+            },
+            "worker_completion_notification_ms": {
+              "count": 500,
+              "mean": 23.62736867275089,
+              "p50_type1": 25.044285226613283,
+              "p95_type1": 53.1229367479682
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 500,
+              "mean": 6.228807275183499,
+              "p50_type1": 1.349140889942646,
+              "p95_type1": 22.47103536501527
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 500,
+              "mean": 6.405395682,
+              "p50_type1": 6.594974000000001,
+              "p95_type1": 7.940225000000001
+            },
+            "control_path_total_ms": {
+              "count": 500,
+              "mean": 6.405395682,
+              "p50_type1": 6.594974000000001,
+              "p95_type1": 7.940225000000001
+            },
+            "lora_io_ms": {
+              "count": 500,
+              "mean": 49.70815609302372,
+              "p50_type1": 0.0,
+              "p95_type1": 394.85810277983546
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 500,
+              "mean": 129.2511497726664,
+              "p50_type1": 106.70783231034875,
+              "p95_type1": 218.068340793252
+            },
+            "dispatch_window_wait_ms": {
+              "count": 500,
+              "mean": 27.778778532519937,
+              "p50_type1": 17.436369322240353,
+              "p95_type1": 31.792331021279097
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 500,
+              "mean": 7.478921081870794,
+              "p50_type1": 2.4939049035310745,
+              "p95_type1": 23.936579935252666
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 500,
+              "mean": 0.07250336278229952,
+              "p50_type1": 0.008717179298400879,
+              "p95_type1": 0.01569511368870735
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 500,
+              "mean": 5.288638114929199,
+              "p50_type1": 0.3590583801269531,
+              "p95_type1": 22.083282470703125
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 500,
+              "mean": 0.13437330443412066,
+              "p50_type1": 0.13721873983740807,
+              "p95_type1": 0.18460489809513092
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 500,
+              "mean": 1.8867430686950684,
+              "p50_type1": 1.8334388732910156,
+              "p95_type1": 2.8781890869140625
+            },
+            "native_load_and_acquire_ms": {
+              "count": 500,
+              "mean": 15.192307384684682,
+              "p50_type1": 1.134736929088831,
+              "p95_type1": 93.61221082508564
+            }
+          }
+        },
+        "phase_2": {
+          "count": 500,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 500,
+              "mean": 13.704284746199846,
+              "p50_type1": 2.813581842929125,
+              "p95_type1": 59.20484708622098
+            },
+            "release_to_acquire_ms": {
+              "count": 500,
+              "mean": 19.155116396024823,
+              "p50_type1": 17.472030129283667,
+              "p95_type1": 36.92854894325137
+            },
+            "acquire_to_resume_ms": {
+              "count": 500,
+              "mean": 4.027179187163711,
+              "p50_type1": 0.052617862820625305,
+              "p95_type1": 0.07415097206830978
+            },
+            "runtime_slot_wait_ms": {
+              "count": 500,
+              "mean": 114.47960892505944,
+              "p50_type1": 90.47487983480096,
+              "p95_type1": 251.63845997303724
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 500,
+              "mean": 71.53596668597311,
+              "p50_type1": 23.27376278117299,
+              "p95_type1": 283.09831116348505
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 500,
+              "mean": 49.93675568141043,
+              "p50_type1": 27.53067994490266,
+              "p95_type1": 191.24857615679502
+            },
+            "native_engine_queue_ms": {
+              "count": 500,
+              "mean": 1.775646568275988,
+              "p50_type1": 0.02902606502175331,
+              "p95_type1": 1.096826046705246
+            },
+            "native_prefill_ms": {
+              "count": 500,
+              "mean": 112.00501546543092,
+              "p50_type1": 110.51691509783268,
+              "p95_type1": 192.9999957792461
+            },
+            "native_decode_ms": {
+              "count": 500,
+              "mean": 1561.626697435975,
+              "p50_type1": 1050.5483448505402,
+              "p95_type1": 4107.489679940045
+            },
+            "worker_completion_notification_ms": {
+              "count": 500,
+              "mean": 40.69646773021668,
+              "p50_type1": 27.274326886981726,
+              "p95_type1": 160.27499781921506
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 500,
+              "mean": 11.00447952374816,
+              "p50_type1": 1.2986301444470882,
+              "p95_type1": 51.13098956644535
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 500,
+              "mean": 6.929139764,
+              "p50_type1": 6.577962,
+              "p95_type1": 7.911967
+            },
+            "control_path_total_ms": {
+              "count": 500,
+              "mean": 6.929139764,
+              "p50_type1": 6.577962,
+              "p95_type1": 7.911967
+            },
+            "lora_io_ms": {
+              "count": 500,
+              "mean": 28.06117841694504,
+              "p50_type1": 0.0,
+              "p95_type1": 124.82934538275003
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 500,
+              "mean": 151.36618925444782,
+              "p50_type1": 116.41463823616505,
+              "p95_type1": 353.0698139220476
+            },
+            "dispatch_window_wait_ms": {
+              "count": 500,
+              "mean": 23.182295583188534,
+              "p50_type1": 17.563982866704464,
+              "p95_type1": 43.400953989475965
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 500,
+              "mean": 12.226833683438599,
+              "p50_type1": 2.519767265766859,
+              "p95_type1": 52.56374506279826
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 500,
+              "mean": 0.008508033119142056,
+              "p50_type1": 0.008530914783477783,
+              "p95_type1": 0.01446995884180069
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 500,
+              "mean": 10.124191761016846,
+              "p50_type1": 0.3509521484375,
+              "p95_type1": 50.394535064697266
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 500,
+              "mean": 0.13300916738808155,
+              "p50_type1": 0.13229111209511757,
+              "p95_type1": 0.18389010801911354
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 500,
+              "mean": 1.876582145690918,
+              "p50_type1": 1.8126964569091797,
+              "p95_type1": 3.1266212463378906
+            },
+            "native_load_and_acquire_ms": {
+              "count": 500,
+              "mean": 15.81008480116725,
+              "p50_type1": 1.152161043137312,
+              "p95_type1": 95.74616001918912
+            }
+          }
+        },
+        "phase_3": {
+          "count": 500,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 500,
+              "mean": 12.54866153281182,
+              "p50_type1": 2.859205938875675,
+              "p95_type1": 40.680821519345045
+            },
+            "release_to_acquire_ms": {
+              "count": 500,
+              "mean": 20.427437350153923,
+              "p50_type1": 17.472365871071815,
+              "p95_type1": 40.53573589771986
+            },
+            "acquire_to_resume_ms": {
+              "count": 500,
+              "mean": 0.049422407522797585,
+              "p50_type1": 0.05345791578292847,
+              "p95_type1": 0.07506785914301872
+            },
+            "runtime_slot_wait_ms": {
+              "count": 500,
+              "mean": 109.07481334824115,
+              "p50_type1": 89.18916573747993,
+              "p95_type1": 234.52414339408278
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 500,
+              "mean": 72.10236146114767,
+              "p50_type1": 21.978693082928658,
+              "p95_type1": 257.58772203698754
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 500,
+              "mean": 36.36376833263785,
+              "p50_type1": 25.84740985184908,
+              "p95_type1": 118.42971900478005
+            },
+            "native_engine_queue_ms": {
+              "count": 500,
+              "mean": 1.5775029556825757,
+              "p50_type1": 0.026292167603969574,
+              "p95_type1": 0.620570033788681
+            },
+            "native_prefill_ms": {
+              "count": 500,
+              "mean": 100.053964195773,
+              "p50_type1": 108.64990390837193,
+              "p95_type1": 131.29244931042194
+            },
+            "native_decode_ms": {
+              "count": 500,
+              "mean": 1629.0674333237112,
+              "p50_type1": 1169.8638279922307,
+              "p95_type1": 3947.717245668173
+            },
+            "worker_completion_notification_ms": {
+              "count": 500,
+              "mean": 26.337434499524534,
+              "p50_type1": 25.901728309690952,
+              "p95_type1": 61.985793989151716
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 500,
+              "mean": 10.885243990458548,
+              "p50_type1": 1.3402970507740974,
+              "p95_type1": 37.9966008476913
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 500,
+              "mean": 7.84384997,
+              "p50_type1": 6.603548,
+              "p95_type1": 9.818935
+            },
+            "control_path_total_ms": {
+              "count": 500,
+              "mean": 7.84384997,
+              "p50_type1": 6.603548,
+              "p95_type1": 9.818935
+            },
+            "lora_io_ms": {
+              "count": 500,
+              "mean": 33.91384558752179,
+              "p50_type1": 0.0,
+              "p95_type1": 123.93250875174999
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 500,
+              "mean": 142.1003346387297,
+              "p50_type1": 113.20079630240798,
+              "p95_type1": 306.4956576563418
+            },
+            "dispatch_window_wait_ms": {
+              "count": 500,
+              "mean": 20.47685975767672,
+              "p50_type1": 17.524532973766327,
+              "p95_type1": 40.57541908696294
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 500,
+              "mean": 12.040359760634601,
+              "p50_type1": 2.489316277205944,
+              "p95_type1": 39.77491892874241
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 500,
+              "mean": 0.02002372033894062,
+              "p50_type1": 0.009005889296531677,
+              "p95_type1": 0.018490944057703018
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 500,
+              "mean": 9.949813842773438,
+              "p50_type1": 0.3578662872314453,
+              "p95_type1": 37.580251693725586
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 500,
+              "mean": 0.12738389149308205,
+              "p50_type1": 0.13133231550455093,
+              "p95_type1": 0.17427094280719757
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 500,
+              "mean": 1.8463973999023438,
+              "p50_type1": 1.7735958099365234,
+              "p95_type1": 2.924203872680664
+            },
+            "native_load_and_acquire_ms": {
+              "count": 500,
+              "mean": 18.631135826930404,
+              "p50_type1": 1.1474532075226307,
+              "p95_type1": 96.33228974416852
+            }
+          }
+        },
+        "phase_4": {
+          "count": 500,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 500,
+              "mean": 10.469370263628662,
+              "p50_type1": 2.8141140937805176,
+              "p95_type1": 37.02425863593817
+            },
+            "release_to_acquire_ms": {
+              "count": 500,
+              "mean": 19.84801502432674,
+              "p50_type1": 17.41898013278842,
+              "p95_type1": 37.739797960966825
+            },
+            "acquire_to_resume_ms": {
+              "count": 500,
+              "mean": 0.04626393876969814,
+              "p50_type1": 0.051517970860004425,
+              "p95_type1": 0.0701267272233963
+            },
+            "runtime_slot_wait_ms": {
+              "count": 500,
+              "mean": 109.40276791714132,
+              "p50_type1": 89.45725299417973,
+              "p95_type1": 224.14437867701054
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 500,
+              "mean": 65.35029327496886,
+              "p50_type1": 21.991202142089605,
+              "p95_type1": 242.69893625751138
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 500,
+              "mean": 37.159237464889884,
+              "p50_type1": 26.382829062640667,
+              "p95_type1": 120.62181392684579
+            },
+            "native_engine_queue_ms": {
+              "count": 500,
+              "mean": 1.7046274207532406,
+              "p50_type1": 0.02669682726264,
+              "p95_type1": 1.2627430260181427
+            },
+            "native_prefill_ms": {
+              "count": 500,
+              "mean": 101.5918677886948,
+              "p50_type1": 108.70426706969738,
+              "p95_type1": 153.21682393550873
+            },
+            "native_decode_ms": {
+              "count": 500,
+              "mean": 1301.7153005395085,
+              "p50_type1": 980.2459259517491,
+              "p95_type1": 3647.0255702733994
+            },
+            "worker_completion_notification_ms": {
+              "count": 500,
+              "mean": 30.924012020230293,
+              "p50_type1": 26.952048297971487,
+              "p95_type1": 98.07288274168968
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 500,
+              "mean": 12.274455716833472,
+              "p50_type1": 1.274830661714077,
+              "p95_type1": 41.3028709590435
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 500,
+              "mean": 6.587571446,
+              "p50_type1": 6.375615,
+              "p95_type1": 7.796463
+            },
+            "control_path_total_ms": {
+              "count": 500,
+              "mean": 6.587571446,
+              "p50_type1": 6.375615,
+              "p95_type1": 7.796463
+            },
+            "lora_io_ms": {
+              "count": 500,
+              "mean": 26.86196444556117,
+              "p50_type1": 0.0,
+              "p95_type1": 116.69433815404773
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 500,
+              "mean": 139.76641714386642,
+              "p50_type1": 114.18923689052463,
+              "p95_type1": 273.96288281306624
+            },
+            "dispatch_window_wait_ms": {
+              "count": 500,
+              "mean": 19.89427896309644,
+              "p50_type1": 17.47226482257247,
+              "p95_type1": 37.82974882051349
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 500,
+              "mean": 13.439507999457419,
+              "p50_type1": 2.4636429734528065,
+              "p95_type1": 42.24862949922681
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 500,
+              "mean": 0.008471661247313023,
+              "p50_type1": 0.008783768862485886,
+              "p95_type1": 0.013701152056455612
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 500,
+              "mean": 11.371514797210693,
+              "p50_type1": 0.35119056701660156,
+              "p95_type1": 40.12703895568848
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 500,
+              "mean": 0.12516017258167267,
+              "p50_type1": 0.1318058930337429,
+              "p95_type1": 0.17635663971304893
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 500,
+              "mean": 1.843153476715088,
+              "p50_type1": 1.7762184143066406,
+              "p95_type1": 2.783536911010742
+            },
+            "native_load_and_acquire_ms": {
+              "count": 500,
+              "mean": 15.132832394912839,
+              "p50_type1": 1.1293529532849789,
+              "p95_type1": 92.49197784811258
+            }
+          }
+        },
+        "phase_5": {
+          "count": 500,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 500,
+              "mean": 12.27186457067728,
+              "p50_type1": 2.649008296430111,
+              "p95_type1": 37.200030870735645
+            },
+            "release_to_acquire_ms": {
+              "count": 500,
+              "mean": 21.142006466165185,
+              "p50_type1": 16.993914730846882,
+              "p95_type1": 45.33975012600422
+            },
+            "acquire_to_resume_ms": {
+              "count": 500,
+              "mean": 0.04615641664713621,
+              "p50_type1": 0.05202367901802063,
+              "p95_type1": 0.06788922473788261
+            },
+            "runtime_slot_wait_ms": {
+              "count": 500,
+              "mean": 112.43988312408328,
+              "p50_type1": 91.279620770365,
+              "p95_type1": 228.50375203415751
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 500,
+              "mean": 69.21174713317305,
+              "p50_type1": 22.117495071142912,
+              "p95_type1": 277.78591215610504
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 500,
+              "mean": 37.032580339349806,
+              "p50_type1": 26.533965952694416,
+              "p95_type1": 123.09226766228676
+            },
+            "native_engine_queue_ms": {
+              "count": 500,
+              "mean": 1.8216587798669934,
+              "p50_type1": 0.02531474456191063,
+              "p95_type1": 1.129241194576025
+            },
+            "native_prefill_ms": {
+              "count": 500,
+              "mean": 97.24413297791034,
+              "p50_type1": 107.4187639169395,
+              "p95_type1": 153.0220089480281
+            },
+            "native_decode_ms": {
+              "count": 500,
+              "mean": 1239.0713474880904,
+              "p50_type1": 1042.098532896489,
+              "p95_type1": 3655.860986094922
+            },
+            "worker_completion_notification_ms": {
+              "count": 500,
+              "mean": 31.13283436372876,
+              "p50_type1": 27.536831330507994,
+              "p95_type1": 86.48127317428589
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 500,
+              "mean": 12.43398464564234,
+              "p50_type1": 1.2737489305436611,
+              "p95_type1": 39.206796791404486
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 500,
+              "mean": 8.876854202,
+              "p50_type1": 6.532657,
+              "p95_type1": 8.35828
+            },
+            "control_path_total_ms": {
+              "count": 500,
+              "mean": 8.876854202,
+              "p50_type1": 6.532657,
+              "p95_type1": 8.35828
+            },
+            "lora_io_ms": {
+              "count": 500,
+              "mean": 31.728117829188704,
+              "p50_type1": 0.0,
+              "p95_type1": 136.80365681648254
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 500,
+              "mean": 145.89991057757288,
+              "p50_type1": 114.8314792662859,
+              "p95_type1": 296.53608752414584
+            },
+            "dispatch_window_wait_ms": {
+              "count": 500,
+              "mean": 21.18816288281232,
+              "p50_type1": 17.018365673720837,
+              "p95_type1": 45.3658327460289
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 500,
+              "mean": 13.528956943191588,
+              "p50_type1": 2.4175881408154964,
+              "p95_type1": 40.75564257800579
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 500,
+              "mean": 0.0080660879611969,
+              "p50_type1": 0.008700881153345108,
+              "p95_type1": 0.01038331538438797
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 500,
+              "mean": 11.564994812011719,
+              "p50_type1": 0.35500526428222656,
+              "p95_type1": 38.72179985046387
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 500,
+              "mean": 0.12215024698525667,
+              "p50_type1": 0.13161124661564827,
+              "p95_type1": 0.16063591465353966
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 500,
+              "mean": 1.7484474182128906,
+              "p50_type1": 1.7387866973876953,
+              "p95_type1": 2.590179443359375
+            },
+            "native_load_and_acquire_ms": {
+              "count": 500,
+              "mean": 15.249005848541856,
+              "p50_type1": 1.12551124766469,
+              "p95_type1": 93.64648582413793
+            }
+          }
+        },
+        "phase_6": {
+          "count": 500,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 500,
+              "mean": 15.5296351313591,
+              "p50_type1": 2.805551514029503,
+              "p95_type1": 50.58016162365675
+            },
+            "release_to_acquire_ms": {
+              "count": 500,
+              "mean": 20.513040265999734,
+              "p50_type1": 16.804439015686512,
+              "p95_type1": 42.58437408134341
+            },
+            "acquire_to_resume_ms": {
+              "count": 500,
+              "mean": 0.04756115283817053,
+              "p50_type1": 0.05253218114376068,
+              "p95_type1": 0.06840284913778305
+            },
+            "runtime_slot_wait_ms": {
+              "count": 500,
+              "mean": 109.34362743981183,
+              "p50_type1": 90.6238523311913,
+              "p95_type1": 216.66751708835363
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 500,
+              "mean": 66.81268202327192,
+              "p50_type1": 21.82666538283229,
+              "p95_type1": 252.69807176664472
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 500,
+              "mean": 32.777626475319266,
+              "p50_type1": 25.744662154465914,
+              "p95_type1": 115.75407208874822
+            },
+            "native_engine_queue_ms": {
+              "count": 500,
+              "mean": 1.3427547067403793,
+              "p50_type1": 0.026551075279712677,
+              "p95_type1": 0.9410851635038853
+            },
+            "native_prefill_ms": {
+              "count": 500,
+              "mean": 99.1460192585364,
+              "p50_type1": 108.03913604468107,
+              "p95_type1": 155.32273519784212
+            },
+            "native_decode_ms": {
+              "count": 500,
+              "mean": 1484.8538647210225,
+              "p50_type1": 1198.520532809198,
+              "p95_type1": 3739.7157442755997
+            },
+            "worker_completion_notification_ms": {
+              "count": 500,
+              "mean": 34.89236918464303,
+              "p50_type1": 27.64511201530695,
+              "p95_type1": 111.73783801496029
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 500,
+              "mean": 14.783496625721455,
+              "p50_type1": 1.3242298737168312,
+              "p95_type1": 46.860483940690756
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 500,
+              "mean": 6.04055695,
+              "p50_type1": 6.595886999999999,
+              "p95_type1": 7.914293
+            },
+            "control_path_total_ms": {
+              "count": 500,
+              "mean": 6.04055695,
+              "p50_type1": 6.595886999999999,
+              "p95_type1": 7.914293
+            },
+            "lora_io_ms": {
+              "count": 500,
+              "mean": 28.7523095253855,
+              "p50_type1": 0.0,
+              "p95_type1": 120.59874180704355
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 500,
+              "mean": 145.43386399000883,
+              "p50_type1": 113.17441193386912,
+              "p95_type1": 316.75886595621705
+            },
+            "dispatch_window_wait_ms": {
+              "count": 500,
+              "mean": 20.560601418837905,
+              "p50_type1": 16.85953000560403,
+              "p95_type1": 42.61620808392763
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 500,
+              "mean": 15.821911260485649,
+              "p50_type1": 2.4072499945759773,
+              "p95_type1": 47.97609709203243
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 500,
+              "mean": 0.007953346706926823,
+              "p50_type1": 0.008333008736371994,
+              "p95_type1": 0.013292767107486725
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 500,
+              "mean": 13.89708948135376,
+              "p50_type1": 0.3604888916015625,
+              "p95_type1": 45.81141471862793
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 500,
+              "mean": 0.12000131979584694,
+              "p50_type1": 0.13008387759327888,
+              "p95_type1": 0.16540661454200745
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 500,
+              "mean": 1.7077288627624512,
+              "p50_type1": 1.7275810241699219,
+              "p95_type1": 2.347230911254883
+            },
+            "native_load_and_acquire_ms": {
+              "count": 500,
+              "mean": 15.576815459877253,
+              "p50_type1": 1.1352617293596268,
+              "p95_type1": 94.4418078288436
+            }
+          }
+        },
+        "phase_7": {
+          "count": 500,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 500,
+              "mean": 18.292587528936565,
+              "p50_type1": 2.9736729338765144,
+              "p95_type1": 38.70864911004901
+            },
+            "release_to_acquire_ms": {
+              "count": 500,
+              "mean": 22.834821857511997,
+              "p50_type1": 17.643406987190247,
+              "p95_type1": 43.570572044700384
+            },
+            "acquire_to_resume_ms": {
+              "count": 500,
+              "mean": 0.046875144354999065,
+              "p50_type1": 0.052418094128370285,
+              "p95_type1": 0.06866315379738808
+            },
+            "runtime_slot_wait_ms": {
+              "count": 500,
+              "mean": 112.68738259747624,
+              "p50_type1": 91.29811637103558,
+              "p95_type1": 235.08068406954408
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 500,
+              "mean": 79.24796222429723,
+              "p50_type1": 21.843061316758394,
+              "p95_type1": 256.51521887630224
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 500,
+              "mean": 34.07865244522691,
+              "p50_type1": 26.22555661946535,
+              "p95_type1": 114.08941214904189
+            },
+            "native_engine_queue_ms": {
+              "count": 500,
+              "mean": 0.6416869191452861,
+              "p50_type1": 0.02759695053100586,
+              "p95_type1": 0.6546233780682087
+            },
+            "native_prefill_ms": {
+              "count": 500,
+              "mean": 105.25033336691558,
+              "p50_type1": 108.63158572465181,
+              "p95_type1": 173.13696909695864
+            },
+            "native_decode_ms": {
+              "count": 500,
+              "mean": 1677.0573133993894,
+              "p50_type1": 1308.69455402717,
+              "p95_type1": 3804.081514943391
+            },
+            "worker_completion_notification_ms": {
+              "count": 500,
+              "mean": 32.39056381583214,
+              "p50_type1": 28.239381033927202,
+              "p95_type1": 98.17068092525005
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 500,
+              "mean": 22.36041453294456,
+              "p50_type1": 1.3094027526676655,
+              "p95_type1": 66.05573743581772
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 500,
+              "mean": 8.22293509,
+              "p50_type1": 6.551111,
+              "p95_type1": 8.550351000000001
+            },
+            "control_path_total_ms": {
+              "count": 500,
+              "mean": 8.22293509,
+              "p50_type1": 6.551111,
+              "p95_type1": 8.550351000000001
+            },
+            "lora_io_ms": {
+              "count": 500,
+              "mean": 39.34590927325189,
+              "p50_type1": 0.0,
+              "p95_type1": 124.72629873082042
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 500,
+              "mean": 153.8616671282798,
+              "p50_type1": 114.45847433060408,
+              "p95_type1": 370.4681433737278
+            },
+            "dispatch_window_wait_ms": {
+              "count": 500,
+              "mean": 22.881697001866996,
+              "p50_type1": 17.69288582727313,
+              "p95_type1": 43.59362693503499
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 500,
+              "mean": 23.398309752345085,
+              "p50_type1": 2.4072430096566677,
+              "p95_type1": 67.08470592275262
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 500,
+              "mean": 0.008024540729820728,
+              "p50_type1": 0.008497852832078934,
+              "p95_type1": 0.012523028999567032
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 500,
+              "mean": 21.495699882507324,
+              "p50_type1": 0.3502368927001953,
+              "p95_type1": 65.17958641052246
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 500,
+              "mean": 0.12499018665403128,
+              "p50_type1": 0.1325937919318676,
+              "p95_type1": 0.16618100926280022
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 500,
+              "mean": 1.686877727508545,
+              "p50_type1": 1.7178058624267578,
+              "p95_type1": 2.239227294921875
+            },
+            "native_load_and_acquire_ms": {
+              "count": 500,
+              "mean": 18.321754760108888,
+              "p50_type1": 1.1320030316710472,
+              "p95_type1": 97.40988397970796
+            }
+          }
+        },
+        "phase_8": {
+          "count": 500,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 500,
+              "mean": 14.85903104674071,
+              "p50_type1": 3.391123376786709,
+              "p95_type1": 39.46463670581579
+            },
+            "release_to_acquire_ms": {
+              "count": 500,
+              "mean": 18.51309563126415,
+              "p50_type1": 17.418816220015287,
+              "p95_type1": 30.332078225910664
+            },
+            "acquire_to_resume_ms": {
+              "count": 500,
+              "mean": 0.047572032548487186,
+              "p50_type1": 0.05103927105665207,
+              "p95_type1": 0.07227575406432152
+            },
+            "runtime_slot_wait_ms": {
+              "count": 500,
+              "mean": 107.62563384324312,
+              "p50_type1": 91.12779004499316,
+              "p95_type1": 187.16306937858462
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 500,
+              "mean": 65.32011024374515,
+              "p50_type1": 21.81505784392357,
+              "p95_type1": 246.7045709490776
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 500,
+              "mean": 33.41558060608804,
+              "p50_type1": 26.22496895492077,
+              "p95_type1": 115.81343272700906
+            },
+            "native_engine_queue_ms": {
+              "count": 500,
+              "mean": 0.42714573815464973,
+              "p50_type1": 0.026026275008916855,
+              "p95_type1": 0.3272406756877899
+            },
+            "native_prefill_ms": {
+              "count": 500,
+              "mean": 105.24004944507033,
+              "p50_type1": 109.03724562376738,
+              "p95_type1": 158.61591091379523
+            },
+            "native_decode_ms": {
+              "count": 500,
+              "mean": 2109.35067215655,
+              "p50_type1": 2228.8852520287037,
+              "p95_type1": 3836.46825235337
+            },
+            "worker_completion_notification_ms": {
+              "count": 500,
+              "mean": 33.13940271176398,
+              "p50_type1": 28.271371964365244,
+              "p95_type1": 105.83071690052748
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 500,
+              "mean": 16.259409070014954,
+              "p50_type1": 1.3646762818098068,
+              "p95_type1": 74.96302016079426
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 500,
+              "mean": 6.354218156,
+              "p50_type1": 6.35753,
+              "p95_type1": 7.649384
+            },
+            "control_path_total_ms": {
+              "count": 500,
+              "mean": 6.354218156,
+              "p50_type1": 6.35753,
+              "p95_type1": 7.649384
+            },
+            "lora_io_ms": {
+              "count": 500,
+              "mean": 31.63494706247002,
+              "p50_type1": 0.0,
+              "p95_type1": 122.6937067694962
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 500,
+              "mean": 141.04533255379647,
+              "p50_type1": 115.95690390095115,
+              "p95_type1": 247.54504673182964
+            },
+            "dispatch_window_wait_ms": {
+              "count": 500,
+              "mean": 18.560667663812637,
+              "p50_type1": 17.475889064371586,
+              "p95_type1": 30.3574251011014
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 500,
+              "mean": 17.27196817751974,
+              "p50_type1": 2.467127051204443,
+              "p95_type1": 76.04878069832921
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 500,
+              "mean": 0.01129550114274025,
+              "p50_type1": 0.008572358638048172,
+              "p95_type1": 0.014858786016702652
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 500,
+              "mean": 15.331904411315918,
+              "p50_type1": 0.35762786865234375,
+              "p95_type1": 74.56326484680176
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 500,
+              "mean": 0.12375789973884821,
+              "p50_type1": 0.13129180297255516,
+              "p95_type1": 0.16394490376114845
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 500,
+              "mean": 1.7074799537658691,
+              "p50_type1": 1.7807483673095703,
+              "p95_type1": 2.2220611572265625
+            },
+            "native_load_and_acquire_ms": {
+              "count": 500,
+              "mean": 16.042594986967742,
+              "p50_type1": 1.1279401369392872,
+              "p95_type1": 94.70992907881737
+            }
+          }
+        },
+        "output_le32": {
+          "count": 1114,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 1114,
+              "mean": 14.370317984275399,
+              "p50_type1": 2.5427136570215225,
+              "p95_type1": 50.0296070240438
+            },
+            "release_to_acquire_ms": {
+              "count": 1114,
+              "mean": 22.787842861940177,
+              "p50_type1": 18.628749065101147,
+              "p95_type1": 48.37721958756447
+            },
+            "acquire_to_resume_ms": {
+              "count": 1114,
+              "mean": 0.795889018384382,
+              "p50_type1": 0.05015358328819275,
+              "p95_type1": 0.07003499194979668
+            },
+            "runtime_slot_wait_ms": {
+              "count": 1114,
+              "mean": 117.32141748973615,
+              "p50_type1": 92.63753099367023,
+              "p95_type1": 245.14727434143424
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 1114,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 1114,
+              "mean": 74.3321185359728,
+              "p50_type1": 23.51474016904831,
+              "p95_type1": 260.08746307343245
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 1114,
+              "mean": 49.76909847084025,
+              "p50_type1": 29.200010001659393,
+              "p95_type1": 156.93665016442537
+            },
+            "native_engine_queue_ms": {
+              "count": 1114,
+              "mean": 2.249502861551285,
+              "p50_type1": 0.02692500129342079,
+              "p95_type1": 1.3826433569192886
+            },
+            "native_prefill_ms": {
+              "count": 1114,
+              "mean": 111.4642679912023,
+              "p50_type1": 109.70442183315754,
+              "p95_type1": 195.1541849412024
+            },
+            "native_decode_ms": {
+              "count": 1114,
+              "mean": 225.0722649120985,
+              "p50_type1": 187.71790713071823,
+              "p95_type1": 517.5890042446554
+            },
+            "worker_completion_notification_ms": {
+              "count": 1114,
+              "mean": 42.69050408106237,
+              "p50_type1": 29.030804987996817,
+              "p95_type1": 137.5808627344668
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 1114,
+              "mean": 14.660587775499243,
+              "p50_type1": 1.2415051460266113,
+              "p95_type1": 56.25000083819032
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 1114,
+              "mean": 6.466686905745063,
+              "p50_type1": 5.892607,
+              "p95_type1": 8.238439
+            },
+            "control_path_total_ms": {
+              "count": 1114,
+              "mean": 6.466686905745063,
+              "p50_type1": 5.892607,
+              "p95_type1": 8.238439
+            },
+            "lora_io_ms": {
+              "count": 1114,
+              "mean": 29.03223515921264,
+              "p50_type1": 0.0,
+              "p95_type1": 123.93250875174999
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 1114,
+              "mean": 155.27546735433612,
+              "p50_type1": 119.03192661702633,
+              "p95_type1": 353.0698139220476
+            },
+            "dispatch_window_wait_ms": {
+              "count": 1114,
+              "mean": 23.58373188032456,
+              "p50_type1": 18.674451857805252,
+              "p95_type1": 50.13196403160691
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 1114,
+              "mean": 15.880235095459907,
+              "p50_type1": 2.4679433554410934,
+              "p95_type1": 57.555368170142174
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 1114,
+              "mean": 0.008445902337960538,
+              "p50_type1": 0.008584000170230865,
+              "p95_type1": 0.014223158359527588
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 1114,
+              "mean": 13.828464213564752,
+              "p50_type1": 0.3516674041748047,
+              "p95_type1": 55.612802505493164
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 1114,
+              "mean": 0.13067449996485317,
+              "p50_type1": 0.13229483738541603,
+              "p95_type1": 0.18025608733296394
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 1114,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 1114,
+              "mean": 1.8284337952920307,
+              "p50_type1": 1.7857551574707031,
+              "p95_type1": 2.938985824584961
+            },
+            "native_load_and_acquire_ms": {
+              "count": 1114,
+              "mean": 14.209210039141523,
+              "p50_type1": 1.1383960954844952,
+              "p95_type1": 94.0052829682827
+            }
+          }
+        },
+        "output_gt32": {
+          "count": 2886,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 2886,
+              "mean": 12.684645298390816,
+              "p50_type1": 3.026179037988186,
+              "p95_type1": 34.03123142197728
+            },
+            "release_to_acquire_ms": {
+              "count": 2886,
+              "mean": 20.68446415243509,
+              "p50_type1": 16.98909467086196,
+              "p95_type1": 35.736219957470894
+            },
+            "acquire_to_resume_ms": {
+              "count": 2886,
+              "mean": 0.44838185838410116,
+              "p50_type1": 0.05289912223815918,
+              "p95_type1": 0.07194606587290764
+            },
+            "runtime_slot_wait_ms": {
+              "count": 2886,
+              "mean": 105.26274496832073,
+              "p50_type1": 88.80764711648226,
+              "p95_type1": 214.62298231199384
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 2886,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 2886,
+              "mean": 70.16467369046664,
+              "p50_type1": 21.843061316758394,
+              "p95_type1": 291.06326773762703
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 2886,
+              "mean": 31.28574470868715,
+              "p50_type1": 25.666734669357538,
+              "p95_type1": 112.04817099496722
+            },
+            "native_engine_queue_ms": {
+              "count": 2886,
+              "mean": 0.8633292916831732,
+              "p50_type1": 0.026872847229242325,
+              "p95_type1": 0.4248348996043205
+            },
+            "native_prefill_ms": {
+              "count": 2886,
+              "mean": 99.81044323931623,
+              "p50_type1": 108.66223927587271,
+              "p95_type1": 133.71143490076065
+            },
+            "native_decode_ms": {
+              "count": 2886,
+              "mean": 2152.855462668146,
+              "p50_type1": 1791.4805770851672,
+              "p95_type1": 3987.9205767065287
+            },
+            "worker_completion_notification_ms": {
+              "count": 2886,
+              "mean": 27.378033594262533,
+              "p50_type1": 26.047496125102043,
+              "p95_type1": 69.29155485704541
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 2886,
+              "mean": 12.745409185158467,
+              "p50_type1": 1.35758426040411,
+              "p95_type1": 46.777295880019665
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 2886,
+              "mean": 7.4242451202356206,
+              "p50_type1": 6.595948999999999,
+              "p95_type1": 8.011192
+            },
+            "control_path_total_ms": {
+              "count": 2886,
+              "mean": 7.4242451202356206,
+              "p50_type1": 6.595948999999999,
+              "p95_type1": 8.011192
+            },
+            "lora_io_ms": {
+              "count": 2886,
+              "mean": 35.57217745991373,
+              "p50_type1": 0.0,
+              "p95_type1": 142.22949696704745
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 2886,
+              "mean": 139.08023627753076,
+              "p50_type1": 111.8908803910017,
+              "p95_type1": 278.5959932953119
+            },
+            "dispatch_window_wait_ms": {
+              "count": 2886,
+              "mean": 21.13284601081919,
+              "p50_type1": 17.050276044756174,
+              "p95_type1": 36.308284383267164
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 2886,
+              "mean": 13.82979987287921,
+              "p50_type1": 2.4511832743883133,
+              "p95_type1": 47.778450418263674
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 2886,
+              "mean": 0.021834508596570313,
+              "p50_type1": 0.008635688573122025,
+              "p95_type1": 0.01384364441037178
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 2886,
+              "mean": 11.818092313807455,
+              "p50_type1": 0.35691261291503906,
+              "p95_type1": 45.738935470581055
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 2886,
+              "mean": 0.12468527428088136,
+              "p50_type1": 0.1325272023677826,
+              "p95_type1": 0.16745086759328842
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 2886,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 2886,
+              "mean": 1.7722902905998839,
+              "p50_type1": 1.76239013671875,
+              "p95_type1": 2.6199817657470703
+            },
+            "native_load_and_acquire_ms": {
+              "count": 2886,
+              "mean": 17.03021682189598,
+              "p50_type1": 1.1352617293596268,
+              "p95_type1": 95.20452516153455
+            }
+          }
+        }
+      },
+      "planning_event_count": 3576,
+      "planning": {
+        "capture_serialization_ms": {
+          "count": 3576,
+          "mean": 8.668254258114244,
+          "p50_type1": 8.126587141305208,
+          "p95_type1": 11.803858913481236,
+          "sum": 30997.67722701654
+        },
+        "serialized_owner_wait_ms": {
+          "count": 3576,
+          "mean": 103.69841828426634,
+          "p50_type1": 0.013487879186868668,
+          "p95_type1": 455.48960100859404,
+          "sum": 370825.5437845364
+        },
+        "worker_dispatch_ms": {
+          "count": 3576,
+          "mean": 8.419365943352206,
+          "p50_type1": 2.4949107319116592,
+          "p95_type1": 15.136909671127796,
+          "sum": 30107.65261342749
+        },
+        "worker_wall_ms": {
+          "count": 3576,
+          "mean": 203.11899857881522,
+          "p50_type1": 164.79943366721272,
+          "p95_type1": 460.84500197321177,
+          "sum": 726353.5389178433
+        },
+        "worker_result_pickup_ms": {
+          "count": 3576,
+          "mean": 10.305203307681493,
+          "p50_type1": 7.367185316979885,
+          "p95_type1": 13.925048056989908,
+          "sum": 36851.40702826902
+        },
+        "worker_cpu_ms": {
+          "count": 3576,
+          "mean": 203.08931788870245,
+          "p50_type1": 164.77607299998454,
+          "p95_type1": 460.7899139999745,
+          "sum": 726247.40077
+        }
+      },
+      "planning_states": {
+        "completed": 3576
+      },
+      "planning_operations": {
+        "owned_execution_epoch": 3574,
+        "initialized_gpu_objective": 2
+      }
+    },
+    "d1083_3b_host_budget_projection_w0": {
+      "input_contract_sha256": "e6c42cdacdc829c63e86ed9493572f931089ef4b85d1b80292b0c65dc8ed30ba",
+      "scenario": "tc_ieee_full",
+      "sealed_metrics": {
+        "ttft_ms": {
+          "count": 4000,
+          "mean": 359.6241803020239,
+          "p50_type1": 284.525781404227,
+          "p95_type1": 787.1141494251788
+        },
+        "tpot_ms": {
+          "count": 4000,
+          "mean": 15.350325445837548,
+          "p50_type1": 13.585139677732014,
+          "p95_type1": 25.949049663419526
+        },
+        "e2e_ms": {
+          "count": 4000,
+          "mean": 2021.6839691632194,
+          "p50_type1": 1619.906131643802,
+          "p95_type1": 4308.683875948191
+        }
+      },
+      "observed_joint_fraction": 0.978,
+      "physical_gpu_seconds": 7880.768404818606,
+      "n_correct": null,
+      "max_partition_error_ms": 0.0,
+      "groups": {
+        "all": {
+          "count": 4000,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 4000,
+              "mean": 13.964778673485853,
+              "p50_type1": 2.934491727501154,
+              "p95_type1": 42.55549190565944
+            },
+            "release_to_acquire_ms": {
+              "count": 4000,
+              "mean": 21.9180212354986,
+              "p50_type1": 18.445470370352268,
+              "p95_type1": 41.242914739996195
+            },
+            "acquire_to_resume_ms": {
+              "count": 4000,
+              "mean": 1.6090108265634626,
+              "p50_type1": 0.051909592002630234,
+              "p95_type1": 0.07187202572822571
+            },
+            "runtime_slot_wait_ms": {
+              "count": 4000,
+              "mean": 108.52118328143843,
+              "p50_type1": 86.49948192760348,
+              "p95_type1": 221.06052190065384
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 4000,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 4000,
+              "mean": 69.85090254771058,
+              "p50_type1": 22.074369713664055,
+              "p95_type1": 268.34342535585165
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 4000,
+              "mean": 38.60216933756601,
+              "p50_type1": 26.31178591400385,
+              "p95_type1": 132.95513484627008
+            },
+            "native_engine_queue_ms": {
+              "count": 4000,
+              "mean": 1.3910711196949705,
+              "p50_type1": 0.027379021048545837,
+              "p95_type1": 0.7665380835533142
+            },
+            "native_prefill_ms": {
+              "count": 4000,
+              "mean": 103.76704328006599,
+              "p50_type1": 109.01272716000676,
+              "p95_type1": 161.13778576254845
+            },
+            "native_decode_ms": {
+              "count": 4000,
+              "mean": 1615.1219790669857,
+              "p50_type1": 1231.6254912875593,
+              "p95_type1": 3847.5272129289806
+            },
+            "worker_completion_notification_ms": {
+              "count": 4000,
+              "mean": 31.586903544841334,
+              "p50_type1": 26.748667936772108,
+              "p95_type1": 110.35355413332582
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 4000,
+              "mean": 15.350906249368563,
+              "p50_type1": 1.3508494012057781,
+              "p95_type1": 49.804859794676304
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 4000,
+              "mean": 7.538423866,
+              "p50_type1": 6.633697,
+              "p95_type1": 8.351473
+            },
+            "control_path_total_ms": {
+              "count": 4000,
+              "mean": 7.538423866,
+              "p50_type1": 6.633697,
+              "p95_type1": 8.351473
+            },
+            "lora_io_ms": {
+              "count": 4000,
+              "mean": 32.969917853479274,
+              "p50_type1": 0.0,
+              "p95_type1": 130.21076936274767
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 4000,
+              "mean": 146.01299401698634,
+              "p50_type1": 111.79139418527484,
+              "p95_type1": 312.24945606663823
+            },
+            "dispatch_window_wait_ms": {
+              "count": 4000,
+              "mean": 23.527032062062062,
+              "p50_type1": 18.506037071347237,
+              "p95_type1": 42.60429507121444
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 4000,
+              "mean": 16.536662037367932,
+              "p50_type1": 2.547041978687048,
+              "p95_type1": 51.1558442376554
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 4000,
+              "mean": 0.020178283913992345,
+              "p50_type1": 0.00892486423254013,
+              "p95_type1": 0.016938894987106323
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 4000,
+              "mean": 14.438357472419739,
+              "p50_type1": 0.3635883331298828,
+              "p95_type1": 49.37481880187988
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 4000,
+              "mean": 0.1273548079188913,
+              "p50_type1": 0.13263709843158722,
+              "p95_type1": 0.1722332090139389
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 4000,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 4000,
+              "mean": 1.8607826828956604,
+              "p50_type1": 1.8444061279296875,
+              "p95_type1": 2.724885940551758
+            },
+            "native_load_and_acquire_ms": {
+              "count": 4000,
+              "mean": 15.814324361155741,
+              "p50_type1": 1.1320109479129314,
+              "p95_type1": 92.9818176664412
+            }
+          }
+        },
+        "phase_1": {
+          "count": 500,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 500,
+              "mean": 9.308245589025319,
+              "p50_type1": 2.99390172585845,
+              "p95_type1": 31.884363386780024
+            },
+            "release_to_acquire_ms": {
+              "count": 500,
+              "mean": 30.236965788528323,
+              "p50_type1": 18.759728875011206,
+              "p95_type1": 35.65895510837436
+            },
+            "acquire_to_resume_ms": {
+              "count": 500,
+              "mean": 0.052487386390566826,
+              "p50_type1": 0.054141972213983536,
+              "p95_type1": 0.07590604946017265
+            },
+            "runtime_slot_wait_ms": {
+              "count": 500,
+              "mean": 95.20321559440345,
+              "p50_type1": 82.17190485447645,
+              "p95_type1": 183.7862958200276
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 500,
+              "mean": 75.93173186201602,
+              "p50_type1": 21.947295870631933,
+              "p95_type1": 448.28539434820414
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 500,
+              "mean": 29.217011005617678,
+              "p50_type1": 25.447929743677378,
+              "p95_type1": 108.78402274101973
+            },
+            "native_engine_queue_ms": {
+              "count": 500,
+              "mean": 1.4337269915267825,
+              "p50_type1": 0.02785399556159973,
+              "p95_type1": 0.29247766360640526
+            },
+            "native_prefill_ms": {
+              "count": 500,
+              "mean": 103.90287593752146,
+              "p50_type1": 110.10151309892535,
+              "p95_type1": 146.63319569081068
+            },
+            "native_decode_ms": {
+              "count": 500,
+              "mean": 1906.228734745644,
+              "p50_type1": 1536.0441878437996,
+              "p95_type1": 3994.016646873206
+            },
+            "worker_completion_notification_ms": {
+              "count": 500,
+              "mean": 25.418053838424385,
+              "p50_type1": 24.81439197435975,
+              "p95_type1": 71.49004004895687
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 500,
+              "mean": 11.39377395156771,
+              "p50_type1": 1.3409219682216644,
+              "p95_type1": 35.15707282349467
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 500,
+              "mean": 6.833194702,
+              "p50_type1": 6.771631999999999,
+              "p95_type1": 8.133999
+            },
+            "control_path_total_ms": {
+              "count": 500,
+              "mean": 6.833194702,
+              "p50_type1": 6.771631999999999,
+              "p95_type1": 8.133999
+            },
+            "lora_io_ms": {
+              "count": 500,
+              "mean": 45.34734402317554,
+              "p50_type1": 0.0,
+              "p95_type1": 383.0454177223146
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 500,
+              "mean": 134.80091435834765,
+              "p50_type1": 106.95912782102823,
+              "p95_type1": 233.60251309350133
+            },
+            "dispatch_window_wait_ms": {
+              "count": 500,
+              "mean": 30.28945317491889,
+              "p50_type1": 18.815513234585524,
+              "p95_type1": 35.683359019458294
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 500,
+              "mean": 12.639242390170693,
+              "p50_type1": 2.4725920520722866,
+              "p95_type1": 37.24475810304284
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 500,
+              "mean": 0.08250651601701975,
+              "p50_type1": 0.009213108569383621,
+              "p95_type1": 0.018777791410684586
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 500,
+              "mean": 10.479818344116211,
+              "p50_type1": 0.3535747528076172,
+              "p95_type1": 34.50465202331543
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 500,
+              "mean": 0.13011605851352215,
+              "p50_type1": 0.13627810403704643,
+              "p95_type1": 0.17351191490888596
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 500,
+              "mean": 1.8470253944396973,
+              "p50_type1": 1.8193721771240234,
+              "p95_type1": 2.7649402618408203
+            },
+            "native_load_and_acquire_ms": {
+              "count": 500,
+              "mean": 14.539482241496444,
+              "p50_type1": 1.1172262020409107,
+              "p95_type1": 91.32910892367363
+            }
+          }
+        },
+        "phase_2": {
+          "count": 500,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 500,
+              "mean": 12.555006416514516,
+              "p50_type1": 3.012218978255987,
+              "p95_type1": 49.01858838275075
+            },
+            "release_to_acquire_ms": {
+              "count": 500,
+              "mean": 22.379242045804858,
+              "p50_type1": 18.943404778838158,
+              "p95_type1": 48.519989009946585
+            },
+            "acquire_to_resume_ms": {
+              "count": 500,
+              "mean": 0.9494794830679893,
+              "p50_type1": 0.05188724026083946,
+              "p95_type1": 0.07177097722887993
+            },
+            "runtime_slot_wait_ms": {
+              "count": 500,
+              "mean": 120.88795329723507,
+              "p50_type1": 88.02461717277765,
+              "p95_type1": 276.71835804358125
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 500,
+              "mean": 73.61432452686131,
+              "p50_type1": 23.01290910691023,
+              "p95_type1": 246.73760263249278
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 500,
+              "mean": 51.94834926072508,
+              "p50_type1": 26.74219710752368,
+              "p95_type1": 187.44583101943135
+            },
+            "native_engine_queue_ms": {
+              "count": 500,
+              "mean": 2.522040968760848,
+              "p50_type1": 0.029717106372117996,
+              "p95_type1": 1.3253791257739067
+            },
+            "native_prefill_ms": {
+              "count": 500,
+              "mean": 116.23354096803814,
+              "p50_type1": 111.3357050344348,
+              "p95_type1": 205.54635301232338
+            },
+            "native_decode_ms": {
+              "count": 500,
+              "mean": 1565.2049131477252,
+              "p50_type1": 1038.3387049660087,
+              "p95_type1": 4041.3880506530404
+            },
+            "worker_completion_notification_ms": {
+              "count": 500,
+              "mean": 40.45832201000303,
+              "p50_type1": 26.77654894068837,
+              "p95_type1": 144.1782796755433
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 500,
+              "mean": 14.362953449599445,
+              "p50_type1": 1.3473429717123508,
+              "p95_type1": 66.23827619478106
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 500,
+              "mean": 6.623295364,
+              "p50_type1": 6.5985320000000005,
+              "p95_type1": 8.03642
+            },
+            "control_path_total_ms": {
+              "count": 500,
+              "mean": 6.623295364,
+              "p50_type1": 6.5985320000000005,
+              "p95_type1": 8.03642
+            },
+            "lora_io_ms": {
+              "count": 500,
+              "mean": 29.27123774867505,
+              "p50_type1": 0.0,
+              "p95_type1": 121.00456189364195
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 500,
+              "mean": 156.77168124262244,
+              "p50_type1": 116.73785513266921,
+              "p95_type1": 362.64828965067863
+            },
+            "dispatch_window_wait_ms": {
+              "count": 500,
+              "mean": 23.328721528872848,
+              "p50_type1": 18.989751115441322,
+              "p95_type1": 52.026969846338034
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 500,
+              "mean": 15.672774277627468,
+              "p50_type1": 2.620762214064598,
+              "p95_type1": 68.78758175298572
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 500,
+              "mean": 0.00914753694087267,
+              "p50_type1": 0.008986331522464752,
+              "p95_type1": 0.01733703538775444
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 500,
+              "mean": 13.482630729675293,
+              "p50_type1": 0.36263465881347656,
+              "p95_type1": 65.67072868347168
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 500,
+              "mean": 0.12489767745137215,
+              "p50_type1": 0.13512512668967247,
+              "p95_type1": 0.1843203790485859
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 500,
+              "mean": 1.9693574905395508,
+              "p50_type1": 1.878976821899414,
+              "p95_type1": 3.2689571380615234
+            },
+            "native_load_and_acquire_ms": {
+              "count": 500,
+              "mean": 14.379032142460346,
+              "p50_type1": 1.12431263551116,
+              "p95_type1": 92.04000886529684
+            }
+          }
+        },
+        "phase_3": {
+          "count": 500,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 500,
+              "mean": 11.510480859316885,
+              "p50_type1": 2.898699603974819,
+              "p95_type1": 35.787099506706
+            },
+            "release_to_acquire_ms": {
+              "count": 500,
+              "mean": 20.823285882361233,
+              "p50_type1": 18.381851259618998,
+              "p95_type1": 40.89358868077397
+            },
+            "acquire_to_resume_ms": {
+              "count": 500,
+              "mean": 0.04776310361921787,
+              "p50_type1": 0.052277930080890656,
+              "p95_type1": 0.07360987365245819
+            },
+            "runtime_slot_wait_ms": {
+              "count": 500,
+              "mean": 109.91487948503345,
+              "p50_type1": 85.78744297847152,
+              "p95_type1": 261.25926338136196
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 500,
+              "mean": 69.98436872009188,
+              "p50_type1": 21.931704133749008,
+              "p95_type1": 274.9194838106632
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 500,
+              "mean": 34.8293164819479,
+              "p50_type1": 23.286412935703993,
+              "p95_type1": 127.10796622559428
+            },
+            "native_engine_queue_ms": {
+              "count": 500,
+              "mean": 0.7153571080416441,
+              "p50_type1": 0.025682151317596436,
+              "p95_type1": 0.2914578653872013
+            },
+            "native_prefill_ms": {
+              "count": 500,
+              "mean": 99.98290986754,
+              "p50_type1": 108.45010168850422,
+              "p95_type1": 123.79058357328176
+            },
+            "native_decode_ms": {
+              "count": 500,
+              "mean": 1615.457465494983,
+              "p50_type1": 1210.3903987444937,
+              "p95_type1": 3862.690228037536
+            },
+            "worker_completion_notification_ms": {
+              "count": 500,
+              "mean": 25.7316091991961,
+              "p50_type1": 25.48609208315611,
+              "p95_type1": 58.1378280185163
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 500,
+              "mean": 8.722360549494624,
+              "p50_type1": 1.352878287434578,
+              "p95_type1": 36.63622494786978
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 500,
+              "mean": 9.304057126,
+              "p50_type1": 6.698958999999999,
+              "p95_type1": 10.010098
+            },
+            "control_path_total_ms": {
+              "count": 500,
+              "mean": 9.304057126,
+              "p50_type1": 6.698958999999999,
+              "p95_type1": 10.010098
+            },
+            "lora_io_ms": {
+              "count": 500,
+              "mean": 34.12189063988626,
+              "p50_type1": 0.0,
+              "p95_type1": 125.19524991512299
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 500,
+              "mean": 142.2964093303308,
+              "p50_type1": 110.61967862769961,
+              "p95_type1": 351.0094783268869
+            },
+            "dispatch_window_wait_ms": {
+              "count": 500,
+              "mean": 20.87104898598045,
+              "p50_type1": 18.416596110910177,
+              "p95_type1": 40.92660779133439
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 500,
+              "mean": 9.899294348433614,
+              "p50_type1": 2.573499456048012,
+              "p95_type1": 38.15879952162504
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 500,
+              "mean": 0.013464096002280712,
+              "p50_type1": 0.00881589949131012,
+              "p95_type1": 0.016740988940000534
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 500,
+              "mean": 7.800105094909668,
+              "p50_type1": 0.3669261932373047,
+              "p95_type1": 35.99667549133301
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 500,
+              "mean": 0.133801837451756,
+              "p50_type1": 0.13047503307461739,
+              "p95_type1": 0.1726369373500347
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 500,
+              "mean": 1.872260570526123,
+              "p50_type1": 1.8253326416015625,
+              "p95_type1": 2.637624740600586
+            },
+            "native_load_and_acquire_ms": {
+              "count": 500,
+              "mean": 18.373951813206077,
+              "p50_type1": 1.1336971074342728,
+              "p95_type1": 92.17964997515082
+            }
+          }
+        },
+        "phase_4": {
+          "count": 500,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 500,
+              "mean": 9.185199514962733,
+              "p50_type1": 2.8053587302565575,
+              "p95_type1": 35.45753099024296
+            },
+            "release_to_acquire_ms": {
+              "count": 500,
+              "mean": 20.73677108157426,
+              "p50_type1": 18.546809908002615,
+              "p95_type1": 39.30540569126606
+            },
+            "acquire_to_resume_ms": {
+              "count": 500,
+              "mean": 0.04842957481741905,
+              "p50_type1": 0.05152495577931404,
+              "p95_type1": 0.06956886500120163
+            },
+            "runtime_slot_wait_ms": {
+              "count": 500,
+              "mean": 105.78422807715833,
+              "p50_type1": 86.68436296284199,
+              "p95_type1": 213.9437273144722
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 500,
+              "mean": 62.32639782037586,
+              "p50_type1": 21.87618101015687,
+              "p95_type1": 219.2698661237955
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 500,
+              "mean": 34.67629241850227,
+              "p50_type1": 26.20557975023985,
+              "p95_type1": 119.21183578670025
+            },
+            "native_engine_queue_ms": {
+              "count": 500,
+              "mean": 1.9656213195994496,
+              "p50_type1": 0.02729380503296852,
+              "p95_type1": 0.628042034804821
+            },
+            "native_prefill_ms": {
+              "count": 500,
+              "mean": 100.27161336690187,
+              "p50_type1": 108.36602002382278,
+              "p95_type1": 154.89131398499012
+            },
+            "native_decode_ms": {
+              "count": 500,
+              "mean": 1282.0916502745822,
+              "p50_type1": 983.1645800732076,
+              "p95_type1": 3665.223296266049
+            },
+            "worker_completion_notification_ms": {
+              "count": 500,
+              "mean": 28.19995423220098,
+              "p50_type1": 26.337313000112772,
+              "p95_type1": 94.73119815811515
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 500,
+              "mean": 8.389327531680465,
+              "p50_type1": 1.3137180358171463,
+              "p95_type1": 36.47592617198825
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 500,
+              "mean": 7.47637447,
+              "p50_type1": 6.627087,
+              "p95_type1": 8.375255
+            },
+            "control_path_total_ms": {
+              "count": 500,
+              "mean": 7.47637447,
+              "p50_type1": 6.627087,
+              "p95_type1": 8.375255
+            },
+            "lora_io_ms": {
+              "count": 500,
+              "mean": 28.967059452086687,
+              "p50_type1": 0.0,
+              "p95_type1": 118.73677233234048
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 500,
+              "mean": 135.75462824851274,
+              "p50_type1": 111.51519743725657,
+              "p95_type1": 250.7944838143885
+            },
+            "dispatch_window_wait_ms": {
+              "count": 500,
+              "mean": 20.78520065639168,
+              "p50_type1": 18.59210105612874,
+              "p95_type1": 39.328765124082565
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 500,
+              "mean": 9.599813741631806,
+              "p50_type1": 2.546947915107012,
+              "p95_type1": 37.88688639178872
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 500,
+              "mean": 0.008834883570671082,
+              "p50_type1": 0.008817296475172043,
+              "p95_type1": 0.015842728316783905
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 500,
+              "mean": 7.479984283447266,
+              "p50_type1": 0.3597736358642578,
+              "p95_type1": 35.91108322143555
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 500,
+              "mean": 0.1348750228062272,
+              "p50_type1": 0.13108691200613976,
+              "p95_type1": 0.16975682228803635
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 500,
+              "mean": 1.8962926864624023,
+              "p50_type1": 1.8639564514160156,
+              "p95_type1": 2.815723419189453
+            },
+            "native_load_and_acquire_ms": {
+              "count": 500,
+              "mean": 15.771703286096454,
+              "p50_type1": 1.1396021582186222,
+              "p95_type1": 92.20777032896876
+            }
+          }
+        },
+        "phase_5": {
+          "count": 500,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 500,
+              "mean": 17.54529825039208,
+              "p50_type1": 2.72046634927392,
+              "p95_type1": 53.221512120217085
+            },
+            "release_to_acquire_ms": {
+              "count": 500,
+              "mean": 20.768391081131995,
+              "p50_type1": 18.1846278719604,
+              "p95_type1": 45.44015508145094
+            },
+            "acquire_to_resume_ms": {
+              "count": 500,
+              "mean": 0.046742236241698265,
+              "p50_type1": 0.05130888894200325,
+              "p95_type1": 0.0673290342092514
+            },
+            "runtime_slot_wait_ms": {
+              "count": 500,
+              "mean": 106.22258643154055,
+              "p50_type1": 86.72279212623835,
+              "p95_type1": 208.49447883665562
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 500,
+              "mean": 61.788126941770315,
+              "p50_type1": 21.96707623079419,
+              "p95_type1": 212.90914015844464
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 500,
+              "mean": 35.860805328935385,
+              "p50_type1": 26.399710215628147,
+              "p95_type1": 128.9442009292543
+            },
+            "native_engine_queue_ms": {
+              "count": 500,
+              "mean": 0.3629651013761759,
+              "p50_type1": 0.02688402310013771,
+              "p95_type1": 0.7224860601127148
+            },
+            "native_prefill_ms": {
+              "count": 500,
+              "mean": 97.38470252882689,
+              "p50_type1": 107.37581411376595,
+              "p95_type1": 154.78856209665537
+            },
+            "native_decode_ms": {
+              "count": 500,
+              "mean": 1209.4922462720424,
+              "p50_type1": 1036.5144819952548,
+              "p95_type1": 3493.678407743573
+            },
+            "worker_completion_notification_ms": {
+              "count": 500,
+              "mean": 29.594361329451203,
+              "p50_type1": 26.891089044511318,
+              "p95_type1": 104.46562012657523
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 500,
+              "mean": 17.663431846536696,
+              "p50_type1": 1.2732218019664288,
+              "p95_type1": 47.460488975048065
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 500,
+              "mean": 7.223543888,
+              "p50_type1": 6.6260699999999995,
+              "p95_type1": 8.56571
+            },
+            "control_path_total_ms": {
+              "count": 500,
+              "mean": 7.223543888,
+              "p50_type1": 6.6260699999999995,
+              "p95_type1": 8.56571
+            },
+            "lora_io_ms": {
+              "count": 500,
+              "mean": 29.19460864085704,
+              "p50_type1": 0.0,
+              "p95_type1": 118.49572090432048
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 500,
+              "mean": 144.58301799930632,
+              "p50_type1": 112.01430205255747,
+              "p95_type1": 302.1818143315613
+            },
+            "dispatch_window_wait_ms": {
+              "count": 500,
+              "mean": 20.815133317373693,
+              "p50_type1": 18.23592185974121,
+              "p95_type1": 45.46080529689789
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 500,
+              "mean": 18.791999489068985,
+              "p50_type1": 2.4843025021255016,
+              "p95_type1": 48.936692997813225
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 500,
+              "mean": 0.008821079507470131,
+              "p50_type1": 0.008721370249986649,
+              "p95_type1": 0.0164741650223732
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 500,
+              "mean": 16.77976083755493,
+              "p50_type1": 0.3540515899658203,
+              "p95_type1": 46.86546325683594
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 500,
+              "mean": 0.12110657896846533,
+              "p50_type1": 0.13169040903449059,
+              "p95_type1": 0.1582670956850052
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 500,
+              "mean": 1.789724349975586,
+              "p50_type1": 1.832723617553711,
+              "p95_type1": 2.4950504302978516
+            },
+            "native_load_and_acquire_ms": {
+              "count": 500,
+              "mean": 15.470832598395646,
+              "p50_type1": 1.1298852041363716,
+              "p95_type1": 93.3081810362637
+            }
+          }
+        },
+        "phase_6": {
+          "count": 500,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 500,
+              "mean": 17.91534403990954,
+              "p50_type1": 2.8222277760505676,
+              "p95_type1": 74.48284747079015
+            },
+            "release_to_acquire_ms": {
+              "count": 500,
+              "mean": 20.677132393233478,
+              "p50_type1": 17.954368144273758,
+              "p95_type1": 36.95682715624571
+            },
+            "acquire_to_resume_ms": {
+              "count": 500,
+              "mean": 0.04632292687892914,
+              "p50_type1": 0.05107419565320015,
+              "p95_type1": 0.06843917071819305
+            },
+            "runtime_slot_wait_ms": {
+              "count": 500,
+              "mean": 106.49471601378173,
+              "p50_type1": 86.83867519721389,
+              "p95_type1": 199.35656571760774
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 500,
+              "mean": 66.80171876400709,
+              "p50_type1": 21.90869301557541,
+              "p95_type1": 267.03793881461024
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 500,
+              "mean": 38.63370935805142,
+              "p50_type1": 26.316592935472727,
+              "p95_type1": 136.68364193290472
+            },
+            "native_engine_queue_ms": {
+              "count": 500,
+              "mean": 1.334378071129322,
+              "p50_type1": 0.02751825377345085,
+              "p95_type1": 0.6555872969329357
+            },
+            "native_prefill_ms": {
+              "count": 500,
+              "mean": 101.5257498640567,
+              "p50_type1": 108.40760124847293,
+              "p95_type1": 161.8619067594409
+            },
+            "native_decode_ms": {
+              "count": 500,
+              "mean": 1477.1194382756948,
+              "p50_type1": 1201.1981522664428,
+              "p95_type1": 3672.047225292772
+            },
+            "worker_completion_notification_ms": {
+              "count": 500,
+              "mean": 33.25996170099825,
+              "p50_type1": 27.49489713460207,
+              "p95_type1": 112.18553874641657
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 500,
+              "mean": 17.685459246858954,
+              "p50_type1": 1.33861368522048,
+              "p95_type1": 64.58148220553994
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 500,
+              "mean": 7.018552772,
+              "p50_type1": 6.6375969999999995,
+              "p95_type1": 8.57318
+            },
+            "control_path_total_ms": {
+              "count": 500,
+              "mean": 7.018552772,
+              "p50_type1": 6.6375969999999995,
+              "p95_type1": 8.57318
+            },
+            "lora_io_ms": {
+              "count": 500,
+              "mean": 28.4435897115618,
+              "p50_type1": 0.0,
+              "p95_type1": 119.63960388675332
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 500,
+              "mean": 145.13351537380368,
+              "p50_type1": 111.24715534970164,
+              "p95_type1": 339.5585911348462
+            },
+            "dispatch_window_wait_ms": {
+              "count": 500,
+              "mean": 20.723455320112407,
+              "p50_type1": 17.982415854930878,
+              "p95_type1": 36.997100338339806
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 500,
+              "mean": 18.824695125222206,
+              "p50_type1": 2.505714539438486,
+              "p95_type1": 65.39607373997569
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 500,
+              "mean": 0.00879883673042059,
+              "p50_type1": 0.00871298834681511,
+              "p95_type1": 0.016139820218086243
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 500,
+              "mean": 16.812477588653564,
+              "p50_type1": 0.3628730773925781,
+              "p95_type1": 63.84778022766113
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 500,
+              "mean": 0.12230873946100473,
+              "p50_type1": 0.13173697516322136,
+              "p95_type1": 0.16596587374806404
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 500,
+              "mean": 1.7930026054382324,
+              "p50_type1": 1.8186569213867188,
+              "p95_type1": 2.533435821533203
+            },
+            "native_load_and_acquire_ms": {
+              "count": 500,
+              "mean": 15.145774545148015,
+              "p50_type1": 1.1434280313551426,
+              "p95_type1": 93.14008289948106
+            }
+          }
+        },
+        "phase_7": {
+          "count": 500,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 500,
+              "mean": 22.94116054289043,
+              "p50_type1": 3.1300331465899944,
+              "p95_type1": 89.62837141007185
+            },
+            "release_to_acquire_ms": {
+              "count": 500,
+              "mean": 20.754622950218618,
+              "p50_type1": 18.128887750208378,
+              "p95_type1": 52.875607740134
+            },
+            "acquire_to_resume_ms": {
+              "count": 500,
+              "mean": 0.04776960611343384,
+              "p50_type1": 0.05182530730962753,
+              "p95_type1": 0.07104175165295601
+            },
+            "runtime_slot_wait_ms": {
+              "count": 500,
+              "mean": 111.28442900627851,
+              "p50_type1": 89.0160882845521,
+              "p95_type1": 242.42169503122568
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 500,
+              "mean": 74.87898072879761,
+              "p50_type1": 22.019349969923496,
+              "p95_type1": 243.9740737900138
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 500,
+              "mean": 36.86147498246282,
+              "p50_type1": 26.493667159229517,
+              "p95_type1": 137.95990822836757
+            },
+            "native_engine_queue_ms": {
+              "count": 500,
+              "mean": 0.654087052680552,
+              "p50_type1": 0.027793925255537033,
+              "p95_type1": 0.567656010389328
+            },
+            "native_prefill_ms": {
+              "count": 500,
+              "mean": 103.98251023422927,
+              "p50_type1": 108.7552928365767,
+              "p95_type1": 160.75910860672593
+            },
+            "native_decode_ms": {
+              "count": 500,
+              "mean": 1689.7950498126447,
+              "p50_type1": 1339.157969225198,
+              "p95_type1": 3886.4106200635433
+            },
+            "worker_completion_notification_ms": {
+              "count": 500,
+              "mean": 30.66944376938045,
+              "p50_type1": 27.91455714032054,
+              "p95_type1": 75.72915498167276
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 500,
+              "mean": 27.321189302951097,
+              "p50_type1": 1.3907602988183498,
+              "p95_type1": 82.58934505283833
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 500,
+              "mean": 7.5588128580000005,
+              "p50_type1": 6.64212,
+              "p95_type1": 8.082798
+            },
+            "control_path_total_ms": {
+              "count": 500,
+              "mean": 7.5588128580000005,
+              "p50_type1": 6.64212,
+              "p95_type1": 8.082798
+            },
+            "lora_io_ms": {
+              "count": 500,
+              "mean": 36.344417445361614,
+              "p50_type1": 0.0,
+              "p95_type1": 121.63654807955027
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 500,
+              "mean": 155.027982105501,
+              "p50_type1": 115.071851760149,
+              "p95_type1": 352.0940588787198
+            },
+            "dispatch_window_wait_ms": {
+              "count": 500,
+              "mean": 20.80239255633205,
+              "p50_type1": 18.186599016189575,
+              "p95_type1": 52.895317785441875
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 500,
+              "mean": 28.432500812225044,
+              "p50_type1": 2.536703832447529,
+              "p95_type1": 84.17728403583169
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 500,
+              "mean": 0.009129329584538937,
+              "p50_type1": 0.008794013410806656,
+              "p95_type1": 0.01666788011789322
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 500,
+              "mean": 26.40636920928955,
+              "p50_type1": 0.3750324249267578,
+              "p95_type1": 82.18741416931152
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 500,
+              "mean": 0.12142310384660959,
+              "p50_type1": 0.13215281069278717,
+              "p95_type1": 0.17154496163129807
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 500,
+              "mean": 1.8036937713623047,
+              "p50_type1": 1.8243789672851562,
+              "p95_type1": 2.5277137756347656
+            },
+            "native_load_and_acquire_ms": {
+              "count": 500,
+              "mean": 17.497422493062913,
+              "p50_type1": 1.145646907389164,
+              "p95_type1": 94.32314801961184
+            }
+          }
+        },
+        "phase_8": {
+          "count": 500,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 500,
+              "mean": 10.757494174875319,
+              "p50_type1": 3.206821158528328,
+              "p95_type1": 16.427629627287388
+            },
+            "release_to_acquire_ms": {
+              "count": 500,
+              "mean": 18.96775866113603,
+              "p50_type1": 18.384756986051798,
+              "p95_type1": 31.73491731286049
+            },
+            "acquire_to_resume_ms": {
+              "count": 500,
+              "mean": 11.633092295378447,
+              "p50_type1": 0.05176989361643791,
+              "p95_type1": 0.07046619430184364
+            },
+            "runtime_slot_wait_ms": {
+              "count": 500,
+              "mean": 112.37745834607631,
+              "p50_type1": 88.07497611269355,
+              "p95_type1": 217.82943420112133
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 500,
+              "mean": 73.48157101776451,
+              "p50_type1": 22.83279597759247,
+              "p95_type1": 245.54174207150936
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 500,
+              "mean": 46.79039586428553,
+              "p50_type1": 27.81909890472889,
+              "p95_type1": 153.81712699308991
+            },
+            "native_engine_queue_ms": {
+              "count": 500,
+              "mean": 2.14039234444499,
+              "p50_type1": 0.02550380304455757,
+              "p95_type1": 2.0717759616672993
+            },
+            "native_prefill_ms": {
+              "count": 500,
+              "mean": 106.85244347341359,
+              "p50_type1": 109.219157602638,
+              "p95_type1": 161.74943605437875
+            },
+            "native_decode_ms": {
+              "count": 500,
+              "mean": 2175.586334512569,
+              "p50_type1": 2306.270219851285,
+              "p95_type1": 3863.4714847430587
+            },
+            "worker_completion_notification_ms": {
+              "count": 500,
+              "mean": 39.36352227907628,
+              "p50_type1": 30.017362907528877,
+              "p95_type1": 130.9346817433834
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 500,
+              "mean": 17.268754116259515,
+              "p50_type1": 1.4395988546311855,
+              "p95_type1": 47.89778357371688
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 500,
+              "mean": 8.269559748,
+              "p50_type1": 6.491247,
+              "p95_type1": 7.691078999999999
+            },
+            "control_path_total_ms": {
+              "count": 500,
+              "mean": 8.269559748,
+              "p50_type1": 6.491247,
+              "p95_type1": 7.691078999999999
+            },
+            "lora_io_ms": {
+              "count": 500,
+              "mean": 32.0691951662302,
+              "p50_type1": 0.0,
+              "p95_type1": 133.3574140444398
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 500,
+              "mean": 153.7358034774661,
+              "p50_type1": 111.90387234091759,
+              "p95_type1": 317.09580682218075
+            },
+            "dispatch_window_wait_ms": {
+              "count": 500,
+              "mean": 30.600850956514478,
+              "p50_type1": 18.47103564068675,
+              "p95_type1": 40.676761884242296
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 500,
+              "mean": 18.432976114563644,
+              "p50_type1": 2.6569529436528683,
+              "p95_type1": 49.07209612429142
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 500,
+              "mean": 0.020723992958664894,
+              "p50_type1": 0.009322073310613632,
+              "p95_type1": 0.019863713532686234
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 500,
+              "mean": 16.265713691711426,
+              "p50_type1": 0.3800392150878906,
+              "p95_type1": 46.9207763671875
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 500,
+              "mean": 0.13030944485217333,
+              "p50_type1": 0.1374189741909504,
+              "p95_type1": 0.17489073798060417
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 500,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 500,
+              "mean": 1.9149045944213867,
+              "p50_type1": 1.9159317016601562,
+              "p95_type1": 2.783060073852539
+            },
+            "native_load_and_acquire_ms": {
+              "count": 500,
+              "mean": 15.336395769380033,
+              "p50_type1": 1.112133264541626,
+              "p95_type1": 94.57071498036385
+            }
+          }
+        },
+        "output_le32": {
+          "count": 1114,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 1114,
+              "mean": 16.10109830673122,
+              "p50_type1": 2.654995769262314,
+              "p95_type1": 53.14308824017644
+            },
+            "release_to_acquire_ms": {
+              "count": 1114,
+              "mean": 21.63963602426089,
+              "p50_type1": 19.612164236605167,
+              "p95_type1": 46.3240840472281
+            },
+            "acquire_to_resume_ms": {
+              "count": 1114,
+              "mean": 4.380170787606034,
+              "p50_type1": 0.04999898374080658,
+              "p95_type1": 0.06894301623106003
+            },
+            "runtime_slot_wait_ms": {
+              "count": 1114,
+              "mean": 127.67050002159841,
+              "p50_type1": 93.74239295721054,
+              "p95_type1": 274.94470681995153
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 1114,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 1114,
+              "mean": 76.91634569987588,
+              "p50_type1": 23.949330672621727,
+              "p95_type1": 299.17410342022777
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 1114,
+              "mean": 55.5397903900326,
+              "p50_type1": 29.53971503302455,
+              "p95_type1": 186.54217896983027
+            },
+            "native_engine_queue_ms": {
+              "count": 1114,
+              "mean": 2.373994093578931,
+              "p50_type1": 0.028715934604406357,
+              "p95_type1": 2.0792819559574127
+            },
+            "native_prefill_ms": {
+              "count": 1114,
+              "mean": 113.94617672553169,
+              "p50_type1": 109.78984273970127,
+              "p95_type1": 205.54635301232338
+            },
+            "native_decode_ms": {
+              "count": 1114,
+              "mean": 223.56371072712864,
+              "p50_type1": 184.94250113144517,
+              "p95_type1": 510.4385521262884
+            },
+            "worker_completion_notification_ms": {
+              "count": 1114,
+              "mean": 43.561224845744654,
+              "p50_type1": 28.960803989320993,
+              "p95_type1": 142.68247690051794
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 1114,
+              "mean": 16.63751404145582,
+              "p50_type1": 1.2465333566069603,
+              "p95_type1": 51.27206165343523
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 1114,
+              "mean": 8.273763957809695,
+              "p50_type1": 6.368989,
+              "p95_type1": 8.89362
+            },
+            "control_path_total_ms": {
+              "count": 1114,
+              "mean": 8.273763957809695,
+              "p50_type1": 6.368989,
+              "p95_type1": 8.89362
+            },
+            "lora_io_ms": {
+              "count": 1114,
+              "mean": 29.110746974413093,
+              "p50_type1": 0.0,
+              "p95_type1": 128.7214830517769
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 1114,
+              "mean": 169.79140514019656,
+              "p50_type1": 122.5207494571805,
+              "p95_type1": 412.9401482641697
+            },
+            "dispatch_window_wait_ms": {
+              "count": 1114,
+              "mean": 26.019806811866925,
+              "p50_type1": 19.680820871144533,
+              "p95_type1": 50.46262824907899
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 1114,
+              "mean": 17.902836964768316,
+              "p50_type1": 2.5067548267543316,
+              "p95_type1": 52.33464716002345
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 1114,
+              "mean": 0.010516523773141566,
+              "p50_type1": 0.008665956556797028,
+              "p95_type1": 0.01541106030344963
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 1114,
+              "mean": 15.826928979404524,
+              "p50_type1": 0.3540515899658203,
+              "p95_type1": 50.739288330078125
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 1114,
+              "mean": 0.12561322283501364,
+              "p50_type1": 0.1309211365878582,
+              "p95_type1": 0.17045624554157257
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 1114,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 1114,
+              "mean": 1.85854238068394,
+              "p50_type1": 1.8317699432373047,
+              "p95_type1": 2.954244613647461
+            },
+            "native_load_and_acquire_ms": {
+              "count": 1114,
+              "mean": 15.169004884195687,
+              "p50_type1": 1.1378326453268528,
+              "p95_type1": 92.38203521817923
+            }
+          }
+        },
+        "output_gt32": {
+          "count": 2886,
+          "stages_ms": {
+            "arrival_release_ms": {
+              "count": 2886,
+              "mean": 13.140156334111168,
+              "p50_type1": 3.0731065198779106,
+              "p95_type1": 38.88460900634527
+            },
+            "release_to_acquire_ms": {
+              "count": 2886,
+              "mean": 22.025478312878644,
+              "p50_type1": 18.02028762176633,
+              "p95_type1": 39.58614123985171
+            },
+            "acquire_to_resume_ms": {
+              "count": 2886,
+              "mean": 0.5393392407694833,
+              "p50_type1": 0.052513089030981064,
+              "p95_type1": 0.07263803854584694
+            },
+            "runtime_slot_wait_ms": {
+              "count": 2886,
+              "mean": 101.12952047875713,
+              "p50_type1": 85.28919285163283,
+              "p95_type1": 199.44697758182883
+            },
+            "runtime_to_controller_admission_ms": {
+              "count": 2886,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "admission_to_engine_dispatch_ms": {
+              "count": 2886,
+              "mean": 67.12363169826077,
+              "p50_type1": 21.85064321383834,
+              "p95_type1": 261.62861101329327
+            },
+            "engine_entry_to_queue_ms": {
+              "count": 2886,
+              "mean": 32.06422413574765,
+              "p50_type1": 25.48261731863022,
+              "p95_type1": 118.20849077776074
+            },
+            "native_engine_queue_ms": {
+              "count": 2886,
+              "mean": 1.0116614894431577,
+              "p50_type1": 0.02702418714761734,
+              "p95_type1": 0.3141839988529682
+            },
+            "native_prefill_ms": {
+              "count": 2886,
+              "mean": 99.83788366182317,
+              "p50_type1": 108.68635540828109,
+              "p95_type1": 134.03498427942395
+            },
+            "native_decode_ms": {
+              "count": 2886,
+              "mean": 2152.265399347859,
+              "p50_type1": 1829.0258212946355,
+              "p95_type1": 3976.375725120306
+            },
+            "worker_completion_notification_ms": {
+              "count": 2886,
+              "mean": 26.96479892626673,
+              "p50_type1": 25.915037840604782,
+              "p95_type1": 63.86791681870818
+            },
+            "worker_to_controller_completion_ms": {
+              "count": 2886,
+              "mean": 14.8542738583827,
+              "p50_type1": 1.383952796459198,
+              "p95_type1": 48.962683882564306
+            }
+          },
+          "nested_ms": {
+            "routing_decision_ms": {
+              "count": 2886,
+              "mean": 7.254581571379071,
+              "p50_type1": 6.67909,
+              "p95_type1": 8.209845999999999
+            },
+            "control_path_total_ms": {
+              "count": 2886,
+              "mean": 7.254581571379071,
+              "p50_type1": 6.67909,
+              "p95_type1": 8.209845999999999
+            },
+            "lora_io_ms": {
+              "count": 2886,
+              "mean": 34.45956316161501,
+              "p50_type1": 0.0,
+              "p95_type1": 130.53636020049453
+            },
+            "dispatch_admission_wait_ms": {
+              "count": 2886,
+              "mean": 136.83449436651642,
+              "p50_type1": 109.54079404473305,
+              "p95_type1": 268.86207330971956
+            },
+            "dispatch_window_wait_ms": {
+              "count": 2886,
+              "mean": 22.564817553648126,
+              "p50_type1": 18.075495958328247,
+              "p95_type1": 40.4276461340487
+            },
+            "parent_rpc_overhead_ms": {
+              "count": 2886,
+              "mean": 16.00931662187104,
+              "p50_type1": 2.560182474553585,
+              "p95_type1": 50.79435417428613
+            },
+            "parent_rpc_channel_acquire_ms": {
+              "count": 2886,
+              "mean": 0.02390773671957369,
+              "p50_type1": 0.009042210876941681,
+              "p95_type1": 0.01776358112692833
+            },
+            "parent_rpc_response_pickup_delay_ms": {
+              "count": 2886,
+              "mean": 13.902366946161578,
+              "p50_type1": 0.3669261932373047,
+              "p95_type1": 48.020124435424805
+            },
+            "parent_rpc_send_flush_ms": {
+              "count": 2886,
+              "mean": 0.12802706217510743,
+              "p50_type1": 0.1333220861852169,
+              "p95_type1": 0.1723240129649639
+            },
+            "parent_rpc_thread_resume_delay_ms": {
+              "count": 2886,
+              "mean": 0.0,
+              "p50_type1": 0.0,
+              "p95_type1": 0.0
+            },
+            "worker_rpc_queue_ms": {
+              "count": 2886,
+              "mean": 1.8616474426544465,
+              "p50_type1": 1.850128173828125,
+              "p95_type1": 2.668142318725586
+            },
+            "native_load_and_acquire_ms": {
+              "count": 2886,
+              "mean": 16.06341857367601,
+              "p50_type1": 1.1304649524390697,
+              "p95_type1": 93.14008289948106
+            }
+          }
+        }
+      },
+      "planning_event_count": 3393,
+      "planning": {
+        "capture_serialization_ms": {
+          "count": 3393,
+          "mean": 8.320927776801412,
+          "p50_type1": 8.027569856494665,
+          "p95_type1": 10.83175977692008,
+          "sum": 28232.90794668719
+        },
+        "serialized_owner_wait_ms": {
+          "count": 3393,
+          "mean": 58.251499723875824,
+          "p50_type1": 0.012679025530815125,
+          "p95_type1": 209.32257641106844,
+          "sum": 197647.33856311068
+        },
+        "worker_dispatch_ms": {
+          "count": 3393,
+          "mean": 9.585263310074412,
+          "p50_type1": 3.1933081336319447,
+          "p95_type1": 17.918634228408337,
+          "sum": 32522.798411082476
+        },
+        "worker_wall_ms": {
+          "count": 3393,
+          "mean": 102.20652193433806,
+          "p50_type1": 44.11353403702378,
+          "p95_type1": 414.0545171685517,
+          "sum": 346786.728923209
+        },
+        "worker_result_pickup_ms": {
+          "count": 3393,
+          "mean": 8.674564449247791,
+          "p50_type1": 2.8936872258782387,
+          "p95_type1": 11.920175049453974,
+          "sum": 29432.797176297754
+        },
+        "worker_cpu_ms": {
+          "count": 3393,
+          "mean": 102.18564758443871,
+          "p50_type1": 44.10181099999022,
+          "p95_type1": 413.99699099997633,
+          "sum": 346715.90225400054
+        }
+      },
+      "planning_states": {
+        "completed": 3393
+      },
+      "planning_operations": {
+        "owned_execution_epoch": 3390,
+        "initialized_gpu_objective": 3
+      }
+    }
+  },
+  "matched_request_inputs": true,
+  "new_gpu_runs": 0,
+  "formal_ranking_eligible": false,
+  "causal_attribution_established": false,
+  "confidence_interval": null,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1083_same_version_w0/completion_sources.json",
+      "sha256": "cc77fa3725508010060641e193c178d28b03f3c79c00ce70c7d62dbcc9a21499"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1046_same_version_w0/completion/full4000.json",
+      "sha256": "9b7469ceb0aadd941284db3a66a28d62939f416a8703e45caead8912a45280db"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1046_20261103/d1046_3b_event_busy_time_w0_full/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1046_3b_event_busy_time_w0_full.json",
+      "sha256": "e090dce151e55703916b6f4ed86eaa70d69a9e6f24ecc8327a6daef9e9c24281"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1046_20261103/d1046_3b_event_busy_time_w0_full/launch.json",
+      "sha256": "e2103e46ef0cf33ab8cec42b886d63be810b37725a72fe7e7ab41f64fbcb47ee"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1046_20261103/d1046_3b_event_busy_time_w0_full/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "e75d82908525fbfbc239059206729d241fbad930f275c8f7d1944d0bfdcc2fb0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1083_same_version_w0/completion/full4000.json",
+      "sha256": "71dfa27badd820604dd65eaa95ff69bedda930a1dba287b2966a2471d556cccd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1083_20261106/d1083_3b_host_budget_projection_w0/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1083_3b_host_budget_projection_w0.json",
+      "sha256": "05f94d5689fe7d38131b7573bfcf3ef367834c9db6948465ea99bedfa550a41f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1083_20261106/d1083_3b_host_budget_projection_w0/launch.json",
+      "sha256": "9f32912a71f12297d0ef7d52e932cf3087f24c6bfac3a755af01dfc89646ba97"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1083_20261106/d1083_3b_host_budget_projection_w0/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "7502fca24c10ae057714fc5896cfeeeb11ac4142518ed2d20b8c46d199fdb9f5"
+    }
+  ],
+  "scope": {
+    "unit": "primelora-tc-aux-c0c4418dbb93c5ee2b9b3594a95f2c5d.scope",
+    "invocation_id": "68284490175040ac886b16682a20073e",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-c0c4418dbb93c5ee2b9b3594a95f2c5d.scope",
+    "inode": 40498647
+  },
+  "script": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d455_stages.py",
+    "sha256": "86cc379a4fc5d72d0c95ce9871d43be8c3cb40fa5086a0fd93423325c98c79d5"
+  },
+  "caveats": [
+    "Nested spans are not additive E2E components or exclusive CPU durations.",
+    "Historical routing timers omit early-continue attempts; smaller values do not prove cheaper routing.",
+    "Composite ablations change decisions and execution work; matched inputs do not fix closed-loop paths.",
+    "Planning worker CPU and wall times overlap requests and cannot be subtracted from their latency.",
+    "RPC pickup uses same-host wall clocks and producer clamping; it is not an exclusive event-loop span.",
+    "Unknown numerical correctness is preserved; output length and binding alone do not fill N_correct.",
+    "One known trace per configuration, no independent holdout or run-level uncertainty."
+  ]
+}
