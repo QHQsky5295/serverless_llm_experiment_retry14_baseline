@@ -1,0 +1,21 @@
+{
+  "original_config": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml",
+    "sha256": "263bdcd6ff255108ddaffdd9ce46898d7f12be15948d7fe3d7ac27d5ea8828d2",
+    "bytes": 6164
+  },
+  "launch": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1081_20261106/d1081_3b_positive_demand_options_w1/launch.json",
+    "sha256": "c60fb4bb50907ea4eb118f5c5a39442d704c1e58520d4d62380e8476ab6bdb70",
+    "bytes": 12292
+  },
+  "result": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1081_20261106/d1081_3b_positive_demand_options_w1/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_full_d1081_3b_positive_demand_options_w1.json",
+    "sha256": "3e74953252b8955a924363b90e925d967139833ac0ecf68f0adb15c26a8768d7",
+    "bytes": 291663056
+  },
+  "changed_fields": {
+    "experiment.output_dir": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1081_20261106/d1081_3b_positive_demand_options_w1"
+  },
+  "reason": "Bind recorded output override only; no serving or metric change."
+}

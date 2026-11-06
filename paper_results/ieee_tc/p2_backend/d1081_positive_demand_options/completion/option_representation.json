@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "planning_events": 2151,
+  "sparse_events": 1228,
+  "confirmed_gpu_no_preparation_events": 915,
+  "states": {
+    "completed": 2151
+  },
+  "excluded_zero_demand_options": 1658066,
+  "materialized_positive_demand_options": 4353,
+  "counting_rule": "Canonical planning_cpu_events only; no duplicate public/private aggregation.",
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1081_20261106/d1081_3b_positive_demand_options_w1/launch.launch/physical_deployment/main_outcome.json",
+    "sha256": "1bada6a4ab2be58bd905fb61485b09e01e72b03d7411a0c70add686928098507",
+    "bytes": 411858692
+  }
+}
