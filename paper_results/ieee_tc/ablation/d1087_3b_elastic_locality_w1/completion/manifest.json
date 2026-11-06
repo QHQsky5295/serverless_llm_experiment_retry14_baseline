@@ -1,0 +1,41 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1087_3b_elastic_locality_w1/completion/analysis_output_binding.yaml",
+      "sha256": "a78307013f32043e3fbd4e3554e5245983c2b03fe365e0f50f5ff398512bd178",
+      "bytes": 6308
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1087_3b_elastic_locality_w1/completion/closure.json",
+      "sha256": "d23e459217d1c68fe413fcde327adc81b5d244c0b2a2324cb37764cbd759d054",
+      "bytes": 3343
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1087_3b_elastic_locality_w1/completion/delivery_and_resources.json",
+      "sha256": "00a8abd4cd79b7d82a066e0e41843b26b6caa9a71db52b2fd562b918272fa72d",
+      "bytes": 15134
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1087_3b_elastic_locality_w1/completion/full4000.json",
+      "sha256": "a7f132968fd9123d0fa1ab6f7d1208fd5574e6758d93a3906c4432d7b3609234",
+      "bytes": 22735
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1087_3b_elastic_locality_w1/completion/profile_bindings.json",
+      "sha256": "03dcb1be7e82a5c8479fdfca0bf8ab09b4a6292f5fe9fe2b4f93b68a933621dd",
+      "bytes": 2815
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1087_3b_elastic_locality_w1/completion/stages/diagnosis.json",
+      "sha256": "1c8c3e97741d06e5f796f9f356b1aca3191a8df07fce21c8e4025855355e247a",
+      "bytes": 228775
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1087_3b_elastic_locality_w1/completion/stages/requests.csv",
+      "sha256": "752b9b8f1363f7a717949d60caf6878279352f81259e7989330083e733223840",
+      "bytes": 2297444
+    }
+  ],
+  "raw_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1087_20261106/d1087_3b_elastic_locality_w1",
+  "raw_result_sha256": "b6b3b8128157e67873f8b3d67629ebaa05d3e986e0ffba928db94e1377c69288"
+}

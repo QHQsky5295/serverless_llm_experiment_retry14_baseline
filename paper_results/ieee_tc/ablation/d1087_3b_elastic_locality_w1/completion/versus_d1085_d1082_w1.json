@@ -1,0 +1,120 @@
+{
+  "kind": "ieee_tc_a1_same_version_descriptive_comparison_v1",
+  "comparison": "D1087 ElasticLocality W1 versus D1085 ElasticOnly W1 and D1082 Full W1",
+  "model": "Llama-3.2-3B-Instruct",
+  "workload": {
+    "requests": 4000,
+    "logical_adapters": 500,
+    "trace_profile": "W1",
+    "source_trace_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+    "generation_contract": "fixed_length_greedy_v1",
+    "bandwidth_limit_mode": "local_sim_no_delay"
+  },
+  "runs": {
+    "elastic_locality": {
+      "run_id": "d1087_20261106",
+      "run_tag": "d1087_3b_elastic_locality_w1",
+      "scenario": "tc_ieee_elastic_locality",
+      "implementation_commit": "462f9987944d68370be7e411abb9252980a3e2b1",
+      "physical_gpu_seconds": 5861.732732367702,
+      "gpu_seconds_per_offered_request": 1.4654331830919255,
+      "joint_slo_fraction": 0.98575,
+      "joint_slo_pass": 3943,
+      "ttft_mean_ms": 316.41332975111436,
+      "ttft_p95_ms": 691.9472543522716,
+      "tpot_mean_ms": 14.842637539293559,
+      "e2e_mean_ms": 1917.28061214427,
+      "e2e_p95_ms": 4093.919307924807,
+      "scale_up_events": 8,
+      "scale_down_events": 7,
+      "remote_transfer_count": 132,
+      "remote_transfer_bytes": 306360162,
+      "remote_transfer_outcome": "sent",
+      "remote_delivery_mode": "prepublished_gzip_v1",
+      "request_time_packing": false,
+      "feature_gates": {
+        "readiness_routing_enabled": false,
+        "scale_up_handoff_enabled": false,
+        "hierarchical_residency_enabled": false,
+        "coordination_enabled": false,
+        "effective_capacity_admission_enabled": false
+      }
+    },
+    "elastic_only": {
+      "run_id": "d1085_20261106",
+      "run_tag": "d1085_3b_elastic_only_w1",
+      "physical_gpu_seconds": 6072.000783551484,
+      "gpu_seconds_per_offered_request": 1.518000195887871,
+      "joint_slo_fraction": 0.9865,
+      "joint_slo_pass": 3946,
+      "ttft_mean_ms": 322.02085528697353,
+      "ttft_p95_ms": 666.5246202610433,
+      "tpot_mean_ms": 14.78657681035259,
+      "e2e_mean_ms": 1912.3488822325598,
+      "e2e_p95_ms": 4066.9238814152777
+    },
+    "full": {
+      "run_id": "d1082_20261106",
+      "run_tag": "d1082_3b_host_budget_projection_w1",
+      "physical_gpu_seconds": 5393.347900303081,
+      "gpu_seconds_per_offered_request": 1.3483369750757702,
+      "joint_slo_fraction": 0.96625,
+      "joint_slo_pass": 3865,
+      "ttft_mean_ms": 436.3548407688504,
+      "ttft_p95_ms": 1044.666805304587,
+      "tpot_mean_ms": 17.622541036219452,
+      "e2e_mean_ms": 2333.3915855011437,
+      "e2e_p95_ms": 5029.881117865443
+    }
+  },
+  "elastic_locality_minus_reference": {
+    "versus_elastic_only": {
+      "physical_gpu_seconds_relative_percent": -3.462912122036943,
+      "joint_slo_fraction_delta_percentage_points": -0.07500000000000284,
+      "ttft_mean_relative_percent": -1.74135477370307,
+      "ttft_p95_relative_percent": 3.8142078054478334,
+      "tpot_mean_relative_percent": 0.37913257179118315,
+      "e2e_mean_relative_percent": 0.25788860795905705,
+      "e2e_p95_relative_percent": 0.6637799795784479
+    },
+    "versus_full": {
+      "physical_gpu_seconds_relative_percent": 8.68449135347453,
+      "joint_slo_fraction_delta_percentage_points": 1.9499999999999962,
+      "ttft_mean_relative_percent": -27.48715032160546,
+      "ttft_p95_relative_percent": -33.76383255994002,
+      "tpot_mean_relative_percent": -15.774702928552598,
+      "e2e_mean_relative_percent": -17.832882227845413,
+      "e2e_p95_relative_percent": -18.608030448597066
+    }
+  },
+  "mechanism_evidence": {
+    "selection_strategy": "gpu_locality",
+    "locality_load_slack": 1,
+    "scale_up_events": 8,
+    "scale_down_events": 7,
+    "handoff_plan_count": 0,
+    "preparation_state": "disabled",
+    "file_preparation_plans": 0,
+    "gpu_preparation_plans": 0,
+    "native_host_preparations": 0,
+    "residency_epochs": 0,
+    "route_cache_requests": 8005,
+    "route_cache_misses": 402,
+    "confirmed_snapshot_hits": 6542,
+    "source_observation_collections": 4074,
+    "source_observation_joined": 3931
+  },
+  "interpretation": {
+    "status": "locality_tradeoff_against_elastic_only",
+    "paper_claim": "On this same-version W1 single-run comparison, ElasticLocality reduces physical GPU-s by 3.463% relative to ElasticOnly and remains much better than Full on latency/SLO, but its P95 TTFT is 3.814% higher than ElasticOnly and joint SLO is lower by 0.075 percentage points. The data support a resource–tail-latency trade-off, not a uniform win or a claim that locality alone explains Full.",
+    "ranking_limit": "All three 3B runs have n_correct=null and are ranking-ineligible for numerical adapter correctness; this table is mechanism diagnosis, not a formal cross-system ranking.",
+    "causal_limit": "The comparison uses one seed and W1 only. It does not establish slack=1 optimality, global optimality, or robustness over other churn/bandwidth profiles."
+  },
+  "source_refs": {
+    "elastic_locality_completion": "paper_results/ieee_tc/ablation/d1087_3b_elastic_locality_w1/completion/full4000.json",
+    "elastic_only_completion": "paper_results/ieee_tc/ablation/d1085_3b_elastic_only_w1/completion/full4000.json",
+    "full_completion": "paper_results/ieee_tc/p2_backend/d1082_host_budget_projection/completion/full4000.json",
+    "remote_health_clock": "remote-process-monotonic:a92b2475079443ef9d8d90113e211837",
+    "remote_journal_sha256": "498506eb3133b2a0f1bfee19a6aa5952ca5d9ed413dd8fa7da1244871a4bc315"
+  }
+}

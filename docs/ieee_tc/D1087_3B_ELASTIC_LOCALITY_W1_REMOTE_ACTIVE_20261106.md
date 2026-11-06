@@ -64,3 +64,33 @@ mechanism contract qualified=true。若任一条件失败，保留失败记录�
 物理 GPU allocation-union GPU-s/request；旧 `infra_gpu_seconds_total` 只作辅证。
 不生成目标优势图，先保存请求级表、机制审计、远端 journal、健康回执、closure
 和 manifest；结果方向若是 trade-off 或未分辨则如实保留。
+
+## 完成结果
+
+D1087 已完成并通过执行闭合：4,000/4,000 请求到达终态，成功 4,000、失败 0；
+launcher、回放、watchdog 返回 0，native GPU context 释放确认，物理
+allocation-union 测量完整。D648 联合 TTFT/TPOT SLO 为 3,943/4,000（98.575%），
+平均 TTFT 316.413 ms，P95 TTFT 691.947 ms，平均 TPOT 14.843 ms，平均 E2E
+1,917.281 ms，P95 E2E 4,093.919 ms；主资源为 5,861.7327 GPU-s，即
+1.465433 GPU-s/offered-request。
+
+远端证据与 D1086 明确不同：健康 clock
+`remote-process-monotonic:a92b2475079443ef9d8d90113e211837` 下收集 132/132
+条 `outcome=sent`、`prepublished_gzip_v1` transfer，总读取字节 306,360,162，
+`pack_performed=false` 且 `temporary_created=false`。服务在收集 post-run health
+和 journal 后停止。3B 数值 adapter correctness 仍为 `n_correct=null`，因此
+`ranking_eligible=false`；该结果可用于时延、SLO、资源和机制诊断，不用于正式
+跨系统数值正确性排名。
+
+与同当前实现的 D1085 ElasticOnly W1 相比，ElasticLocality 的物理 GPU-s 低
+3.463%，但 P95 TTFT 高 3.814%，联合 SLO 低 0.075 个百分点；与 D1082 Full W1
+相比，GPU-s 高 8.684%，但 P95 TTFT 低 33.764%，联合 SLO 高 1.950 个百分点。
+因此当前证据仍是资源—尾延迟 trade-off：普通 locality 能改善资源侧，但没有
+证明 Full 的全部管理机制带来统一收益，也不能宣称 slack=1 最优。完整对照和
+机制触发数据见
+`paper_results/ieee_tc/ablation/d1087_3b_elastic_locality_w1/completion/versus_d1085_d1082_w1.json`。
+
+机制审计显示 8 次 scale-up、7 次 scale-down、0 次 handoff plan、0 个主动
+preparation/residency epoch；路由观察记录 8,005 次 cache-stat 请求、6,542 次
+confirmed-snapshot hit。该证据支持“本轮确实执行了 locality 选择、但没有混入
+handoff/hierarchy”的身份检查；它不构成多 seed 稳健性或全局最优性证明。

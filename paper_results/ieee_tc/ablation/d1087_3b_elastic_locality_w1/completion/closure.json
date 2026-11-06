@@ -1,0 +1,71 @@
+{
+  "passed": true,
+  "run_id": "d1087_20261106",
+  "run_tag": "d1087_3b_elastic_locality_w1",
+  "scenario": "tc_ieee_elastic_locality",
+  "variant": "ElasticLocality",
+  "requests_planned": 4000,
+  "requests_arrived": 4000,
+  "requests_successful": 4000,
+  "requests_failed": 0,
+  "joint_slo_pass": 3943,
+  "joint_slo_fraction": 0.98575,
+  "physical_gpu_seconds": 5861.732732367702,
+  "physical_measurement_complete": true,
+  "numerical_adapter_correctness_qualified": false,
+  "ranking_eligible": false,
+  "remote_transfer_count": 132,
+  "remote_transfer_outcomes": {
+    "sent": 132
+  },
+  "remote_transfer_bytes_read": 306360162,
+  "request_time_packing": false,
+  "remote_service_closed_after_collection": true,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1087_20261106/d1087_3b_elastic_locality_w1/experiment_results_full_vllm_dedicated_a500_r4000_c8_tc_ieee_elastic_locality_d1087_3b_elastic_locality_w1.json",
+      "sha256": "b6b3b8128157e67873f8b3d67629ebaa05d3e986e0ffba928db94e1377c69288",
+      "bytes": 264025070
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1087_20261106/d1087_3b_elastic_locality_w1/launch.json",
+      "sha256": "d82861e54578efacfa71d3ae19d71f05fb67844c66c1c0ac17cad81a7f587ca4",
+      "bytes": 12288
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1087_20261106/d1087_3b_elastic_locality_w1/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "b92ecb8f5f6074d13bf703095548c13480b95ab7749685389ef654269d936ccc",
+      "bytes": 5463870
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1087_20261106/d1087_3b_elastic_locality_w1/remote_transfers_remote.jsonl",
+      "sha256": "498506eb3133b2a0f1bfee19a6aa5952ca5d9ed413dd8fa7da1244871a4bc315",
+      "bytes": 110448
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1087_20261106/remote_health_post.json",
+      "sha256": "70242a1fbcb994ad444f1bd86e3976f92f8f555d0f430bd77f16fc0050fb68ef",
+      "bytes": 362
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1087_3b_elastic_locality_w1/completion/full4000.json",
+      "sha256": "a7f132968fd9123d0fa1ab6f7d1208fd5574e6758d93a3906c4432d7b3609234",
+      "bytes": 22735
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1087_3b_elastic_locality_w1/completion/delivery_and_resources.json",
+      "sha256": "00a8abd4cd79b7d82a066e0e41843b26b6caa9a71db52b2fd562b918272fa72d",
+      "bytes": 15134
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1087_3b_elastic_locality_w1/completion/analysis_output_binding.yaml",
+      "sha256": "a78307013f32043e3fbd4e3554e5245983c2b03fe365e0f50f5ff398512bd178",
+      "bytes": 6308
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1087_3b_elastic_locality_w1/collect_completion.py",
+      "sha256": "7ab82cfd41703c224d543ee16cabb7053e80a0561c7e2017eac28cb3059b19e9",
+      "bytes": 6304
+    }
+  ]
+}
