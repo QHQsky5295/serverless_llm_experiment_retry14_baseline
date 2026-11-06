@@ -1,0 +1,45 @@
+{
+  "kind": "ieee_tc_single_run_ablation_comparison_v1",
+  "workload": "W1",
+  "model": "Llama-3.2-3B-Instruct",
+  "reference": {
+    "run_id": "d1082_20261106",
+    "run_tag": "d1082_3b_host_budget_projection_w1",
+    "variant": "Full",
+    "joint_slo_fraction": 0.96625,
+    "joint_slo_pass": 3865,
+    "physical_gpu_seconds": 5393.347900303081,
+    "physical_gpu_seconds_per_offered_request": 1.3483369750757702,
+    "p95_ttft_ms": 1044.8341,
+    "avg_ttft_ms": 436.3548,
+    "avg_tpot_ms": 17.6225,
+    "avg_e2e_ms": 2333.3916,
+    "p95_e2e_ms": 5030.0616
+  },
+  "candidate": {
+    "run_id": "d1089_20261107",
+    "run_tag": "d1089_3b_nohost_w1",
+    "variant": "NoHOST",
+    "joint_slo_fraction": 0.964,
+    "joint_slo_pass": 3856,
+    "physical_gpu_seconds": 5716.616919892374,
+    "physical_gpu_seconds_per_offered_request": 1.4291542299730935,
+    "p95_ttft_ms": 1055.1701,
+    "avg_ttft_ms": 434.2854,
+    "avg_tpot_ms": 17.5302,
+    "avg_e2e_ms": 2317.8854,
+    "p95_e2e_ms": 5037.6325
+  },
+  "relative_candidate_minus_reference_percent": {
+    "physical_gpu_seconds": 5.993846967875511,
+    "physical_gpu_seconds_per_offered_request": 5.993846967875511,
+    "p95_ttft_ms": 0.9892479581208168,
+    "avg_ttft_ms": -0.47424710350385285,
+    "avg_tpot_ms": -0.5237622357781135,
+    "avg_e2e_ms": -0.6645348341872752,
+    "p95_e2e_ms": 0.15051306727535324,
+    "joint_slo_fraction": -0.2328589909443814
+  },
+  "absolute_joint_slo_delta_percentage_points": -0.225,
+  "interpretation": "NoHOST is a resource--tail-latency trade-off in this W1 single run: it uses 5.994% more physical GPU-seconds and has 0.225 percentage points lower joint SLO, while mean TTFT/TPOT/E2E are slightly lower and P95 TTFT/E2E are slightly higher. This does not establish global optimality or a universal NoHOST penalty."
+}

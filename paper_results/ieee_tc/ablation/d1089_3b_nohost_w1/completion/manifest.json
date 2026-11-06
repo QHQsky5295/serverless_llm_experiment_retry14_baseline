@@ -1,0 +1,41 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1089_3b_nohost_w1/completion/analysis_output_binding.yaml",
+      "sha256": "1be1269e3b5b35947e40b9fa2197f62c6d0f4f123c1ba518217c7ebe59d39e8f",
+      "bytes": 5866
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1089_3b_nohost_w1/completion/closure.json",
+      "sha256": "9223e7a43b7d24da4a8e1621b36cb64641326f6e4b3198d20146be3f88b4526a",
+      "bytes": 3229
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1089_3b_nohost_w1/completion/delivery_and_resources.json",
+      "sha256": "e0e6f219208929016ab19e1462826aa5faa93a57831d86b5e7a28dbfdc676633",
+      "bytes": 13963
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1089_3b_nohost_w1/completion/full4000.json",
+      "sha256": "0701b9355aa0c4519fb650cf70fa2ed5f4abf35729d2661c914dc1d4e120058b",
+      "bytes": 47771
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1089_3b_nohost_w1/completion/profile_bindings.json",
+      "sha256": "70e37f7a5d2ef50c939baf998e49485b0722d55a9daceb844abd75359611d9b9",
+      "bytes": 2733
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1089_3b_nohost_w1/completion/stages/diagnosis.json",
+      "sha256": "6584ac1a5fd94d96c42561f8d34449883345c68ce458fbd3594a7ad0d9751322",
+      "bytes": 229754
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1089_3b_nohost_w1/completion/stages/requests.csv",
+      "sha256": "a7faeafff340925283a76de67835239b35045cf4420480eb651a22bc15037361",
+      "bytes": 2339852
+    }
+  ],
+  "raw_run": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1089_20261107/d1089_3b_nohost_w1",
+  "raw_result_sha256": "98f88d05e3429552da15c8e3fa41eaeeb1d60d30a61e4e224b672d5f44c19b6c"
+}
