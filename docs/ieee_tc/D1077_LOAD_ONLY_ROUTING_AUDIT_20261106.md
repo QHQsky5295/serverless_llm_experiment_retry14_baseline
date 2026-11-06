@@ -1,5 +1,13 @@
 # D1077 — 3B load-only routing candidate audit (2026-11-06)
 
+> Correction (D1080): this run uses the NoRouting selector and a 240-second
+> preparation window, not paper Full under the frozen 60-second main protocol.
+> The value previously labelled physical GPU-seconds below is a scenario
+> infrastructure estimate; the physical lease union is 6596.153619553894 GPU-s.
+> Use [D1080](D1080_DIAGNOSTIC_IDENTITY_AND_RESOURCE_CORRECTION_20261106.md)
+> for the corrected identity, Type-1 quantiles, and next action. The historical
+> narrative below is retained for provenance, not current acceptance guidance.
+
 ## Decision
 
 D1077 is an exploratory PrimeLoRA mechanism candidate, not a formal ranking

@@ -1,5 +1,13 @@
 # D1078 — matched service-bin control for D1077 (2026-11-06)
 
+> Correction (D1080): both runs use a 240-second preparation window, not the
+> frozen 60-second main protocol. D1077 is NoRouting, not paper Full.
+> Physical lease-union GPU-seconds are 6596.153619553894 (D1077) and
+> 6746.289175793994 (D1078); the earlier table used scenario infrastructure
+> estimates. Its physical-resource percentage and interpolated quantiles are
+> superseded by [D1080](D1080_DIAGNOSTIC_IDENTITY_AND_RESOURCE_CORRECTION_20261106.md).
+> Preserve the original measurements; do not promote load_only to paper Full.
+
 ## Purpose and status
 
 D1078 closes the confound identified in the D1077 audit.  It uses the same
