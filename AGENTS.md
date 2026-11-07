@@ -1,5 +1,25 @@
 # PrimeLoRA IEEE TC execution contract
 
+Current handoff 2026-11-08: D1122 current-version7B LastKnownW1 REGISTERED,
+not started. Read D1122_7B_LASTKNOWN_W1_REGISTRATION_20261108.md. Only existing
+ranking-source sample-and-hold0.5s plus isolatedpaths; all D1100/Full non-targets
+equal, no production edit. Twenty focused CPU tests pass (run-u357/main0/wrapper0),
+144 protected files/userdirty/source hashes pass (run-u358). Next explicit backup,
+fresh resources and launch ONCE in tc-d1122-last-known-7b-w1 with existing runner.
+FullD1115 stays canonical, no Full/baseline replay/3B switch/HydraServe redeploy.
+After real release use D1113/D299/D455 and LastKnown-specific D297 receipt,
+separate hold/source age, ranking/acquisition evidence; no counterfactual TTFT.
+Full is historical confirmed provenance, NOT globally instant truth. Retain
+negative/no-trigger evidence and numeric-correctness limits. Full scope active.
+This turn PROGRESS: registered/tested current7B next A1. Older notes historical.
+
+Backup COMPLETE: D1121 evidence committed as
+e48977b0c04d09bba28359175f23b50ff0df34b5, pushed to V2; ls-remote matches.
+38 unique source hashes,144 protected publication files,user dirty manifest,
+11curated outputs and8analysis sources verified;13explicitfiles only staged.
+No user manifest or preexisting dirty status staged. Next actual main-line task
+is current7B LastKnown registration, not repeat backup/analysis/performance run.
+
 Current handoff 2026-11-08: D1121 COMPLETE/released/analyzed; no live GPU run.
 Read D1121_7B_FIXED_FULL_W1_RESULT_20261108.md. 4000 native contracts;
 joint3970/4000=99.25%, U8931.497721683234, P95TTFT1823.3526549302042ms.

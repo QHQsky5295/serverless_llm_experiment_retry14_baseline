@@ -1,0 +1,58 @@
+{
+  "kind": "d1122_prelaunch_v1",
+  "registered_before_performance_run": true,
+  "performance_started": false,
+  "model": "Llama-2-7B",
+  "workload": "W1",
+  "variant": "LastKnown",
+  "reference_run": "D1115",
+  "configuration": "configs/ieee_tc/20261108_d1122_7b_last_known_w1.yaml",
+  "configuration_sha256": "41db0c10b351aad74e8b4d4cebf36c6d6bc2c6ee707b3d7bf7c2521e0d9dcba6",
+  "target_change": {
+    "ieee_routing_information_view": "last_known_source_sample_hold_v1",
+    "ieee_routing_source_hold_s": 0.5
+  },
+  "production_code_changed": false,
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "tests": {
+    "passed": 20,
+    "duration_s": 0.147,
+    "service_runtime_s": 10.64,
+    "unit": "run-u357.service",
+    "exec_main_status": 0,
+    "systemd_wrapper_exit_code": 0,
+    "cpus": [
+      2,
+      3,
+      26,
+      27
+    ],
+    "memory_high_gib": 3,
+    "memory_max_gib": 4,
+    "swap_max": 0
+  },
+  "sources": {
+    "configs/ieee_tc/20261107_d1100_7b_busy_service_rate_w2.yaml": "386a34c84ec70e5d0d366f6d3bcaf0891536be503ba1359d583a93bd5ecf303f",
+    "configs/ieee_tc/20261108_d1122_7b_last_known_w1.yaml": "41db0c10b351aad74e8b4d4cebf36c6d6bc2c6ee707b3d7bf7c2521e0d9dcba6",
+    "docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+    "faaslora/coordination/autoscaler.py": "893715c0656f57354484265ff4df55a3e3f76875555859e1bc8c0140a018b6fc",
+    "faaslora/experiment/instance_pool.py": "f051c0e4a07bd1ebe5af008edbbe4be6db650e0a083604700502656595b15629",
+    "paper_results/ieee_tc/ablation/d1121_7b_fixed_full_w1/closure_manifest.json": "bcf1903cc8baa4fe9d3d9b220bd1cd5e1389c31de6e3658444ed3af7b27f0450",
+    "paper_results/ieee_tc/ablation/d1122_7b_last_known_w1/prelaunch_tests.txt": "10f93990ab31f7fd0006ed74f341681e2a0cfb790891d66f0ae52832883cc707",
+    "paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+    "scripts/ieee_tc/analyze_d297_full.py": "b93831dbbdf4556de4ad4094b1c7eecae646a1e79f8a80bd77602c259aabac1a",
+    "scripts/ieee_tc/run_d1100_7b_busy_service_rate_w2.sh": "6c98164a346d356122f9addc540a283bfd88ea61bb8a99bba3d2d407ed316fe1",
+    "scripts/run_all_experiments.py": "82490fbd40bbfd189ec11298c742d4e819043a8fa72b8591551aed983114b93b",
+    "tests/test_ieee_tc_decode_overlap.py": "6d841dd39fc9a8fbebbee0dbd7a4e1507970b89e467f641e4241977371aafb87",
+    "tests/test_ieee_tc_launch.py": "024575803a6abfbe7feb38ce280ca53e52bca17321c47a1091d7097912297c35",
+    "tests/test_ieee_tc_request_lifecycle.py": "fb53b1740f2c97b471a5d642afae523c9e8da2ff9b132cb133eccdefd6a416f2",
+    "tests/test_ieee_tc_service_routing.py": "0073722adba63313469d8e52baca57ae494813fe96c826a2a9a693981051502b"
+  },
+  "protected_files": 144,
+  "protected_check_unit": "run-u358.service",
+  "protected_check_exit_code": 0,
+  "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "pending_external_review": true,
+  "new_performance_runs": 0
+}

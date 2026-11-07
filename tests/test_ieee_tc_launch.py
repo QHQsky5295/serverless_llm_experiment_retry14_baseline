@@ -1698,6 +1698,23 @@ class IEEEQuantizationPrebuild(unittest.TestCase):
 
 
 class IEEEControlContract(unittest.TestCase):
+    def test_current_7b_last_known_changes_only_ranking_source_view_and_paths(self):
+        import yaml
+        root = Path(__file__).resolve().parents[1]/'configs/ieee_tc'
+        full = yaml.safe_load((root/'20261107_d1100_7b_busy_service_rate_w2.yaml').read_text())
+        held = yaml.safe_load((root/'20261108_d1122_7b_last_known_w1.yaml').read_text())
+        cc = held['resource_coordination']
+        self.assertEqual(cc.pop('ieee_routing_information_view'),
+                         'last_known_source_sample_hold_v1')
+        self.assertEqual(cc.pop('ieee_routing_source_hold_s'), 0.5)
+        self.assertTrue(cc['ieee_route_confirmed_snapshot_cache'])
+        self.assertEqual((cc['min_instances'], cc['max_instances']), (1, 4))
+        for section, key in (('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                             ('storage', 'host_cache_dir')):
+            self.assertNotEqual(full[section][key], held[section][key])
+            held[section][key] = full[section][key]
+        self.assertEqual(held, full)
+
     def test_current_7b_fixed_full_changes_only_min_instances_and_paths(self):
         import yaml
         root = Path(__file__).resolve().parents[1]/'configs/ieee_tc'
