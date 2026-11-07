@@ -19,6 +19,10 @@ case "${DLORA_MIGRATION_TYPE}" in
   *) DLORA_MIGRATION_LABEL="migration_${DLORA_MIGRATION_TYPE}" ;;
 esac
 DLORA_ROUTING_POLICY="${DLORA_ROUTING_POLICY:-dlora_${DLORA_MIGRATION_LABEL}}"
+DLORA_REMOTE_ARTIFACT_CONTENT_MANIFEST="${DLORA_REMOTE_ARTIFACT_CONTENT_MANIFEST:-${BASELINE_REMOTE_ARTIFACT_CONTENT_MANIFEST:-}}"
+DLORA_GENERATION_CONTRACT="${DLORA_GENERATION_CONTRACT:-legacy}"
+DLORA_FIXED_OUTPUT_MAX_TOKENS="${DLORA_FIXED_OUTPUT_MAX_TOKENS:-256}"
+DLORA_FIXED_PROMPT_MAX_TOKENS="${DLORA_FIXED_PROMPT_MAX_TOKENS:-759}"
 
 mkdir -p "${RESULT_ROOT}" "${LOG_ROOT}"
 
@@ -275,6 +279,22 @@ run_one() {
     expected_total="${max_requests}"
     replay_limit_args=(--max-requests "${max_requests}")
   fi
+  local generation_contract_args=()
+  if [[ "${DLORA_GENERATION_CONTRACT}" == "fixed_length_greedy_v1" ]]; then
+    generation_contract_args=(
+      --generation-contract fixed_length_greedy_v1
+      --fixed-output-max-tokens "${DLORA_FIXED_OUTPUT_MAX_TOKENS}"
+      --fixed-prompt-max-tokens "${DLORA_FIXED_PROMPT_MAX_TOKENS}"
+      --vllm-native-generate
+      --convert-chat-to-prompt
+      --prompt-guard-tokenizer-model "${model_path}"
+      --prompt-guard-max-model-len "${DLORA_PROMPT_GUARD_MAX_MODEL_LEN:-1024}"
+      --drop-body-field stream
+    )
+  elif [[ "${DLORA_GENERATION_CONTRACT}" != "legacy" ]]; then
+    echo "[ERROR] unsupported DLORA_GENERATION_CONTRACT=${DLORA_GENERATION_CONTRACT}" >&2
+    exit 1
+  fi
 
   local round_dir="${RESULT_ROOT}/${QUEUE_ID}_${label}_${run_tag}_dlora"
   local shared_dir="${round_dir}/shared_inputs"
@@ -318,6 +338,10 @@ run_one() {
   if [[ "${DLORA_REMOTE_FORCE:-0}" == "1" ]]; then
     remote_force_args=(--force)
   fi
+  local remote_manifest_args=()
+  if [[ -n "${DLORA_REMOTE_ARTIFACT_CONTENT_MANIFEST}" ]]; then
+    remote_manifest_args=(--content-manifest "${DLORA_REMOTE_ARTIFACT_CONTENT_MANIFEST}")
+  fi
 
   python "${BASELINES_ROOT}/scripts/materialize_remote_adapter_subset.py" \
     --main-repo "${MAIN_REPO}" \
@@ -325,6 +349,7 @@ run_one() {
     --endpoint "${endpoint}" \
     --output-dir "${remote_cache}" \
     --output-subset "${materialized_subset_path}" \
+    "${remote_manifest_args[@]}" \
     --workers "${DLORA_REMOTE_WORKERS:-4}" \
     --timeout-s "${DLORA_REMOTE_TIMEOUT_S:-600}" \
     "${remote_force_args[@]}" 2>&1 | tee "${materialize_log}"
@@ -420,6 +445,7 @@ PY
       --drop-body-field "lora_adapter_name" \
       --abort-after-failures "${DLORA_ABORT_AFTER_FAILURES:-1}" \
       --abort-failures-min-done "${DLORA_ABORT_FAILURES_MIN_DONE:-1}" \
+      "${generation_contract_args[@]}" \
       "${replay_limit_args[@]}" \
       2>&1 | tee "${replay_log}"
 
