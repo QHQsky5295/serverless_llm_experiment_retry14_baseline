@@ -58,6 +58,16 @@ github-sync只备份明确文件。四项CPU测试通过：非目标配置严格
 
 ## 执行与保护
 
+启动前环境补记：4项测试主进程返回0，但systemd wrapper最终因
+stop-sigterm超时返回1。实际MainPID=0、TasksCurrent=0、cgroup populated=0，
+GPU为空；不是测试断言失败，也不标成服务生命周期全通过。journal显示
+control/memory inotify ENOSPC，当前可读watch entries总数65536等于上限，
+主要来自另一个进程（63568）；未停止该进程、编辑器或其他服务。
+历史D371/D453/D458已有同类告警，D458已验证独立watchdog直接读取cgroup/
+memory.events/NVML及显式空域收尾，不依赖systemd自动通知。沿用该安全
+路径和真实首次采样核验，不修改内核上限、不增加GPU smoke或重复测试，
+保留环境告警且不声称零性能影响。该核查不改变性能配置或既有评价合同。
+
 先备份本登记，再按现有入口核验GPU空闲、至少102GiB主机可用内存、
 至少150GiB磁盘；停止门槛16/100GiB不变。服务72/80GiB/swap2、辅助
 3/4GiB/swap0和CPU分离保持。GPU测量期间不做哈希扫描、测试、维护、

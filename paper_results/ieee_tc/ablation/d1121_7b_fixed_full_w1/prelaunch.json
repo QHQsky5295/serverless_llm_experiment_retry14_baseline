@@ -22,9 +22,11 @@
     "duration_s": 16.204,
     "unit": "run-u351.service",
     "exec_main_status": 0,
+    "systemd_wrapper_exit_code": 1,
+    "systemd_final_result": "timeout after test main exited successfully; no remaining tasks",
     "tasks_current_after_main_exit": 0,
     "cgroup_populated_after_main_exit": 0,
-    "observation": "systemd unit temporarily deactivating with empty cgroup; do not confuse with a live test or retry",
+    "observation": "Four tests passed; unit journal reports inotify ENOSPC and subsequent stop-sigterm timeout despite MainPID=0/TasksCurrent=0/populated=0. Existing direct-polling containment is independent of systemd inotify (D458). No test or performance retry; no global/other-process change.",
     "cpus": [
       2,
       3,
