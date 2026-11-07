@@ -1,5 +1,42 @@
 # PrimeLoRA IEEE TC execution contract
 
+Current handoff 2026-11-08: D1121 COMPLETE/released/analyzed; no live GPU run.
+Read D1121_7B_FIXED_FULL_W1_RESULT_20261108.md. 4000 native contracts;
+joint3970/4000=99.25%, U8931.497721683234, P95TTFT1823.3526549302042ms.
+Same FullD1115 saves14.8645%U but joint-0.70pp and P95+27.8595%; trade-off.
+Four initial activations/closed leases, no natural resize;4000 actual selectors
+match; Full soft admission/residency retained.132transfers/131480060bytes,
+same as Full; no reduced-download attribution.180outputdigest differences
+retained/unknown cause,n_correctnull. Native contracts not independent math proof.
+Remoteinactive/GPUcomputeempty;2279samples,nohigh/max/OOM/swap. No GPU replay.
+Next seal/source-protectioncheck/explicitbackup, then7B LastKnown registration;
+do not reopen baseline/HydraServe deployment or switch to3B. Fullscope active.
+This goal turn PROGRESS: observed terminal/release and completed bounded analysis.
+All older LIVE paragraphs below are historical, not instructions to relaunch.
+
+Latest verified wait2026-11-08 01:45:38+08: D1121 SAME panePID2381434live.
+2828requests complete/success/native-contract,latestsubmittedindex2836;
+sample1465events/swap0,no warning/abort/foreign/escapedcompute;heldGPUs4,
+available96.998680GiB,disk157.866856GiB. PriorgoalturnVERIFIED WAIT;thisturn
+VERIFIED WAIT, no new run or production edits. Continue same run; no relaunch.
+Fullscopeactive. Do not treat phase completion as final result/early G1 verdict.
+
+LIVE handoff2026-11-08 01:21+08: D1121 FixedFull7BW1 launchedONCE,
+Latest01:22:39sample105: same run,29terminalrecords,4allocationfiles;
+no warning/abort/events/swap/foreigncompute,available106162388992B.
+tmux tc-d1121-fixed-full-7b-w1 panePID2381434 live. Do NOT relaunch.
+Checkpoint3cf8d0ab8db8d3a818524857c647b86aafcec73e pushed/remotematched.
+Service36a01c1a0b1a418096b0cab1f54f9176, invocationffd56661026a423f927b595ce1c64196;
+aux50b8648653534387829e16bd959cc612; notice3579300.885729723,
+replay3579360.885729723. Remoteclockf4c2de47a858483fa4eb96e73207b82e.
+OwnedremoteInvocationIDbf7d9c419df548fb80c7079eccff4d4d/PID1351838.
+Sample42noabort/high/max/OOM/swap/foreigncompute,disk172112363520B.
+Monitor SAME run through actualrelease; no tests/productionchanges/maintenance/
+hashscans/push/remotechanges during measurement. Existing D1113/D299/D455 after
+release; fourinitial/noresize checks and sameFullD1115. No complete result yet.
+ThisgoalturnPROGRESS: D1120sealed, D1121registered/tested/backedup/started.
+PriorNOTSTARTEDnotes below are historical. Fullremaininggoal active.
+
 Current handoff: D1121 current-version7B FixedFullW1 REGISTERED, not started.
 Read D1121_7B_FIXED_FULL_W1_REGISTRATION_20261108.md. Only min1->4 plus
 unique paths from D1100; max4/scenarioFull/serving mechanisms unchanged.

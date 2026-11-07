@@ -1,5 +1,54 @@
 # D1121：同版本7B FixedFull W1，隔离弹性资源生命周期
 
+完成补记：2026-11-08 01:59，唯一运行正常结束并释放四张GPU，远端inactive。
+4,000条native合同匹配；后续统计和边界见
+[D1121结果](D1121_7B_FIXED_FULL_W1_RESULT_20261108.md)。不得再执行下方登记命令。
+
+## 实际启动：2026-11-08 01:20 +08
+
+01:45:38复查：同一panePID2381434存活，提交至index2836，2828终态/
+成功/原生合同匹配，9在途。sample1465内存事件/swap全0，无告警、
+中止或foreign/escaped compute；available96.998680GiB、disk157.866856GiB。
+仍为同一执行的verified wait；不修改、重启、追加实验或提前判优。
+
+01:41:46复查：同一panePID2381434存活，提交至index2365，2352终态/
+成功/原生合同匹配，14在途。sample1236内存事件/swap全0，无告警、
+中止或foreign/escaped compute；available97.258072GiB、disk158.117527GiB。
+仍为同一运行的verified wait，不重跑、不改配置、不提前计算最终胜负。
+
+01:37:12复查：同一panePID2381434存活，提交至index1666，1655终态/
+成功/原生合同匹配，12在途。sample966内存事件/swap全0，无告警、
+中止或foreign/escaped compute；available97.476315GiB、disk158.487988GiB。
+继续同一运行；本轮与上一轮是verified wait，不是需要重启的阻塞。
+
+01:32:22复查：同一panePID2381434存活，已提交至index1086，1070终态/
+成功/原生合同匹配，17尚在途。sample681内存事件/swap全0，无告警、
+中止或外部compute；available97.416607GiB、disk158.788013GiB。
+上一轮及本轮均为verified wait，不是阻塞、不重复启动、不提前判优。
+
+01:27:09复查：同一panePID2381434存活，第一阶段500请求全部终态、成功
+且原生合同匹配；sample371无high/max/OOM/kill/swap、无告警/中止或
+foreign/escaped compute。4张GPU持有，available97.773903GiB、
+disk159.228493GiB。当前为verified wait，不是最终性能结果，不追加运行。
+
+已唯一启动，tmux `tc-d1121-fixed-full-7b-w1`、panePID2381434；01:21复查
+仍存活。不得重复下方历史登记命令。备份commit
+`3cf8d0ab8db8d3a818524857c647b86aafcec73e`已推送、远端HEAD匹配。
+service scope36a01c1a0b1a418096b0cab1f54f9176，InvocationID
+ffd56661026a423f927b595ce1c64196；aux50b8648653534387829e16bd959cc612。
+notice3579300.885729723，replay_t0=3579360.885729723。
+remote PID1351838，clockf4c2de47a858483fa4eb96e73207b82e，已发布交付合同
+对应拥有的InvocationID为bf7d9c419df548fb80c7079eccff4d4d；交付合同
+和timing_v2通过。首次服务尚未ready时health连接失败一次，随后在共同
+通知前正常通过，不涉及请求重放或本地fallback。两端NIC1000Mbps/full。
+
+启动前GPU空闲，主机available121807626240B，disk172114096128B。
+sample42实际directwatchdog无告警/中止，high/max/OOM/kill/swap均0，
+foreign/escaped compute为空，available107174862848B、disk172112363520B。
+尚无完整性能结论。只监测同一运行，不同时维护、测试、修改或推送。
+运行前CPU测试wrapper/inotify限制按下文保留；本次服务保护首次真实采样
+已成立，不宣称环境告警已经消失。当前完整目标仍active。
+
 2026-11-08，启动前登记。当前主线为 A1；D1115 Full、D1119 ElasticOnly、
 D1120 ElasticLocality 均已封存，不重跑、不替换 Full 主表来源。D1120
 备份3185c41796c768f31987e8f3d47c5750c2a83693已推送，远端HEAD匹配。

@@ -1,0 +1,25 @@
+{
+  "sources": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1121_20261108/7b_fixed_full_w1/launch.json": "d271e860618ad1fa3a5cbbb7f13b127915d750454bbede064bc4151cc0072161",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1121_20261108/7b_fixed_full_w1/launch.launch/physical_deployment/physical_resource_summary.json": "697c9e0a3abbb0921ac3bc35485681c2995e1c8cfc4a412470ef660e0986c1e3",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1121_20261108/7b_fixed_full_w1/launch.launch/physical_deployment/summary.json": "bbef4e75c5e768ac3719be7137f8e151e392ba6ef8c987699166d9cee440826a",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1121_20261108/7b_fixed_full_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d1121_7b_fixed_full_w1.json": "4fef1c9aba0063e2ac14033235ec4891691ed209c6b7d0fd642a8bc28106a9ea",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1121_20261108/7b_fixed_full_w1/launch.launch/physical_allocations/6599de45e7784cb9b7fee970a2c01467.jsonl": "e47c90ebd234b85651f07928e594ae2c6a9976632fc70270ee0957353c4d3129",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1121_20261108/7b_fixed_full_w1/launch.launch/physical_allocations/759d36d3efe44de8bd8e98475fd3a6f0.jsonl": "35547702b1b92be34f5059a0ebf224d499f116cc5be3d7fc6f36bfc27c5b0ea3",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1121_20261108/7b_fixed_full_w1/launch.launch/physical_allocations/9796427e922a460fae89f86daaea2ff4.jsonl": "77a743f6788e34b5a8ab93031f47497db6b6a3f6214f83e68bc9091d4c95d63d",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1121_20261108/7b_fixed_full_w1/launch.launch/physical_allocations/f500bbe42d7d441aa9c96a8b2e2f0f12.jsonl": "2d8073d997d902aec56d3e08c4d408975d2a58ef3baea12c3d17d20cc1f73d41",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1121_20261108/7b_fixed_full_w1/launch.launch/physical_deployment/request_terminals.jsonl": "4114f165d5df8fdc63d129db09e5f991c125fe27c4e0b4fe6204674d56366393",
+    "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261010_d394_7b_warm_reference.json": "93e2af33de471af6ee3cf97c7cb98eb074768dd2d34f4d29e152d59ab7566cee",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d1113_contract_reconciliation/collect.py": "dc996480e5b97892c1ab3a33a6789b2cc6c3ed3ad463c7f1a82cec2b381bc33a",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/check_d299_full_context.py": "cfd8204d45c86a8652773a288e7ff723c973c6983a0104f77465b7754bc4af14",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/plot_d290_diagnostic.py": "18e96959d167c3b9b8c762a4ee4274d4443eba38610e02cd89cd0755c5664f22"
+  },
+  "outputs": {
+    "reconciliation.json": "69935ef9245dc820fb88806fcd8ab43934b8b151f08997c0937a04fcd94019ba"
+  }
+}

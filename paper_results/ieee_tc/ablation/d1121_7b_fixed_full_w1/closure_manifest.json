@@ -1,0 +1,73 @@
+{
+  "kind": "d1121_closed_ablation_evidence_v1",
+  "raw_directory": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1121_20261108/7b_fixed_full_w1",
+  "run_checkpoint": "3cf8d0ab8db8d3a818524857c647b86aafcec73e",
+  "raw_result_sha256": "4fef1c9aba0063e2ac14033235ec4891691ed209c6b7d0fd642a8bc28106a9ea",
+  "outputs": {
+    "compare.py": "732222118106457c622cdeae6c547afbd7989bbd061ebf072fc52e7417aef319",
+    "comparison/comparison.json": "df11c1a7f04773eb08dd6e0b0901452583625145cf4cf41426af65f983f9f2f8",
+    "comparison/manifest.json": "ee0c253362def8d56aaf0e180da17217583fbb63b66af3172495b84d67d13a8a",
+    "comparison/mechanisms.json": "1bbd8effe683e785cc4c1596453c05771b58de1b0b7fea24358b48f831148d2b",
+    "comparison/metrics.csv": "263d4e88c59b5a7c6b8572144104ac3ac41021929fbda03c5dd712d77feb1375",
+    "prelaunch.json": "87c3cc2254df881c646f0e38d591313b1e8804c9059babdc4771c7f37e96383f",
+    "prelaunch_tests.txt": "0e27b10c2057df961d90a973cebfa4f9ef22169061f4b06ab0f71e75ec3a9f99",
+    "result1/evidence_review.json": "f31592660dd76591ebc554a4a9f9683200b68e3344b72c41d7517262a58e4d88",
+    "result1/manifest.json": "196caa4d6279af99c3da5d1103d5eaf1bf5b1352943552c17805db8dbbb5b798",
+    "result1/reconciliation.json": "69935ef9245dc820fb88806fcd8ab43934b8b151f08997c0937a04fcd94019ba",
+    "stages/summary.json": "6c21f76f78b2f9c13d46507ee629193cb0401c332ddd1e7d07f93f400ac422b9"
+  },
+  "analysis_sources": {
+    "scripts/ieee_tc/analyze_d455_stages.py": "c7b005e636d4b80cd121ccbfda5c272a9dd21675e370a146022ffbf50410f5e0",
+    "scripts/analyze_control_path_overhead.py": "38e847258f8aed7b8264c73eaa8246f400efe78735a5114276f82434758d84f0",
+    "scripts/ieee_tc/check_d299_full_context.py": "cfd8204d45c86a8652773a288e7ff723c973c6983a0104f77465b7754bc4af14",
+    "paper_results/ieee_tc/main_comparison/d1113_contract_reconciliation/collect.py": "dc996480e5b97892c1ab3a33a6789b2cc6c3ed3ad463c7f1a82cec2b381bc33a",
+    "docs/ieee_tc/D1121_7B_FIXED_FULL_W1_RESULT_20261108.md": "a94bcc814e312a08527f71f72fa0aff5a81e560483d920d575269af790623d09",
+    "scripts/run_all_experiments.py": "82490fbd40bbfd189ec11298c742d4e819043a8fa72b8591551aed983114b93b",
+    "faaslora/experiment/instance_pool.py": "f051c0e4a07bd1ebe5af008edbbe4be6db650e0a083604700502656595b15629",
+    "faaslora/coordination/autoscaler.py": "893715c0656f57354484265ff4df55a3e3f76875555859e1bc8c0140a018b6fc"
+  },
+  "extra_raw_hashes": {
+    "remote_pre_health.json": "3fdea56bdcdf3c01e6d8e0ded5b2bc7aae9f5746cda6441d109d9f15724f6ac4",
+    "remote_transfers.jsonl": "e5afe9b1e09d7f8bed0d93f28d227fc6fa1c8a85afe5760ad81761c4b57b0e9d",
+    "remote_monitor.log": "9ba0f919d5e927f6d807994817da96aeae0809363f971db542b1277ae05d7247",
+    "remote_service_stop.txt": "c21fa3c9864f884f0f038dc8566688577ee7382c4e11e49d1e743cb9e06dcb81",
+    "launcher.log": "ef7e744914034b48148fab34f5db426a437b52e7b9a7dc8e643150eb63a9e6b8",
+    "launch.json": "d271e860618ad1fa3a5cbbb7f13b127915d750454bbede064bc4151cc0072161"
+  },
+  "source_verification": {
+    "kind": "executor_hash_recheck_not_independent_review",
+    "verified_unique_sources": 38,
+    "protected_publication_files_unchanged": 144,
+    "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "unit": "run-u356.service"
+  },
+  "tests": {
+    "passed": 4,
+    "phase": "prelaunch; unchanged production path",
+    "log": "prelaunch_tests.txt",
+    "sha256": "0e27b10c2057df961d90a973cebfa4f9ef22169061f4b06ab0f71e75ec3a9f99",
+    "wrapper_warning": "run-u351 inotify/stop timeout retained in registration; actual test main0/tasks0"
+  },
+  "analysis_units": [
+    "run-u352.service",
+    "run-u353.service",
+    "run-u354.service",
+    "run-u355.service"
+  ],
+  "analysis_cpu_affinity": [
+    2,
+    3,
+    26,
+    27
+  ],
+  "analysis_memory_high_gib": 3,
+  "analysis_memory_max_gib": 4,
+  "analysis_swap_max": 0,
+  "remote_journal": "/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-cc64dcb53b994b8896543d456a0f3237.jsonl",
+  "remote_clock_id": "remote-process-monotonic:f4c2de47a858483fa4eb96e73207b82e",
+  "remote_sha256_matched": true,
+  "remote_service_inactive_main_pid_zero": true,
+  "gpu_compute_census_empty": true,
+  "new_performance_runs_this_analysis": 0,
+  "main_goal_complete": false
+}
