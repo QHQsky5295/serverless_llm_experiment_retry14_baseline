@@ -1,0 +1,28 @@
+Running as unit: run-u365.service
+W1108 03:13:18.759000 2659234 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda-13.0'
+test_explicit_owned_policy_required_and_locality_slack_forbidden (tests.test_ieee_tc_service_routing.LoadOnlyRoutingContract.test_explicit_owned_policy_required_and_locality_slack_forbidden) ... ok
+test_live_decision_counters_and_pure_shadow_preserve_handoff_state (tests.test_ieee_tc_service_routing.LoadOnlyRoutingContract.test_live_decision_counters_and_pure_shadow_preserve_handoff_state) ... 2026-11-08 03:13:20 - faaslora.experiment.instance_pool - INFO - Instance inst_1 added (total=1)
+2026-11-08 03:13:20 - faaslora.experiment.instance_pool - INFO - Instance inst_2 added (total=2)
+ok
+test_live_feasible_set_and_existing_adapter_capacity_are_unchanged (tests.test_ieee_tc_service_routing.LoadOnlyRoutingContract.test_live_feasible_set_and_existing_adapter_capacity_are_unchanged) ... ok
+test_mutable_duplicate_and_mixed_identity_snapshots_rejected (tests.test_ieee_tc_service_routing.LoadOnlyRoutingContract.test_mutable_duplicate_and_mixed_identity_snapshots_rejected) ... ok
+test_removes_service_prefix_but_preserves_full_Q_and_tie_break (tests.test_ieee_tc_service_routing.LoadOnlyRoutingContract.test_removes_service_prefix_but_preserves_full_Q_and_tie_break) ... ok
+test_service_tier_changes_do_not_rank_or_call_service_key (tests.test_ieee_tc_service_routing.LoadOnlyRoutingContract.test_service_tier_changes_do_not_rank_or_call_service_key) ... ok
+test_load_only_keeps_owned_runner_and_measured_profile_identity (tests.test_ieee_tc_service_routing.FrozenMeasuredInitialization.test_load_only_keeps_owned_runner_and_measured_profile_identity) ... 2026-11-08 03:13:20 - faaslora.experiment.instance_pool - INFO - Instance inst_1 added (total=1)
+ok
+test_last_known_gpu_hint_cannot_authorize_a_changed_source_or_zero_preparation (tests.test_ieee_tc_request_lifecycle.SelectedSourceAdmissionIntegration.test_last_known_gpu_hint_cannot_authorize_a_changed_source_or_zero_preparation) ... 2026-11-08 03:13:20 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-11-08 03:13:20 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_last_known_cancellation_reuses_actual_host_release_contract (tests.test_ieee_tc_request_lifecycle.SelectedSourceAdmissionIntegration.test_last_known_cancellation_reuses_actual_host_release_contract) ... 2026-11-08 03:13:20 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-11-08 03:13:20 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+ok
+test_current_7b_no_routing_changes_only_ranking_and_paths (tests.test_ieee_tc_launch.IEEEControlContract.test_current_7b_no_routing_changes_only_ranking_and_paths) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.071s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 10.257s
+CPU time consumed: 10.145s

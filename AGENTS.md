@@ -1,5 +1,24 @@
 # PrimeLoRA IEEE TC execution contract
 
+Current handoff 2026-11-08: D1123 current7B NoRouting W1 REGISTERED, not started.
+Read D1123_7B_NO_ROUTING_W1_REGISTRATION_20261108.md. Only existing load_only
+selection plus isolated paths; all D1100/Full non-targets equal, no serving edit.
+10 targeted CPU tests passed (u365/main0/wrapper0),144 protected publicationfiles,
+userdirtymanifest and FullD1115/source SHA verified (u366). Next explicit backup,
+fresh resources, launch ONCE in tc-d1123-no-routing-7b-w1 via existing D1100runner.
+Do not repeat D1122 closure, Full/baseline runs,3B switch,HydraServe/sharedk3s work.
+After actual release use D1113/D299/D455 and actual load_only selector audit,
+same FullD1115 reference, no counterfactual TTFT; preserve trade-offs/unknown
+numerical correctness. Then current7B NoHandoff/R0H0 etc. Whole scope active.
+This turn PROGRESS: registration/tests/unchanged-source checks. Older notes historical.
+
+Backup COMPLETE: D1122 closure committed/pushed as
+e7a55392e347f5775ae54bf38f8a348f9f7c2726; remote V2 HEAD matches.
+64source/output hashes,144protected publicationfiles,userdirtymanifest passed;
+15explicitfiles only, no usermanifest or preexistingdirty status staged.
+ClosureSHAaca5e1a4a8cb50386d5b3c4d759116bdf226591b406e729d19280cce64ad85d7.
+Next actual work is current7B NoRouting registration, not repeat D1122 seal orrun.
+
 Current handoff 2026-11-08: D1122 COMPLETE/released/analyzed; no live GPU run.
 Read D1122_7B_LASTKNOWN_W1_RESULT_20261108.md. 4000 native contracts,
 joint3929=98.225%, U7898.095639558509, P95TTFT2308.9625062420964ms.

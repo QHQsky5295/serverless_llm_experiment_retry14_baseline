@@ -1698,6 +1698,23 @@ class IEEEQuantizationPrebuild(unittest.TestCase):
 
 
 class IEEEControlContract(unittest.TestCase):
+    def test_current_7b_no_routing_changes_only_ranking_and_paths(self):
+        import yaml
+        root = Path(__file__).resolve().parents[1]/'configs/ieee_tc'
+        full = yaml.safe_load((root/'20261107_d1100_7b_busy_service_rate_w2.yaml').read_text())
+        no_routing = yaml.safe_load((root/'20261108_d1123_7b_no_routing_w1.yaml').read_text())
+        cc = no_routing['resource_coordination']
+        self.assertEqual(cc.pop('ieee_selection_strategy'), 'load_only')
+        self.assertEqual(cc['routing_policy'], 'ieee_confirmed')
+        self.assertEqual(cc['ieee_handoff_policy'], 'full')
+        self.assertTrue(cc['ieee_route_confirmed_snapshot_cache'])
+        self.assertEqual((cc['min_instances'], cc['max_instances']), (1, 4))
+        for section, key in (('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                             ('storage', 'host_cache_dir')):
+            self.assertNotEqual(full[section][key], no_routing[section][key])
+            no_routing[section][key] = full[section][key]
+        self.assertEqual(no_routing, full)
+
     def test_current_7b_last_known_changes_only_ranking_source_view_and_paths(self):
         import yaml
         root = Path(__file__).resolve().parents[1]/'configs/ieee_tc'

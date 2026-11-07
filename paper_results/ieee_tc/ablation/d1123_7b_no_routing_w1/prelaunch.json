@@ -1,0 +1,59 @@
+{
+  "kind": "d1123_prelaunch_v1",
+  "registered_before_performance_run": true,
+  "performance_started": false,
+  "model": "Llama-2-7B",
+  "workload": "W1",
+  "variant": "NoRouting",
+  "reference_run": "D1115",
+  "reference_result": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1115_20261107/7b_same_version_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d1115_7b_same_version_w1.json",
+  "reference_result_sha256": "99574e407543545937b93d0277c7c70a4d3c28eb8107290d79db65aa1777e577",
+  "configuration": "configs/ieee_tc/20261108_d1123_7b_no_routing_w1.yaml",
+  "configuration_sha256": "00729d927fad71131f4797d08cd86ffde2c1ec0f9bd9957fa1dd864175602ca4",
+  "target_change": {
+    "ieee_selection_strategy": "load_only"
+  },
+  "production_code_changed": false,
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "tests": {
+    "passed": 10,
+    "duration_s": 0.071,
+    "service_runtime_s": 10.257,
+    "unit": "run-u365.service",
+    "exec_main_status": 0,
+    "systemd_wrapper_exit_code": 0,
+    "cpus": [
+      2,
+      3,
+      26,
+      27
+    ],
+    "memory_high_gib": 3,
+    "memory_max_gib": 4,
+    "swap_max": 0
+  },
+  "sources": {
+    "configs/ieee_tc/20261107_d1100_7b_busy_service_rate_w2.yaml": "386a34c84ec70e5d0d366f6d3bcaf0891536be503ba1359d583a93bd5ecf303f",
+    "configs/ieee_tc/20261108_d1123_7b_no_routing_w1.yaml": "00729d927fad71131f4797d08cd86ffde2c1ec0f9bd9957fa1dd864175602ca4",
+    "docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+    "faaslora/coordination/autoscaler.py": "893715c0656f57354484265ff4df55a3e3f76875555859e1bc8c0140a018b6fc",
+    "faaslora/experiment/instance_pool.py": "f051c0e4a07bd1ebe5af008edbbe4be6db650e0a083604700502656595b15629",
+    "paper_results/ieee_tc/ablation/d1122_7b_last_known_w1/closure_manifest.json": "aca5e1a4a8cb50386d5b3c4d759116bdf226591b406e729d19280cce64ad85d7",
+    "paper_results/ieee_tc/ablation/d1123_7b_no_routing_w1/prelaunch_tests.txt": "d3857c1418b071baabb208c754fb1b2cbbae79d6599a62260fda813ed090d1ff",
+    "paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+    "scripts/ieee_tc/analyze_d297_full.py": "b93831dbbdf4556de4ad4094b1c7eecae646a1e79f8a80bd77602c259aabac1a",
+    "scripts/ieee_tc/run_d1100_7b_busy_service_rate_w2.sh": "6c98164a346d356122f9addc540a283bfd88ea61bb8a99bba3d2d407ed316fe1",
+    "scripts/run_all_experiments.py": "82490fbd40bbfd189ec11298c742d4e819043a8fa72b8591551aed983114b93b",
+    "tests/test_ieee_tc_launch.py": "e03883b27a5e1511775a3070b01341215797e623385cd6f27d1e30310083859a",
+    "tests/test_ieee_tc_request_lifecycle.py": "fb53b1740f2c97b471a5d642afae523c9e8da2ff9b132cb133eccdefd6a416f2",
+    "tests/test_ieee_tc_service_routing.py": "0073722adba63313469d8e52baca57ae494813fe96c826a2a9a693981051502b"
+  },
+  "protected_files": 144,
+  "protected_verified": true,
+  "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "pending_external_review": true,
+  "new_performance_runs": 0,
+  "protected_check_unit": "run-u366.service",
+  "protected_check_exit_code": 0
+}
