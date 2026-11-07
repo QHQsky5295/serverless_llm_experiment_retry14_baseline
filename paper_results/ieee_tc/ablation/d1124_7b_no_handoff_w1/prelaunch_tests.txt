@@ -1,0 +1,33 @@
+W1108 04:08:37.190000 2795639 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda-13.0'
+test_current_7b_no_handoff_changes_only_activation_preparation_and_paths (tests.test_ieee_tc_launch.IEEEControlContract.test_current_7b_no_handoff_changes_only_activation_preparation_and_paths) ... ok
+test_no_handoff_activates_without_any_preparation_entry (tests.test_ieee_tc_transfer_pressure.ActivationPreparation.test_no_handoff_activates_without_any_preparation_entry) ... 2026-11-08 04:08:38 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-11-08 04:08:38 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch a: 0.0 MB, 5.3 ms
+2026-11-08 04:08:38 - faaslora.experiment.instance_pool - INFO - Instance ieee-activation-68434ad0b00841e9ba818f158d27e6c1 added (total=1)
+ok
+test_no_handoff_still_activates_when_preload_disabled (tests.test_ieee_tc_launch.IEEEInitialDeployment.test_no_handoff_still_activates_when_preload_disabled) ... 2026-11-08 04:08:38 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-11-08 04:08:38 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch a: 0.0 MB, 4.2 ms
+2026-11-08 04:08:38 - faaslora.experiment.instance_pool - INFO - Instance ieee-activation-b7e6af88512940fe87e30b6705d63e02 added (total=1)
+2026-11-08 04:08:38 - faaslora.experiment.instance_pool - INFO - Instance ieee-activation-b7e6af88512940fe87e30b6705d63e02 removed (total=0)
+ok
+test_no_handoff_still_runs_actual_ready_residency_without_duplicate_epoch (tests.test_ieee_tc_launch.IEEEActualControl.test_no_handoff_still_runs_actual_ready_residency_without_duplicate_epoch) ... 2026-11-08 04:08:38 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-11-08 04:08:38 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch b: 0.0 MB, 3.9 ms
+    remote artifact fetch c: 0.0 MB, 28.4 ms
+    remote artifact fetch d: 0.0 MB, 7.4 ms
+    remote artifact fetch a: 0.0 MB, 4.9 ms
+W1108 04:08:50.572000 2795982 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda-13.0'
+W1108 04:08:50.677000 2795981 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda-13.0'
+2026-11-08 04:08:54 - faaslora.preloading.preloading_planner - INFO - Preloading planner initialized with strategy: hybrid
+ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 16.444s
+
+OK
+    remote artifact fetch a: 0.0 MB, 20.3 ms
+Finished with result: timeout
+Main processes terminated with: code=exited/status=0
+Service runtime: 2min 5.402s
+CPU time consumed: 1min 35.660s

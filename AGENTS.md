@@ -1,5 +1,25 @@
 # PrimeLoRA IEEE TC execution contract
 
+Current handoff2026-11-08: D1124 current7B NoHandoffW1 REGISTERED, NOT STARTED.
+Read D1124_7B_NO_HANDOFF_W1_REGISTRATION_20261108.md. Existing no_handoff only
+plus3isolatedpaths from D1100/Full; no serving edit.4logic tests pass(main0)
+but u373wrapper1 stop-sigterm timeout; journal inotify ENOSPC, actualdomainempty/
+removed, not assertionfailure or evidence of OOM. Same known D1121/D458 issue;
+retain directwatchdog/explicitcleanup, do not alter global limits/otherprocesses
+or repeat tests.17sourceSHA/144protectedfiles/userdirty/FullSHA passedu374.
+Next explicitbackup then rereadfullPLAN/freshresources and launchONCE via existing
+D1100runner in tc-d1124-no-handoff-7b-w1. No performance result yet. Afterrelease
+existingD1113/D299/D455 plus nohandoff absence/ready-residency/first-service audit,
+sameFullD1115. Then7B R0H0, not repeatedbaseline/Full/3Bswitch/sharedk3s work.
+ThisturnPROGRESS: D1123sealed/pushed, D1124registered/tested. Fullscopeactive.
+
+D1123 backup COMPLETE at2026-11-08 04:06+08: committed/pushed
+586480976bc498dde97f86b5c669277c5d435ff4; remoteV2 HEAD matches.
+15explicit files,13curated hashes/4analysis-source hashes,secret scan pass;
+no usermanifest/preexistingdirty status staged. ClosureSHA
+e07ab8b53e8d4478da839d218eb3b3c13ae7c947299dfb35c4596b7cd0817d91.
+Next actual work current7B NoHandoff registration, not repeat D1123 seal/run.
+
 Current handoff 2026-11-08 04:05+08: D1123 COMPLETE/released/analyzed.
 Read D1123_7B_NO_ROUTING_W1_RESULT_20261108.md; DO NOT relaunch.
 4000 native contracts,joint3977=99.425%,U8614.702449338976,

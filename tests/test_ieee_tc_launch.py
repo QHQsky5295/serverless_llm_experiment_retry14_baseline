@@ -1698,6 +1698,25 @@ class IEEEQuantizationPrebuild(unittest.TestCase):
 
 
 class IEEEControlContract(unittest.TestCase):
+    def test_current_7b_no_handoff_changes_only_activation_preparation_and_paths(self):
+        import yaml
+        root = Path(__file__).resolve().parents[1]/'configs/ieee_tc'
+        full = yaml.safe_load((root/'20261107_d1100_7b_busy_service_rate_w2.yaml').read_text())
+        no_handoff = yaml.safe_load((root/'20261108_d1124_7b_no_handoff_w1.yaml').read_text())
+        cc = no_handoff['resource_coordination']
+        self.assertEqual(cc['ieee_handoff_policy'], 'no_handoff')
+        self.assertEqual(full['resource_coordination']['ieee_handoff_policy'], 'full')
+        self.assertEqual(cc['routing_policy'], 'ieee_confirmed')
+        self.assertNotIn('ieee_selection_strategy', cc)
+        self.assertTrue(cc['ieee_route_confirmed_snapshot_cache'])
+        self.assertEqual((cc['min_instances'], cc['max_instances']), (1, 4))
+        cc['ieee_handoff_policy'] = 'full'
+        for section, key in (('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                             ('storage', 'host_cache_dir')):
+            self.assertNotEqual(full[section][key], no_handoff[section][key])
+            no_handoff[section][key] = full[section][key]
+        self.assertEqual(no_handoff, full)
+
     def test_current_7b_no_routing_changes_only_ranking_and_paths(self):
         import yaml
         root = Path(__file__).resolve().parents[1]/'configs/ieee_tc'
