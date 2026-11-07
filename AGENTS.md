@@ -1,5 +1,27 @@
 # PrimeLoRA IEEE TC execution contract
 
+Current handoff (2026-11-07): D1116 offline W1 budget diagnosis COMPLETE.
+Read `docs/ieee_tc/D1116_W1_BUDGET_DIAGNOSIS_20261107.md` then
+`docs/ieee_tc/D1117_7B_BUDGET_CAP3_REGISTRATION_20261107.md`.
+No GPU experiment is running. D1115 arrival held four GPUs for 1061.571773 s,
+mean 3.447244 physical GPUs; non-arrival cost only 64.779336 GPU-s. Twenty
+closed leases, 19 successful scale-ups/17 releases; 9 releases followed by
+another activation within 38 s. Request interval complement is NOT idle time
+or guaranteed savings. Existing source inputs/results remain unchanged.
+Next is registered D1117 7B G2 cap3 W1, NOT another audit/replay of D1115.
+Config `20261107_d1117_7b_budget_cap3.yaml` SHA
+34562e22c517fc62033da1c3437ef95df616fd54c8ae0dcb20a3e59db289eb53.
+Only max ready+pending 4->3 plus unique output/cache roots; all 4 physical
+devices visible, same D1100 serving code/controller/equations. Runner now
+accepts an optional sixth explicit config path, old 0/5-argument mode unchanged.
+53 targeted tests and shell syntax pass. Before actual launch, backup and
+normal resource/remote checks; launch once in tmux per D1117 instructions.
+If W1 budget+joint timing feasible, use the SAME configuration for W2; do not
+tune per scenario, replace resource_opt, conflate cap3 with physical budget,
+change thresholds, suppress failed history, or repeat rejected guard/no-release
+directions. D619 W1 success and D621 W2 failure both retained as context.
+All M1/M2/A1-A5/S1-S13/docs/figures remain active; D1117 not yet started.
+
 Completed handoff (2026-11-07): D1115 current-version 7B W1 COMPLETE/released.
 Read `docs/ieee_tc/D1115_W1_RESULT_AND_THREE_SCENARIO_20261107.md` first.
 4000 native-contract requests, joint SLO 98.55%, 7603.874678 GPU-s,

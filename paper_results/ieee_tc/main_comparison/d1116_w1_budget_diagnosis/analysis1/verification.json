@@ -1,0 +1,21 @@
+{
+  "kind": "executor_verification_not_independent_review",
+  "date": "2026-11-07",
+  "performance_runs_added": 0,
+  "summary_sha256": "f79aa194721406f1d7dc74d0d0532405a6738f6261d13ffdc1f2d8512aa93d94",
+  "verified_source_count": 28,
+  "protected_publication_files_unchanged": 144,
+  "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "targeted_tests_passed": 53,
+  "runner_bash_syntax_passed": true,
+  "serving_diff_from_c95c4f2d": [],
+  "analysis_attempts": [
+    {"scope": "tc-d1116-budget-audit", "exit_code": 1, "reason": "physical source was in sealed review, not comparison map", "result_written": false},
+    {"scope": "tc-d1116-budget-audit2", "exit_code": 1, "reason": "physical lease owner and native adapter-reference owner are distinct namespaces", "result_written": false},
+    {"scope": "tc-d1116-budget-audit3", "exit_code": 0, "result_written": true}
+  ],
+  "analysis_envelope": {"memory_high_gib": 3, "memory_max_gib": 4, "swap_max_gib": 0, "cpus": "2,3,26,27", "cuda_visible_devices": ""},
+  "d1117_status": "registered_not_started",
+  "d1117_config_sha256": "34562e22c517fc62033da1c3437ef95df616fd54c8ae0dcb20a3e59db289eb53"
+}

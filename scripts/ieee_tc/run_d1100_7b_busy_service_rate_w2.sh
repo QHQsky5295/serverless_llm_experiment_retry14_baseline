@@ -7,13 +7,15 @@ PROFILE=W2
 TAG=d1100_7b_busy_service_rate_w2
 NVME=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1100_20261107/7b_nvme_busy_service_rate_w2
 HOST=/dev/shm/tc-d1100-7b-busy-service-rate-w2
+CONFIG=configs/ieee_tc/20261107_d1100_7b_busy_service_rate_w2.yaml
 # Reuse the exact D1100 configuration for missing cross-workload points.
 # Explicit paths prevent accidental reuse of the original result or cache.
 if (( $# )); then
-  if (( $# != 5 )); then
-    echo 'usage: runner [W0|W1|W2 RAW TAG NVME HOST]' >&2; exit 2
+  if (( $# != 5 && $# != 6 )); then
+    echo 'usage: runner [W0|W1|W2 RAW TAG NVME HOST [REGISTERED_CONFIG]]' >&2; exit 2
   fi
   PROFILE=$1; RAW=$2; TAG=$3; NVME=$4; HOST=$5
+  if (( $# == 6 )); then CONFIG=$6; fi
 fi
 case "$PROFILE" in W0|W1|W2) ;; *) exit 2 ;; esac
 [[ "$RAW" == /* && "$NVME" == /* && "$HOST" == /dev/shm/* ]]
@@ -24,6 +26,7 @@ for path in "$RAW" "$NVME" "$HOST"; do
   fi
 done
 cd "$ROOT"
+[[ -f "$CONFIG" ]]
 mkdir -p "$RAW"
 exec >"$RAW/launcher.log" 2>&1
 
@@ -121,5 +124,5 @@ export TRANSFORMERS_OFFLINE=1
 export VLLM_NO_USAGE_STATS=1
 
 bash scripts/run_all_experiments_user_scope.sh \
-  --config configs/ieee_tc/20261107_d1100_7b_busy_service_rate_w2.yaml \
+  --config "$CONFIG" \
   --scenario tc_ieee_full --full-stack

@@ -630,6 +630,181 @@ def checked_retained_source(source, expected_sha256=None):
         dict(path=str(receipt_path), sha256=sha256(receipt_path))]
 
 
+def ownership_dwell(device_intervals, start, end):
+    """Exact physical-card count dwell, reusing D454's interval-edge method."""
+    if not all(math.isfinite(x) for x in (start, end)) or end <= start:
+        raise ValueError('positive finite observation window required')
+    edges = Counter({start: 0, end: 0})
+    for intervals in device_intervals.values():
+        previous = -math.inf
+        for a, b in sorted(intervals):
+            if not all(math.isfinite(x) for x in (a, b)) or not previous <= a <= b:
+                raise ValueError('disjoint finite device intervals required')
+            previous = b
+            a, b = max(a, start), min(b, end)
+            if a < b:
+                edges[a] += 1
+                edges[b] -= 1
+    dwell, active = Counter(), 0
+    stamps = sorted(edges)
+    for i, stamp in enumerate(stamps[:-1]):
+        active += edges[stamp]
+        if not 0 <= active <= len(device_intervals):
+            raise ValueError('physical ownership count invalid')
+        dwell[active] += stamps[i+1]-stamp
+    return dict(sorted(dwell.items()))
+
+
+def owner_request_partition(start, end, requests):
+    """Partition a TP=1 lease around admitted-to-last-token interval unions.
+
+    The complement includes preparation and other real work: it is NOT idle
+    GPU time or a counterfactual resource-saving estimate.
+    """
+    if not all(math.isfinite(x) for x in (start, end)) or end < start:
+        raise ValueError('finite closed lease required')
+    merged = []
+    for a, b in sorted(requests):
+        if not all(math.isfinite(x) for x in (a, b)) or not start <= a <= b <= end:
+            raise ValueError('request interval lies outside its physical lease')
+        if merged and a <= merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(b, merged[-1][1]))
+        else:
+            merged.append((a, b))
+    if not merged:
+        return dict(before_first_admission_s=0., admitted_request_union_s=0.,
+            between_request_gaps_s=0., after_last_token_s=0., unused_owner_s=end-start)
+    busy = sum(b-a for a, b in merged)
+    return dict(before_first_admission_s=merged[0][0]-start,
+        admitted_request_union_s=busy,
+        between_request_gaps_s=merged[-1][1]-merged[0][0]-busy,
+        after_last_token_s=end-merged[-1][1], unused_owner_s=0.)
+
+
+def audit_retained_budget(output, comparison_path):
+    """Describe a sealed 7B W1/W2 result; no controller simulation or new run."""
+    from collections import defaultdict
+    from scripts.ieee_tc.check_d299_full_context import closed_physical_integral
+    output, comparison_path = Path(output), Path(comparison_path)
+    if output.exists():
+        raise ValueError('refusing to overwrite retained budget evidence')
+    comparison = read(comparison_path)
+    refs = dict(comparison['source_refs'])
+    reviews = [Path(path) for path in refs if Path(path).name == 'evidence_review.json']
+    if len(reviews) != 1 or sha256(reviews[0]) != refs[str(reviews[0])]:
+        raise ValueError('one SHA-bound existing evidence review required')
+    for ref in read(reviews[0])['source_refs']:
+        if ref['path'] in refs and refs[ref['path']] != ref['sha256']:
+            raise ValueError('conflicting retained source identity')
+        refs[ref['path']] = ref['sha256']
+    sources = [Path(path) for path in refs if Path(path).name.startswith('experiment_results_')
+               and comparison['prime']['run'].lower() in str(path).lower()]
+    if len(sources) != 1:
+        raise ValueError('one sealed PrimeLoRA request source required')
+    source = sources[0]
+    opener, source_refs = checked_retained_source(source, refs[str(source)])
+    launch_path, physical_path, outcome_path = retained_control_paths(source)
+    launch, physical = read(launch_path), read(physical_path)
+    for path in (launch_path, physical_path):
+        if sha256(path) != refs[str(path)]:
+            raise ValueError('sealed launch or physical source changed')
+    total = closed_physical_integral(physical)
+    if not launch['pass'] or abs(total-comparison['prime']['physical_gpu_seconds']) > 1e-6:
+        raise ValueError('completed comparison/lifecycle mismatch')
+    external = launch['external_replay']
+    start = external['replay_t0_s']
+    owners, native_owners, offsets, seen = defaultdict(list), defaultdict(set), [], set()
+    with opener() as stream:
+        for r in ijson.items(stream, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+            n = r['native_token_timing']
+            if (r['request_id'] in seen or not r['success'] or
+                    n['native_clock_id'] != physical['clock_id']):
+                raise ValueError('duplicate/failed request or clock mismatch')
+            seen.add(r['request_id'])
+            # Adapter-reference owner IDs and physical lease IDs are different
+            # namespaces. Join the actual worker PID, checked against its closed
+            # native-worker lease and request timestamps below.
+            pid = r['gpu_reference_evidence']['receipt']['worker_pid']
+            native_owners[pid].add(n['gpu_reference_owner_id'])
+            owners[pid].append((
+                n['controller_admitted_monotonic_s'], n['native_last_token_monotonic_s']))
+            offsets.append(r['scheduled_arrival_offset_s'])
+    if len(seen) != 4000:
+        raise ValueError('complete retained request set required')
+    end = start + max(offsets)
+    dwell = ownership_dwell(physical['device_intervals'], start, end)
+    if abs(sum(k*v for k,v in dwell.items())-physical['window_gpu_seconds']['arrival']) > 1e-6:
+        raise ValueError('arrival dwell integral mismatch')
+    leases, partition, worker_pids = [], Counter(), set()
+    for journal in physical['allocation_journals']:
+        path = Path(journal['path'])
+        if sha256(path) != journal['sha256'] or not journal['released']:
+            raise ValueError('allocation journal changed or unclosed')
+        events = [json.loads(line) for line in path.read_text().splitlines()]
+        acquire = [e for e in events if e['event'] == 'acquire']
+        release = [e for e in events if e['event'] == 'release']
+        if len(acquire) != 1 or len(release) != 1 or len(acquire[0]['gpu_uuids']) != 1:
+            raise ValueError('one closed TP=1 lease per journal required')
+        a, b, owner = acquire[0]['at'], release[0]['at'], acquire[0]['owner_id']
+        native = [e for e in events if e['event'] == 'native_workers']
+        if len(native) != 1 or len(native[0]['workers']) != 1:
+            raise ValueError('one native TP=1 worker binding required')
+        worker = native[0]['workers'][0]
+        pid = worker['pid']
+        if pid in worker_pids or worker['device_uuid'] != acquire[0]['gpu_uuids'][0]:
+            raise ValueError('ambiguous worker PID or physical device binding')
+        worker_pids.add(pid)
+        part = owner_request_partition(a, b, owners.pop(pid, []))
+        partition.update(part)
+        leases.append(dict(owner=owner, worker_pid=pid, native_reference_owners=sorted(native_owners[pid]),
+            start_offset_s=a-start, end_offset_s=b-start,
+            physical_gpu_seconds=b-a, request_partition=part))
+        source_refs.append(dict(path=str(path), sha256=journal['sha256']))
+    if owners or abs(sum(partition.values())-total) > 1e-6:
+        raise ValueError('unbound request owner or overlapping owner leases')
+    outcome_opener, outcome_refs = checked_retained_source(outcome_path)
+    with outcome_opener() as stream:
+        controls = list(ijson.items(stream, 'mechanism_events._ieee_control_events.item', use_float=True))
+    if not controls or any(a['observed_at'] >= b['observed_at'] for a,b in zip(controls, controls[1:])):
+        raise ValueError('ordered retained control records required')
+    actions = [c for c in controls if c['outcome'] in ('activation_scheduled','drained_replica_retired')]
+    releases = []
+    for i, c in enumerate(actions):
+        if c['action'] != 'scale_down':
+            continue
+        nxt = next((r for r in actions[i+1:] if r['action']=='scale_up'), None)
+        releases.append(dict(offset_s=c['observed_at']-start, reason=c['reason'],
+            ready_instances=c['ready_instances'], active_requests=c['active_requests'],
+            ready_capacity=c['ready_capacity'], predictive_target_instances=c['predictive_target_instances'],
+            queue_depth=c['queue_depth'], score=c['score'],
+            next_scale_up_after_s=nxt['observed_at']-c['observed_at'] if nxt else None,
+            next_scale_up_reason=nxt['reason'] if nxt else None))
+    reference_path = ROOT/'paper_results/ieee_tc/main_comparison/d594_reference_and_ttft/resident_references.json'
+    if sha256(reference_path) != 'a9b6b25fe4ec8a17921dd5968c4fb494b7a6d795c0d4a11c7b7d306ac06bc60c':
+        raise ValueError('frozen 7B resource reference changed')
+    reference = read(reference_path)[external['plan']['profile']]
+    source_refs.extend(outcome_refs)
+    source_refs.extend(dict(path=str(path), sha256=sha256(path)) for path in
+        (launch_path, physical_path, comparison_path, reviews[0], reference_path, Path(__file__).resolve()))
+    report = dict(kind='retained_budget_ownership_description_v1', run=comparison['prime']['run'],
+        new_performance_runs=0, physical_gpu_seconds=total, budget_gpu_seconds=reference['B_gpu_seconds'],
+        budget_excess_gpu_seconds=total-reference['B_gpu_seconds'],
+        physical_windows=physical['window_gpu_seconds'], arrival_duration_s=end-start,
+        arrival_ownership_dwell_s=dwell, arrival_mean_physical_gpus=physical['window_gpu_seconds']['arrival']/(end-start),
+        owner_request_partition_s=dict(partition), leases=sorted(leases,key=lambda l:l['start_offset_s']),
+        control_outcomes=dict(Counter(c['outcome'] for c in controls)), releases=releases,
+        source_refs=source_refs, independent_numerical_proof=False, causal_attribution_established=False,
+        limitations=['Admitted-to-last-token union is not GPU utilization or a compute lower bound.',
+            'Its complement includes preparation, planned spare capacity, drain and cleanup; not all avoidable.',
+            'Rapid release/reactivation is observed, not proof of a cheaper feasible counterfactual.',
+            'Four-card dwell cannot be subtracted to predict a three-replica execution.'])
+    output.mkdir(parents=True, exist_ok=False)
+    with (output/'summary.json').open('x') as stream:
+        json.dump(report, stream, indent=2, allow_nan=False)
+    print(json.dumps({k:v for k,v in report.items() if k not in ('leases','source_refs')},indent=2))
+    return report
+
+
 def audit_control_busy_windows(output, stages):
     """Reuse sealed D716 request tables; never rewrite the performance results."""
     import csv
@@ -866,8 +1041,14 @@ if __name__ == '__main__':
     parser.add_argument('--retained-control-model', choices=('7b', '3b'), default='7b')
     parser.add_argument('--control-busy-stage', action='append', type=Path)
     parser.add_argument('--overhead-comparison', action='append', type=Path)
+    parser.add_argument('--budget-comparison', type=Path)
     args = parser.parse_args()
-    if args.overhead_comparison:
+    if args.budget_comparison:
+        if (args.overhead_comparison or args.control_busy_stage or args.retained_control_source
+                or args.retained_control_launch or args.include_d458 or args.owner_decode):
+            parser.error('budget analysis requires one sealed comparison only')
+        audit_retained_budget(args.output, args.budget_comparison)
+    elif args.overhead_comparison:
         if (args.control_busy_stage or args.retained_control_source or args.retained_control_launch
                 or args.include_d458 or args.owner_decode):
             parser.error('nested overhead analysis requires its explicit comparison sources only')
