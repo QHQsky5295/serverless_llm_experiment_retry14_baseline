@@ -1,5 +1,14 @@
 # PrimeLoRA IEEE TC execution contract
 
+Live handoff (2026-11-07 15:23 +08): D1114 current-version 7B W0 is RUNNING
+in tmux `tc-d1114-7b-w0`. Read
+`docs/ieee_tc/D1114_SAME_VERSION_7B_W0_20261107.md` first. Do not launch it again.
+Raw: `/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1114_20261107/7b_same_version_w0`.
+Uses exact D1100 YAML/code; no new performance tuning. Backup e7d9eb83 was
+pushed and verified. Owned remote 7B only; per-invocation D80 monitor is live.
+Collect/close this run and compare retained W0 baselines; then same-config W1.
+D989 was an older-source W0, not current-version completion. No W2 rerun.
+
 Current handoff (2026-11-07): read
 `docs/ieee_tc/D1113_BASELINE_CONTRACT_RECONCILIATION_20261107.md`, then
 `docs/ieee_tc/D1112_W2_OUTCOME_AND_HANDOFF_20261107.md`, before older headings.
