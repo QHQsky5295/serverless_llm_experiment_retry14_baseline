@@ -1,5 +1,12 @@
 # D1108：S-LoRA 7B W2 正式留出运行结果与审计结论
 
+> 2026-11-07 D1113 更正：“正式留出／QUALIFIED_FOR_BASELINE_COMPARISON”
+> 与“joint TTFT SLO 100%”标签撤回；后者只是 5 s TTFT-only。
+> 本运行保留为 R2 诊断：95/100 GiB 包络、ready 后到达、TPOT 完成边界
+> 和模拟计费不能混入当前共同合同。详见
+> `D1113_BASELINE_CONTRACT_RECONCILIATION_20261107.md`；复用 D591。
+> 不删除以下历史记录，不把 GPU-s/offered 改称已证明的 per-correct。
+
 D1108 是与 D1103 ServerlessLLM 7B W2 使用同一 shared trace、同一 500-adapter
 view 和同一 `fixed_length_greedy_v1` 生成合同的 S-LoRA 对照运行。它采用 S-LoRA
 原生 host-resident adapter 路径，四个 TP=1 数据并行副本，GPU 0--3。为避免

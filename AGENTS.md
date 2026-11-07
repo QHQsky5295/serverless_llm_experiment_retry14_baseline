@@ -1,11 +1,15 @@
 # PrimeLoRA IEEE TC execution contract
 
 Current handoff (2026-11-07): read
-`docs/ieee_tc/D1112_W2_OUTCOME_AND_HANDOFF_20261107.md` before older status
-headings. D1084 and D1112 both completed the same-version 3B W2; do not rerun
-either. D1112 is below the frozen joint SLO and retained, not a new accepted
-candidate. Some D1103/D1106/D1108 comparison qualifications still require
-contract reconciliation; do not copy their labels into the final table.
+`docs/ieee_tc/D1113_BASELINE_CONTRACT_RECONCILIATION_20261107.md`, then
+`docs/ieee_tc/D1112_W2_OUTCOME_AND_HANDOFF_20261107.md`, before older headings.
+D1103/D1106/D1108 are R2 diagnostics, NOT common-contract main comparisons.
+Reuse already completed D555/D557/D591; D1113 matched all 4,000 inputs/native
+contracts to D1100 and verified the common notice/resources. D593/D810 already
+contain both-model baseline matrices; do not restart baseline reproduction.
+Next missing current-configuration work is 7B D1100 W0, then W1, not another W2.
+D1084 and D1112 both completed same-version 3B W2; do not rerun either or
+select by victory. D1112 is below the frozen joint SLO and remains disclosed.
 
 Latest user clarification (2026-10-25, concurrent main-line progress): storage
 auditing/reclamation must progress alongside the experiment main line, not become

@@ -1,0 +1,477 @@
+{
+  "kind": "d1113_contract_reconciliation_v1",
+  "prime": {
+    "run": "D1100",
+    "system": "PrimeLoRA",
+    "requests": 4000,
+    "counts": {
+      "ttft_pass": 3941,
+      "tpot_pass": 3974,
+      "joint_pass": 3922
+    },
+    "metrics": {
+      "ttft_ms": {
+        "count": 4000,
+        "mean": 1046.148095229757,
+        "p50_type1": 726.1257627978921,
+        "p95_type1": 2815.059117972851
+      },
+      "tpot_ms": {
+        "count": 4000,
+        "mean": 30.761508859564383,
+        "p50_type1": 28.30209287029563,
+        "p95_type1": 49.31945967572656
+      },
+      "e2e_ms": {
+        "count": 4000,
+        "mean": 4531.641496049007,
+        "p50_type1": 3857.3973611928523,
+        "p95_type1": 9458.92498921603
+      }
+    },
+    "physical_gpu_seconds": 10515.99627126148,
+    "gpu_seconds_per_offered_request": 2.62899906781537,
+    "n_correct": null
+  },
+  "reused_baselines": [
+    {
+      "run": "D555",
+      "system": "ServerlessLLM",
+      "reuse_level": "R0",
+      "reuse_scope": "retained development native-binding timing/resource observation",
+      "request_contract_matches": 4000,
+      "source_plan_matches": true,
+      "resource_policy_matches": true,
+      "notice_to_arrival_seconds": 60,
+      "common_slo": {
+        "offered": 4000,
+        "binding_valid": 4000,
+        "ttft_good": 3756,
+        "tpot_eligible": 4000,
+        "tpot_good": 4000,
+        "joint_good": 3756,
+        "ttft_attainment": 0.939,
+        "joint_attainment": 0.939,
+        "conditional_tpot_attainment": 1.0,
+        "observed_feasible": false,
+        "independent_numerical_proof": false,
+        "freeze_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+        "freeze_sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+        "scope": "complete W2 native-binding observation; not a cross-scenario optimum or independent numerical proof",
+        "physical_gpu_seconds_per_binding_valid_request": 3.9734114944220056
+      },
+      "physical_gpu_seconds": 15893.645977688022,
+      "gpu_seconds_per_offered_request": 3.9734114944220056,
+      "metrics": {
+        "ttft_ms": {
+          "count": 4000,
+          "mean": 4895.820238510147,
+          "p50_type1": 475.8766503073275,
+          "p95_type1": 9516.719258390367
+        },
+        "e2e_ms": {
+          "count": 4000,
+          "mean": 7940.703259314585,
+          "p50_type1": 2919.1849208436906,
+          "p95_type1": 12115.322137717158
+        },
+        "submit_lag_ms": {
+          "count": 4000,
+          "mean": 3.173752795322798,
+          "p50_type1": 1.9662119448184967,
+          "p95_type1": 4.050178686156869
+        },
+        "dispatch_wait_after_submit_ms": {
+          "count": 4000,
+          "mean": 4454.363593526417,
+          "p50_type1": 7.98045308329165,
+          "p95_type1": 9085.992984939367
+        },
+        "service_ttft_ms": {
+          "count": 4000,
+          "mean": 438.28289218840655,
+          "p50_type1": 451.12268114462495,
+          "p95_type1": 740.7245968934149
+        },
+        "decode_ms": {
+          "count": 4000,
+          "mean": 3023.30759269977,
+          "p50_type1": 2300.918271066621,
+          "p95_type1": 7191.323512000963
+        },
+        "completion_notification_ms": {
+          "count": 4000,
+          "mean": 21.57542810466839,
+          "p50_type1": 11.79965096525848,
+          "p95_type1": 81.62318682298064
+        },
+        "router_queue_ms": {
+          "count": 4000,
+          "mean": 4144.866002716764,
+          "p50_type1": 0.6041799206286669,
+          "p95_type1": 9078.506489982828
+        },
+        "tpot_ms": {
+          "count": 4000,
+          "mean": 26.823938882516934,
+          "p50_type1": 25.796239420442898,
+          "p95_type1": 33.329517629585766
+        }
+      },
+      "n_correct": null,
+      "output_digest_differences": 170,
+      "limitations": [
+        "Complete 4000-request development W2 observation; not unseen evaluation or a cross-scenario configuration optimum.",
+        "Raw unknown numerical correctness and old qualification flags are preserved.",
+        "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+        "Fixed native-store four-GPU pool is charged until actual release; not a claim about every ServerlessLLM deployment.",
+        "Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join."
+      ]
+    },
+    {
+      "run": "D557",
+      "system": "vLLM",
+      "reuse_level": "R0",
+      "reuse_scope": "retained development native-binding timing/resource observation",
+      "request_contract_matches": 4000,
+      "source_plan_matches": true,
+      "resource_policy_matches": true,
+      "notice_to_arrival_seconds": 60,
+      "common_slo": {
+        "offered": 4000,
+        "binding_valid": 4000,
+        "ttft_good": 3929,
+        "tpot_eligible": 4000,
+        "tpot_good": 4000,
+        "joint_good": 3929,
+        "ttft_attainment": 0.98225,
+        "joint_attainment": 0.98225,
+        "conditional_tpot_attainment": 1.0,
+        "observed_feasible": true,
+        "independent_numerical_proof": false,
+        "freeze_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+        "freeze_sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+        "scope": "complete W2 native-binding observation; not a cross-scenario optimum or independent numerical proof",
+        "physical_gpu_seconds_per_binding_valid_request": 4.028889781292004
+      },
+      "physical_gpu_seconds": 16115.559125168016,
+      "gpu_seconds_per_offered_request": 4.028889781292004,
+      "metrics": {
+        "ttft_ms": {
+          "count": 4000,
+          "mean": 732.5341274724924,
+          "p50_type1": 236.53820692561567,
+          "p95_type1": 1751.2954722624272
+        },
+        "e2e_ms": {
+          "count": 4000,
+          "mean": 3568.9212727206177,
+          "p50_type1": 2548.8009823020548,
+          "p95_type1": 7066.138264723122
+        },
+        "submit_lag_ms": {
+          "count": 4000,
+          "mean": 2.861466377216857,
+          "p50_type1": 2.024129731580615,
+          "p95_type1": 3.8134565111249685
+        },
+        "dispatch_wait_after_submit_ms": {
+          "count": 4000,
+          "mean": 252.34725568286376,
+          "p50_type1": 4.378926008939743,
+          "p95_type1": 7.576437899842858
+        },
+        "service_ttft_ms": {
+          "count": 4000,
+          "mean": 477.3254054124118,
+          "p50_type1": 228.96624403074384,
+          "p95_type1": 1673.617891035974
+        },
+        "decode_ms": {
+          "count": 4000,
+          "mean": 2829.560648795159,
+          "p50_type1": 2191.354724112898,
+          "p95_type1": 6676.040563965216
+        },
+        "completion_notification_ms": {
+          "count": 4000,
+          "mean": 6.826496452966239,
+          "p50_type1": 5.642580101266503,
+          "p95_type1": 6.8648080341517925
+        },
+        "router_queue_ms": {
+          "count": 4000,
+          "mean": 247.41524744575145,
+          "p50_type1": 0.01367880031466484,
+          "p95_type1": 0.024134991690516472
+        },
+        "tpot_ms": {
+          "count": 4000,
+          "mean": 24.893208337248737,
+          "p50_type1": 24.533407419335607,
+          "p95_type1": 27.335380190983415
+        }
+      },
+      "n_correct": null,
+      "output_digest_differences": 175,
+      "limitations": [
+        "Complete 4000-request development W2 observation; not unseen evaluation or a cross-scenario configuration optimum.",
+        "Raw unknown numerical correctness and old qualification flags are preserved.",
+        "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+        "Resident native vLLM four-GPU pool is charged until actual release; no PrimeLoRA policy added.",
+        "Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join."
+      ]
+    },
+    {
+      "run": "D591",
+      "system": "S-LoRA",
+      "reuse_level": "R0",
+      "reuse_scope": "retained development native-binding timing/resource observation",
+      "request_contract_matches": 4000,
+      "source_plan_matches": true,
+      "resource_policy_matches": true,
+      "notice_to_arrival_seconds": 60,
+      "common_slo": {
+        "offered": 4000,
+        "binding_valid": 4000,
+        "ttft_good": 3646,
+        "tpot_eligible": 4000,
+        "tpot_good": 3990,
+        "joint_good": 3642,
+        "ttft_attainment": 0.9115,
+        "joint_attainment": 0.9105,
+        "conditional_tpot_attainment": 0.9975,
+        "observed_feasible": false,
+        "independent_numerical_proof": false,
+        "freeze_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+        "freeze_sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+        "scope": "complete W2 native-binding observation; not a cross-scenario optimum or independent numerical proof",
+        "physical_gpu_seconds_per_binding_valid_request": 3.6958663444810083
+      },
+      "physical_gpu_seconds": 14783.465377924033,
+      "gpu_seconds_per_offered_request": 3.6958663444810083,
+      "metrics": {
+        "ttft_ms": {
+          "count": 4000,
+          "mean": 17348.26606967015,
+          "p50_type1": 232.5079010333866,
+          "p95_type1": 151375.83369901404
+        },
+        "e2e_ms": {
+          "count": 4000,
+          "mean": 21060.403067324834,
+          "p50_type1": 3153.6919141653925,
+          "p95_type1": 160321.5867234394
+        },
+        "submit_lag_ms": {
+          "count": 4000,
+          "mean": 2.5630625971243717,
+          "p50_type1": 2.086407970637083,
+          "p95_type1": 4.175325157120824
+        },
+        "dispatch_wait_after_submit_ms": {
+          "count": 4000,
+          "mean": 14955.34521258279,
+          "p50_type1": 4.282294074073434,
+          "p95_type1": 123679.48669404723
+        },
+        "service_ttft_ms": {
+          "count": 4000,
+          "mean": 2390.3577944902354,
+          "p50_type1": 225.5613391753286,
+          "p95_type1": 21211.236199131235
+        },
+        "decode_ms": {
+          "count": 4000,
+          "mean": 3705.4743616384803,
+          "p50_type1": 2723.365059122443,
+          "p95_type1": 9310.604689177126
+        },
+        "completion_notification_ms": {
+          "count": 4000,
+          "mean": 6.6626360162044875,
+          "p50_type1": 5.933423992246389,
+          "p95_type1": 11.033177142962813
+        },
+        "router_queue_ms": {
+          "count": 4000,
+          "mean": 14949.853675986873,
+          "p50_type1": 0.012634089216589928,
+          "p95_type1": 123676.38179892674
+        },
+        "tpot_ms": {
+          "count": 4000,
+          "mean": 32.027163495510145,
+          "p50_type1": 29.305025988903182,
+          "p95_type1": 48.59828276048396
+        }
+      },
+      "n_correct": null,
+      "output_digest_differences": 173,
+      "limitations": [
+        "Complete 4000-request development W2 observation; not unseen evaluation or a cross-scenario configuration optimum.",
+        "Raw unknown numerical correctness and old qualification flags are preserved.",
+        "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+        "S-LoRA native full-static-pool preparation follows common notice; actual resident GPU leases include HOST load and end only after native exit. No request-time fetch or PrimeLoRA policy added.",
+        "Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join."
+      ]
+    }
+  ],
+  "legacy_diagnostics": [
+    {
+      "run": "D1103",
+      "reuse_level": "R2",
+      "main_comparison_eligible": false,
+      "reasons": [
+        "arrival clock is process_start, not the common deployment-notice + 60 s clock",
+        "TPOT definition ends at completion, not the last native token",
+        "reported cost is simulated lifecycle with a 300 s idle tail, not physical owner-union",
+        "5,000 ms TTFT-only attainment is not the frozen joint TTFT/TPOT event"
+      ],
+      "input_map_mismatches": {
+        "canonical_prompt_sha256": 0,
+        "requested_completion_tokens": 0,
+        "adapter_id": 0
+      },
+      "requests": 4000,
+      "replay_time_origin": "process_start",
+      "excluded_client_prewarm_seconds": 8.848552946001291,
+      "metric_definitions": {
+        "primary_ttft": "scheduled trace arrival to system-observed first generated output token/chunk",
+        "primary_e2e": "scheduled trace arrival to system-observed response completion when available; otherwise client-observed completion",
+        "service_ttft": "service-path start to first generated output token/chunk; service-path start is the system-specific admitted/backend-execution start and excludes scheduled-arrival and upstream queue/admission wait",
+        "service_e2e": "service-path start to response completion; service-path start is the system-specific admitted/backend-execution start and excludes scheduled-arrival and upstream queue/admission wait",
+        "tpot": "(service_completion_time - service_first_token_time) / max(output_tokens - 1, 1)"
+      },
+      "reported_cost_model": {
+        "name": "simulated_gpu_second_deployment_lifecycle_v3_capped",
+        "gpu_cost_per_second_usd": 0.00083333,
+        "gpu_hour_cost_usd_equivalent": 3.0,
+        "scope": "deployment_lifecycle_with_idle_tail",
+        "billing_unit": "gpu_second",
+        "static_startup_sec": 0.0,
+        "predeploy_startup_sec": 0.0,
+        "deployment_idle_tail_s": 300.0,
+        "serverless_idle_retention_s": 300.0,
+        "infra_billing_elapsed_sec": 4264.716778,
+        "infra_max_billing_gpus": 4.0
+      },
+      "resource_envelope_reported": null,
+      "native_last_timestamp_in_server_metrics": 4000
+    },
+    {
+      "run": "D1106",
+      "reuse_level": "R2",
+      "main_comparison_eligible": false,
+      "reasons": [
+        "arrival clock is process_start, not the common deployment-notice + 60 s clock",
+        "TPOT definition ends at completion, not the last native token",
+        "reported cost is simulated lifecycle with a 300 s idle tail, not physical owner-union",
+        "5,000 ms TTFT-only attainment is not the frozen joint TTFT/TPOT event",
+        "vLLM 0.10.2 is not the common 0.30.0 reference backend"
+      ],
+      "input_map_mismatches": {
+        "canonical_prompt_sha256": 0,
+        "requested_completion_tokens": 0,
+        "adapter_id": 0
+      },
+      "requests": 4000,
+      "replay_time_origin": "process_start",
+      "excluded_client_prewarm_seconds": 6.096873014699668,
+      "metric_definitions": {
+        "primary_ttft": "scheduled trace arrival to system-observed first generated output token/chunk",
+        "primary_e2e": "scheduled trace arrival to system-observed response completion when available; otherwise client-observed completion",
+        "service_ttft": "service-path start to first generated output token/chunk; service-path start is the system-specific admitted/backend-execution start and excludes scheduled-arrival and upstream queue/admission wait",
+        "service_e2e": "service-path start to response completion; service-path start is the system-specific admitted/backend-execution start and excludes scheduled-arrival and upstream queue/admission wait",
+        "tpot": "(service_completion_time - service_first_token_time) / max(output_tokens - 1, 1)"
+      },
+      "reported_cost_model": {
+        "name": "simulated_gpu_second_deployment_lifecycle_v3_capped",
+        "gpu_cost_per_second_usd": 0.00083333,
+        "gpu_hour_cost_usd_equivalent": 3.0,
+        "scope": "deployment_lifecycle_with_idle_tail",
+        "billing_unit": "gpu_second",
+        "static_startup_sec": 616.858605,
+        "predeploy_startup_sec": 105.374807,
+        "deployment_idle_tail_s": 300.0,
+        "serverless_idle_retention_s": 300.0,
+        "infra_billing_elapsed_sec": 4986.833363,
+        "infra_max_billing_gpus": 4.0
+      },
+      "resource_envelope_reported": null,
+      "native_last_timestamp_in_server_metrics": 0
+    },
+    {
+      "run": "D1108",
+      "reuse_level": "R2",
+      "main_comparison_eligible": false,
+      "reasons": [
+        "arrival clock is process_start, not the common deployment-notice + 60 s clock",
+        "TPOT definition ends at completion, not the last native token",
+        "reported cost is simulated lifecycle with a 300 s idle tail, not physical owner-union",
+        "5,000 ms TTFT-only attainment is not the frozen joint TTFT/TPOT event",
+        "recorded 95/100 GiB high/max differs from common 72/80 GiB"
+      ],
+      "input_map_mismatches": {
+        "canonical_prompt_sha256": 0,
+        "requested_completion_tokens": 0,
+        "adapter_id": 0
+      },
+      "requests": 4000,
+      "replay_time_origin": "process_start",
+      "excluded_client_prewarm_seconds": 17.982401150278747,
+      "metric_definitions": {
+        "primary_ttft": "scheduled trace arrival to system-observed first generated output token/chunk",
+        "primary_e2e": "scheduled trace arrival to system-observed response completion when available; otherwise client-observed completion",
+        "service_ttft": "service-path start to first generated output token/chunk; service-path start is the system-specific admitted/backend-execution start and excludes scheduled-arrival and upstream queue/admission wait",
+        "service_e2e": "service-path start to response completion; service-path start is the system-specific admitted/backend-execution start and excludes scheduled-arrival and upstream queue/admission wait",
+        "tpot": "(service_completion_time - service_first_token_time) / max(output_tokens - 1, 1)"
+      },
+      "reported_cost_model": {
+        "name": "simulated_gpu_second_deployment_lifecycle_v3_capped",
+        "gpu_cost_per_second_usd": 0.00083333,
+        "gpu_hour_cost_usd_equivalent": 3.0,
+        "scope": "deployment_lifecycle_with_idle_tail",
+        "billing_unit": "gpu_second",
+        "static_startup_sec": 202.708993,
+        "predeploy_startup_sec": 100.622128,
+        "deployment_idle_tail_s": 300.0,
+        "serverless_idle_retention_s": 300.0,
+        "infra_billing_elapsed_sec": 4567.735553,
+        "infra_max_billing_gpus": 4.0
+      },
+      "resource_envelope_reported": {
+        "memory_high": "95G",
+        "memory_max": "100G",
+        "memory_swap_max": "2G",
+        "cpu_set": "4-23,28-47",
+        "memory_events_observed_during_run": {
+          "high": 42,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0
+        },
+        "post_stop_scope": "inactive/dead",
+        "post_stop_gpu_memory_mib": {
+          "0": 15,
+          "1": 15,
+          "2": 15,
+          "3": 15
+        },
+        "post_stop_remote_service": "inactive/dead",
+        "remote_service_main_pid": 0
+      },
+      "native_last_timestamp_in_server_metrics": 0
+    }
+  ],
+  "no_gpu_run": true,
+  "no_independent_review": true,
+  "final_ranking_eligible": false,
+  "limitations": [
+    "Known seed42 development observations, not unseen holdout or statistical inference.",
+    "No post-hoc startup subtraction, clock shift or synthetic physical GPU accounting.",
+    "Unknown independent numerical adapter correctness is not imputed.",
+    "Input match does not prove equal OS cache state or absence of remote interference.",
+    "Same-backend changed output digests are recorded, not dismissed as rounding."
+  ]
+}

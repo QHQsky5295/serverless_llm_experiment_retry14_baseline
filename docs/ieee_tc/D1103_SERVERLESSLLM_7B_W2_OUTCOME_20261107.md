@@ -1,5 +1,11 @@
 # D1103：ServerlessLLM 7B W2 正式对照结果
 
+> 2026-11-07 D1113 更正：以下历史“同合同端到端基线”资格撤回。
+> 本运行保留为 R2 诊断；共同到达时基、原生 TPOT 边界与物理资源账本
+> 不符合当前主比较。prompt/adapter/target 则经核查全部相同。
+> 详见 `D1113_BASELINE_CONTRACT_RECONCILIATION_20261107.md`；复用 D555，
+> 不删除或改写以下原始记录，不为这个键再跑一次。
+
 ## 身份与审计边界
 
 - 执行键：`d1103_20261107_serverlessllm_w2`
