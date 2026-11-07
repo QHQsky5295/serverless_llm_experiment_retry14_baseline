@@ -1698,6 +1698,21 @@ class IEEEQuantizationPrebuild(unittest.TestCase):
 
 
 class IEEEControlContract(unittest.TestCase):
+    def test_current_7b_fixed_full_changes_only_min_instances_and_paths(self):
+        import yaml
+        root = Path(__file__).resolve().parents[1]/'configs/ieee_tc'
+        full = yaml.safe_load((root/'20261107_d1100_7b_busy_service_rate_w2.yaml').read_text())
+        fixed = yaml.safe_load((root/'20261108_d1121_7b_fixed_full_w1.yaml').read_text())
+        self.assertEqual(full['resource_coordination']['min_instances'], 1)
+        self.assertEqual(fixed['resource_coordination']['min_instances'], 4)
+        self.assertEqual(fixed['resource_coordination']['max_instances'], 4)
+        fixed['resource_coordination']['min_instances'] = 1
+        for section, key in (('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                             ('storage', 'host_cache_dir')):
+            self.assertNotEqual(full[section][key], fixed[section][key])
+            fixed[section][key] = full[section][key]
+        self.assertEqual(fixed, full)
+
     def test_fixed_four_keeps_reactive_and_forecast_observation_without_resize(self):
         from faaslora.coordination.autoscaler import IEEEReplicaControl, ScalingAction
         for predictive in (False, True):

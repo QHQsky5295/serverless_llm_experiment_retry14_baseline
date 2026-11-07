@@ -1,0 +1,54 @@
+{
+  "kind": "d1121_prelaunch_v1",
+  "registered_before_performance_run": true,
+  "performance_started": false,
+  "model": "Llama-2-7B",
+  "workload": "W1",
+  "variant": "FixedFull",
+  "reference_run": "D1115",
+  "configuration": "configs/ieee_tc/20261108_d1121_7b_fixed_full_w1.yaml",
+  "configuration_sha256": "f360238004944158232ddcb02834fde64879e0c1f11229d41a73e2211bbcaabd",
+  "target_change": {
+    "min_instances": [
+      1,
+      4
+    ]
+  },
+  "unchanged_max_instances": 4,
+  "production_code_changed": false,
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "tests": {
+    "passed": 4,
+    "duration_s": 16.204,
+    "unit": "run-u351.service",
+    "exec_main_status": 0,
+    "tasks_current_after_main_exit": 0,
+    "cgroup_populated_after_main_exit": 0,
+    "observation": "systemd unit temporarily deactivating with empty cgroup; do not confuse with a live test or retry",
+    "cpus": [
+      2,
+      3,
+      26,
+      27
+    ],
+    "memory_high_gib": 3,
+    "memory_max_gib": 4,
+    "swap_max": 0
+  },
+  "sources": {
+    "configs/ieee_tc/20261107_d1100_7b_busy_service_rate_w2.yaml": "386a34c84ec70e5d0d366f6d3bcaf0891536be503ba1359d583a93bd5ecf303f",
+    "tests/test_ieee_tc_launch.py": "d4f02ab5767703f251ea7c1b4cffeb95b5b2880442ef660eea3a46d40673ece4",
+    "scripts/ieee_tc/run_d1100_7b_busy_service_rate_w2.sh": "6c98164a346d356122f9addc540a283bfd88ea61bb8a99bba3d2d407ed316fe1",
+    "scripts/run_all_experiments.py": "82490fbd40bbfd189ec11298c742d4e819043a8fa72b8591551aed983114b93b",
+    "faaslora/coordination/autoscaler.py": "893715c0656f57354484265ff4df55a3e3f76875555859e1bc8c0140a018b6fc",
+    "paper_results/ieee_tc/ablation/d1120_7b_elastic_locality_w1/closure_manifest.json": "e0c37b534e1cc901d9ea0efea190473181b84de6f39b395b1b8e5964eafddd15",
+    "docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+    "paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3"
+  },
+  "protected_files": 144,
+  "protected_check_reused": "D1120 closure manifest; no edits to protected roots since verification",
+  "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "pending_external_review": true,
+  "new_performance_runs": 0
+}

@@ -1,5 +1,14 @@
 # PrimeLoRA IEEE TC execution contract
 
+Current handoff: D1121 current-version7B FixedFullW1 REGISTERED, not started.
+Read D1121_7B_FIXED_FULL_W1_REGISTRATION_20261108.md. Only min1->4 plus
+unique paths from D1100; max4/scenarioFull/serving mechanisms unchanged.
+Four focused CPU tests passed; no production edit. D1120sealed/pushed3185c417,
+remoteHEADmatched. Next explicit checkpoint then fresh resources and launchONCE
+using existing7argumentD1100runner in tc-d1121-fixed-full-7b-w1. No Full/baseline
+replay/no3Bswitch. Afterrealrelease collectjournal/metrics and fourinitial/noresize
+mechanism evidence; retain trade-offs and unknownnumericalcorrectness. Fullscopeactive.
+
 Latest handoff 2026-11-08: D1120 COMPLETE, analyzed; no live GPU run.
 Read D1120_7B_ELASTIC_LOCALITY_W1_RESULT_20261108.md first. Do not rerun.
 4000 native contracts; joint3977/4000=99.425%; U8497.62170464173;

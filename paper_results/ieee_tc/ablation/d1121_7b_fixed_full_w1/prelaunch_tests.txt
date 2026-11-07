@@ -1,0 +1,36 @@
+W1108 01:15:45.373000 2369903 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda-13.0'
+test_current_7b_fixed_full_changes_only_min_instances_and_paths (tests.test_ieee_tc_launch.IEEEControlContract.test_current_7b_fixed_full_changes_only_min_instances_and_paths) ... ok
+test_fixed_four_keeps_reactive_and_forecast_observation_without_resize (tests.test_ieee_tc_launch.IEEEControlContract.test_fixed_four_keeps_reactive_and_forecast_observation_without_resize) ... ok
+test_first_ready_does_not_wait_for_min_pool_and_pending_keeps_initial_category (tests.test_ieee_tc_launch.IEEEInitialDeployment.test_first_ready_does_not_wait_for_min_pool_and_pending_keeps_initial_category) ... 2026-11-08 01:15:46 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-11-08 01:15:46 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch a: 0.0 MB, 12.4 ms
+2026-11-08 01:15:46 - faaslora.experiment.instance_pool - INFO - Instance inst_1 added (total=1)
+2026-11-08 01:15:46 - faaslora.experiment.instance_pool - INFO - Instance inst_2 added (total=2)
+2026-11-08 01:15:46 - faaslora.experiment.instance_pool - INFO - Instance inst_1 removed (total=1)
+2026-11-08 01:15:46 - faaslora.experiment.instance_pool - INFO - Instance inst_2 removed (total=0)
+2026-11-08 01:15:46 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-11-08 01:15:46 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch a: 0.0 MB, 6.1 ms
+2026-11-08 01:15:46 - faaslora.experiment.instance_pool - INFO - Instance inst_1 added (total=1)
+2026-11-08 01:15:46 - faaslora.experiment.instance_pool - INFO - Instance inst_2 added (total=2)
+2026-11-08 01:15:46 - faaslora.experiment.instance_pool - INFO - Instance inst_3 added (total=3)
+2026-11-08 01:15:46 - faaslora.experiment.instance_pool - INFO - Instance inst_4 added (total=4)
+2026-11-08 01:15:46 - faaslora.experiment.instance_pool - INFO - Instance inst_1 removed (total=3)
+2026-11-08 01:15:46 - faaslora.experiment.instance_pool - INFO - Instance inst_2 removed (total=2)
+2026-11-08 01:15:46 - faaslora.experiment.instance_pool - INFO - Instance inst_3 removed (total=1)
+2026-11-08 01:15:46 - faaslora.experiment.instance_pool - INFO - Instance inst_4 removed (total=0)
+ok
+test_actual_initial_preparation_overlaps_init_without_changing_arrival_origin (tests.test_ieee_tc_launch.IEEEInitialDeployment.test_actual_initial_preparation_overlaps_init_without_changing_arrival_origin) ... 2026-11-08 01:15:46 - faaslora.memory.residency_manager - INFO - Residency manager initialized
+2026-11-08 01:15:46 - faaslora.preloading.preloading_manager - INFO - Preloading manager initialized
+    remote artifact fetch a: 0.0 MB, 22.3 ms
+W1108 01:15:58.486000 2370182 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda-13.0'
+W1108 01:15:58.602000 2370183 torch/utils/cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda-13.0'
+2026-11-08 01:16:02 - faaslora.preloading.preloading_planner - INFO - Preloading planner initialized with strategy: hybrid
+2026-11-08 01:16:02 - faaslora.experiment.instance_pool - INFO - Instance ieee-activation-c74213ad480a4c7e937b039f0ef5fcf0 added (total=1)
+2026-11-08 01:16:02 - faaslora.experiment.instance_pool - INFO - Instance ieee-activation-c74213ad480a4c7e937b039f0ef5fcf0 removed (total=0)
+ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 16.204s
+
+OK
