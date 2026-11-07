@@ -1,0 +1,60 @@
+{
+  "kind": "native_7b_closed_run_d394_v1",
+  "prime": {
+    "run": "D1123",
+    "system": "PrimeLoRA",
+    "requests": 4000,
+    "counts": {
+      "ttft_pass": 3989,
+      "tpot_pass": 3988,
+      "joint_pass": 3977
+    },
+    "scenario": "tc_ieee_full",
+    "workload": "W1",
+    "replay_plan": {
+      "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json",
+      "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+      "view_sha256": "103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3",
+      "count": 4000,
+      "source_count": 4000,
+      "profile": "W1",
+      "rate_scale": 1.0
+    },
+    "common_slo_sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+    "metrics": {
+      "ttft_ms": {
+        "count": 4000,
+        "mean": 784.1592381224036,
+        "p50_type1": 613.7668150477111,
+        "p95_type1": 1866.5661164559424
+      },
+      "tpot_ms": {
+        "count": 4000,
+        "mean": 31.12813192813212,
+        "p50_type1": 28.557442172438417,
+        "p95_type1": 49.30145613045669
+      },
+      "e2e_ms": {
+        "count": 4000,
+        "mean": 4268.5012891453225,
+        "p50_type1": 3479.312900919467,
+        "p95_type1": 9096.901842392981
+      }
+    },
+    "physical_gpu_seconds": 8614.702449338976,
+    "gpu_seconds_per_offered_request": 2.153675612334744,
+    "n_correct": null
+  },
+  "reused_baselines": [],
+  "legacy_diagnostics": [],
+  "no_gpu_run": true,
+  "no_independent_review": true,
+  "final_ranking_eligible": false,
+  "limitations": [
+    "Known seed42 development observations, not unseen holdout or statistical inference.",
+    "No post-hoc startup subtraction, clock shift or synthetic physical GPU accounting.",
+    "Unknown independent numerical adapter correctness is not imputed.",
+    "Input match does not prove equal OS cache state or absence of remote interference.",
+    "Same-backend changed output digests are recorded, not dismissed as rounding."
+  ]
+}

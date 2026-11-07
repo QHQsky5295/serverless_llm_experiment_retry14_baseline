@@ -1,5 +1,48 @@
 # PrimeLoRA IEEE TC execution contract
 
+Current handoff 2026-11-08 04:05+08: D1123 COMPLETE/released/analyzed.
+Read D1123_7B_NO_ROUTING_W1_RESULT_20261108.md; DO NOT relaunch.
+4000 native contracts,joint3977=99.425%,U8614.702449338976,
+P95TTFT1866.5661164559424ms. Same FullD1115 U-11.7338%,joint-0.875pp,
+P95+24.8994%: retain resource/timing trade-off, not all-metric win.
+4000 actual load_only selectors verified;2666 differ from Full shadow on same
+NoRouting snapshots, no counterfactual TTFT. Non-target mechanisms active,
+11closedleases/10naturalfirstservices/1345softadmissiondecisions(alladmit).
+132remote transfers all metadata-linked;131 final-request links,one retained
+education_lora_0103 preparation.176outputdigest differences unknown;n_correctnull.
+2275samples nohigh/max/OOM/swap,remoteinactive/GPUempty.56sources and144protected
+publicationfiles/userdirtymanifest verified (u372). Next closure/explicitbackup,
+then current7B NoHandoff/R0H0; no Full/baseline replay,3B switch or sharedk3s work.
+This turn PROGRESS; full remaining scope active. Older LIVE notes historical.
+
+Latestverifiedwait2026-11-08 03:35:12+08: D1123 SAME panePID2666082 live;
+2006terminal/success/native-contract,submittedindex2017. Sample1118events/swap0,
+no warning/abort/foreign/escapedcompute,4GPUheld,available97.587067GiB,
+disk156.386623GiB. Previousandcurrentgoalturns VERIFIED WAIT. Continue SAMErun;
+no restart/change/test/maintenance/push/remotechanges. No complete result yet.
+Full remaining objective active; do not switchmodels or repeat finishedbaseline.
+
+Latest verified wait2026-11-08 03:22:58+08: D1123 SAME panePID2666082 live;
+502terminal/success/native-contract,submittedindex506. Sample394events/swap0,
+no warning/abort/foreign/escapedcompute,3GPUheld,available100.718887GiB,
+disk157.298607GiB. Prior goalturn PROGRESS;thisturn VERIFIED WAIT. No newrun,
+productionchange,test,maintenance,push orremotechange. Continue SAME run to
+actualterminal/release. Fullremaining scopeactive; no finalperformance verdict.
+
+LIVE handoff2026-11-08 03:17+08: D1123 NoRouting7BW1 launchedONCE.
+tmux tc-d1123-no-routing-7b-w1 panePID2666082 confirmedlive; DO NOT relaunch.
+Read updatedD1123 registration. Checkpoint0a4270d21a83fd10371675300d3370c8218170b4
+pushed toV2/remotematched. Servicea1640a6b54854dbaa2a1631044514e63,
+Invocation5a5878d2e0424080a2d30d304dee3797; auxee9e9fbaa29c465da2033e33453b4ac7.
+Notice3586226.563943484,replay3586286.563943484,remoteclockf6db62a0bec64acdac048f363c5f11b2,
+ownedremoteInvocation70c7174581ab469bbbfeb7bffefcc98f/PID1502422.
+03:17:49 sample89 high/max/OOM/swap0,noabort/foreign/escapedcompute,1GPUheld,
+available113554944000B,disk170019782656B;11terminal records,submittedindex23.
+Continue SAME run toterminal/realrelease, no productionedits/tests/maintenance/
+push/remotechanges. Then existingD1113/D299/D455 plus load_only selector audit,
+sameFullD1115. NoFull/baseline replay/3Bswitch/sharedk3s work. Whole scopeactive.
+ThisturnPROGRESS. OlderNOTSTARTEDparagraphs are historical,notnewlaunchinstructions.
+
 Current handoff 2026-11-08: D1123 current7B NoRouting W1 REGISTERED, not started.
 Read D1123_7B_NO_ROUTING_W1_REGISTRATION_20261108.md. Only existing load_only
 selection plus isolated paths; all D1100/Full non-targets equal, no serving edit.

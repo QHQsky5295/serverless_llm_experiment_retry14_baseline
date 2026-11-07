@@ -1,0 +1,21 @@
+{
+  "kind": "d1123_complete_published_delivery_linkage_v1",
+  "passed": true,
+  "server_transfers": 132,
+  "metadata_matched_transfers": 132,
+  "final_request_linked": 131,
+  "retained_non_final_request_transfers": [
+    {
+      "transfer_id": "f99fd965c52246e9bdd2241a0d59fa33",
+      "artifact_id": "education_lora_0103",
+      "archive_bytes": 780749
+    }
+  ],
+  "no_request_time_packing": true,
+  "no_cost_or_latency_subtraction": true,
+  "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1123_20261108/7b_no_routing_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d1123_7b_no_routing_w1.json",
+  "source_sha256": "b0f9223926f19a5156a52e35cef374f5512aa85656af956e14d2d42c4f7a84e0",
+  "remote_journal": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1123_20261108/7b_no_routing_w1/remote_transfers.jsonl",
+  "remote_journal_sha256": "e4db0a099bd87f4167b4b7ab0db696162942f06dc9df2358fb8e8b41b62defed",
+  "analysis_unit": "run-u372.service"
+}

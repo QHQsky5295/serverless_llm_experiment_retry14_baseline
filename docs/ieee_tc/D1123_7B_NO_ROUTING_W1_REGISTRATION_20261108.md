@@ -1,5 +1,53 @@
 # D1123：当前版本 7B NoRouting W1，隔离服务时间排序
 
+## 已完成：2026-11-08 03:55 +08
+
+同一运行已结束，4000条成功且原生合同匹配；service/replay/watchdog退出码均0。
+launch确认GPU原生context释放、服务路径移除，远端所属服务inactive；终态后复查
+GPU compute为空。禁止重跑下方历史命令。匹配clock的远端journal已收集，
+两侧SHA均e4db0a099bd87f4167b4b7ab0db696162942f06dc9df2358fb8e8b41b62defed。
+既有分析器和FullD1115参照的比较已完成，见
+[D1123结果](D1123_7B_NO_ROUTING_W1_RESULT_20261108.md)。56个来源及144个旧投稿
+文件核验通过；完整数据表、机制回执、剩余一条非最终请求传输关联均已保存。
+
+## 已实际启动：2026-11-08 03:16 +08
+
+03:35:12复查：同一panePID2666082存活，2006条终态、成功且原生合同匹配，
+提交至index2017；sample1118内存high/max/OOM/kill/swap均0，无告警、中止、
+foreign/escaped compute，持有4GPU，available97.587067GiB、disk156.386623GiB。
+上一轮与本轮均为VERIFIED WAIT，继续同一执行；未改配置、重跑、测试、
+维护或推送。完整结果未产生，后半程和真实释放仍待完成。
+
+03:22:58复查：同一panePID2666082仍live，502条终态、成功且原生合同匹配，
+提交至index506；sample394内存high/max/OOM/kill/swap均0，无告警、中止、
+foreign/escaped compute，持有3GPU，available100.718887GiB、disk157.298607GiB。
+上一goal turn为PROGRESS，本轮为VERIFIED WAIT；只监测原运行，未修改配置、
+重跑、测试、维护或推送。继续后续阶段及真实释放，不据局部结果判优。
+
+唯一运行已启动；03:17:49核验同一tmux `tc-d1123-no-routing-7b-w1` 的
+panePID2666082仍live，禁止重复执行下方历史登记命令。启动前checkpoint
+`0a4270d21a83fd10371675300d3370c8218170b4`已推送V2且remote HEAD匹配。
+仅提交6个明确文件；15source SHA、144旧投稿文件及用户manifest保护检查通过。
+
+service scope a1640a6b54854dbaa2a1631044514e63，InvocationID
+5a5878d2e0424080a2d30d304dee3797；aux ee9e9fbaa29c465da2033e33453b4ac7。
+notice3586226.563943484，replay_t0=3586286.563943484；W1view
+103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3。
+remote clock f6db62a0bec64acdac048f363c5f11b2，PID1502422，拥有的InvocationID
+70c7174581ab469bbbfeb7bffefcc98f。已发布gzip/timing_v2健康在业务通知前通过；
+首次服务尚未ready时连接失败一次，随后正常通过，无请求fallback或重复回放。
+
+启动前MemAvailable118861360KiB、disk170043793408B、GPU compute为空。
+03:17:49 sample89：available113554944000B、disk170019782656B，持有1GPU，
+high/max/OOM/kill/swap均0，无告警、中止、foreign/escaped compute。
+已见11条请求终态，最新提交index23，尚无完整结果。仅监测同一运行至终态
+和实际释放，不在测量期间测试、维护、推送或改服务/远端配置。
+
+本轮为PROGRESS：单因素登记、检查、备份、真实启动。全部剩余范围继续active。
+下文“未启动”仅是启动前登记历史，不是重复运行指令。
+
+## 历史：性能运行前登记
+
 2026-11-08，性能运行前登记。按既定 A1 顺序承接已封存的 D1122，
 不是新的 Full 优化或基线复现；Full 唯一参照仍是 D1115，不重复回放。
 本登记时尚未启动。ablation-planner 指定独立评审模型不可用，本地可行性

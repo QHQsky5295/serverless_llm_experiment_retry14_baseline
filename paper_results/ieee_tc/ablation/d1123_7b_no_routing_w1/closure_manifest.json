@@ -1,0 +1,82 @@
+{
+  "kind": "d1123_7b_no_routing_w1_closure_v1",
+  "raw_directory": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1123_20261108/7b_no_routing_w1",
+  "raw_result_sha256": "b0f9223926f19a5156a52e35cef374f5512aa85656af956e14d2d42c4f7a84e0",
+  "run_checkpoint": "0a4270d21a83fd10371675300d3370c8218170b4",
+  "source_verification": {
+    "kind": "executor_hash_recheck_not_independent_review",
+    "verified_unique_sources": 56,
+    "protected_publication_files_unchanged": 144,
+    "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "unit": "run-u372.service",
+    "full_evidence": "source_verification.json"
+  },
+  "tests": {
+    "passed": 10,
+    "phase": "prelaunch; production code unchanged",
+    "log": "prelaunch_tests.txt",
+    "sha256": "d3857c1418b071baabb208c754fb1b2cbbae79d6599a62260fda813ed090d1ff",
+    "new_comparison_executed_and_validated_requests": 4000
+  },
+  "analysis_units": [
+    "run-u367.service",
+    "run-u368.service",
+    "run-u369.service",
+    "run-u370.service",
+    "run-u371.service",
+    "run-u372.service"
+  ],
+  "analysis_notes": {
+    "run-u371.service": "Metadata-only transfer checks succeeded; request transfer discovery used the wrong top-level key and produced only a diagnostic. Not accepted as complete linkage. Correct nested gpu_reference_evidence.remote_preparation binding verified in run-u372; no performance replay or data mutation."
+  },
+  "analysis_cpu_affinity": [
+    2,
+    3,
+    26,
+    27
+  ],
+  "analysis_memory_high_gib": 3,
+  "analysis_memory_max_gib": 4,
+  "analysis_swap_max": 0,
+  "gpu_compute_census_empty": true,
+  "remote_service_inactive_main_pid_zero": true,
+  "remote_clock_id": "remote-process-monotonic:f6db62a0bec64acdac048f363c5f11b2",
+  "remote_journal": "/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-a0695722d60643fab18465c5884cc459.jsonl",
+  "remote_sha256_matched": "e4db0a099bd87f4167b4b7ab0db696162942f06dc9df2358fb8e8b41b62defed",
+  "new_performance_runs_this_analysis": 0,
+  "main_goal_complete": false,
+  "independent_semantic_audit": {
+    "skill": "experiment-audit",
+    "acceptance_status": "unavailable",
+    "reason": "The specified gpt-5.6-sol reviewer and shared reference package are unavailable; executor deterministic checks are not an independent review."
+  },
+  "outputs": {
+    "compare.py": "74e421f0568d56011c1fdd769de8ea1d07c55fe4fc0213c3bbb08e156a88b753",
+    "comparison/comparison.json": "43f9fe7af15681bada40a3105fe6a305df5b143dd6c5a945404c30671ec3c2c9",
+    "comparison/manifest.json": "2af6a3babe41eca557158a2d210e4d8a7a13542dc7d0c603dd6d3cc228b4ad47",
+    "comparison/mechanisms.json": "d1cd246a5df90f50413c760e7f0a17187fa47fde3fe67274e3474071862ed900",
+    "comparison/metrics.csv": "47534153d98c188423bd805e2c852d67e3687891693b9010794f7874d117a748",
+    "delivery_linkage.json": "1e25dd54737da6ec7d09789252abf07eb923b838d3bff7fd92f6e1aa446d154e",
+    "prelaunch.json": "d7b2473605722612c3790291aac7753e9a55949feee56c4a6451e966585c4904",
+    "prelaunch_tests.txt": "d3857c1418b071baabb208c754fb1b2cbbae79d6599a62260fda813ed090d1ff",
+    "result1/evidence_review.json": "4473dded06aa6d61d706a8a17778ca06a02de30a80fcc7e94955d537558b1017",
+    "result1/manifest.json": "4c0fc481cdcdeafe9d88d1e5ec24b214dacf20e9daf846dec348b491658b6348",
+    "result1/reconciliation.json": "ff7dbe641a7b0b35a61e11f887371de3550814a5ad4be5d070904eabb91fd8f7",
+    "source_verification.json": "310182119510eef0d4af8f1dce5e998d5930d2d2baa15a62459ae06de2cbbd5e",
+    "stages/summary.json": "df1eb3c255dff1adcdb096c752de0dfde58abe17a2bd72d5a4775ed20da805b0"
+  },
+  "analysis_sources": {
+    "docs/ieee_tc/D1123_7B_NO_ROUTING_W1_RESULT_20261108.md": "03991a14cd668cb3139892aeab7c8042fcb4136856a3a0a9675bc2de4be9de3b",
+    "scripts/ieee_tc/analyze_d455_stages.py": "c7b005e636d4b80cd121ccbfda5c272a9dd21675e370a146022ffbf50410f5e0",
+    "scripts/ieee_tc/check_d299_full_context.py": "cfd8204d45c86a8652773a288e7ff723c973c6983a0104f77465b7754bc4af14",
+    "scripts/ieee_tc/analyze_d297_full.py": "b93831dbbdf4556de4ad4094b1c7eecae646a1e79f8a80bd77602c259aabac1a"
+  },
+  "extra_raw_hashes": {
+    "remote_pre_health.json": "7a115d95e9e02deebbeab119c26bcccb694e428811c2a2f57ff7b73c947527a6",
+    "remote_transfers.jsonl": "e4db0a099bd87f4167b4b7ab0db696162942f06dc9df2358fb8e8b41b62defed",
+    "remote_monitor.log": "0204427793a875996f7601900cda33393a8fe845159f97a120184809f86cd265",
+    "remote_service_stop.txt": "c21fa3c9864f884f0f038dc8566688577ee7382c4e11e49d1e743cb9e06dcb81",
+    "launcher.log": "d47f0b48e23c7eb84052472427b5c0b436124dbb06f7b4480c929962ccc2424c",
+    "launch.json": "d7402dd71895fe4987c4f0abc54c73acdd27250fe38dc163695550049ff2857d"
+  }
+}
