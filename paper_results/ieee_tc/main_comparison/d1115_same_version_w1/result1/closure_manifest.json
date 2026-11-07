@@ -1,0 +1,43 @@
+{
+  "kind": "d1115_closed_publication_v1",
+  "analysis_checkpoint": "08dee7b24d62bccabfeba6057e626d41b9d9d574",
+  "raw_directory": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1115_20261107/7b_same_version_w1",
+  "raw_result_sha256": "99574e407543545937b93d0277c7c70a4d3c28eb8107290d79db65aa1777e577",
+  "source_verification": {
+    "kind": "executor_hash_recheck_not_independent_review",
+    "verified_unique_sources": 50,
+    "source_maps": ["manifest.json:sources", "evidence_review.json:source_refs", "comparison.json:source_refs"],
+    "sha256sum_check_passed": true
+  },
+  "outputs": {
+    "manifest.json": "a2b29fc787c7a918dd64971d36a3c3631ab20845eb3c27df6b93410e5ffc2bef",
+    "reconciliation.json": "8702484813d0fb7da009f513a983557478f8ee731b6b2208dafd266740c17656",
+    "evidence_review.json": "6bc9f78b8ce2f3030742b3261df8fa6ac6f10a16af5b9c4c1f14c849556e6efd",
+    "comparison.json": "6656329b17b9af58bfab6f9236fb9a298a846b5681c26f197f42a1fb8df1d445"
+  },
+  "extra_raw_hashes": {
+    "remote_pre_health.json": "beac906fcab93f9e8aea41aebf227d47dbe7b47b9ba9a871f9d29245a698b03f",
+    "remote_transfers.jsonl": "0c1a7c186c19c478606949b963c07834830bbd7afdd6266325929cbe5e496b3c",
+    "remote_monitor.log": "2b98a2cfffda7ec6f2aafe41e92e22112c799a155bc4dcaaeb5989860ebfd7b0",
+    "remote_service_stop.txt": "c21fa3c9864f884f0f038dc8566688577ee7382c4e11e49d1e743cb9e06dcb81",
+    "launcher.log": "d924b958cabbe746bad09acf56a2122db891892eea00e01b6dca416aec7b89e4"
+  },
+  "remote_journal": "/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-78aa788318334d07aa1173afc1d6a274.jsonl",
+  "remote_clock_id": "remote-process-monotonic:e5404ba0862644b7aa96e5d8ee0292e8",
+  "remote_sha256_matched": true,
+  "remote_service_inactive_main_pid_zero": true,
+  "protected_seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+  "protected_publication_files_unchanged": 144,
+  "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "gpu_compute_census_empty": true,
+  "w1_budget": {
+    "reference_path": "paper_results/ieee_tc/main_comparison/d594_reference_and_ttft/resident_references.json",
+    "reference_sha256": "a9b6b25fe4ec8a17921dd5968c4fb494b7a6d795c0d4a11c7b7d306ac06bc60c",
+    "source_run": "D536",
+    "limit_gpu_seconds": 6756.571050141065,
+    "observed_gpu_seconds": 7603.874677798245,
+    "within_budget": false
+  },
+  "new_baseline_runs": 0,
+  "main_goal_complete": false
+}

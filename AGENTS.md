@@ -1,13 +1,21 @@
 # PrimeLoRA IEEE TC execution contract
 
-Live handoff (2026-11-07 16:44 +08): D1115 current-version 7B W1 RUNNING.
-tmux `tc-d1115-7b-w1`, pane PID 1128943. Do not launch it again.
-Read `docs/ieee_tc/D1115_SAME_VERSION_7B_W1_20261107.md` and current status.
+Completed handoff (2026-11-07): D1115 current-version 7B W1 COMPLETE/released.
+Read `docs/ieee_tc/D1115_W1_RESULT_AND_THREE_SCENARIO_20261107.md` first.
+4000 native-contract requests, joint SLO 98.55%, 7603.874678 GPU-s,
+P95 TTFT 2331.329520 ms. No repeat; tmux ended and owned remote is inactive.
 Raw: `/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1115_20261107/7b_same_version_w1`.
-Exact D1100 YAML/code, W1 existing view, common 60 s notice; no new tuning.
-Owned remote invocation cb0421291ccb413d8262d0b49d332584; monitor live.
-First finish/close/analyze this run, then combine D1114 W0 / D1115 W1 / D1100 W2
-with retained D593 baselines. No W0/W2 rerun or baseline reproduction.
+D1114 W0 / D1115 W1 / D1100 W2 now form the same-config 7B three-scenario
+comparison. All three meet the timing SLO, but W1 exceeds frozen G2 budget
+6756.571050 GPU-s by 847.303628 (12.5404% of budget; 11.1431% reduction needed).
+Next: investigate this specific 7B G2 gap using existing ownership/queue/control
+logs and prior budget candidates/rejected directions, then literature and one
+falsifiable hypothesis if a new budget working point is necessary. Do not repeat
+W0/W1/W2, restart baseline reproduction, switch back to 3B, change thresholds,
+or declare all objectives complete. Existing A1-A5/S1-S13/docs/figures remain open.
+Five W1 baseline audits reused; all inputs matched, 218 output digests differ
+from D536 without independent numerical attribution. All differences retained.
+50 source hashes and 144 protected publication files verified; user manifest unchanged.
 
 Completed handoff (2026-11-07): D1114 7B W0 is COMPLETE and released.
 Read `docs/ieee_tc/D1114_W0_RESULT_20261107.md` first. Do not rerun it.
