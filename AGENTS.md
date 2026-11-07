@@ -1,5 +1,36 @@
 # PrimeLoRA IEEE TC execution contract
 
+Current handoff (2026-11-07): D1118 W2 COMPLETE/released; no live GPU run.
+Read D1118_W2_RESULT_AND_BUDGET_WORKING_POINT_20261107.md FIRST.
+4000 native contracts; joint3900=97.5%; U9873.292173262686;
+P95 TTFT3053.004479035735ms; frozen budget12086.669343876012 passes.
+D1117 W1 + D1118 W2 use identical cap3 config and close this budget-feasibility
+gap. Retain max4 resource_opt D1114/W0,D1115/W1,D1100/W2 separately.
+Next is current-version 7B A1, starting ElasticOnly vs D1115 Full; inspect/reuse
+existing gates and non-target equality. Do not rerun Full/baselines, sweep max2,
+switch to3B, weaken controls or call the whole objective complete.
+Curated d1118_budget_cap3_w2/result2; result1 is earlier CPU analysis only,
+not another performance attempt. 22 tests,49 source SHA,144 protected files pass.
+Remote inactive;18 closed leases,4072 samples,high/max/OOM/swap0,GPU census empty.
+Five W2 baselines reused;159 output digests differ vsD557 without numeric cause.
+497 remote transfers,494 request-level linked;3 retained in preparation metadata.
+All limitations and remaining A1-A5/S1-S13/docs/figures remain active.
+Older LIVE/NOT STARTED notes below are historical, not new launch instructions.
+
+LIVE handoff (2026-11-07 18:41 +08): D1118 cap3 W2 HAS STARTED once.
+tmux tc-d1118-7b-budget-w2, panePID1417227; do not repeat/restart.
+Read updated D1118 registration and completed D1117 result first.
+Checkpoint70cdac92606bec01458f53e03169864fac138a47 pushed, remoteHEADmatched.
+Service1396f87cc78845db88722e2b49c6eadd, auxiliary025dcbaae7524e48b474cb47cc0002ae;
+owned remote invocationbe5ec5e0b6d846c387f4b48d54107c42, PID949742.
+Notice3555284.928629879, replay_t03555344.928629879; exact existing W2 source/view.
+Raw /home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1118_20261107/7b_budget_cap3_w2.
+Initial available121583210496B/disk173307752448B; sample34noabort, memoryevents0.
+Monitor same run to actual terminal/release; no maintenance/hashscans/push/heavy
+analysis during measurement. Afterwards matching-clock remote journal and existing
+collector/W2 baseline join; no new baseline run. D1117 already complete, no rerun.
+Older NOT STARTED D1118 and LIVE D1117 notes below are historical.
+
 Current handoff (2026-11-07 18:38 +08): D1117 W1 COMPLETE/released.
 Read D1117_W1_RESULT_20261107.md and D1118_7B_BUDGET_CAP3_W2_REGISTRATION_20261107.md.
 4000 native contracts, joint3903/4000=97.575%, U6545.884585417341,

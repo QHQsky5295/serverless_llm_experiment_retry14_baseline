@@ -749,11 +749,15 @@ def review_single_run(source, warm_path, output):
         raise ValueError('common deployment notice mismatch')
     from faaslora.datasets.workload_generator import FrozenReplayPlan
     replay_plan = FrozenReplayPlan.load(trace_path, profile=external['plan']['profile'],
-                                       rate_scale=external['plan']['rate_scale'])
+                                       rate_scale=external['plan']['rate_scale'],
+                                       adapter_map=external['plan'].get('adapter_map'),
+                                       adapter_map_sha256=external['plan'].get('adapter_map_sha256'))
     if replay_plan.identity() != external['plan']:
         raise ValueError('frozen replay view differs from the launch receipt')
     source_entries = {entry.request_id: entry for entry in replay_plan.entries}
     paths.append(trace_path)
+    if external['plan'].get('adapter_map'):
+        paths.append(Path(external['plan']['adapter_map']))
     warm = read(warm_path)
     if (warm['source_trace_sha256'] != external['plan']['source_sha256']
             or warm['contract']['native_pass'] != warm['measurement_requests']):

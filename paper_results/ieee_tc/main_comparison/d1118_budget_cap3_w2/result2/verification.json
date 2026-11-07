@@ -1,0 +1,34 @@
+{
+  "run": "D1118",
+  "verified_date": "2026-11-07",
+  "sources_verified": 49,
+  "protected_publication_files_verified": 144,
+  "protected_manifest_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+  "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "remote_journal_sha256": "bf64b8b7cdca83e1a3b1b0f03663128b429e361335f17b2f7a01f6c0d040cf2f",
+  "remote_service_inactive": true,
+  "remote_preparation_metadata_transfer_ids_matched": 497,
+  "remote_request_level_transfer_ids_matched": 494,
+  "remote_metadata_only_transfer_ids": [
+    "1d80276f6d7141518e98b305c7a221cb",
+    "87b47886eea64282999801b80cd8e542",
+    "967ba0196f3e4e159de06d3b94bdc2d6"
+  ],
+  "gpu_compute_census_empty": true,
+  "targeted_tests_passed": 22,
+  "outputs": {
+    "comparison.json": "20cabc32a4ad38555cd8dfee6d8a31529df83eb087649aebd382609226d11189",
+    "evidence_review.json": "f1913d27d6ba3d966bb009bb0328b4bc035e062585e755a83453eecd2681cfd6",
+    "manifest.json": "959166f5936a4a17ca5f7aa8f25f3eaffdcac4d3158398e86a255c3d7e64b3c1",
+    "reconciliation.json": "65bae6d5074dc6e379bce126837e7b273e8789ded827ca58c981575db4f4f58b"
+  },
+  "W2_observed_native_timing_budget_feasible": true,
+  "budget_gpu_seconds": 12086.669343876012,
+  "budget_ratio": 0.8168745162425756,
+  "W1_same_configuration_run": "D1117",
+  "independent_numerical_proof": false,
+  "independent_holdout": false,
+  "performance_attempts": 1,
+  "analysis_revision": 2,
+  "full_goal_complete": false
+}

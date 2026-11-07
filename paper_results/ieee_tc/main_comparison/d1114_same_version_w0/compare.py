@@ -1,4 +1,4 @@
-"""Reuse D476's contract join and D593's W0/W1 rows; no inference or tuning."""
+"""Reuse D476's contract join and D593's W0/W1/W2 rows; no inference or tuning."""
 import argparse
 import hashlib
 import json
@@ -30,11 +30,21 @@ def matched_plan_identity(left, right):
     for key in ('source_sha256', 'view_sha256', 'count', 'source_count', 'profile', 'rate_scale'):
         if left[key] != right[key]:
             raise ValueError(f'replay plan differs: {key}')
+    if left.get('adapter_map_sha256') != right.get('adapter_map_sha256'):
+        raise ValueError('replay plan differs: adapter_map_sha256')
+
+
+def contract_digest(rows):
+    keys = ('request_id', 'source_item_sha256', 'adapter_id', 'target_tokens',
+            'canonical_prompt_sha256', 'native_prompt_token_ids_sha256', 'native_prompt_tokens',
+            'artifact_content_sha256', 'generation_contract')
+    joined = [{k: rows[rid][k] for k in keys} for rid in sorted(rows)]
+    return hashlib.sha256(json.dumps(joined, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--workload', choices=('W0', 'W1'), default='W0')
+    parser.add_argument('--workload', choices=('W0', 'W1', 'W2'), default='W0')
     parser.add_argument('--run-id', default='D1114')
     parser.add_argument('--output', type=Path, default=OUT)
     args = parser.parse_args(argv)
@@ -63,12 +73,12 @@ def main(argv=None):
     rows = matched_controller_rows(source, 'tc_ieee_full', content)
     for r in rows.values():
         r['arrival_offset_s'] = r['arrival'] - launch['external_replay']['replay_t0_s']
-    keys = ('request_id', 'source_item_sha256', 'adapter_id', 'target_tokens',
-            'canonical_prompt_sha256', 'native_prompt_token_ids_sha256', 'native_prompt_tokens',
-            'artifact_content_sha256', 'generation_contract')
-    joined = [{k: rows[rid][k] for k in keys} for rid in sorted(rows)]
-    digest = hashlib.sha256(json.dumps(joined, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
-    assert digest == old['matched_contract_sha256']
+    digest = contract_digest(rows)
+    # W1 changes arrival times only; W2 deliberately changes adapter assignment
+    # and therefore source-item/content hashes. Verify its own complete native
+    # vLLM contract below, not the W0 digest or an adapter-agnostic projection.
+    if args.workload in ('W0', 'W1'):
+        assert digest == old['matched_contract_sha256']
     assert launch['preflight']['policy'] == old['common_resource_policy']
     registration = read(ROOT / 'paper_results/ieee_tc/main_comparison/d593_complete_7b/source_registration.json')
     baselines, native_audits = [], {}
@@ -120,6 +130,8 @@ def main(argv=None):
         matched_request_contract(rows[rid], c)
         if natives[rid]['completion_token_ids_sha256'] != rows[rid]['native']['completion_token_ids_sha256']:
             changed.append(rid)
+    if contract_digest(contracts) != digest:
+        raise ValueError('complete same-workload native baseline contract digest differs')
     prime = dict(system='PrimeLoRA', run=args.run_id, workload=args.workload, counts=review['counts'],
         joint_slo=review['timing_joint_rate'], observed_protocol_feasible=review['timing_feasible'],
         physical_gpu_seconds=review['physical_gpu_seconds'], metrics=review['metrics'],
