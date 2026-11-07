@@ -1,13 +1,21 @@
 # PrimeLoRA IEEE TC execution contract
 
-Current handoff (2026-11-07): D1114 7B W0 is COMPLETE and released.
+Live handoff (2026-11-07 16:44 +08): D1115 current-version 7B W1 RUNNING.
+tmux `tc-d1115-7b-w1`, pane PID 1128943. Do not launch it again.
+Read `docs/ieee_tc/D1115_SAME_VERSION_7B_W1_20261107.md` and current status.
+Raw: `/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1115_20261107/7b_same_version_w1`.
+Exact D1100 YAML/code, W1 existing view, common 60 s notice; no new tuning.
+Owned remote invocation cb0421291ccb413d8262d0b49d332584; monitor live.
+First finish/close/analyze this run, then combine D1114 W0 / D1115 W1 / D1100 W2
+with retained D593 baselines. No W0/W2 rerun or baseline reproduction.
+
+Completed handoff (2026-11-07): D1114 7B W0 is COMPLETE and released.
 Read `docs/ieee_tc/D1114_W0_RESULT_20261107.md` first. Do not rerun it.
 4000 native-contract requests, 3954 joint SLO (98.85%), 10541.548234 GPU-s,
 P95 TTFT 1868.328236 ms. Matched existing W0 baselines; 164 output digests
 differ from vLLM D423, retained without an assumed numerical explanation.
 144 protected publication files and user manifest unchanged. No serving changes.
-NEXT: run preregistered D1115 same-config W1 after normal resource preflight;
-see `docs/ieee_tc/D1115_SAME_VERSION_7B_W1_20261107.md`. W1 NOT STARTED yet.
+Its result backup f8a52faa was pushed and verified before D1115 started.
 W2 D1100 already exists; no W0/W2 rerun or new baseline reproduction.
 D989 is older-source W0; full main/ablation/sensitivity scope remains open.
 
