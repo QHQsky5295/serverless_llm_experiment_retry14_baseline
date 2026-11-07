@@ -1,0 +1,59 @@
+{
+  "kind": "native_7b_closed_run_d394_v1",
+  "prime": {
+    "run": "D1114",
+    "system": "PrimeLoRA",
+    "requests": 4000,
+    "counts": {
+      "ttft_pass": 3978,
+      "tpot_pass": 3976,
+      "joint_pass": 3954
+    },
+    "workload": "W0",
+    "replay_plan": {
+      "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json",
+      "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+      "view_sha256": "a5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d",
+      "count": 4000,
+      "source_count": 4000,
+      "profile": "W0",
+      "rate_scale": 1.0
+    },
+    "common_slo_sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+    "metrics": {
+      "ttft_ms": {
+        "count": 4000,
+        "mean": 783.2094628447667,
+        "p50_type1": 581.5880899317563,
+        "p95_type1": 1868.328235577792
+      },
+      "tpot_ms": {
+        "count": 4000,
+        "mean": 31.354887115615362,
+        "p50_type1": 28.66384785865312,
+        "p95_type1": 49.921529261734
+      },
+      "e2e_ms": {
+        "count": 4000,
+        "mean": 4263.744711318985,
+        "p50_type1": 3470.15238692984,
+        "p95_type1": 9007.83100631088
+      }
+    },
+    "physical_gpu_seconds": 10541.548234078567,
+    "gpu_seconds_per_offered_request": 2.6353870585196417,
+    "n_correct": null
+  },
+  "reused_baselines": [],
+  "legacy_diagnostics": [],
+  "no_gpu_run": true,
+  "no_independent_review": true,
+  "final_ranking_eligible": false,
+  "limitations": [
+    "Known seed42 development observations, not unseen holdout or statistical inference.",
+    "No post-hoc startup subtraction, clock shift or synthetic physical GPU accounting.",
+    "Unknown independent numerical adapter correctness is not imputed.",
+    "Input match does not prove equal OS cache state or absence of remote interference.",
+    "Same-backend changed output digests are recorded, not dismissed as rounding."
+  ]
+}
