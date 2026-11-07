@@ -1,0 +1,16 @@
+{
+  "original_config": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml",
+    "sha256": "263bdcd6ff255108ddaffdd9ce46898d7f12be15948d7fe3d7ac27d5ea8828d2",
+    "bytes": 6164
+  },
+  "launch": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1112_20261107/3b_same_version_w2/launch.json",
+    "sha256": "77566bb45ee680dc67811ab2dfe9cf6d44025d2c6438278fd3d111d412586322",
+    "bytes": 12496
+  },
+  "changed_fields": {
+    "experiment.output_dir": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1112_20261107/3b_same_version_w2"
+  },
+  "purpose": "Analysis-only binding of the recorded output override."
+}

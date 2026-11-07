@@ -1,0 +1,55 @@
+{
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1112_same_version_w2/completion/analysis_output_binding.json",
+      "sha256": "6b20296ecd344e7c8c34378cc94d5a7991e0c2bc2ad856bceee92f4be8327eec",
+      "bytes": 6938
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1112_same_version_w2/completion/binding_provenance.json",
+      "sha256": "27faf563493c80c80bb0ab0bd8972854ff17590f0d0cdedbd4c9c95bc1c33169",
+      "bytes": 755
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1112_same_version_w2/completion/delivery_and_resources.json",
+      "sha256": "e3780fb93a15fce44612c5c07331b6b692081875b3af535414a8953f1fa46a96",
+      "bytes": 3090
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1112_same_version_w2/completion/full4000.json",
+      "sha256": "0727af0405b67ec92fd1014c04b1a100b767b86f72fe205687329a8fa1788694",
+      "bytes": 67936
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1112_same_version_w2/completion/profile_bindings.json",
+      "sha256": "3842d424d567d76e41f8673aec05970fc78eb4bea15187022bc85f25c9d7b92b",
+      "bytes": 2759
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1112_same_version_w2/completion/stages/diagnosis.json",
+      "sha256": "e79c82a980cfa6789f7656239c701632bb62cdc4883c49e2d0137af713ec4290",
+      "bytes": 235554
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1112_same_version_w2/completion/stages/requests.csv",
+      "sha256": "a33f6fe37e5538ca245610e3f84b02315563989ff1ca6df06a3d6f1761b847b8",
+      "bytes": 2342672
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1112_same_version_w2/completion/versus_d1084/diagnosis.json",
+      "sha256": "c2a1f3716fcf036df48522e38d920fd4e790a6391139247e6b412e2fc96bad0a",
+      "bytes": 240866
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1112_same_version_w2/completion/versus_d1084/paired_requests.csv",
+      "sha256": "0988b5fa2b34536b01da70c5a560de8638397fd8833be44b83cdedc46a6c3053",
+      "bytes": 1230777
+    }
+  ],
+  "collector": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d1112_same_version_w2/collect_completion.py",
+    "sha256": "2cd1348fae66a998339c385461d57c63adbb2fb42ff3b3bb6411910e44f7c77b",
+    "bytes": 6767
+  },
+  "note": "Valid measurement is not SLO feasibility or independent numerical correctness."
+}
