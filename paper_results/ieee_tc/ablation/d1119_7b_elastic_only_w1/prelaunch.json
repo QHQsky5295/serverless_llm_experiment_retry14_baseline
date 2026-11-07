@@ -1,0 +1,29 @@
+{
+  "kind": "ieee_tc_ablation_prelaunch_v1",
+  "run_id": "D1119",
+  "performance_status": "not_started",
+  "model": "Llama-2-7B",
+  "workload": "W1",
+  "scenario": "tc_ieee_elastic_only",
+  "full_reference": "D1115",
+  "configuration": "configs/ieee_tc/20261107_d1119_7b_elastic_only_w1.yaml",
+  "configuration_sha256": "2796e6d03e257ccfb69bd76be36058c966ef2ac6c978fc7ff6061413da000a74",
+  "non_target_configuration_equal": true,
+  "targeted_tests": 17,
+  "targeted_tests_passed": 17,
+  "test_log": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1119_20261107/prelaunch/tests2.txt",
+  "test_log_sha256": "a769641f2c4db2faeb824eca6dcd0df2230480bf64b4778214d0b274bc2f0e05",
+  "prior_test_command_error": "Missing WorkingDirectory; no tests imported. Retained as prelaunch/tests.txt; no GPU run.",
+  "runtime_mechanism_execution_qualified": false,
+  "external_design_review": "pending external review; requested skill model unavailable, local review only",
+  "protected_publication_files_verified": 144,
+  "source_refs": [
+    {"path": "configs/ieee_tc/20261107_d1100_7b_busy_service_rate_w2.yaml", "sha256": "386a34c84ec70e5d0d366f6d3bcaf0891536be503ba1359d583a93bd5ecf303f"},
+    {"path": "scripts/ieee_tc/run_d1100_7b_busy_service_rate_w2.sh", "sha256": "6c98164a346d356122f9addc540a283bfd88ea61bb8a99bba3d2d407ed316fe1"},
+    {"path": "scripts/run_all_experiments.py", "sha256": "82490fbd40bbfd189ec11298c742d4e819043a8fa72b8591551aed983114b93b"},
+    {"path": "faaslora/experiment/instance_pool.py", "sha256": "f051c0e4a07bd1ebe5af008edbbe4be6db650e0a083604700502656595b15629"},
+    {"path": "tests/test_ieee_tc_launch.py", "sha256": "1fa44c090aed5e1832fd58dc30d30724852fb31019f20562a83f18f86f659246"},
+    {"path": "configs/generated/lora_manifest_1000.json", "sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df", "role": "protected user modification; never stage"}
+  ],
+  "limitations": ["No new performance evidence yet", "Known seed42 development workload", "No independent numerical correctness proof", "No confidence interval or global optimality claim"]
+}

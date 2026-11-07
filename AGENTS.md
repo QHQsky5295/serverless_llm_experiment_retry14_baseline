@@ -1,5 +1,19 @@
 # PrimeLoRA IEEE TC execution contract
 
+Current handoff (2026-11-07): D1119 7B ElasticOnly W1 REGISTERED, not yet launched.
+Read D1119_7B_ELASTIC_ONLY_W1_REGISTRATION_20261107.md before next action.
+Same D1100/max4 configuration as sealed D1115 Full, changing only approved
+ElasticOnly gates, own scenario and isolated output/cache roots. No serving
+algorithm change. D1100 runner accepts optional seventh scenario; old default
+unchanged. 17 focused CPU tests pass (initial wrong-working-directory test
+command retained separately); 144 protected files and Full source SHA unchanged.
+Next backup this checkpoint, normal fresh resource checks, launch ONCE in tmux
+tc-d1119-elastic-only-7b-w1 with registered command. Do not repeat Full/baselines.
+After actual release reuse 7B collector/review with explicit scenario support,
+check mechanisms/complete inputs vs D1115; do not rename raw JSON as Full.
+All other A1-A5/S1-S13/docs/figures remain active; no whole-goal completion.
+Older D1118 next-action notes below are historical, not duplicate instructions.
+
 Current handoff (2026-11-07): D1118 W2 COMPLETE/released; no live GPU run.
 Read D1118_W2_RESULT_AND_BUDGET_WORKING_POINT_20261107.md FIRST.
 4000 native contracts; joint3900=97.5%; U9873.292173262686;

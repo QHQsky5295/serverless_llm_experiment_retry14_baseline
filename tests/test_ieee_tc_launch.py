@@ -106,17 +106,28 @@ class ElasticLocalityContract(unittest.TestCase):
 
 class ElasticOnlyContract(unittest.TestCase):
     def test_config_changes_only_registered_mechanisms_and_output_paths(self):
+        for full, ablation in (
+            ('20261104_d1047_3b_event_busy_time_w1.yaml',
+             '20261104_d1057_3b_elastic_only_w1.yaml'),
+            ('20261107_d1100_7b_busy_service_rate_w2.yaml',
+             '20261107_d1119_7b_elastic_only_w1.yaml'),
+        ):
+            with self.subTest(ablation=ablation):
+                self._assert_only_target_changes(full, ablation)
+
+    def _assert_only_target_changes(self, full_name, ablation_name):
         import copy
         import yaml
         root = Path(__file__).resolve().parents[1]
-        full = yaml.safe_load((root/'configs/ieee_tc/20261104_d1047_3b_event_busy_time_w1.yaml').read_text())
-        ablation = yaml.safe_load((root/'configs/ieee_tc/20261104_d1057_3b_elastic_only_w1.yaml').read_text())
+        full = yaml.safe_load((root/'configs/ieee_tc'/full_name).read_text())
+        ablation = yaml.safe_load((root/'configs/ieee_tc'/ablation_name).read_text())
         coord, preload = elastic_locality_configuration_fixture(load_only=True)
         self.assertEqual(runner._ieee_system_variant_contract(ablation['resource_coordination'],
             ablation['scenarios'][0]['preloading'], environment={}),
             runner._ieee_system_variant_contract(coord, preload, environment={}))
         self.assertEqual(ablation['scenarios'][0]['name'], 'tc_ieee_elastic_only')
         normalized = copy.deepcopy(ablation)
+        self.assertNotEqual(ablation['experiment']['output_dir'], full['experiment']['output_dir'])
         normalized['experiment']['output_dir'] = full['experiment']['output_dir']
         for key in ('nvme_cache_dir', 'host_cache_dir'):
             self.assertNotEqual(ablation['storage'][key], full['storage'][key])
