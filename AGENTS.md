@@ -1,5 +1,37 @@
 # PrimeLoRA IEEE TC execution contract
 
+Latest handoff 2026-11-08: D1120 COMPLETE, analyzed; no live GPU run.
+Read D1120_7B_ELASTIC_LOCALITY_W1_RESULT_20261108.md first. Do not rerun.
+4000 native contracts; joint3977/4000=99.425%; U8497.62170464173;
+P95TTFT1092.9982741363347ms. FullD1115 saves10.5176%U but joint-0.875pp,
+P95TTFT+113.2967%; neither max4 point meets W1G2budget. Trade-off, not all-metric win.
+4000 actual locality selectors pass; proactive plans all0;132realHTTPtransfers,
+131480060bytes, same as both references. 173outputdigest differences vsFull
+retained/unknowncause; n_correctnull remains. Twelve leases released,remoteinactive,
+no GPUcompute,high/max/OOM/swap0. Comparison reuses D1119 ElasticOnly unchanged.
+Next seal/backup then register current-version7B FixedFull W1 using existing gate;
+not Full/baseline replay, no3Bswitch. Remaining A1-A5/S1-S13/docs/figures ACTIVE.
+Older LIVE/NOTSTARTED notes below are historical and superseded.
+
+Latest verified wait00:33:19+08 Nov8: D1120 SAME panePID2234747 live,
+1162arrived/1155done/1155ok/native-contract,7backlog;phases1/2 complete500each.
+Sample727events/swap0,disk158.936485GiB,available99.516819GiB,noabort/foreigncompute.
+Current/previousturn VERIFIED WAIT. Continue SAME run; no relaunch,
+changes/maintenance/push. Full remaining scope remains active.
+
+LIVE handoff2026-11-08 00:22+08: D1120 launched ONCE, same panePID2234747
+confirmed live00:21:59. tmux tc-d1120-elastic-locality-7b-w1. DO NOT relaunch.
+Read updated D1120 registration. Checkpoint7efef8de9bed03d96c02a3fdcab64a9377d833b7
+pushed to V2 and remoteHEAD matched. Service456975b4e4004f8a8bbec5bb966d1d92,
+aux22dd636a092f41ed813158d0fa9a5bea;notice3575710.468862955,replay3575770.468862955.
+Remoteownedb3e9398cc2a14d119ffcae71d4a4a2ae,clock8cd21813c05b4f88ab02803caa4e11e5.
+Sample56 noabort/high/max/OOM/swap/foreigncompute;disk172449480704B.
+No final performance result. Monitor same handle to terminal/real release;
+no production edits/tests/maintenance/hashscans/push/remote changes while measuring.
+Afterwards matching-clockjournal and registered existing analyzers/comparisons.
+Prior goal turn and this turn are PROGRESS; full remaining scope active.
+Below NOT STARTED notes are historical, not new launch instructions.
+
 Current handoff 2026-11-08: D1120 current-version7B ElasticLocality W1
 REGISTERED, NOT STARTED. Read D1120_7B_ELASTIC_LOCALITY_W1_REGISTRATION_20261108.md.
 Existing gpu_locality/slack1; no production change or tuning. Same D1100/max4

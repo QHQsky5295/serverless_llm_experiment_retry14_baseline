@@ -1,0 +1,39 @@
+{
+  "sources": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261107_d1100_7b_busy_service_rate_w2.yaml": "386a34c84ec70e5d0d366f6d3bcaf0891536be503ba1359d583a93bd5ecf303f",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261108_d1120_7b_elastic_locality_w1.yaml": "af32ca772e43fc20546be23f52b744180710257887cf7730c6c2976732939cf1",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d1115_same_version_w1/result1/reconciliation.json": "8702484813d0fb7da009f513a983557478f8ee731b6b2208dafd266740c17656",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d1115_same_version_w1/result1/evidence_review.json": "6bc9f78b8ce2f3030742b3261df8fa6ac6f10a16af5b9c4c1f14c849556e6efd",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1115_20261107/7b_same_version_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d1115_7b_same_version_w1.json": "99574e407543545937b93d0277c7c70a4d3c28eb8107290d79db65aa1777e577",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1115_20261107/7b_same_version_w1/launch.json": "23adfd7b7b8b7519d0e6e9c969a2ed2c5fb16e7a7eba8cd1638b920e6c8e5cb4",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1115_20261107/7b_same_version_w1/launch.launch/physical_deployment/main_outcome.json": "9afaea049feced33c604957d5879c1e0df0609318e0ec153ef3e826ca43bcc48",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1120_7b_elastic_locality_w1/result1/reconciliation.json": "d934aaa34c9cfe13855c9d724bc0ea7b82e7a9c19387e2359f431753bff5e13e",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1120_7b_elastic_locality_w1/result1/evidence_review.json": "d459a013ea3c2c246e3f0821e86a21989bc4ed4fb13e6d5eda8a04d5d918708f",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1120_20261108/7b_elastic_locality_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_elastic_locality_d1120_7b_elastic_locality_w1.json": "1584c087c2d7748f6dde9a8b22166ae617c9b6d71fb043146ba791baffed4e2e",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1120_20261108/7b_elastic_locality_w1/launch.json": "b28de2eccf9774ea4d8c29876d8a4c00b4bd626e7fa3550d72e639cd4258cba9",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1120_20261108/7b_elastic_locality_w1/launch.launch/physical_deployment/main_outcome.json": "187523b1f74ca5193c32fb01a243566509b5eea7a8050b6aba22653ea14ff50e",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1119_7b_elastic_only_w1/comparison/manifest.json": "b57732c0d896f9033df339076165635146f962d992a37aa9ae1eb8d7755da866",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1119_7b_elastic_only_w1/comparison/comparison.json": "cde9f11705ae92e1bd4d814a38676f38a1f00ce40f75e4de0c41123b0f682e99",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1119_7b_elastic_only_w1/comparison/mechanisms.json": "5988350eee51a259f001e3857ef092b5abc10a2db01bcca8a9bc55ad2cf8553b",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261107_d1119_7b_elastic_only_w1.yaml": "2796e6d03e257ccfb69bd76be36058c966ef2ac6c978fc7ff6061413da000a74",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1119_7b_elastic_only_w1/result1/reconciliation.json": "42fed3a4c1b74d7eeb0e4e8f83c89c3aad54ef0831db7896d1fd3359ae1886e2",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1119_7b_elastic_only_w1/result1/evidence_review.json": "9efe73c5f08ef5cdd6072c6b1ce6daaeafabd7e0d2291f73226ea9856f187cfa",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1119_20261107/7b_elastic_only_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_elastic_only_d1119_7b_elastic_only_w1.json": "9d06cf7d69ff99085fa6d3f6f9902d4b5ccbb5b22edfe216871cd6576c542ca3",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1119_20261107/7b_elastic_only_w1/launch.json": "ef810c80f30e64e1545ee27d15fc48c2e7cb8ee25ea682c143e3076b95b92385",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1119_20261107/7b_elastic_only_w1/launch.launch/physical_deployment/main_outcome.json": "c0b7520c07dcfbad42f00d1c05bfe8a2070679f2a3f35f51f4d8b1eb640ed6be",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1119_7b_elastic_only_w1/compare.py": "78502f8c71a192c311fdf0d77acd0020d8da3984a3ae9f8c6da867a51db5a142",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/check_d299_full_context.py": "cfd8204d45c86a8652773a288e7ff723c973c6983a0104f77465b7754bc4af14",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d389_scaleup_handoff_labels.py": "7c72b0568b9eff81cf9292a25a6f0ce56addc060b0dc91e199c2dd53fa05a70f",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py": "f051c0e4a07bd1ebe5af008edbbe4be6db650e0a083604700502656595b15629",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1057_3b_elastic_only_w1/comparison/compare.py.snapshot": "690ca03659ead80c3babeb4ba39a44ae516e7d4a063893d258b36638b44426f2",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1120_7b_elastic_locality_w1/compare.py": "44d9cd8fffe8cd66a74bd129d348e8d0e0606975822f1199453d5610a6fa8951"
+  },
+  "outputs": {
+    "metrics.csv": "3837b52b64b33a8e8875b1a7c6bf711d24652cd2c98ad081562bb0cb239797c5",
+    "mechanisms.json": "84dbcd3dee10acbc839d14cf67eb181f9fe1c65fc91984dc8a3ee40045ed6e50",
+    "comparison.json": "5adb7a29eb59aaea4d3d449be557e39bdeb81e587baab5415ab3347face060f0"
+  }
+}

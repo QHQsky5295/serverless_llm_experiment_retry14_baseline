@@ -1,5 +1,59 @@
 # D1120：7B 当前版本 ElasticLocality W1 复合消融
 
+## 已完成并分析：2026-11-08
+
+本键于00:59:26结束，4000请求原生合同完整，所有12个lease已释放，
+GPU进程为空，远端服务inactive。不得重复下方历史启动命令。
+完整结果和限制见 `D1120_7B_ELASTIC_LOCALITY_W1_RESULT_20261108.md`。
+联合达标99.425%，U8497.62170464173GPU·秒。Full少用10.5176%资源，
+但尾延迟更高；这是取舍而不是全面领先。后续同版本7B FixedFull按A1推进。
+下方LIVE/尚未运行段落均保留为历史记录。
+
+## 实际启动：2026-11-08 00:20:58 +08
+
+00:33:19复查：同一panePID2234747存活；1162到达，1155成功终态并满足
+原生合同，7在途。前两个phase各500已完成。sample727无保护事件/swap、
+无外部compute或告警；available99.516819GiB、disk158.936485GiB。
+当前是同一实验的verified wait，没有修改配置或额外性能执行。
+
+00:28:49复查：同一panePID2234747仍存活，663到达，632终态/成功/原生
+合同匹配；第一阶段500/500已结束，第二阶段132完成，31在途。
+sample460无high/max/OOM/kill/swap、无告警中止；available100.813206GiB、
+disk159.446877GiB。继续同一运行，不能由局部积压或未结束成本判断胜负。
+
+00:25:14复查：同一panePID2234747仍存活，310到达、303终态且成功，
+303原生合同匹配、7尚在途。sample249无high/max/OOM/kill/swap及告警，
+available99.730946GiB、disk159.584339GiB。当前只是verified wait，
+没有新性能运行或完整结果；后续仍监测同一执行键，不重复启动。
+
+本键已启动一次，不再执行下方登记命令。tmux
+`tc-d1120-elastic-locality-7b-w1`，panePID2234747；00:21:59复查存活。
+启动前检查点`7efef8de9bed03d96c02a3fdcab64a9377d833b7`已推送并核对
+faaslora_origin/retry14_continuous_queue_v2完全一致，仅五个明确文件。
+
+service scope456975b4e4004f8a8bbec5bb966d1d92，InvocationID
+01e0a92ef13e4815b1d132f5d9c4be13；aux22dd636a092f41ed813158d0fa9a5bea。
+共同通知3575710.468862955，replay_t0=3575770.468862955；
+W1 viewSHA103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3，
+4000既有请求，无新trace。执行仍保留exploratory/formal_run=false身份。
+
+remote拥有的InvocationID为b3e9398cc2a14d119ffcae71d4a4a2ae，
+PID1275640，clock8cd21813c05b4f88ab02803caa4e11e5。首次连接在服务就绪前
+失败，后续health与published-gzip/timing-v2验证通过，均在共同通知前。
+两端数据NIC实测1000Mbps/full，未改网络或远端配置。
+
+启动前GPU计算进程为空，磁盘172450754560B、MemAvailable118779908KiB。
+sample56无告警/中止、high/max/OOM/kill/swap全0，foreign/escaped compute为空，
+available115740164096B、disk172449480704B。尚无完整性能结果。
+systemd列出的若干旧aux/CPU scope呈active，但抽查D1119/D1118/D1114-collect/
+D1081的实际cgroup.procs均空、populated0；未把陈旧unit标签当作活跃实验，
+也没有在本轮期间做清理。
+
+继续同一tmux/run到真实结束和释放；使用monitor-experiment轻量读取
+实际handle/日志/watchdog，不重启、不同时测试/压缩/备份/远端调整。
+本轮完成了配置、测试、备份和实际启动，属于PROGRESS。下文“尚未运行”
+是启动前记录，不覆盖它。后续分析仍按原完成规则，完整目标保持active。
+
 2026-11-08，启动前登记，尚未运行。承接 D1119 已封存的 ElasticOnly；
 不重跑 Full、基线或3B，不新增负载、工件、性能参数搜索或生产算法。
 

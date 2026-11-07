@@ -1,0 +1,59 @@
+{
+  "kind": "d1120_closed_ablation_evidence_v1",
+  "raw_directory": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1120_20261108/7b_elastic_locality_w1",
+  "run_checkpoint": "7efef8de9bed03d96c02a3fdcab64a9377d833b7",
+  "raw_result_sha256": "1584c087c2d7748f6dde9a8b22166ae617c9b6d71fb043146ba791baffed4e2e",
+  "outputs": {
+    "compare.py": "44d9cd8fffe8cd66a74bd129d348e8d0e0606975822f1199453d5610a6fa8951",
+    "comparison/comparison.json": "5adb7a29eb59aaea4d3d449be557e39bdeb81e587baab5415ab3347face060f0",
+    "comparison/manifest.json": "c0df9a6da436cab373c7695963666d9dd57f174e63431ee23935d4f6b2da0fc4",
+    "comparison/mechanisms.json": "84dbcd3dee10acbc839d14cf67eb181f9fe1c65fc91984dc8a3ee40045ed6e50",
+    "comparison/metrics.csv": "3837b52b64b33a8e8875b1a7c6bf711d24652cd2c98ad081562bb0cb239797c5",
+    "prelaunch.json": "0d9aee5f273e0c6945ee5fb00f1a950ca217da66d0817701636ec1ddbbfd0f27",
+    "result1/evidence_review.json": "d459a013ea3c2c246e3f0821e86a21989bc4ed4fb13e6d5eda8a04d5d918708f",
+    "result1/manifest.json": "95447e5450c59c0cf4ba352b0f0d2fac080a096f567f2cd4788534fce62c9b4b",
+    "result1/reconciliation.json": "d934aaa34c9cfe13855c9d724bc0ea7b82e7a9c19387e2359f431753bff5e13e",
+    "stages/summary.json": "08a32176fcb4c32d4c7f88948c7bbeb645e2cf22add266f42e992ec337e52ec6"
+  },
+  "analysis_sources": {
+    "scripts/ieee_tc/analyze_d455_stages.py": "c7b005e636d4b80cd121ccbfda5c272a9dd21675e370a146022ffbf50410f5e0",
+    "scripts/analyze_control_path_overhead.py": "38e847258f8aed7b8264c73eaa8246f400efe78735a5114276f82434758d84f0",
+    "scripts/ieee_tc/check_d299_full_context.py": "cfd8204d45c86a8652773a288e7ff723c973c6983a0104f77465b7754bc4af14",
+    "paper_results/ieee_tc/main_comparison/d1113_contract_reconciliation/collect.py": "dc996480e5b97892c1ab3a33a6789b2cc6c3ed3ad463c7f1a82cec2b381bc33a",
+    "docs/ieee_tc/D1120_7B_ELASTIC_LOCALITY_W1_RESULT_20261108.md": "418ec2a669fa1f02883e90f61bfbc1e93ea1277921d6d77883311c0c494b2000"
+  },
+  "extra_raw_hashes": {
+    "remote_pre_health.json": "5ec32357fe51a4fd8e13e4d8f8ee3b0f1d0163e8cb7fc2a1660219217178369a",
+    "remote_transfers.jsonl": "8ade8b056daf8f585349bcc2b907c49cc441052dce192ba534c0157c589a3a18",
+    "remote_monitor.log": "af47d967da9602cf736539d14f60c0f83321703f27acfad10735b57ccc8f31a6",
+    "remote_service_stop.txt": "c21fa3c9864f884f0f038dc8566688577ee7382c4e11e49d1e743cb9e06dcb81",
+    "launcher.log": "bc0d061c242027c7ba9fc6b5ef440cf9724f14240c47b3ac0c47f4c43ad5c93d",
+    "launch.json": "b28de2eccf9774ea4d8c29876d8a4c00b4bd626e7fa3550d72e639cd4258cba9"
+  },
+  "source_verification": {
+    "kind": "executor_hash_recheck_not_independent_review",
+    "verified_unique_sources": 52,
+    "protected_publication_files_unchanged": 144,
+    "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "unit": "run-u350.service",
+    "initial_projection_error": "run-u349 assumed all source maps were dictionaries; stages uses a list; corrected before writing evidence"
+  },
+  "tests": {
+    "passed": 23,
+    "phase": "prelaunch; unchanged production selector and variant contracts",
+    "log": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1120_20261108/prelaunch/tests.txt",
+    "sha256": "69c02d2e04f73b429689a7c46606f857309e683edbd345184492d5d7c52b05f7"
+  },
+  "analysis_units": ["run-u345.service", "run-u346.service", "run-u347.service", "run-u348.service"],
+  "analysis_cpu_affinity": [2, 3, 26, 27],
+  "analysis_memory_high_gib": 3,
+  "analysis_memory_max_gib": 4,
+  "analysis_swap_max": 0,
+  "remote_journal": "/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-29acf9eb6eed4604aea3f15a604ee9e1.jsonl",
+  "remote_clock_id": "remote-process-monotonic:8cd21813c05b4f88ab02803caa4e11e5",
+  "remote_sha256_matched": true,
+  "remote_service_inactive_main_pid_zero": true,
+  "gpu_compute_census_empty": true,
+  "new_performance_runs_this_analysis": 0,
+  "main_goal_complete": false
+}
