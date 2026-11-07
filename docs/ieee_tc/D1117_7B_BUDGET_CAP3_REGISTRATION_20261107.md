@@ -1,4 +1,33 @@
-# D1117：当前 7B 实现的独立 G2 三副本工作点（未启动）
+# D1117：当前 7B 实现的独立 G2 三副本工作点
+
+## 已完成：2026-11-07 18:33
+
+首次运行已结束并释放，4000原生合同通过，联合97.575%，6545.884585 GPU-s，
+W1预算余量210.686465 GPU-s。完整结果和取舍见
+`D1117_W1_RESULT_20261107.md`。原tmux已退出，不重启同键。
+下一步为原登记要求的相同配置W2（D1118），不是另选参数或重跑W1。
+下面RUNNING与NOT STARTED段落为历史状态。
+
+## 当前执行：2026-11-07 17:54 已启动，尚未结束
+
+登记/分析/配置备份提交 `13b94a6de06c625e58e22ac9dcc67b6c33733674` 已推送，
+remote HEAD 核验一致。已按下述唯一命令启动，tmux `tc-d1117-7b-budget-w1`，
+pane PID1300738；不要重启同键。服务scope为
+`primelora-tc-svc-3865ea7edd1344129b8f54aa8327cbdb.scope`，辅助scope为
+`primelora-tc-aux-315c2c79d9254d74a41e37f204ff3211.scope`。
+
+本次拥有的7B远端invocation=`caf52e7ce72d44e39ef56fb2ad30306b`；启动时
+两端均1Gbps/full。唯一初次health连接时服务尚在启动，随后共同delivery/timing
+合同核验通过；此时尚未发部署通知，不是性能回放失败。外部通知monotonic
+3552533.786908827，业务t0=3552593.786908827，仍提前60秒；source/view SHA
+与下述W1登记一致。sample54无warning/abort，主机available114474233856B，
+磁盘174124027904B；这是早期监控，不是最终性能或资源资格结论。
+
+下一步只监控本次完整运行至真实终态/归还，之后收集远端对应clock的实际
+journal（文件名不等于clock ID）、复用collector/review/W1 comparison。
+原登记中的“未运行”语句描述启动前状态，不是再次启动的指令。
+
+## 启动前冻结登记
 
 2026-11-07。依据完整 PrimeLoRA-PLAN §P3/§M2 和 D1116 已存日志诊断。
 这不是新的主协议、不是更换 resource_opt、不是重复 D1115；当前三场景

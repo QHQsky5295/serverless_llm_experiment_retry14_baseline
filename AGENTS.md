@@ -1,5 +1,33 @@
 # PrimeLoRA IEEE TC execution contract
 
+Current handoff (2026-11-07 18:38 +08): D1117 W1 COMPLETE/released.
+Read D1117_W1_RESULT_20261107.md and D1118_7B_BUDGET_CAP3_W2_REGISTRATION_20261107.md.
+4000 native contracts, joint3903/4000=97.575%, U6545.884585417341,
+P95 TTFT2469.504281ms; W1 budget6756.571050141065 passes by210.686465.
+Versus D1115: U -13.913829%, P95 +5.926865%, joint -0.975pp, all retained.
+Five existing W1 baseline rows reused; 214 output digests differ from D536,
+unknown independent numerical cause. No independent arithmetic proof/CI claimed.
+All leases closed, service/replay/watchdog0, remote inactive, GPU census empty.
+38 source hashes, 144 protected publication files and user manifest verified;
+7 targeted tests pass. Result directory d1117_budget_cap3_w1/result1.
+Next D1118 W2 uses EXACT same D1117 YAML/code; no per-scenario tuning.
+Registered but NOT STARTED as of this note; backup then normal launch checks.
+Do not repeat W1, alter resource_opt, restart baselines or switch to3B.
+Full scope remains active. Older LIVE D1117 notes below are now historical.
+
+LIVE handoff (2026-11-07 17:54 +08): D1117 cap3 W1 HAS STARTED once.
+tmux `tc-d1117-7b-budget-w1`, pane PID1300738; DO NOT duplicate/restart.
+Registration checkpoint 13b94a6de06c625e58e22ac9dcc67b6c33733674 was pushed
+and remote HEAD matched before launch. Read updated D1117 registration first.
+Service scope 3865ea7edd1344129b8f54aa8327cbdb, auxiliary 315c2c79d9254d74a41e37f204ff3211.
+Owned remote invocation caf52e7ce72d44e39ef56fb2ad30306b, data NICs 1Gbps/full.
+Raw `results/ieee_tc/p2_backend_qualification/d1117_20261107/7b_budget_cap3_w1`
+under `/home/qhq/serverless_llm_experiment`; replay_t0=3552593.786908827,
+last planned arrival +2186.992129s. Sample54 no warning/abort; no final result.
+Next monitor this same run, then actual release and existing collector/review/
+W1 comparison. No maintenance/remote changes/parallel heavy work while measuring.
+Below NOT STARTED notes are historical registration, not a launch instruction.
+
 Current handoff (2026-11-07): D1116 offline W1 budget diagnosis COMPLETE.
 Read `docs/ieee_tc/D1116_W1_BUDGET_DIAGNOSIS_20261107.md` then
 `docs/ieee_tc/D1117_7B_BUDGET_CAP3_REGISTRATION_20261107.md`.

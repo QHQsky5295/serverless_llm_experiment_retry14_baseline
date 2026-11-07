@@ -1,0 +1,23 @@
+{
+  "run": "D1117",
+  "verified_date": "2026-11-07",
+  "sources_verified": 38,
+  "protected_publication_files_verified": 144,
+  "protected_manifest_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+  "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "remote_journal_sha256": "6648469ad0e01ae0ad63222e52b1f62959b61e38559f1ddd0f3a48419f02c0d8",
+  "remote_service_inactive": true,
+  "gpu_compute_census_empty": true,
+  "targeted_tests_passed": 7,
+  "outputs": {
+    "comparison.json": "8195c19cabd5a8f67459a88df2f09be9a4a7f6adc9ffb507252d3d6f44a5c6e7",
+    "evidence_review.json": "98cd8fe1685d6d520b397003f76aee24d8dc134b8d8cd0c34db8c66740d1956c",
+    "manifest.json": "e29baae0a703aff02c9b890de4552ad828746133287d8785087e847dc168bf5f",
+    "reconciliation.json": "fe39076fea41c47d96b6abbe80dfc8d39d5c6eb6f65d3724a416e5648a30e9fd"
+  },
+  "W1_observed_native_timing_budget_feasible": true,
+  "independent_numerical_proof": false,
+  "independent_holdout": false,
+  "W2_same_configuration_pending": true,
+  "full_goal_complete": false
+}
