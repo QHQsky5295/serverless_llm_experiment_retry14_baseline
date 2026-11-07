@@ -876,7 +876,7 @@ def review_single_run(source, warm_path, output):
         caveats=['Control-plane/source binding is not independent kernel arithmetic proof.',
                  'Legacy local_sim_no_delay label describes inactive limiter, not the HTTP transfer journal.',
                  'Legacy time_scale=8 belongs to the retained source trace; replay rate_scale is recorded separately.',
-                 'Single W0 observation cannot establish W1/W2 feasibility, G2 or a baseline ranking.'],
+                 f"Single {external['plan']['profile']} observation cannot establish cross-scenario feasibility, G2 optimality or a baseline ranking."],
         confidence_interval=None, formal_g1_g2_qualified=False,
         source_refs=[dict(path=str(path), sha256=sha256(path)) for path in dict.fromkeys(paths)])
     output.parent.mkdir(parents=True, exist_ok=True)
