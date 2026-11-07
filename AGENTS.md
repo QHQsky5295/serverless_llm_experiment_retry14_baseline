@@ -1,5 +1,17 @@
 # PrimeLoRA IEEE TC execution contract
 
+Current handoff 2026-11-08: D1120 current-version7B ElasticLocality W1
+REGISTERED, NOT STARTED. Read D1120_7B_ELASTIC_LOCALITY_W1_REGISTRATION_20261108.md.
+Existing gpu_locality/slack1; no production change or tuning. Same D1100/max4
+non-targets as sealed FullD1115 and ElasticOnlyD1119. 23 targeted CPU tests pass;
+144 protected files/user manifest/source result SHA unchanged. Next backup,
+fresh existing resource/remote checks, launch ONCE in tc-d1120-elastic-locality-7b-w1
+using registered seven-argument D1100 runner. No Full/baseline replay/3B switch.
+After real release use explicit-scenario D1113/D299/D455, same-clock journal,
+actual gpu_locality recomputation and two retained references. Preserve negative
+results and native/numerical-correctness limitations. Full scope stays active.
+Earlier D1119 next-registration instructions below are superseded by this note.
+
 Latest handoff: D1119 analysis COMPLETE, no live GPU run. Read
 docs/ieee_tc/D1119_7B_ELASTIC_ONLY_W1_RESULT_20261107.md FIRST.
 4000 native contracts, joint3987/4000=99.675%, U8575.626704086084,

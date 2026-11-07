@@ -38,18 +38,30 @@ def elastic_locality_configuration_fixture(*, load_only=False):
 
 class ElasticLocalityContract(unittest.TestCase):
     def test_frozen_config_changes_only_target_mechanisms_and_output_paths(self):
+        for full, ablation in (
+            ('20261010_d371_7b_full_w0.yaml',
+             '20261012_d450_7b_elastic_locality_100.yaml'),
+            ('20261107_d1100_7b_busy_service_rate_w2.yaml',
+             '20261108_d1120_7b_elastic_locality_w1.yaml'),
+        ):
+            with self.subTest(ablation=ablation):
+                self._assert_only_target_changes(full, ablation)
+
+    def _assert_only_target_changes(self, full_name, ablation_name):
         import copy
         import yaml
         root = Path(__file__).resolve().parents[1]
-        full = yaml.safe_load((root/'configs/ieee_tc/20261010_d371_7b_full_w0.yaml').read_text())
-        local = yaml.safe_load((root/'configs/ieee_tc/20261012_d450_7b_elastic_locality_100.yaml').read_text())
+        full = yaml.safe_load((root/'configs/ieee_tc'/full_name).read_text())
+        local = yaml.safe_load((root/'configs/ieee_tc'/ablation_name).read_text())
         coord, preload = elastic_locality_configuration_fixture()
         self.assertEqual(runner._ieee_system_variant_contract(local['resource_coordination'],
             local['scenarios'][0]['preloading'],environment={}),
             runner._ieee_system_variant_contract(coord,preload,environment={}))
         normalized = copy.deepcopy(local)
+        self.assertNotEqual(local['experiment']['output_dir'], full['experiment']['output_dir'])
         normalized['experiment']['output_dir'] = full['experiment']['output_dir']
         for key in ('nvme_cache_dir','host_cache_dir'):
+            self.assertNotEqual(local['storage'][key], full['storage'][key])
             normalized['storage'][key] = full['storage'][key]
         normalized['scenarios'][0]['name'] = full['scenarios'][0]['name']
         for key in coord:
@@ -58,7 +70,10 @@ class ElasticLocalityContract(unittest.TestCase):
             else:
                 del normalized['resource_coordination'][key]
         for key in preload:
-            del normalized['scenarios'][0]['preloading'][key]
+            if key in full['scenarios'][0]['preloading']:
+                normalized['scenarios'][0]['preloading'][key] = full['scenarios'][0]['preloading'][key]
+            else:
+                del normalized['scenarios'][0]['preloading'][key]
         self.assertEqual(normalized,full)
 
     def test_explicit_contract_preserves_full_and_rejects_every_missing_gate(self):

@@ -1,0 +1,90 @@
+{
+  "kind": "ieee_tc_ablation_prelaunch_v1",
+  "run_id": "D1120",
+  "performance_status": "not_started",
+  "model": "Llama-2-7B",
+  "workload": "W1",
+  "scenario": "tc_ieee_elastic_locality",
+  "full_reference": "D1115",
+  "elastic_only_reference": "D1119",
+  "configuration": "configs/ieee_tc/20261108_d1120_7b_elastic_locality_w1.yaml",
+  "configuration_sha256": "af32ca772e43fc20546be23f52b744180710257887cf7730c6c2976732939cf1",
+  "non_target_configuration_equal": true,
+  "locality_load_slack": 1,
+  "slack_provenance": "D448 predeclared, D450-D453/D1061 reused; no new slack search",
+  "targeted_tests": 23,
+  "targeted_tests_passed": 23,
+  "test_log": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1120_20261108/prelaunch/tests.txt",
+  "runtime_mechanism_execution_qualified": false,
+  "external_design_review": "pending external review; skill-specified model unavailable, local review of approved A1 only",
+  "protected_publication_files_verified": 144,
+  "source_refs": [
+    {
+      "path": "configs/ieee_tc/20261108_d1120_7b_elastic_locality_w1.yaml",
+      "sha256": "af32ca772e43fc20546be23f52b744180710257887cf7730c6c2976732939cf1"
+    },
+    {
+      "path": "configs/ieee_tc/20261107_d1100_7b_busy_service_rate_w2.yaml",
+      "sha256": "386a34c84ec70e5d0d366f6d3bcaf0891536be503ba1359d583a93bd5ecf303f"
+    },
+    {
+      "path": "configs/ieee_tc/20261107_d1119_7b_elastic_only_w1.yaml",
+      "sha256": "2796e6d03e257ccfb69bd76be36058c966ef2ac6c978fc7ff6061413da000a74"
+    },
+    {
+      "path": "scripts/ieee_tc/run_d1100_7b_busy_service_rate_w2.sh",
+      "sha256": "6c98164a346d356122f9addc540a283bfd88ea61bb8a99bba3d2d407ed316fe1"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "sha256": "82490fbd40bbfd189ec11298c742d4e819043a8fa72b8591551aed983114b93b"
+    },
+    {
+      "path": "faaslora/experiment/instance_pool.py",
+      "sha256": "f051c0e4a07bd1ebe5af008edbbe4be6db650e0a083604700502656595b15629"
+    },
+    {
+      "path": "tests/test_ieee_tc_launch.py",
+      "sha256": "028890e7e1fe67008b045598e13cc234003921f04db580c57149606762835f2e"
+    },
+    {
+      "path": "docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/20261010_d394_7b_warm_reference.json",
+      "sha256": "93e2af33de471af6ee3cf97c7cb98eb074768dd2d34f4d29e152d59ab7566cee"
+    },
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+    },
+    {
+      "path": "configs/generated/lora_manifest_1000.json",
+      "sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1120_20261108/prelaunch/tests.txt",
+      "sha256": "69c02d2e04f73b429689a7c46606f857309e683edbd345184492d5d7c52b05f7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1115_20261107/7b_same_version_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d1115_7b_same_version_w1.json",
+      "sha256": "99574e407543545937b93d0277c7c70a4d3c28eb8107290d79db65aa1777e577"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1119_20261107/7b_elastic_only_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_elastic_only_d1119_7b_elastic_only_w1.json",
+      "sha256": "9d06cf7d69ff99085fa6d3f6f9902d4b5ccbb5b22edfe216871cd6576c542ca3"
+    }
+  ],
+  "limitations": [
+    "First valid single-run observation, preserve all failures and trade-offs",
+    "Known seed42 development workload",
+    "Not an external baseline or isolated confirmed-state experiment",
+    "Native source binding is not independent numerical correctness proof",
+    "No confidence interval or global-optimality claim"
+  ]
+}
