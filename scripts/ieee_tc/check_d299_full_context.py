@@ -691,8 +691,18 @@ def main(campaign='d299', reference_override=None):
     print(json.dumps(dict(input_identity_equal=True,output_hash_change_count=len(differences))),flush=True)
 
 
-def review_single_run(source, warm_path, output):
-    """Stream a closed historical Full run under the unchanged V1 metric ruler.
+def require_controller_scenario(metadata, scenario):
+    """Keep explicit ablation identity; never relabel a control as Full."""
+    import re
+    if not isinstance(scenario, str) or not re.fullmatch(r'tc_ieee_[a-z0-9_]+', scenario):
+        raise ValueError('explicit controller scenario required')
+    if set(metadata.get('scenario_coordination', {})) != {scenario}:
+        raise ValueError('requested scenario differs from recorded controller identity')
+    return metadata['scenario_coordination'][scenario]
+
+
+def review_single_run(source, warm_path, output, *, scenario='tc_ieee_full'):
+    """Stream a closed controller run under the unchanged V1 metric ruler.
 
     Reuse existing binding/timeline checks. Never relabel a development run as
     an unseen formal run, infer arithmetic correctness, or overwrite evidence.
@@ -741,6 +751,7 @@ def review_single_run(source, warm_path, output):
         raise ValueError('physical integral/window partition mismatch')
     with source.open('rb') as stream:
         metadata = next(ijson.items(stream, 'metadata', use_float=True))
+    require_controller_scenario(metadata, scenario)
     external = launch['external_replay']
     trace_path = Path(external['plan']['source_path'])
     if sha256(trace_path) != external['plan']['source_sha256']:
@@ -783,7 +794,7 @@ def review_single_run(source, warm_path, output):
     max_error = {k: 0.0 for k in ('ttft_ms', 'tpot_ms', 'e2e_ms')}
     vectors = []
     with source.open('rb') as stream:
-        for r in ijson.items(stream, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+        for r in ijson.items(stream, f'detailed_results.{scenario}.requests.item', use_float=True):
             rid = r['request_id']
             if rid in seen or not rid or r['success'] is not True:
                 raise ValueError('unique successful complete request population required')
@@ -855,6 +866,7 @@ def review_single_run(source, warm_path, output):
     if not samples or any(x['decision']['abort_reasons'] for x in samples):
         raise ValueError('missing or aborted independent resource monitoring')
     report = dict(kind='single_run_evidence_review_v2', source=str(source), source_sha256=source_sha,
+        scenario=scenario,
         original_formal_run=metadata['formal_run'], original_trace_role=metadata['trace_role'],
         reuse_identity='reused_development_observation', independent_holdout=False,
         metric_protocol_sha256=sha256(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
@@ -1790,6 +1802,7 @@ if __name__=='__main__':
     parser.add_argument('--reference', choices=('d303', 'd314', 'd349', 'd336', 'd353', 'd358'),
         help='Registered full reference; separate non-overwriting output')
     parser.add_argument('--single-run-source', type=Path)
+    parser.add_argument('--single-run-scenario', default='tc_ieee_full')
     parser.add_argument('--warm-reference', type=Path)
     parser.add_argument('--review-output', type=Path)
     parser.add_argument('--published-w0-source', type=Path)
@@ -1805,6 +1818,8 @@ if __name__=='__main__':
     parser.add_argument('--include-sealed-elastic-locality', action='store_true',
         help='D454: add sealed D453, preserving all five prior rows and native-output audit')
     args = parser.parse_args()
+    if args.single_run_scenario != 'tc_ieee_full' and args.single_run_source is None:
+        parser.error('--single-run-scenario requires --single-run-source')
     publication_args = (args.published_w0_source, args.published_w0_source_sha256,
                         args.publication_registry, args.published_w0_output)
     if any(value is not None for value in publication_args):
@@ -1828,7 +1843,8 @@ if __name__=='__main__':
     if args.single_run_source is not None:
         if args.warm_reference is None or args.review_output is None:
             parser.error('single-run review requires explicit warm reference and output')
-        review_single_run(args.single_run_source, args.warm_reference, args.review_output)
+        review_single_run(args.single_run_source, args.warm_reference, args.review_output,
+                          scenario=args.single_run_scenario)
         raise SystemExit(0)
     campaign = args.campaign
     if args.reference is not None and args.reference not in REGISTERED_REFERENCES.get(campaign, ()):

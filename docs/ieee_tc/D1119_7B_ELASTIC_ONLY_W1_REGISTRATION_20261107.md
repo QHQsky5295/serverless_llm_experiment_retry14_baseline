@@ -1,5 +1,53 @@
 # D1119：7B 当前版本 ElasticOnly W1 复合消融
 
+## 最新状态：分析完成
+
+见 `D1119_7B_ELASTIC_ONLY_W1_RESULT_20261107.md`。4000原生合同，联合
+99.675%，U8575.626704086084，P95TTFT1035.5770019814372ms；与D1115
+完整输入匹配，179输出摘要差异保留。Full节省11.3316%资源但时延/SLO更差，
+按资源—服务质量取舍解释。机制关闭与真实selector均通过执行记录核验。
+本键封存，不再运行；下文旧“正在分析/运行”均为历史状态。
+
+## 当前状态：2026-11-07 22:56 +08 完成，正在分析
+
+同一panePID1953868已终止且exit0；4000成功，全部11次物理分配释放，
+GPU计算进程为空。service/replay/watchdog均0；完整占用8575.626704086084
+GPU-s。尚未完成冻结联合SLO及Full比较，不由此预设胜负。
+对应clock的远端journal已下载到本轮raw/remote_transfers.jsonl，双端SHA
+`93f4ec19a36fd8b7a8a305f344e94d119200bf39102841f2735a4c201e7381ff`。
+仅离线扩展现有统计入口的显式scenario并保留默认Full；不改运行数据。
+下文启动和监测状态保留为历史，不作为再次启动指令。
+
+## 当前状态：2026-11-07 22:18 +08 已启动一次
+
+22:20:41复查：同一panePID1953868存活，76到达、72完成且成功、0失败；
+已观察三次自然扩容，当前4runtimes。watchdog sample142无告警/中止，
+high/max/OOM/swap全0；available99.958477GiB、disk160.037388GiB。
+这是局部进度，不是全量SLO或资源排名；不使用legacy5000ms显示替代冻结评价。
+
+tmux `tc-d1119-elastic-only-7b-w1`，panePID1953868，22:19复查仍存活。
+启动前检查点 `02bccc884f155c295208557eed31238910431a28` 已推送到
+faaslora_origin/retry14_continuous_queue_v2，远端HEAD完全一致。六个明确
+文件提交；用户dirty manifest和历史状态文件未stage，144旧投稿文件未变。
+
+实际service为8f3642ca72f942588447b751d6ab3950，invocation
+a16fd363b6f1482a8f60d2a3ce51db9f；aux为b5f3fc5c3706466589f987e0d70237f2。
+通知3568345.783442678，业务起点3568405.783442678，间隔60秒。
+W1viewSHA103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3，
+sourceSHAefb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c。
+实际日志场景为tc_ieee_elastic_only，不是Full。
+
+远端本次InvocationID3a5aa97080a94984ad26ddb9265c6d25、PID1158555；
+clock为remote-process-monotonic:69ab6e9a4e864acda9c3607846d854a5。
+初次health在服务就绪前失败，随后published-gzip/timing-v2验证通过，
+全部发生在部署通知前。两端1Gbps/full，没有网络调整或动态打包。
+
+启动前available119014620KiB，disk172372598784B，GPU计算进程为空。
+sample54时available115941040128B、disk172370706432B、服务high/max/OOM/
+swap全0，无告警或中止。尚未完成性能实验，不能据此给出胜负。
+接下来只监测同一个运行；结束后真实释放、校验、分析，不重复启动。
+运行交接仅本地轻量更新；下一备份在测量结束后。下文“尚未运行”为历史登记。
+
 2026-11-07，启动前登记；尚未运行。延续已批准 PLAN §8 A1/A5，不新增
 baseline、负载或优化候选。D1117/W1 与 D1118/W2 已关闭并封存，上一目标
 阶段有实际结果进展；本次转入当前版本 7B A1，不重复 Full 或五个基线。

@@ -1,0 +1,82 @@
+{
+  "kind": "d1119_closed_ablation_evidence_v1",
+  "raw_directory": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1119_20261107/7b_elastic_only_w1",
+  "run_checkpoint": "02bccc884f155c295208557eed31238910431a28",
+  "raw_result_sha256": "9d06cf7d69ff99085fa6d3f6f9902d4b5ccbb5b22edfe216871cd6576c542ca3",
+  "outputs": {
+    "compare.py": "78502f8c71a192c311fdf0d77acd0020d8da3984a3ae9f8c6da867a51db5a142",
+    "comparison/comparison.json": "cde9f11705ae92e1bd4d814a38676f38a1f00ce40f75e4de0c41123b0f682e99",
+    "comparison/manifest.json": "b57732c0d896f9033df339076165635146f962d992a37aa9ae1eb8d7755da866",
+    "comparison/mechanisms.json": "5988350eee51a259f001e3857ef092b5abc10a2db01bcca8a9bc55ad2cf8553b",
+    "comparison/metrics.csv": "6c618aac7c5daad4c4a8fad5d744664befd492156c5a69a28b10df27df4d5aee",
+    "prelaunch.json": "380518810143efaf5c311cd3841665fed5d9275acb07bec4b0da506edc7a9ffe",
+    "result1/evidence_review.json": "9efe73c5f08ef5cdd6072c6b1ce6daaeafabd7e0d2291f73226ea9856f187cfa",
+    "result1/manifest.json": "70be1bf1e85a8d1bb8da5b6f766ec727d163194cb44f41ebf566d9ce6843d66e",
+    "result1/reconciliation.json": "42fed3a4c1b74d7eeb0e4e8f83c89c3aad54ef0831db7896d1fd3359ae1886e2",
+    "stages/summary.json": "191e9cf0a2c916622b717ddd30140406b03c9ffefa36b3823d76d72b7bc6d58b"
+  },
+  "analysis_sources": {
+    "scripts/ieee_tc/analyze_d455_stages.py": "c7b005e636d4b80cd121ccbfda5c272a9dd21675e370a146022ffbf50410f5e0",
+    "scripts/analyze_control_path_overhead.py": "38e847258f8aed7b8264c73eaa8246f400efe78735a5114276f82434758d84f0",
+    "scripts/ieee_tc/check_d299_full_context.py": "cfd8204d45c86a8652773a288e7ff723c973c6983a0104f77465b7754bc4af14",
+    "paper_results/ieee_tc/main_comparison/d1113_contract_reconciliation/collect.py": "dc996480e5b97892c1ab3a33a6789b2cc6c3ed3ad463c7f1a82cec2b381bc33a",
+    "tests/test_d1113_reuse_cli.py": "f1e7e3b0678185564fb2cfd3fcb62adfdbc5b86b9b117bb43cf7f323b03117a7",
+    "tests/test_ieee_tc_control_profile_analysis.py": "bee0ffb5b33b1738a55b9c774f074dc7d22b4b2c8caf29cac4b7913bb55dede9",
+    "docs/ieee_tc/D1119_7B_ELASTIC_ONLY_W1_RESULT_20261107.md": "ea0f749ce477541e9167f8a029289d9323f5548e96db326cd49d2c0c1fee6dac"
+  },
+  "extra_raw_hashes": {
+    "remote_pre_health.json": "fec178b5150c04972a1da17bd8de358ddc2238cbda3511a28583513ba9248dc3",
+    "remote_transfers.jsonl": "93f4ec19a36fd8b7a8a305f344e94d119200bf39102841f2735a4c201e7381ff",
+    "remote_monitor.log": "c7a72a2da7c305bedfb4a58d8c6953fa0d0876bce6609149fc8735041c28410e",
+    "remote_service_stop.txt": "c21fa3c9864f884f0f038dc8566688577ee7382c4e11e49d1e743cb9e06dcb81",
+    "launcher.log": "45225d8b0cfd3f776114e1591514689cfb66079df3f817c7e82e92a01419ab3b",
+    "launch.json": "ef810c80f30e64e1545ee27d15fc48c2e7cb8ee25ea682c143e3076b95b92385"
+  },
+  "source_verification": {
+    "kind": "executor_hash_recheck_not_independent_review",
+    "verified_unique_sources": 43,
+    "full_sealed_outputs_unchanged": 4,
+    "protected_publication_files_unchanged": 144,
+    "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+  },
+  "tests": {
+    "passed": 30,
+    "unit": "run-u341.service",
+    "memory_high_gib": 3,
+    "memory_max_gib": 4,
+    "swap_max": 0,
+    "cpus": [
+      2,
+      3,
+      26,
+      27
+    ],
+    "modules": [
+      "tests.test_d1113_reuse_cli",
+      "tests.test_ieee_tc_control_profile_analysis.RetainedControlAnalysisInputs",
+      "tests.test_tc_serverless_qualification_population.MatchedW0Tests",
+      "tests.test_tc_serverless_qualification_population.ElasticLocalityMatchedTests"
+    ]
+  },
+  "analysis_launch_failures": [
+    {
+      "unit": "run-u337.service",
+      "cause": "direct script module import path",
+      "correction": "python -m scripts.ieee_tc.check_d299_full_context",
+      "performance_attempt": false
+    },
+    {
+      "unit": "run-u339.service",
+      "cause": "AllowedCPUs did not enforce expected process affinity",
+      "correction": "explicit taskset -c 2,3,26,27 in bounded scope",
+      "performance_attempt": false
+    }
+  ],
+  "remote_journal": "/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-152117318241471cbbf21f6b201015bf.jsonl",
+  "remote_clock_id": "remote-process-monotonic:69ab6e9a4e864acda9c3607846d854a5",
+  "remote_sha256_matched": true,
+  "remote_service_inactive_main_pid_zero": true,
+  "gpu_compute_census_empty": true,
+  "new_performance_runs_this_analysis": 0,
+  "main_goal_complete": false
+}

@@ -363,6 +363,13 @@ class FileDemandProfileAudit(unittest.TestCase):
 
 
 class RetainedControlAnalysisInputs(unittest.TestCase):
+    def test_explicit_scenario_count_matches_sources(self):
+        from scripts.ieee_tc.analyze_d455_stages import analyze_retained_controls
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaisesRegex(ValueError, 'scenarios must match source count'):
+                analyze_retained_controls(Path(root)/'new', [Path('missing')], scenarios=[])
+            self.assertFalse((Path(root)/'new').exists())
+
     def test_explicit_attempt_paths_are_not_selected_by_recency(self):
         from scripts.ieee_tc.analyze_d455_stages import retained_control_paths
         source = Path('/runs/key/result.json')

@@ -9,6 +9,7 @@ import hashlib
 import json
 from pathlib import Path
 import sys
+import ijson
 
 ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
 RAW = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc')
@@ -18,7 +19,7 @@ sys.path.insert(0, str(ROOT))
 from scripts.ieee_tc.plot_d290_diagnostic import sha256
 from scripts.ieee_tc.check_d299_full_context import (
     closed_physical_integral, common_slo_flags, matched_controller_rows,
-    matched_request_contract)
+    matched_request_contract, require_controller_scenario)
 from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
 from faaslora.metrics.metrics_collector import NativeV1TokenTimeline
 from faaslora.datasets.workload_generator import FrozenReplayPlan
@@ -58,11 +59,12 @@ def main(argv=None):
     parser.add_argument('--raw', type=Path)
     parser.add_argument('--run-id')
     parser.add_argument('--output', type=Path)
+    parser.add_argument('--scenario', default='tc_ieee_full')
     args = parser.parse_args(argv)
     if args.prime_only:
         if not all((args.raw, args.run_id, args.output)):
             parser.error('--prime-only requires --raw, --run-id and --output')
-    elif any((args.raw, args.run_id, args.output)):
+    elif any((args.raw, args.run_id, args.output)) or args.scenario != 'tc_ieee_full':
         parser.error('custom run/output requires --prime-only; default is sealed D1113')
     output = args.output.resolve() if args.output else OUT
     if output.exists():
@@ -98,7 +100,10 @@ def main(argv=None):
     content = {a['id']: hashlib.sha256(json.dumps(sorted(a['files'], key=lambda f:f['path']),
         sort_keys=True, separators=(',', ':')).encode()).hexdigest() for a in index['artifacts']}
     assert len(content) == 500
-    rows = matched_controller_rows(source, 'tc_ieee_full', content)
+    with source.open('rb') as stream:
+        metadata = next(ijson.items(stream, 'metadata', use_float=True))
+    require_controller_scenario(metadata, args.scenario)
+    rows = matched_controller_rows(source, args.scenario, content)
     assert set(rows) == {entry.request_id for entry in plan.entries}
     for entry in plan.entries:
         r, original = rows[entry.request_id], json.loads(entry.source_json)
@@ -132,6 +137,7 @@ def main(argv=None):
         counts.update(common_slo_flags(freeze['groups'], prompt_tokens=r['native_prompt_tokens'],
             output_tokens=r['target_tokens'], ttft_ms=values['ttft_ms'], tpot_ms=values['tpot_ms']))
     prime = dict(run=args.run_id or 'D1100', system='PrimeLoRA', requests=len(rows), counts=dict(counts),
+        scenario=args.scenario,
         workload=plan.profile, replay_plan=plan.identity(), common_slo_sha256=sha256(ROOT/
             'paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json'),
         metrics={k:timing_stats(v) for k,v in metrics.items()}, physical_gpu_seconds=gpu,

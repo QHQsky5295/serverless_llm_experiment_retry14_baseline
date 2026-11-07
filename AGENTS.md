@@ -1,5 +1,49 @@
 # PrimeLoRA IEEE TC execution contract
 
+Latest handoff: D1119 analysis COMPLETE, no live GPU run. Read
+docs/ieee_tc/D1119_7B_ELASTIC_ONLY_W1_RESULT_20261107.md FIRST.
+4000 native contracts, joint3987/4000=99.675%, U8575.626704086084,
+P95TTFT1035.5770019814372ms. FullD1115 joint98.55%, U7603.874677798245:
+Full saves11.3316% physical GPU time but loses1.125pp joint and125.1237% P95.
+Trade-off, not an all-metric win. Both max4 points fail W1 G2budget; cap3 remains
+separate. Inputs4000match,179 output digest differences retained/unknown cause.
+Selectors4000each match;ElasticOnly proactivefile/GPU/HOST/residency all0,
+naturalepochs10vsFull19. Bothremote132transfers/131480060bytes; no download-saving
+attribution. 30targetedCPUtests,43sourceSHA,144protectedfiles/userdirty unchanged.
+All11leases released;remoteinactive;memoryevents/swap0. Next checkpoint backup,
+then current-version7B ElasticLocality A1 (existing slack1, non-target equality),
+not Full/baseline replay or3B switch. Remaining A1-A5/S1-S13/docs/figures ACTIVE.
+Older LIVE/analysis-pending paragraphs below are historical.
+
+Current handoff 2026-11-07 22:56+08: D1119 COMPLETE, pane1953868 dead/status0,
+4000 successful, all11 leases released, GPU compute census empty. Do NOT restart.
+U8575.626704086084; joint SLO not yet computed. Remote matching-clock journal
+copied to raw/remote_transfers.jsonl; both-side SHA93f4ec19a36fd8b7a8a305f344e94d119200bf39102841f2735a4c201e7381ff.
+Next bounded CPU D1113/D299 explicit-scenario analysis, then D1115 Full comparison
+and D1057 mechanism-analysis reuse. No serving change, no new GPU run, no new
+baseline reproduction or switch to3B. Old LIVE paragraphs below are historical.
+
+Latest verified wait:2026-11-07 22:44:51+08 D1119 SAME panePID1953868 live.
+3031arrived/3026done/3026ok,0fail,5backlog;sample1571 no protection events/swap.
+Disk157.987644GiB,available98.086304GiB; no final performance result yet.
+Continue the existing run, no restart or new launch. Last turn was monitoring
+only; no serving changes/heavy maintenance/push. Read live registration below.
+
+LIVE handoff (2026-11-07 22:18 +08): D1119 started ONCE; do not relaunch.
+tmux tc-d1119-elastic-only-7b-w1, panePID1953868; verified live at22:19.
+Read updated D1119 registration. Checkpoint02bccc884f155c295208557eed31238910431a28
+pushed to V2, remoteHEAD matched before launch. 17 targeted tests,144 protected
+files unchanged. Own scenario tc_ieee_elastic_only; same D1100/max4 as D1115.
+Service8f3642ca72f942588447b751d6ab3950, auxb5f3fc5c3706466589f987e0d70237f2;
+notice3568345.783442678, replay_t03568405.783442678, W1view103ac4add35a43c4...
+Raw d1119_20261107/7b_elastic_only_w1 under serverless_llm_experiment/results/ieee_tc/p2_backend_qualification.
+Remoteowned3a5aa97080a94984ad26ddb9265c6d25, clock69ab6e9a4e864acda9c3607846d854a5.
+Sample54 no abort/high/max/OOM/swap, disk172370706432B. No performance conclusion.
+Monitor SAME live run through terminal and real release, then collect journal and
+reuse existing analyzers with explicit scenario; compare D1115, no Full replay.
+No code edits/tests/maintenance/hashscans/push/remote changes during measurement.
+Only lightweight status handoff updates. Older NOT STARTED text is historical.
+
 Current handoff (2026-11-07): D1119 7B ElasticOnly W1 REGISTERED, not yet launched.
 Read D1119_7B_ELASTIC_ONLY_W1_REGISTRATION_20261107.md before next action.
 Same D1100/max4 configuration as sealed D1115 Full, changing only approved

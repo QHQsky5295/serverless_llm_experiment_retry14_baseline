@@ -24,6 +24,7 @@ class ReuseInterfaceTests(unittest.TestCase):
 
     def test_custom_inputs_must_be_explicit_and_prime_only(self):
         for args in (['--prime-only'], ['--raw', '/tmp/nonexistent'],
+                     ['--scenario', 'tc_ieee_elastic_only'],
                      ['--prime-only', '--raw', '/tmp/nonexistent', '--run-id', 'D1114']):
             with self.subTest(args=args), contextlib.redirect_stderr(io.StringIO()):
                 with self.assertRaises(SystemExit) as caught:
@@ -38,6 +39,24 @@ class ReuseInterfaceTests(unittest.TestCase):
             with self.assertRaises(FileNotFoundError):
                 COLLECTOR.main(args)
             self.assertFalse(out.exists())
+
+    def test_explicit_scenario_preserves_full_and_control_identity(self):
+        for scenario in ('tc_ieee_full', 'tc_ieee_elastic_only'):
+            row = {'ieee_selection_strategy': 'recorded_only'}
+            self.assertIs(COLLECTOR.require_controller_scenario(
+                {'scenario_coordination': {scenario: row}}, scenario), row)
+
+    def test_scenario_mismatch_or_missing_identity_is_rejected(self):
+        for metadata, scenario in (
+            ({'scenario_coordination': {'tc_ieee_elastic_only': {}}}, 'tc_ieee_full'),
+            ({'scenario_coordination': {'tc_ieee_full': {}}}, 'tc_ieee_elastic_only'),
+            ({}, 'tc_ieee_full'),
+            ({'scenario_coordination': {'tc_ieee_full': {}, 'tc_ieee_elastic_only': {}}}, 'tc_ieee_full'),
+            ({}, 'tc_ieee_full.requests.item'),
+        ):
+            with self.subTest(metadata=metadata, scenario=scenario):
+                with self.assertRaises(ValueError):
+                    COLLECTOR.require_controller_scenario(metadata, scenario)
 
     def test_existing_output_never_overwritten(self):
         with tempfile.TemporaryDirectory() as directory:

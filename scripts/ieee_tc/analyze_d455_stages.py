@@ -363,7 +363,7 @@ def retained_control_paths(source, launch_path=None):
     return launch_path, physical_path, physical_path.parent/'main_outcome.json'
 
 
-def analyze_retained_controls(output, sources, *, model='7b', launches=None):
+def analyze_retained_controls(output, sources, *, model='7b', launches=None, scenarios=None):
     """Reuse native/binding/stage helpers for explicit completed control runs.
 
     This is a descriptive audit, not a correctness certificate or a controlled
@@ -377,6 +377,8 @@ def analyze_retained_controls(output, sources, *, model='7b', launches=None):
         raise ValueError('new output and unique explicit retained sources required')
     if launches is not None and len(launches) != len(sources):
         raise ValueError('explicit launch receipts must match source count and order')
+    if scenarios is not None and len(scenarios) != len(sources):
+        raise ValueError('explicit scenarios must match source count and order')
     protocol_paths = [ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',
                       ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md']
     if [sha256(x) for x in protocol_paths] != [
@@ -422,11 +424,14 @@ def analyze_retained_controls(output, sources, *, model='7b', launches=None):
             raise ValueError('terminal journal identity mismatch')
         with source.open('rb') as stream:
             metadata = next(ijson.items(stream, 'metadata', use_float=True))
+        from scripts.ieee_tc.check_d299_full_context import require_controller_scenario
+        scenario = 'tc_ieee_full' if scenarios is None else scenarios[source_index]
+        require_controller_scenario(metadata, scenario)
         rows, identities, counts, bindings = [], [], Counter(), Counter()
         seen, tier_counts = set(), Counter()
         external = launch['external_replay']
         with source.open('rb') as stream:
-            for r in ijson.items(stream, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+            for r in ijson.items(stream, f'detailed_results.{scenario}.requests.item', use_float=True):
                 rid, n = r['request_id'], r['native_token_timing']
                 if rid in seen or r['success'] is not True:
                     raise ValueError('unique successful requests required')
@@ -473,7 +478,7 @@ def analyze_retained_controls(output, sources, *, model='7b', launches=None):
         for key in metrics:
             ordered = sorted(r[key] for r in rows if r[key] is not None)
             metrics[key]['p99_type1'] = ordered[math.ceil(.99*len(ordered))-1] if ordered else None
-        reports[name] = dict(counts=dict(counts), metrics=metrics,
+        reports[name] = dict(counts=dict(counts), metrics=metrics, scenario=scenario,
             input_contract_sha256=hashlib.sha256(json.dumps(identities,separators=(',',':')).encode()).hexdigest(),
             source_trace_sha256=metadata['shared_trace_sha256'],
             source_subset_sha256=metadata['shared_adapter_subset_sha256'],
@@ -1039,10 +1044,14 @@ if __name__ == '__main__':
     parser.add_argument('--retained-control-launch', action='append', type=Path,
                         help='explicit successful receipts in the same order as sources')
     parser.add_argument('--retained-control-model', choices=('7b', '3b'), default='7b')
+    parser.add_argument('--retained-control-scenario', action='append',
+                        help='explicit recorded scenario for each retained source, in order')
     parser.add_argument('--control-busy-stage', action='append', type=Path)
     parser.add_argument('--overhead-comparison', action='append', type=Path)
     parser.add_argument('--budget-comparison', type=Path)
     args = parser.parse_args()
+    if args.retained_control_scenario and not args.retained_control_source:
+        parser.error('--retained-control-scenario requires explicit retained sources')
     if args.budget_comparison:
         if (args.overhead_comparison or args.control_busy_stage or args.retained_control_source
                 or args.retained_control_launch or args.include_d458 or args.owner_decode):
@@ -1061,7 +1070,8 @@ if __name__ == '__main__':
         if args.include_d458 or args.owner_decode:
             parser.error('explicit retained sources cannot be mixed with registered legacy modes')
         analyze_retained_controls(args.output,args.retained_control_source,
-            model=args.retained_control_model, launches=args.retained_control_launch)
+            model=args.retained_control_model, launches=args.retained_control_launch,
+            scenarios=args.retained_control_scenario)
     elif args.owner_decode:
         if not args.include_d458:parser.error('--owner-decode requires --include-d458')
         analyze_owner_decode(args.output)
