@@ -1,0 +1,26 @@
+{
+  "kind": "d1122_complete_published_delivery_linkage_v1",
+  "passed": true,
+  "analysis_unit": "run-u363.service",
+  "server_transfers": 132,
+  "metadata_matched_transfers": 132,
+  "final_request_linked": 130,
+  "retained_non_final_request_transfers": [
+    {
+      "transfer_id": "c3e6313597364184a03a31d04e429e3c",
+      "artifact_id": "medical_lora_0026",
+      "archive_bytes": 797238
+    },
+    {
+      "transfer_id": "feac79682f7d44379bc7dbc508147ab8",
+      "artifact_id": "medical_lora_0086",
+      "archive_bytes": 780746
+    }
+  ],
+  "no_request_time_packing": true,
+  "no_cost_or_latency_subtraction": true,
+  "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1122_20261108/7b_last_known_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d1122_7b_last_known_w1.json",
+  "source_sha256": "1af9eda45a488c5815862f5ac439f968c33375f833d7c31a82d74ce0a6c3d047",
+  "remote_journal": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1122_20261108/7b_last_known_w1/remote_transfers.jsonl",
+  "remote_journal_sha256": "a1358eacda9cae238a88c4daea405faed80af351e9b2de06eee6bbbf0d673453"
+}

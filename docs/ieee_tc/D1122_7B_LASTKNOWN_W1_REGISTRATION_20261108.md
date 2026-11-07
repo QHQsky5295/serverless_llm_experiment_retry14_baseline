@@ -1,6 +1,74 @@
 # D1122：当前版本 7B LastKnown W1，隔离路由信息新鲜度
 
-2026-11-08，性能运行前登记；当前尚未启动。A1/A3 既定单因素消融，
+## 已完成并释放：2026-11-08 02:57 +08
+
+仅执行一次。4,000请求全部完成且原生合同匹配，service/replay/watchdog均0，
+17个lease闭合，GPUcompute为空，远端inactive/MainPID0。完整分析见
+[D1122 result](D1122_7B_LASTKNOWN_W1_RESULT_20261108.md)。下一步封存备份后
+推进7B NoRouting，不重新执行下方历史命令。全部后续实验和交付仍保留。
+
+## 已实际启动：2026-11-08 02:18 +08
+
+02:44:49复查：同一panePID2521977存活，3003条请求终态、成功且原生合同
+匹配，提交至index3016；sample1562内存high/max/OOM/kill/swap均0，
+无告警、中止或foreign/escaped compute，持有4GPU，available97.159359GiB、
+disk156.816887GiB。上一轮及本轮均为VERIFIED WAIT；未改配置、重复运行、
+测试或维护。继续完成后续请求及真实资源释放，不提前作性能结论。
+
+02:40:30复查：同一panePID2521977存活，前2500请求全部终态、成功且原生
+合同匹配，提交至index2499；sample1307内存high/max/OOM/kill/swap均0，
+无告警、中止或foreign/escaped compute，持有3GPU，available100.011536GiB、
+disk157.081936GiB。上一轮及本轮均为VERIFIED WAIT；继续同一执行，未改
+配置、重复运行、测试或维护。后续1500请求与真实释放仍待完成。
+
+02:37:06复查：同一panePID2521977存活，前2000条请求已全部终态、成功且
+原生合同匹配，提交至index1999；sample1106内存high/max/OOM/kill/swap
+均0，无告警、中止或foreign/escaped compute，持有3GPU，
+available100.189102GiB、disk157.356548GiB。本轮和上一轮均为VERIFIED WAIT，
+不是阻塞；不重复运行或改变配置。仍等待后半段和真实资源释放，未判优。
+
+02:33:50复查：同一panePID2521977存活，1513条终态、成功且原生合同匹配，
+提交至index1522；sample912内存high/max/OOM/kill/swap均0，无告警、
+中止或foreign/escaped compute，持有3GPU，available100.311722GiB、
+disk157.623379GiB。本轮和上一轮均为VERIFIED WAIT；未改配置、重复启动、
+测试或维护，完整结果尚未产生。继续同一执行至实际释放。
+
+02:29:27复查：同一panePID2521977仍存活，1006条终态、成功且原生合同匹配，
+提交至index1014；sample654内存high/max/OOM/kill/swap均0，无告警、
+中止或foreign/escaped compute，持有4GPU，available97.894447GiB、
+disk157.942196GiB。上一轮和本轮均为VERIFIED WAIT；未改服务、重复实验、
+测试、维护或推送。继续同一运行，尚不作完整性能判断。
+
+02:25:10复查：同一panePID2521977存活，506条终态、成功且原生合同匹配，
+已提交至index513；sample399内存high/max/OOM/kill/swap均0，无告警、
+中止或foreign/escaped compute，持有4GPU，available98.149895GiB、
+disk158.268242GiB。上一goal turn为PROGRESS，本轮为VERIFIED WAIT；
+继续同一执行，不重新启动、不改配置、不作最终性能判断。
+
+唯一运行已启动，02:19:33核验同一tmux `tc-d1122-last-known-7b-w1`、
+panePID2521977存活；禁止重新执行下方历史登记命令。启动前checkpoint
+`59409b6391ae15f397bd3b2c06082e5d73285ffd`已推送V2，远端HEAD完全匹配。
+六个明确文件，16sourceSHA与144旧投稿文件检查通过；用户manifest未stage。
+
+service scopeacb9a73014f64c12b03cb8814fbf56fc，InvocationID
+f4d4d47776a04d2d933766c52128a9a5；aux54c3d409fd394ff8bd55bdb539d52f05。
+共同notice3582753.153903542、replay_t0=3582813.153903542；既有W1视图
+103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3。
+远端clock74c4ab12cd2042418f20c9e2d5603c57，PID1426613，拥有的InvocationID
+23e3ae11fa2743e59e9e1afd1016bead；已发布gzip/timing_v2认证健康在通知前通过。
+首次健康连接在服务尚未ready时失败一次，随后正常通过，无请求重放或fallback。
+两端数据NIC均1000Mbps/full；共享k3s未变，远端由既有runner自动管理。
+
+启动前MemAvailable118941648KiB、disk171082268672B，GPUcompute为空。
+02:19:33的sample67：available114623655936B、disk171059814400B，实际已持1GPU，
+内存high/max/OOM/kill/swap为0，无告警/中止、foreign/escaped compute。
+稍后已有6条终态记录；尚无完整性能结果，不能据局部数据判优。
+只监测本轮至实际终态和释放；不并行测试、维护、改配置、推送或重启远端。
+此次进展为登记、检查、备份和真实启动；完整目标仍active。
+
+## 历史：性能运行前登记
+
+2026-11-08，以下内容在启动前登记。A1/A3 既定单因素消融，
 不是新的 Full 优化或基线复现。Full 直接复用 D1115，不重跑、不替换主表来源。
 D1121 已封存且备份至 e48977b0，所有后续 A1–A5、S1–S13 和交付仍保留。
 

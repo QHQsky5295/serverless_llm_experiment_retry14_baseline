@@ -1,5 +1,47 @@
 # PrimeLoRA IEEE TC execution contract
 
+Current handoff 2026-11-08: D1122 COMPLETE/released/analyzed; no live GPU run.
+Read D1122_7B_LASTKNOWN_W1_RESULT_20261108.md. 4000 native contracts,
+joint3929=98.225%, U7898.095639558509, P95TTFT2308.9625062420964ms.
+FullD1115 uses3.7252%less U, joint+0.325pp, but P95TTFT+0.9687%: not all-metric win.
+4000 LastKnown receipts verified;29 final choices differ from received-view
+shadow,87 source-class disagreements/12990 feasible observations. Hold max.4978s
+but underlying source max55.2431s; Full is historical confirmed provenance,
+not instantaneous truth.42/36 selected ranking/acquisition GPU mismatches are
+cross-time, not simultaneous global truth or necessarily caused by hold.
+17 allocations closed,16 natural triggers/15 completed/14 first-services,
+one ready unused and one cancelled before ready. Non-target mechanisms on.
+132 remote transfers/131480060bytes, sameFull;178 outputdigest differences retained,
+numerical cause unknown/n_correctnull.2315samples high/max/OOM/swap0,remoteinactive.
+Next finish source-protection seal/explicit backup, then current7B NoRouting A1.
+No Full/baseline replay,3B switch,HydraServe redeploy/sharedk3s modification.
+This turn PROGRESS: completed same run and bounded analysis. Full scope active.
+All older LIVE/NOTSTARTED notes below are historical, not launch instructions.
+
+Latestverifiedwait2026-11-08 02:44:49+08: D1122 SAME panePID2521977live.
+3003terminal/success/native-contract,submittedthroughindex3016;sample1562
+high/max/OOM/swap0,no warning/abort/foreign/escapedcompute,held4GPU,
+available97.159359GiB,disk156.816887GiB. Previousandcurrentgoalturns
+VERIFIED WAIT. No productionedit/test/newrun/push/maintenance. ContinueSAMErun.
+Afterrelease reuse D1062 comparison snapshot for detailed LastKnown receipt
+(paper_results/ieee_tc/ablation/d1062_3b_last_known_w1/comparison/compare.py.snapshot),
+adapt only current7B inputs/collectors; no3B profile/metric reuse. Fullscopeactive.
+
+LIVE handoff2026-11-08 02:19+08: D1122 LastKnown7BW1 launchedONCE.
+tmux tc-d1122-last-known-7b-w1 panePID2521977 confirmedlive; DO NOT relaunch.
+Read updated D1122_7B_LASTKNOWN_W1_REGISTRATION_20261108.md. Checkpoint
+59409b6391ae15f397bd3b2c06082e5d73285ffd pushed/remotematched before launch.
+Serviceacb9a73014f64c12b03cb8814fbf56fc, invocationf4d4d47776a04d2d933766c52128a9a5;
+aux54c3d409fd394ff8bd55bdb539d52f05,notice3582753.153903542,replay3582813.153903542.
+Remoteclock74c4ab12cd2042418f20c9e2d5603c57,ownedinvocation23e3ae11fa2743e59e9e1afd1016bead.
+Sample67 actualGPU1,high/max/OOM/swap0,noabort/foreign/escapedcompute;
+available114623655936B,disk171059814400B. Later6terminalrecords,notfinalresult.
+Monitor SAME run through actualrelease; no heavyanalysis/tests/maintenance/push/
+remotechanges/servingedits while measuring. After release D1113/D299/D455 and
+LastKnown-specificD297 receipt, sameFullD1115. Hold/source age separate, no
+counterfactualTTFT. This goalturn PROGRESS; entire remaining scope active.
+Older NOTSTARTED paragraphs are historical, not permission to repeat launch.
+
 Current handoff 2026-11-08: D1122 current-version7B LastKnownW1 REGISTERED,
 not started. Read D1122_7B_LASTKNOWN_W1_REGISTRATION_20261108.md. Only existing
 ranking-source sample-and-hold0.5s plus isolatedpaths; all D1100/Full non-targets

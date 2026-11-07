@@ -1,0 +1,79 @@
+{
+  "kind": "d1122_7b_last_known_w1_closure_v1",
+  "raw_directory": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1122_20261108/7b_last_known_w1",
+  "raw_result_sha256": "1af9eda45a488c5815862f5ac439f968c33375f833d7c31a82d74ce0a6c3d047",
+  "run_checkpoint": "59409b6391ae15f397bd3b2c06082e5d73285ffd",
+  "source_verification": {
+    "kind": "executor_hash_recheck_not_independent_review",
+    "verified_unique_sources": 64,
+    "protected_publication_files_unchanged": 144,
+    "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "unit": "run-u364.service",
+    "full_evidence": "source_verification.json"
+  },
+  "tests": {
+    "passed": 20,
+    "phase": "prelaunch; production code unchanged",
+    "log": "prelaunch_tests.txt",
+    "sha256": "10f93990ab31f7fd0006ed74f341681e2a0cfb790891d66f0ae52832883cc707",
+    "new_comparison_executed_and_validated_requests": 4000
+  },
+  "analysis_units": [
+    "run-u359.service",
+    "run-u360.service",
+    "run-u361.service",
+    "run-u362.service",
+    "run-u363.service",
+    "run-u364.service"
+  ],
+  "analysis_cpu_affinity": [
+    2,
+    3,
+    26,
+    27
+  ],
+  "analysis_memory_high_gib": 3,
+  "analysis_memory_max_gib": 4,
+  "analysis_swap_max": 0,
+  "gpu_compute_census_empty": true,
+  "remote_service_inactive_main_pid_zero": true,
+  "remote_clock_id": "remote-process-monotonic:74c4ab12cd2042418f20c9e2d5603c57",
+  "remote_journal": "/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-4a953dff69d64e03868683f8cfc29626.jsonl",
+  "remote_sha256_matched": "a1358eacda9cae238a88c4daea405faed80af351e9b2de06eee6bbbf0d673453",
+  "new_performance_runs_this_analysis": 0,
+  "main_goal_complete": false,
+  "independent_semantic_audit": {
+    "skill": "experiment-audit",
+    "acceptance_status": "unavailable",
+    "reason": "The specified gpt-5.6-sol reviewer is unavailable; executor deterministic checks are not an independent review."
+  },
+  "outputs": {
+    "compare.py": "e40255da318c9c60c4e14f97a1bc7cededc148a037a33014833cb53b2972541c",
+    "delivery_linkage.json": "a990c1af40f6b2c610ea365e991840c27d981784789280eec031c80712c356f0",
+    "prelaunch.json": "1f07343a240ccba7342eb595af0a61938267960bfdf8cae035dadb6cf0cca88a",
+    "source_verification.json": "022d9ce65d185202bcb9dfb4c732a2a4788c6b1e6efcd50669669f313916bde5",
+    "prelaunch_tests.txt": "10f93990ab31f7fd0006ed74f341681e2a0cfb790891d66f0ae52832883cc707",
+    "comparison/comparison.json": "aec274cf5e5266ccc5bfca49d593723964d64bb2570cc94fff9ec496e6df195f",
+    "comparison/manifest.json": "cbe6248aeb47c9a01c8bca69bde49f0caf20cc00531ef0ecd18c0be116ee07fb",
+    "comparison/mechanisms.json": "1fcd8ea364d048e450c2c43de2494854ee8516d2780a35460dcc5d9b67ccdde6",
+    "comparison/metrics.csv": "79d4b60a61ca4a9d83f60756170c70359b2daf9469d3f2717259dc1e44dbd566",
+    "result1/evidence_review.json": "935492243f9182427e528da47cfc7ae2a4786269aac12e221fbae6fac5160f8b",
+    "result1/manifest.json": "b2bb268fb991271372be2ff09d6845a55c9f725eb4ab8ff977deefd217a02060",
+    "result1/reconciliation.json": "c0b7c29a4202dadc2e8819c0345619f987f6befa94953a33734f014d5316a981",
+    "stages/summary.json": "6b36d36e8c754cd73e013c3c1abc10eff257d2467fde3c11c9e3387e1c5708b6"
+  },
+  "analysis_sources": {
+    "docs/ieee_tc/D1122_7B_LASTKNOWN_W1_RESULT_20261108.md": "a767e87afba082788701393841f58e0bd2288236f2607fd53bf2e3d7b0bfc18a",
+    "scripts/ieee_tc/analyze_d455_stages.py": "c7b005e636d4b80cd121ccbfda5c272a9dd21675e370a146022ffbf50410f5e0",
+    "scripts/ieee_tc/check_d299_full_context.py": "cfd8204d45c86a8652773a288e7ff723c973c6983a0104f77465b7754bc4af14",
+    "scripts/ieee_tc/analyze_d297_full.py": "b93831dbbdf4556de4ad4094b1c7eecae646a1e79f8a80bd77602c259aabac1a"
+  },
+  "extra_raw_hashes": {
+    "remote_pre_health.json": "8b6c204eb107ff1fc2220b544386d492ccb86c7494feabd6f7a4503d8c177751",
+    "remote_transfers.jsonl": "a1358eacda9cae238a88c4daea405faed80af351e9b2de06eee6bbbf0d673453",
+    "remote_monitor.log": "7c1e33fa574593b4653efc95c56b060cbc9e84f42aeac44786a5b2c9f7456756",
+    "remote_service_stop.txt": "c21fa3c9864f884f0f038dc8566688577ee7382c4e11e49d1e743cb9e06dcb81",
+    "launcher.log": "66093af0afd5f36ddce2c216721cfe43bb88a7c7bd38559a411b8ae769a98010",
+    "launch.json": "4b5e54799cc8fc7cf89d74dc3e9f42c317339aaedcc7054958caf3315bf3f25c"
+  }
+}
