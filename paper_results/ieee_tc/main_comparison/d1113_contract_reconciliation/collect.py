@@ -4,6 +4,7 @@ CPU-only, no serving, no new workload, no historical result mutation.  Legacy
 replays remain diagnostics even when their prompt/target maps match exactly.
 """
 from collections import Counter
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -20,6 +21,7 @@ from scripts.ieee_tc.check_d299_full_context import (
     matched_request_contract)
 from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
 from faaslora.metrics.metrics_collector import NativeV1TokenTimeline
+from faaslora.datasets.workload_generator import FrozenReplayPlan
 
 REFS = {}
 
@@ -49,10 +51,23 @@ def one(paths):
     return paths[0]
 
 
-def main():
-    if OUT.exists():
-        raise FileExistsError(OUT)
-    run = RAW/'p2_backend_qualification/d1100_20261107/7b_busy_service_rate_w2'
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--prime-only', action='store_true',
+        help='Reuse the 7B D394 evaluator without the historical W2 baseline join')
+    parser.add_argument('--raw', type=Path)
+    parser.add_argument('--run-id')
+    parser.add_argument('--output', type=Path)
+    args = parser.parse_args(argv)
+    if args.prime_only:
+        if not all((args.raw, args.run_id, args.output)):
+            parser.error('--prime-only requires --raw, --run-id and --output')
+    elif any((args.raw, args.run_id, args.output)):
+        parser.error('custom run/output requires --prime-only; default is sealed D1113')
+    output = args.output.resolve() if args.output else OUT
+    if output.exists():
+        raise FileExistsError(output)
+    run = args.raw.resolve() if args.raw else RAW/'p2_backend_qualification/d1100_20261107/7b_busy_service_rate_w2'
     launch = read(run/'launch.json')
     physical_dir = run/'launch.launch/physical_deployment'
     physical = read(physical_dir/'physical_resource_summary.json')
@@ -61,6 +76,8 @@ def main():
                      physical['result_file']['sha256'])
     for key in ('pass', 'service_path_removed', 'native_gpu_context_release_confirmed'):
         assert launch[key] is True
+    assert all(launch[k] == 0 for k in ('service_returncode', 'watchdog_returncode', 'replay_returncode'))
+    assert physical['measurement_complete'] is True and not physical['open_lease_ids']
     for record in summary['allocation_journals']:
         assert record['released'] is True
         witness(record['path'], record['sha256'])
@@ -68,11 +85,27 @@ def main():
     gpu = closed_physical_integral(summary)
     ext = launch['external_replay']
     assert abs(ext['replay_t0_s']-ext['deployment_notice_s']-60) < 1e-6
+    identity = ext['plan']
+    assert identity['profile'] in ('W0', 'W1', 'W2') and identity['count'] == 4000
+    plan = FrozenReplayPlan.load(identity['source_path'], profile=identity['profile'],
+        count=4000, rate_scale=identity['rate_scale'], adapter_map=identity.get('adapter_map'),
+        adapter_map_sha256=identity.get('adapter_map_sha256'))
+    assert plan.identity() == identity
+    witness(Path(identity['source_path']), identity['source_sha256'])
+    if identity.get('adapter_map'):
+        witness(Path(identity['adapter_map']), identity['adapter_map_sha256'])
     index = read(ROOT/'paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json')
     content = {a['id']: hashlib.sha256(json.dumps(sorted(a['files'], key=lambda f:f['path']),
         sort_keys=True, separators=(',', ':')).encode()).hexdigest() for a in index['artifacts']}
     assert len(content) == 500
     rows = matched_controller_rows(source, 'tc_ieee_full', content)
+    assert set(rows) == {entry.request_id for entry in plan.entries}
+    for entry in plan.entries:
+        r, original = rows[entry.request_id], json.loads(entry.source_json)
+        assert r['source_item_sha256'] == entry.source_sha256
+        assert r['adapter_id'] == original['adapter_id']
+        assert r['target_tokens'] == min(original['expected_output_tokens'], 256)
+        assert abs(r['arrival']-ext['replay_t0_s']-entry.offset_s) < 1e-6
     freeze = read(ROOT/'paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json',
                   '2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3')
     witness(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md', freeze['metric_protocol_sha256'])
@@ -98,12 +131,14 @@ def main():
                 metrics[k].append(v)
         counts.update(common_slo_flags(freeze['groups'], prompt_tokens=r['native_prompt_tokens'],
             output_tokens=r['target_tokens'], ttft_ms=values['ttft_ms'], tpot_ms=values['tpot_ms']))
-    prime = dict(run='D1100', system='PrimeLoRA', requests=len(rows), counts=dict(counts),
+    prime = dict(run=args.run_id or 'D1100', system='PrimeLoRA', requests=len(rows), counts=dict(counts),
+        workload=plan.profile, replay_plan=plan.identity(), common_slo_sha256=sha256(ROOT/
+            'paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json'),
         metrics={k:timing_stats(v) for k,v in metrics.items()}, physical_gpu_seconds=gpu,
         gpu_seconds_per_offered_request=gpu/4000, n_correct=summary['n_correct'])
-    registration = read(ROOT/'paper_results/ieee_tc/main_comparison/d593_complete_7b/source_registration.json')
+    registration = [] if args.prime_only else read(ROOT/'paper_results/ieee_tc/main_comparison/d593_complete_7b/source_registration.json')
     old = []
-    for key in ('D555', 'D557', 'D591'):
+    for key in (() if args.prime_only else ('D555', 'D557', 'D591')):
         item = one(x for x in registration if x['run'] == key)
         audit = read(item['path'], item['sha256'])
         source_refs = {x['path']:x['sha256'] for x in audit['raw_sources']}
@@ -160,6 +195,8 @@ def main():
     specs = [('D1103','16_serverlessllm_new_remote_w2_v1/d1103*'),
              ('D1106','19_vllm_w2_v3/d1106_20261107_vllm_w2'),
              ('D1108','20_slora_w2_v1/d1108_20261107_slora_w2_mem100')]
+    if args.prime_only:
+        specs = []
     for key, glob in specs:
         directory = one((BASE/'results/paper_experiments').glob(glob))
         replay = read(one(directory.glob('raw/replay/*_replay.json')))
@@ -186,12 +223,12 @@ def main():
             reported_cost_model=reported['metadata']['infra_cost_model'],
             resource_envelope_reported=a['resource_envelope'] if key=='D1108' else None,
             native_last_timestamp_in_server_metrics=sum('last_token_at' in r.get('server_metrics',{}) for r in values)))
-    for name in ('run_vllm_fair_experiment.sh','run_slora_fair_experiment.sh','run_serverlessllm_fair_experiment.sh'):
+    for name in (() if args.prime_only else ('run_vllm_fair_experiment.sh','run_slora_fair_experiment.sh','run_serverlessllm_fair_experiment.sh')):
         witness(BASE/'scripts'/name)
     witness(Path(__file__))
     witness(ROOT/'scripts/ieee_tc/check_d299_full_context.py')
     witness(ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py')
-    result = dict(kind='d1113_contract_reconciliation_v1', prime=prime,
+    result = dict(kind='native_7b_closed_run_d394_v1' if args.prime_only else 'd1113_contract_reconciliation_v1', prime=prime,
         reused_baselines=old, legacy_diagnostics=legacy, no_gpu_run=True,
         no_independent_review=True, final_ranking_eligible=False,
         limitations=['Known seed42 development observations, not unseen holdout or statistical inference.',
@@ -199,13 +236,13 @@ def main():
                      'Unknown independent numerical adapter correctness is not imputed.',
                      'Input match does not prove equal OS cache state or absence of remote interference.',
                      'Same-backend changed output digests are recorded, not dismissed as rounding.'])
-    OUT.mkdir(parents=True, exist_ok=False)
-    with (OUT/'reconciliation.json').open('x') as stream:
+    output.mkdir(parents=True, exist_ok=False)
+    with (output/'reconciliation.json').open('x') as stream:
         json.dump(result, stream, indent=2, allow_nan=False); stream.write('\n')
-    with (OUT/'manifest.json').open('x') as stream:
-        json.dump(dict(sources=REFS, outputs={'reconciliation.json':sha256(OUT/'reconciliation.json')}),
+    with (output/'manifest.json').open('x') as stream:
+        json.dump(dict(sources=REFS, outputs={'reconciliation.json':sha256(output/'reconciliation.json')}),
                   stream, indent=2, allow_nan=False); stream.write('\n')
-    print(json.dumps(dict(output=str(OUT), prime=prime,
+    print(json.dumps(dict(output=str(output), prime=prime,
         reused=[dict(run=r['run'], matched=r['request_contract_matches'],
                      output_differences=r['output_digest_differences']) for r in old],
         diagnostics=[dict(run=r['run'], mismatches=r['input_map_mismatches']) for r in legacy]), indent=2))
