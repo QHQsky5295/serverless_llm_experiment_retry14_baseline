@@ -1,0 +1,57 @@
+{
+  "kind": "d1131_postrun_receipt_v1",
+  "run_id": "D1131",
+  "status": "completed_and_released",
+  "model": "Llama-2-7B",
+  "workload": "W1",
+  "scenario": "tc_ieee_routing_handoff",
+  "plan_sha256": "b5170643aa5d332efc67407af10ab7022a2d68fd802e2389d253968bd92dcf8f",
+  "source_fix_commit": "7ce2f815d697218733ee799c8017f27335a089de",
+  "registration_backup_commit": "340a3b8633fef37bbcad102d5aae7fdfba922f0c",
+  "launch_sha256": "47dd999a491f717dc98bc4fc5a98e5a827bcb9a85eb88b0feb3e4e8c793ffb14",
+  "result_sha256": "42a5acc7a64c30fd834594fca4d9d514d878fd5298f14e506442ef759b592b1b",
+  "remote_journal": {
+    "local_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1131_20261108/remote_transfers.jsonl",
+    "remote_path": "/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-f9e752707ad34759b7e85fc06fa93e4a.jsonl",
+    "remote_clock_id": "remote-process-monotonic:d93a842a41ed4fa2b922ed2187aab75c",
+    "sha256": "fb499efd23d9e1b508f1f173d6e374c832da06f55892a29747fe5e24977259e2",
+    "rows": 132,
+    "delivery_mode": "prepublished_gzip_v1",
+    "request_time_packing": false
+  },
+  "requests": {
+    "planned": 4000,
+    "terminal": 4000,
+    "successful": 4000,
+    "native_contract_matched": 4000,
+    "ttft_pass": 3934,
+    "tpot_pass": 3963,
+    "joint_pass": 3900
+  },
+  "resource": {
+    "physical_gpu_seconds": 7427.711740803439,
+    "service_path_removed": true,
+    "native_gpu_context_release_confirmed": true,
+    "auxiliary_scope_stopped_after_runner": true,
+    "remote_artifact_service_inactive": true,
+    "foreign_compute_processes": 0,
+    "oom_or_high_events": 0
+  },
+  "analysis": {
+    "reconciliation": "result1/reconciliation.json",
+    "evidence_review": "result1/evidence_review.json",
+    "stages": "stages/summary.json",
+    "comparison": "comparison/comparison.json",
+    "handoff_timing": "timing/handoff_timing.json",
+    "timing_contract_passed": false,
+    "timing_unknown_records": 430,
+    "timing_violations": 0
+  },
+  "failure_or_interference": {
+    "inference_run": false,
+    "analysis_wrapper_timeout": true,
+    "analysis_wrapper_timeout_details": "D299 and D455 wrote complete JSON outputs before transient wrapper reported timeout; no inference process remained.",
+    "external_interference": false,
+    "selection_based_on_performance": false
+  }
+}

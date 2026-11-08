@@ -1,0 +1,98 @@
+{
+  "passed": false,
+  "observed_timing_checks_passed": true,
+  "timing_evidence_complete": false,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1131_7b_routing_handoff_w1/comparison/comparison.json",
+      "sha256": "5da2e6354b0adc98ffb44dcff266aa8e528ee14e23e966809993eb4a8e92e263",
+      "bytes": 65741
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1131_7b_routing_handoff_w1/comparison/mechanisms.json",
+      "sha256": "e34b104cefa7057917ad7996ee4ff3a42626b138b3ac90d5525dd08316484fd1",
+      "bytes": 20997520
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1131_7b_routing_handoff_w1/comparison/manifest.json",
+      "sha256": "2cf1aa33f4d031f9bb37591cbbb7e42289f1e58b3af9d9cec31122bfe5cc5c3b",
+      "bytes": 5283
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1124_7b_no_handoff_w1/handoff/handoff.json",
+      "sha256": "ff3e52e0787b9cbdfb6b1e535a847257e93081bd7d2ff3f349c901985c0ce2d0",
+      "bytes": 620625
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1131_20261108/7b_routing_handoff_w1/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "927f4d1c65b76bea97cc8744c14e2fa245b1e658e3a9ae594a7dbc4e4aa3d61e",
+      "bytes": 43619738
+    }
+  ],
+  "analysis_script": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1131_7b_routing_handoff_w1/audit_handoff_timing.py",
+    "sha256": "e69b67a7b79841845c36ac90d2f0da9a7d4293d718bdb46ebca1c7d5d21758c0",
+    "bytes": 15763
+  },
+  "reused_analysis": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1126_7b_delayed_handoff_w1/audit_delayed_timing.py",
+    "sha256": "cf1b8db88bbf89f07167acbbeae87bb8edcfc477f209821442e0b0d623892722",
+    "bytes": 15604
+  },
+  "implementation_sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "074b51a8ede37a7684c87d49b0ed33d0ae2f9ca8421b1b92746ed073d6e2d00b",
+      "bytes": 1472763
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_manager.py",
+      "sha256": "9c4b8878adef835a9c6711dd6778c52ece0365b2803087146d004337b8839fdf",
+      "bytes": 38394
+    }
+  ],
+  "identity": {
+    "unit": "tc-d1131-handoff-audit-final.service",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/tc-d1131-handoff-audit-final.service",
+    "pid": 586293,
+    "uid": 1001,
+    "role": "cpu_only_post_run_analysis_service"
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/tc-d1131-handoff-audit-final.service",
+    "memory.current": 1514020864,
+    "memory.peak": 1514229760,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 23906927\nuser_usec 20717605\nsystem_usec 3189322\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "plan_sha256": "b5170643aa5d332efc67407af10ab7022a2d68fd802e2389d253968bd92dcf8f",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "outputs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1131_7b_routing_handoff_w1/timing/audit_handoff_timing.py.snapshot",
+      "sha256": "e69b67a7b79841845c36ac90d2f0da9a7d4293d718bdb46ebca1c7d5d21758c0",
+      "bytes": 15763
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1131_7b_routing_handoff_w1/timing/handoff_timing.json",
+      "sha256": "ad232f857463b46aca2cb6ced200d836aab9cdef0b29e20fe4cd4732b8e94665",
+      "bytes": 1697697
+    }
+  ]
+}

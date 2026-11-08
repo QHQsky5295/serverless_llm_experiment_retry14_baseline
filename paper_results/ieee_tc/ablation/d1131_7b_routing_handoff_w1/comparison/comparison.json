@@ -1,0 +1,1481 @@
+{
+  "kind": "d1131_7b_routing_handoff_w1_observation_v1",
+  "results": {
+    "ElasticOnly": {
+      "run": "D1119",
+      "system": "PrimeLoRA",
+      "requests": 4000,
+      "counts": {
+        "ttft_pass": 3999,
+        "tpot_pass": 3988,
+        "joint_pass": 3987
+      },
+      "scenario": "tc_ieee_elastic_only",
+      "workload": "W1",
+      "replay_plan": {
+        "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json",
+        "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+        "view_sha256": "103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3",
+        "count": 4000,
+        "source_count": 4000,
+        "profile": "W1",
+        "rate_scale": 1.0
+      },
+      "common_slo_sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+      "metrics": {
+        "ttft_ms": {
+          "count": 4000,
+          "mean": 557.6477967076935,
+          "p50_type1": 476.9449047744274,
+          "p95_type1": 1035.5770019814372
+        },
+        "tpot_ms": {
+          "count": 4000,
+          "mean": 27.60270297116077,
+          "p50_type1": 24.391916231708784,
+          "p95_type1": 46.53564790108552
+        },
+        "e2e_ms": {
+          "count": 4000,
+          "mean": 3532.7206218471983,
+          "p50_type1": 2832.210022956133,
+          "p95_type1": 7469.207690097392
+        }
+      },
+      "physical_gpu_seconds": 8575.626704086084,
+      "gpu_seconds_per_offered_request": 2.143906676021521,
+      "n_correct": null,
+      "variant": "ElasticOnly",
+      "joint_slo": 0.99675,
+      "timing_feasible": true,
+      "remote": {
+        "server_transfers": 132,
+        "matched_request_transfers": 132,
+        "unmatched_server_transfers": 0,
+        "wire_bytes": 131480060,
+        "delivery": "prepublished_gzip_v1",
+        "request_time_packing": false
+      },
+      "resource": {
+        "samples": 2245,
+        "events": {
+          "watchdog_ready": 1,
+          "resource_sample": 2245,
+          "gpu_terminal_census": 1,
+          "service_domain_gone": 1
+        },
+        "host_min_available_bytes": 102548250624,
+        "service_peak_bytes": 19766685696,
+        "max_swap_bytes": 0,
+        "memory_events": {
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0
+        }
+      },
+      "tier_counts": {
+        "remote": 132,
+        "gpu": 2351,
+        "host": 539,
+        "nvme": 978
+      },
+      "budget_gpu_seconds": 6756.571050141065,
+      "within_budget": false
+    },
+    "RoutingOnly": {
+      "run": "D1129",
+      "system": "PrimeLoRA",
+      "requests": 4000,
+      "counts": {
+        "ttft_pass": 3949,
+        "tpot_pass": 3952,
+        "joint_pass": 3905
+      },
+      "scenario": "tc_ieee_routing_only",
+      "workload": "W1",
+      "replay_plan": {
+        "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json",
+        "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+        "view_sha256": "103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3",
+        "count": 4000,
+        "source_count": 4000,
+        "profile": "W1",
+        "rate_scale": 1.0
+      },
+      "common_slo_sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+      "metrics": {
+        "ttft_ms": {
+          "count": 4000,
+          "mean": 808.2678278506501,
+          "p50_type1": 596.4251304976642,
+          "p95_type1": 1868.047927506268
+        },
+        "tpot_ms": {
+          "count": 4000,
+          "mean": 35.08467816695595,
+          "p50_type1": 32.48102011414068,
+          "p95_type1": 57.64173557434012
+        },
+        "e2e_ms": {
+          "count": 4000,
+          "mean": 4653.0934005320305,
+          "p50_type1": 4015.8753930591047,
+          "p95_type1": 10324.43497562781
+        }
+      },
+      "physical_gpu_seconds": 7204.901377048809,
+      "gpu_seconds_per_offered_request": 1.8012253442622024,
+      "n_correct": null,
+      "variant": "RoutingOnly",
+      "joint_slo": 0.97625,
+      "timing_feasible": true,
+      "remote": {
+        "server_transfers": 132,
+        "matched_request_transfers": 132,
+        "unmatched_server_transfers": 0,
+        "wire_bytes": 131480060,
+        "delivery": "prepublished_gzip_v1",
+        "request_time_packing": false
+      },
+      "resource": {
+        "samples": 2244,
+        "events": {
+          "watchdog_ready": 1,
+          "resource_sample": 2244,
+          "gpu_terminal_census": 1,
+          "service_domain_gone": 1
+        },
+        "host_min_available_bytes": 103102689280,
+        "service_peak_bytes": 19888689152,
+        "max_swap_bytes": 0,
+        "memory_events": {
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0
+        }
+      },
+      "tier_counts": {
+        "remote": 132,
+        "gpu": 2543,
+        "nvme": 942,
+        "host": 383
+      },
+      "budget_gpu_seconds": 6756.571050141065,
+      "within_budget": false
+    },
+    "RoutingHandoff": {
+      "run": "D1131",
+      "system": "PrimeLoRA",
+      "requests": 4000,
+      "counts": {
+        "ttft_pass": 3934,
+        "tpot_pass": 3963,
+        "joint_pass": 3900
+      },
+      "scenario": "tc_ieee_routing_handoff",
+      "workload": "W1",
+      "replay_plan": {
+        "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json",
+        "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+        "view_sha256": "103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3",
+        "count": 4000,
+        "source_count": 4000,
+        "profile": "W1",
+        "rate_scale": 1.0
+      },
+      "common_slo_sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+      "metrics": {
+        "ttft_ms": {
+          "count": 4000,
+          "mean": 830.8366547164042,
+          "p50_type1": 583.2282756455243,
+          "p95_type1": 2101.1666296981275
+        },
+        "tpot_ms": {
+          "count": 4000,
+          "mean": 34.298718571929676,
+          "p50_type1": 31.53318346412194,
+          "p95_type1": 56.90888937732036
+        },
+        "e2e_ms": {
+          "count": 4000,
+          "mean": 4582.157256950159,
+          "p50_type1": 3915.686487685889,
+          "p95_type1": 9809.623940382153
+        }
+      },
+      "physical_gpu_seconds": 7427.711740803439,
+      "gpu_seconds_per_offered_request": 1.8569279352008599,
+      "n_correct": null,
+      "variant": "RoutingHandoff",
+      "joint_slo": 0.975,
+      "timing_feasible": true,
+      "remote": {
+        "server_transfers": 132,
+        "matched_request_transfers": 131,
+        "unmatched_server_transfers": 1,
+        "wire_bytes": 131480060,
+        "delivery": "prepublished_gzip_v1",
+        "request_time_packing": false
+      },
+      "resource": {
+        "samples": 2249,
+        "events": {
+          "watchdog_ready": 1,
+          "resource_sample": 2249,
+          "gpu_terminal_census": 1,
+          "service_domain_gone": 1
+        },
+        "host_min_available_bytes": 102904020992,
+        "service_peak_bytes": 21634744320,
+        "max_swap_bytes": 0,
+        "memory_events": {
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0
+        }
+      },
+      "tier_counts": {
+        "remote": 135,
+        "gpu": 2721,
+        "nvme": 741,
+        "host": 403
+      },
+      "budget_gpu_seconds": 6756.571050141065,
+      "within_budget": false
+    },
+    "CapacityOnly": {
+      "run": "D1128",
+      "system": "PrimeLoRA",
+      "requests": 4000,
+      "counts": {
+        "ttft_pass": 3976,
+        "tpot_pass": 3954,
+        "joint_pass": 3930
+      },
+      "scenario": "tc_ieee_full",
+      "workload": "W1",
+      "replay_plan": {
+        "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json",
+        "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+        "view_sha256": "103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3",
+        "count": 4000,
+        "source_count": 4000,
+        "profile": "W1",
+        "rate_scale": 1.0
+      },
+      "common_slo_sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+      "metrics": {
+        "ttft_ms": {
+          "count": 4000,
+          "mean": 962.1149539387552,
+          "p50_type1": 740.4824709519744,
+          "p95_type1": 2333.273326512426
+        },
+        "tpot_ms": {
+          "count": 4000,
+          "mean": 35.906184763353735,
+          "p50_type1": 33.22690566918546,
+          "p95_type1": 57.09213571002086
+        },
+        "e2e_ms": {
+          "count": 4000,
+          "mean": 5005.769221955095,
+          "p50_type1": 4243.765321094543,
+          "p95_type1": 10870.596096850932
+        }
+      },
+      "physical_gpu_seconds": 7971.35807042988,
+      "gpu_seconds_per_offered_request": 1.99283951760747,
+      "n_correct": null,
+      "variant": "CapacityOnly",
+      "joint_slo": 0.9825,
+      "timing_feasible": true,
+      "remote": {
+        "server_transfers": 132,
+        "matched_request_transfers": 132,
+        "unmatched_server_transfers": 0,
+        "wire_bytes": 131480060,
+        "delivery": "prepublished_gzip_v1",
+        "request_time_packing": false
+      },
+      "resource": {
+        "samples": 2273,
+        "events": {
+          "watchdog_ready": 1,
+          "resource_sample": 2273,
+          "gpu_terminal_census": 1,
+          "service_domain_gone": 1
+        },
+        "host_min_available_bytes": 101729792000,
+        "service_peak_bytes": 22399963136,
+        "max_swap_bytes": 0,
+        "memory_events": {
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0
+        }
+      },
+      "tier_counts": {
+        "remote": 137,
+        "gpu": 2572,
+        "host": 429,
+        "nvme": 862
+      },
+      "budget_gpu_seconds": 6756.571050141065,
+      "within_budget": false
+    },
+    "Full": {
+      "run": "D1115",
+      "system": "PrimeLoRA",
+      "requests": 4000,
+      "counts": {
+        "ttft_pass": 3963,
+        "tpot_pass": 3978,
+        "joint_pass": 3942
+      },
+      "workload": "W1",
+      "replay_plan": {
+        "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json",
+        "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+        "view_sha256": "103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3",
+        "count": 4000,
+        "source_count": 4000,
+        "profile": "W1",
+        "rate_scale": 1.0
+      },
+      "common_slo_sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+      "metrics": {
+        "ttft_ms": {
+          "count": 4000,
+          "mean": 988.9003224200569,
+          "p50_type1": 760.6630525551736,
+          "p95_type1": 2331.3295198604465
+        },
+        "tpot_ms": {
+          "count": 4000,
+          "mean": 36.31860317399562,
+          "p50_type1": 34.25881092811061,
+          "p95_type1": 56.03729913893499
+        },
+        "e2e_ms": {
+          "count": 4000,
+          "mean": 5141.060583192855,
+          "p50_type1": 4445.336711127311,
+          "p95_type1": 10955.810483545065
+        }
+      },
+      "physical_gpu_seconds": 7603.874677798245,
+      "gpu_seconds_per_offered_request": 1.9009686694495613,
+      "n_correct": null,
+      "variant": "Full",
+      "scenario": "tc_ieee_full",
+      "joint_slo": 0.9855,
+      "timing_feasible": true,
+      "remote": {
+        "server_transfers": 132,
+        "matched_request_transfers": 132,
+        "unmatched_server_transfers": 0,
+        "wire_bytes": 131480060,
+        "delivery": "prepublished_gzip_v1",
+        "request_time_packing": false
+      },
+      "resource": {
+        "samples": 2270,
+        "events": {
+          "watchdog_ready": 1,
+          "resource_sample": 2270,
+          "gpu_terminal_census": 1,
+          "service_domain_gone": 1
+        },
+        "host_min_available_bytes": 102288670720,
+        "service_peak_bytes": 21465821184,
+        "max_swap_bytes": 0,
+        "memory_events": {
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0
+        }
+      },
+      "tier_counts": {
+        "remote": 135,
+        "gpu": 2590,
+        "host": 435,
+        "nvme": 840
+      },
+      "budget_gpu_seconds": 6756.571050141065,
+      "within_budget": false
+    }
+  },
+  "adjacent_contrasts": {
+    "RoutingOnly_relative_to_ElasticOnly": {
+      "gpu_seconds_reduction": 0.159839668205725,
+      "joint_slo_difference_percentage_points": -2.0500000000000074,
+      "p95_ttft_reduction": -0.8038715845678397
+    },
+    "RoutingHandoff_relative_to_RoutingOnly": {
+      "gpu_seconds_reduction": -0.030924831874089464,
+      "joint_slo_difference_percentage_points": -0.12499999999999734,
+      "p95_ttft_reduction": -0.12479267729659323
+    },
+    "CapacityOnly_relative_to_RoutingHandoff": {
+      "gpu_seconds_reduction": -0.07319163001977726,
+      "joint_slo_difference_percentage_points": 0.7500000000000062,
+      "p95_ttft_reduction": -0.1104656306328476
+    },
+    "Full_relative_to_CapacityOnly": {
+      "gpu_seconds_reduction": 0.046100474898352846,
+      "joint_slo_difference_percentage_points": 0.30000000000000027,
+      "p95_ttft_reduction": 0.0008330814182344929
+    }
+  },
+  "Full_relative_to_RoutingHandoff": {
+    "gpu_seconds_reduction": -0.023716986218928142,
+    "joint_slo_difference_percentage_points": 1.0500000000000065,
+    "p95_ttft_reduction": -0.10954052235037932
+  },
+  "matched_inputs": 4000,
+  "output_digest_differences": [
+    {
+      "request_id": "req_00009",
+      "RoutingOnly": "ebcbe3bfab382a63ed9fe1789739c516a876398ffd505c274b4b5c617acf4bd8",
+      "RoutingHandoff": "4b65f946d8dd4705d3ed227f31aa6343970c2e79502d83e89e02739e1c0c7b26"
+    },
+    {
+      "request_id": "req_00059",
+      "RoutingOnly": "a985dff39fdff6fa979ebbd76115a6f24cc0cfe9d1d49ea88691ad9ebb8e3f80",
+      "RoutingHandoff": "94a0ef97cfdd86f6c666b2f0ccd5657975017656ecf2ffa815d11a1161fb8986"
+    },
+    {
+      "request_id": "req_00073",
+      "RoutingOnly": "617d65daa8ea70a91f99006425e2c8636663888a4c4b5a1614167a22e07bc292",
+      "RoutingHandoff": "17359b3b224a2e6a3f24bcf05be9db3e89a64c4e1ab259779e307b619092a0b6"
+    },
+    {
+      "request_id": "req_00077",
+      "RoutingOnly": "191f72092b57948d0e5c9de1cfe48eb891b062394e9a6228a3650ca98b5ee796",
+      "RoutingHandoff": "4221eee50d9e6753af72843b415b50ec6a60a0822dbf230aafe3e5e3087fff73"
+    },
+    {
+      "request_id": "req_00100",
+      "RoutingOnly": "1dd63993b5d441903defed284c4929bafb26050d2f5f8c1ce925491931a25a92",
+      "RoutingHandoff": "b2977b740a98abb48039d81cfdcd22637ca20d9ddd805b499dde76a8605efdc8"
+    },
+    {
+      "request_id": "req_00111",
+      "RoutingOnly": "94a0ef97cfdd86f6c666b2f0ccd5657975017656ecf2ffa815d11a1161fb8986",
+      "RoutingHandoff": "a985dff39fdff6fa979ebbd76115a6f24cc0cfe9d1d49ea88691ad9ebb8e3f80"
+    },
+    {
+      "request_id": "req_00138",
+      "RoutingOnly": "1a4e564194ec5c2198885e46b6069981d67ed4657e57613003969a8526b5d118",
+      "RoutingHandoff": "0e1726b6cfde0f83f4900ca51723fe01771a68ec5856a0d699b474390e3c03ce"
+    },
+    {
+      "request_id": "req_00166",
+      "RoutingOnly": "af6213a8abce0ee18626c7572af92e018ef0aab1219c1d783313e6031c47dde4",
+      "RoutingHandoff": "b5309a86e46be74c3b9d3464f581d52ca044957fe8a46dfedf42d5ce47211e0d"
+    },
+    {
+      "request_id": "req_00187",
+      "RoutingOnly": "191f72092b57948d0e5c9de1cfe48eb891b062394e9a6228a3650ca98b5ee796",
+      "RoutingHandoff": "4221eee50d9e6753af72843b415b50ec6a60a0822dbf230aafe3e5e3087fff73"
+    },
+    {
+      "request_id": "req_00188",
+      "RoutingOnly": "b71706478354f8b7fc3bb3d8a35aeb2302adaf2eba688a38407671afbaa3ce22",
+      "RoutingHandoff": "f9da92299204f13da04fc707c5baa72f252025800d16d57e8efa60c61b25c1bd"
+    },
+    {
+      "request_id": "req_00246",
+      "RoutingOnly": "4221eee50d9e6753af72843b415b50ec6a60a0822dbf230aafe3e5e3087fff73",
+      "RoutingHandoff": "191f72092b57948d0e5c9de1cfe48eb891b062394e9a6228a3650ca98b5ee796"
+    },
+    {
+      "request_id": "req_00249",
+      "RoutingOnly": "d57e926e6e1d949e1598b4af6b4c11bec19b77a5168064eabc275901842d9d0c",
+      "RoutingHandoff": "c1363f7c1bf091825a89d743c6cffd464632fc8e832fc94434ecea1bb7aa75af"
+    },
+    {
+      "request_id": "req_00267",
+      "RoutingOnly": "49bd491f7c8d888d88999f24e25f81b0b8faccff7ca3ba018bb206d62e3a86aa",
+      "RoutingHandoff": "fdce9ae93258b97930466b90320e6e411fff55426fb4a79ca515cc76637aea27"
+    },
+    {
+      "request_id": "req_00274",
+      "RoutingOnly": "cd9cf2390960f989ede39315ce063070e5f20a2d9ba27a9fffc7b3fc8494afbb",
+      "RoutingHandoff": "ddbacd921c13ca7e1e8b3561ff94e8cb5af37fdf94c4e7d43a2b1cd1dc5b323a"
+    },
+    {
+      "request_id": "req_00295",
+      "RoutingOnly": "965d5e303933266e507e062922f1ada9c624a1d2b08242ea46beea6327a6ca40",
+      "RoutingHandoff": "be117f6ac6a543279909311947d83a411b11820f467fd84c636a2ad0abc516ba"
+    },
+    {
+      "request_id": "req_00320",
+      "RoutingOnly": "1e8a4bf599a15b71a8b91d40920a6de7390489faeb56d0e32220fb2b50b3239a",
+      "RoutingHandoff": "b2b67813bb450a665ec907ec8430ce42504b84a355f498b5b9b04ee3522c9d1b"
+    },
+    {
+      "request_id": "req_00325",
+      "RoutingOnly": "4221eee50d9e6753af72843b415b50ec6a60a0822dbf230aafe3e5e3087fff73",
+      "RoutingHandoff": "191f72092b57948d0e5c9de1cfe48eb891b062394e9a6228a3650ca98b5ee796"
+    },
+    {
+      "request_id": "req_00335",
+      "RoutingOnly": "4384927fd0a481adf0ed4041c4244b597c4ed6d054d3b24ba1ae6e5eb2817fc2",
+      "RoutingHandoff": "3b678dcbb8925d083a328237fe8b800eba5625b1603f7d5d27e3234c3d74e142"
+    },
+    {
+      "request_id": "req_00343",
+      "RoutingOnly": "0b7c99a6972ca941410209bd5f5551d5033359c2ebd94840bc786a471896b481",
+      "RoutingHandoff": "6df2327fc6089250f6c0d7ef7fc31e7fe24b601f1c65b7c7ec5667de9b48d891"
+    },
+    {
+      "request_id": "req_00389",
+      "RoutingOnly": "ddf847f20f805c4068b2583bcea2958acba7c8bcd05bbc76aaed09ef781be7f6",
+      "RoutingHandoff": "127d7d76950e65eb7a1103021505a8a3e84acab1f5e85000ace7358080e0a67c"
+    },
+    {
+      "request_id": "req_00400",
+      "RoutingOnly": "c5ce146187bec18ba33f77a62da09e0671e90a869dff46c3729ccd907ddfe272",
+      "RoutingHandoff": "53d3d301e88b4aa9de8765fa03a8a83c0a7006583a4438c40a9fd4ac8e8ddd09"
+    },
+    {
+      "request_id": "req_00423",
+      "RoutingOnly": "cd9cf2390960f989ede39315ce063070e5f20a2d9ba27a9fffc7b3fc8494afbb",
+      "RoutingHandoff": "ddbacd921c13ca7e1e8b3561ff94e8cb5af37fdf94c4e7d43a2b1cd1dc5b323a"
+    },
+    {
+      "request_id": "req_00426",
+      "RoutingOnly": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "RoutingHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_00473",
+      "RoutingOnly": "4219f0e434081b5255e8744a188f35c9598e73978ce6c69e95206154b0f5e3ec",
+      "RoutingHandoff": "8df45e99562ac69122cd4c84d6082a5ff3ad5d3d068c9f8e7c3678842945c4c1"
+    },
+    {
+      "request_id": "req_00486",
+      "RoutingOnly": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "RoutingHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_00495",
+      "RoutingOnly": "a596795d42b1af94a1c82214a2d0e7c836684e2e5bea4de80bc1ecc189aff970",
+      "RoutingHandoff": "2a1aa7e164c28ba2069b3c5420130de93f508468406eacbb3efca3c8993646b5"
+    },
+    {
+      "request_id": "req_00503",
+      "RoutingOnly": "965d5e303933266e507e062922f1ada9c624a1d2b08242ea46beea6327a6ca40",
+      "RoutingHandoff": "75437b1fb2372276e6201dca521f6ed530275891b924fb54cf7bee3a0a326134"
+    },
+    {
+      "request_id": "req_00510",
+      "RoutingOnly": "3e9cde124fc268fbd2f68b72f0683c93be744cd2b0ecfa7dd12db96f0209a408",
+      "RoutingHandoff": "e02e5001da648f17b84512612f0455881319357fbc5b2bbced96c5626613b70c"
+    },
+    {
+      "request_id": "req_00519",
+      "RoutingOnly": "c1bd93b160857907eabb2af8e56f5d72fb2c9c1b2fb01ba3d20a07d2e3887f90",
+      "RoutingHandoff": "3d8ebf3f0a7565871062901338857e222f84bd9181c1a2d11d57e97201d1c8bd"
+    },
+    {
+      "request_id": "req_00525",
+      "RoutingOnly": "86cb254e0c2c91bf07321f7e9bdcf0f8ae16f0140d85b6dc0f92f05c3e630590",
+      "RoutingHandoff": "49bd491f7c8d888d88999f24e25f81b0b8faccff7ca3ba018bb206d62e3a86aa"
+    },
+    {
+      "request_id": "req_00549",
+      "RoutingOnly": "35ed272500a17a1f52c072c3b34a5708bba57b984866ec9e79acf0f65818c99f",
+      "RoutingHandoff": "c45ffe7a8ad60d61d38fe74fa6039d2dac19f91d2b833292a94f1c7cb9519f4d"
+    },
+    {
+      "request_id": "req_00577",
+      "RoutingOnly": "cd9cf2390960f989ede39315ce063070e5f20a2d9ba27a9fffc7b3fc8494afbb",
+      "RoutingHandoff": "ddbacd921c13ca7e1e8b3561ff94e8cb5af37fdf94c4e7d43a2b1cd1dc5b323a"
+    },
+    {
+      "request_id": "req_00587",
+      "RoutingOnly": "92e37cc749d541a77fb9d7e737f749671fb57ceb94f8cafbaf1824934cc4ca5b",
+      "RoutingHandoff": "e522362b294b031721772bf8da7960ac12f22abcd4bc6ee3289244d81340280d"
+    },
+    {
+      "request_id": "req_00602",
+      "RoutingOnly": "931e5de11b40384b64f94be8b0fcb738d10990577d9a557c36cab2957aa1f19c",
+      "RoutingHandoff": "6c062e088166d1f25ed95531035d08a8bd36193fb9e78f25bf2ef811006d8f8e"
+    },
+    {
+      "request_id": "req_00616",
+      "RoutingOnly": "3fd38ac7692dd3329565b11e7d619351dae75067a4b805954f72fe740d876cfa",
+      "RoutingHandoff": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6"
+    },
+    {
+      "request_id": "req_00642",
+      "RoutingOnly": "e522362b294b031721772bf8da7960ac12f22abcd4bc6ee3289244d81340280d",
+      "RoutingHandoff": "92e37cc749d541a77fb9d7e737f749671fb57ceb94f8cafbaf1824934cc4ca5b"
+    },
+    {
+      "request_id": "req_00666",
+      "RoutingOnly": "938f10ff5c23eda6692ef95421810a6ed280bcd444b38b7548b5d47ac9292b5f",
+      "RoutingHandoff": "759838661310045e3e64e378aee6763f80ec92b57084638e5f8e52b215751251"
+    },
+    {
+      "request_id": "req_00694",
+      "RoutingOnly": "82a32d5ac1d15db61d5c6e32762fd13f79693f820d3855c20a2d6da78af16c59",
+      "RoutingHandoff": "1e8a4bf599a15b71a8b91d40920a6de7390489faeb56d0e32220fb2b50b3239a"
+    },
+    {
+      "request_id": "req_00714",
+      "RoutingOnly": "0544ba31524e1eec8964291eb64735e5ac1e43b006c5f37224142b7b1a94431c",
+      "RoutingHandoff": "01d2fe6eba0cb10fa8ca3dd6af20957db8798de83e1a91f3429b01e0c95e4055"
+    },
+    {
+      "request_id": "req_00742",
+      "RoutingOnly": "207664fe3d712ca37d6a17c879e5dbae1e21143b40ed02bee5e4be648a42b94e",
+      "RoutingHandoff": "c27681280cc27bf9a0002ea3ad48ec6a09d9c5da0929524d5232140588e2f136"
+    },
+    {
+      "request_id": "req_00781",
+      "RoutingOnly": "57a4df964bd726c8a384ad64083477574b3113bb7686c381bd3717f059b4b84c",
+      "RoutingHandoff": "e377f6fd88abb1f179fdbc353fff9bd80228c2e36e4021bcca2d11e519f9f237"
+    },
+    {
+      "request_id": "req_00803",
+      "RoutingOnly": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "RoutingHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_00817",
+      "RoutingOnly": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6",
+      "RoutingHandoff": "3fd38ac7692dd3329565b11e7d619351dae75067a4b805954f72fe740d876cfa"
+    },
+    {
+      "request_id": "req_00824",
+      "RoutingOnly": "1e8a4bf599a15b71a8b91d40920a6de7390489faeb56d0e32220fb2b50b3239a",
+      "RoutingHandoff": "b2b67813bb450a665ec907ec8430ce42504b84a355f498b5b9b04ee3522c9d1b"
+    },
+    {
+      "request_id": "req_00837",
+      "RoutingOnly": "6fc21b9c286a65587e00ead179855ca91cc96129650d0a344d4bd2a1361fd94c",
+      "RoutingHandoff": "9ff7a181c51cf73b778b5d7a0a31e7774a61c3720b5e44f1b2f25f2429100f34"
+    },
+    {
+      "request_id": "req_00880",
+      "RoutingOnly": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "RoutingHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_00887",
+      "RoutingOnly": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "RoutingHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_00965",
+      "RoutingOnly": "632ccf39c94b5b838bd8532dc6e764b052ec4ef3ce5003a9294f0879a303d8c5",
+      "RoutingHandoff": "506e9c3f385f3e326489532cd1371aa52dcd2e05c32813138cf08ef370b04a08"
+    },
+    {
+      "request_id": "req_00993",
+      "RoutingOnly": "d549df861c975f04de43a310fb24d3fdef256b6c55dac8afaf09a523453fc0a2",
+      "RoutingHandoff": "50ebdc4bda29e0aa5dadaab2949bbbf1527bd4b19c2e9ff2cc92e487dab6241b"
+    },
+    {
+      "request_id": "req_01008",
+      "RoutingOnly": "b71706478354f8b7fc3bb3d8a35aeb2302adaf2eba688a38407671afbaa3ce22",
+      "RoutingHandoff": "64524f6b1832f0c9c7de77bbae89220c24627bbb61511437f43aee36bf2fc86a"
+    },
+    {
+      "request_id": "req_01036",
+      "RoutingOnly": "65217791466f518c5852a802f541ab8afb6dc899e22a1d4572d68cc79f01328f",
+      "RoutingHandoff": "639150cb139fc09e9b71b0da39b54b12d3321dfc98a8b4d746d8209efed80a88"
+    },
+    {
+      "request_id": "req_01052",
+      "RoutingOnly": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "RoutingHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_01093",
+      "RoutingOnly": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "RoutingHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_01102",
+      "RoutingOnly": "3e91a95d3bd7017fa740c6d2a69e20dcc16e4c022fae03bbc8c161ef73eb3e00",
+      "RoutingHandoff": "37c86a78954dfb1b232290110f47677d0b69981a518c1b160f69b4368c1e95ab"
+    },
+    {
+      "request_id": "req_01126",
+      "RoutingOnly": "6fc21b9c286a65587e00ead179855ca91cc96129650d0a344d4bd2a1361fd94c",
+      "RoutingHandoff": "9ff7a181c51cf73b778b5d7a0a31e7774a61c3720b5e44f1b2f25f2429100f34"
+    },
+    {
+      "request_id": "req_01139",
+      "RoutingOnly": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "RoutingHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_01156",
+      "RoutingOnly": "e02e5001da648f17b84512612f0455881319357fbc5b2bbced96c5626613b70c",
+      "RoutingHandoff": "3e9cde124fc268fbd2f68b72f0683c93be744cd2b0ecfa7dd12db96f0209a408"
+    },
+    {
+      "request_id": "req_01163",
+      "RoutingOnly": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "RoutingHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_01165",
+      "RoutingOnly": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "RoutingHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_01193",
+      "RoutingOnly": "86cb254e0c2c91bf07321f7e9bdcf0f8ae16f0140d85b6dc0f92f05c3e630590",
+      "RoutingHandoff": "49bd491f7c8d888d88999f24e25f81b0b8faccff7ca3ba018bb206d62e3a86aa"
+    },
+    {
+      "request_id": "req_01247",
+      "RoutingOnly": "617d65daa8ea70a91f99006425e2c8636663888a4c4b5a1614167a22e07bc292",
+      "RoutingHandoff": "59a7f32024d37ac49a6cdbb155d0c9601496e2ee83e92fa12e637b88dddde76c"
+    },
+    {
+      "request_id": "req_01264",
+      "RoutingOnly": "e02e5001da648f17b84512612f0455881319357fbc5b2bbced96c5626613b70c",
+      "RoutingHandoff": "3e9cde124fc268fbd2f68b72f0683c93be744cd2b0ecfa7dd12db96f0209a408"
+    },
+    {
+      "request_id": "req_01294",
+      "RoutingOnly": "c5ce146187bec18ba33f77a62da09e0671e90a869dff46c3729ccd907ddfe272",
+      "RoutingHandoff": "53d3d301e88b4aa9de8765fa03a8a83c0a7006583a4438c40a9fd4ac8e8ddd09"
+    },
+    {
+      "request_id": "req_01295",
+      "RoutingOnly": "b07ff26d0cb2e0c07639333a3dcea4094aa6e24c3bdd0e7184b58e1cd949e202",
+      "RoutingHandoff": "c2d3c381f379b8f482f9f457482575a9d62b3145e9a60f3260b9e89caedd8bea"
+    },
+    {
+      "request_id": "req_01302",
+      "RoutingOnly": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "RoutingHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_01308",
+      "RoutingOnly": "3fd38ac7692dd3329565b11e7d619351dae75067a4b805954f72fe740d876cfa",
+      "RoutingHandoff": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6"
+    },
+    {
+      "request_id": "req_01377",
+      "RoutingOnly": "fd168d6a38e57591be3965fa7398d8b19fe0a04f7371c8721966c5804981c0bb",
+      "RoutingHandoff": "220e3cfd906ce30d7cc4e4517aa1f7afd3a18a6d0e27aa280dd4b818f3a98b8b"
+    },
+    {
+      "request_id": "req_01384",
+      "RoutingOnly": "97d7153f6e3121971a2fca21ae6a124adb3ab69135031065eb5a750c8979d750",
+      "RoutingHandoff": "3c97070f023570cfe06f4f4c1b148fb9967110456917ebe37ad11949883d39f5"
+    },
+    {
+      "request_id": "req_01408",
+      "RoutingOnly": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "RoutingHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_01439",
+      "RoutingOnly": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "RoutingHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_01474",
+      "RoutingOnly": "82a32d5ac1d15db61d5c6e32762fd13f79693f820d3855c20a2d6da78af16c59",
+      "RoutingHandoff": "1e8a4bf599a15b71a8b91d40920a6de7390489faeb56d0e32220fb2b50b3239a"
+    },
+    {
+      "request_id": "req_01528",
+      "RoutingOnly": "4bad213b1e7eaab7ce1af818593502cb9795ea68ffb600857e4d540505274111",
+      "RoutingHandoff": "836fc8b71e827d1ac9a6f26e2f5382239fcb10844d6eceadaba3187756430673"
+    },
+    {
+      "request_id": "req_01537",
+      "RoutingOnly": "3fd38ac7692dd3329565b11e7d619351dae75067a4b805954f72fe740d876cfa",
+      "RoutingHandoff": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6"
+    },
+    {
+      "request_id": "req_01547",
+      "RoutingOnly": "3e9cde124fc268fbd2f68b72f0683c93be744cd2b0ecfa7dd12db96f0209a408",
+      "RoutingHandoff": "e02e5001da648f17b84512612f0455881319357fbc5b2bbced96c5626613b70c"
+    },
+    {
+      "request_id": "req_01565",
+      "RoutingOnly": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "RoutingHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_01577",
+      "RoutingOnly": "3ae5f7a9328c3fbcbbf5fdce8b3197567435206cdf243514205e45b21ebc903e",
+      "RoutingHandoff": "ece9a4233758b4175e456d91e53e1a4992973c836f09ad2a379b4966f6f16603"
+    },
+    {
+      "request_id": "req_01585",
+      "RoutingOnly": "b71706478354f8b7fc3bb3d8a35aeb2302adaf2eba688a38407671afbaa3ce22",
+      "RoutingHandoff": "f9da92299204f13da04fc707c5baa72f252025800d16d57e8efa60c61b25c1bd"
+    },
+    {
+      "request_id": "req_01596",
+      "RoutingOnly": "4384927fd0a481adf0ed4041c4244b597c4ed6d054d3b24ba1ae6e5eb2817fc2",
+      "RoutingHandoff": "3b678dcbb8925d083a328237fe8b800eba5625b1603f7d5d27e3234c3d74e142"
+    },
+    {
+      "request_id": "req_01640",
+      "RoutingOnly": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "RoutingHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_01642",
+      "RoutingOnly": "a96129b4f91a13610d12cae898accdff69b8f5af0c08915c5af3fe3f33508747",
+      "RoutingHandoff": "d397bd43dc2de69cc211ac6547ddcfcb163d849d629b7ef68ed8114192fb96ea"
+    },
+    {
+      "request_id": "req_01673",
+      "RoutingOnly": "0b7c99a6972ca941410209bd5f5551d5033359c2ebd94840bc786a471896b481",
+      "RoutingHandoff": "6df2327fc6089250f6c0d7ef7fc31e7fe24b601f1c65b7c7ec5667de9b48d891"
+    },
+    {
+      "request_id": "req_01726",
+      "RoutingOnly": "06006ebc1e70c83a92c831c56d0fb6ef56f6f2d0b8c792f1ff2f08f55e70b6e1",
+      "RoutingHandoff": "122b5c259e9651a9a3c394e090b28d7029fdeb7c31c4d78e1fe26c7913d6e07b"
+    },
+    {
+      "request_id": "req_01735",
+      "RoutingOnly": "a90e513b6de7fe9f205f3a91526e2971b55737078b1977572818fa3f294f5399",
+      "RoutingHandoff": "0ddc73eecee623de54ca2b0a8b6c0f6585d3b64295c8f156b75913e8d55433e8"
+    },
+    {
+      "request_id": "req_01740",
+      "RoutingOnly": "6fc21b9c286a65587e00ead179855ca91cc96129650d0a344d4bd2a1361fd94c",
+      "RoutingHandoff": "9ff7a181c51cf73b778b5d7a0a31e7774a61c3720b5e44f1b2f25f2429100f34"
+    },
+    {
+      "request_id": "req_01763",
+      "RoutingOnly": "06006ebc1e70c83a92c831c56d0fb6ef56f6f2d0b8c792f1ff2f08f55e70b6e1",
+      "RoutingHandoff": "122b5c259e9651a9a3c394e090b28d7029fdeb7c31c4d78e1fe26c7913d6e07b"
+    },
+    {
+      "request_id": "req_01806",
+      "RoutingOnly": "3e91a95d3bd7017fa740c6d2a69e20dcc16e4c022fae03bbc8c161ef73eb3e00",
+      "RoutingHandoff": "37c86a78954dfb1b232290110f47677d0b69981a518c1b160f69b4368c1e95ab"
+    },
+    {
+      "request_id": "req_01812",
+      "RoutingOnly": "4288a1993df25f6a3eb4c6220d54479813651083d894ba6df74957a50acc908b",
+      "RoutingHandoff": "dce9c6d4dd86068d0e1e464f1b60ab07391646b5c2ae48a9f5504cad44a02af3"
+    },
+    {
+      "request_id": "req_01824",
+      "RoutingOnly": "9ff7a181c51cf73b778b5d7a0a31e7774a61c3720b5e44f1b2f25f2429100f34",
+      "RoutingHandoff": "6fc21b9c286a65587e00ead179855ca91cc96129650d0a344d4bd2a1361fd94c"
+    },
+    {
+      "request_id": "req_01834",
+      "RoutingOnly": "76d67dbc3647f828faf9286f0492a94017e3c01dee03c206623dc96011bc2360",
+      "RoutingHandoff": "4bad213b1e7eaab7ce1af818593502cb9795ea68ffb600857e4d540505274111"
+    },
+    {
+      "request_id": "req_01855",
+      "RoutingOnly": "7d2f5dd669a87c3bc9882417c7bac4f684e682d8c45f38afce0f20372912c02a",
+      "RoutingHandoff": "d58fc704cbc18fcd43faf79881e418d3a6251bc5a1b9c4e1814adc5fcf9e9c88"
+    },
+    {
+      "request_id": "req_01861",
+      "RoutingOnly": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "RoutingHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_01863",
+      "RoutingOnly": "b3eda48ce1b5347567c434ef9ec7105c2675cdbd2680b5fb7e20cbe780fa84bd",
+      "RoutingHandoff": "879c35468493070c44d31ea9077df3157d0c55befe0045eb9acbe4599697f8b1"
+    },
+    {
+      "request_id": "req_01884",
+      "RoutingOnly": "a985dff39fdff6fa979ebbd76115a6f24cc0cfe9d1d49ea88691ad9ebb8e3f80",
+      "RoutingHandoff": "94a0ef97cfdd86f6c666b2f0ccd5657975017656ecf2ffa815d11a1161fb8986"
+    },
+    {
+      "request_id": "req_01892",
+      "RoutingOnly": "311d51a9b6a9d5a1fdfee8a5a0718f468f9ef9e98b3ebe73cd09ecd470c2ffe8",
+      "RoutingHandoff": "34db4a61149abcaa06e002dba4c6d75900c668efef9947a36397e1d63b292bf5"
+    },
+    {
+      "request_id": "req_01899",
+      "RoutingOnly": "207664fe3d712ca37d6a17c879e5dbae1e21143b40ed02bee5e4be648a42b94e",
+      "RoutingHandoff": "8073b37ae193616b0642d733d55a33a5c660d4c7019ba5fface70d6f264d7e48"
+    },
+    {
+      "request_id": "req_01908",
+      "RoutingOnly": "9986646d9e3055eb0c11966ae8ce2eb5508ba5ec866838a3ae4fbe8dc86189ae",
+      "RoutingHandoff": "688050c11ba9f5e3fd0815be6d64bd64dd4d25c5f0511e599170c69437c2d990"
+    },
+    {
+      "request_id": "req_01913",
+      "RoutingOnly": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "RoutingHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_01921",
+      "RoutingOnly": "c8b005a91adf4bc19c4c4c270ebf15711fced488ab95419f84290f87cfa4f68d",
+      "RoutingHandoff": "32017df8a7f7f4f3653dc623d4a6c1b5a171ad9a9721ca5c3fb164884d7379e2"
+    },
+    {
+      "request_id": "req_01960",
+      "RoutingOnly": "c5c4fea84f88016e1d5082e2fe88633fbc7a270aa65afc6d4bb3735f69f3a5bb",
+      "RoutingHandoff": "f94314ef65169455c73c2599a6eb099584e68236735a32af942728c562e9178b"
+    },
+    {
+      "request_id": "req_01969",
+      "RoutingOnly": "04e1e9c1536e714477549c40c03bff3ac7092b60d110be1ac9d67ad88253a2ee",
+      "RoutingHandoff": "33e6f9b5e08b15dd44d44f0bbab2d4a53a7d9f72275e67c57b88e1d519d061ee"
+    },
+    {
+      "request_id": "req_01970",
+      "RoutingOnly": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "RoutingHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_01983",
+      "RoutingOnly": "965d5e303933266e507e062922f1ada9c624a1d2b08242ea46beea6327a6ca40",
+      "RoutingHandoff": "75437b1fb2372276e6201dca521f6ed530275891b924fb54cf7bee3a0a326134"
+    },
+    {
+      "request_id": "req_02002",
+      "RoutingOnly": "c041f2d6053649d03159572d0fdf7563709bc537f752ec839b354f0993e807c0",
+      "RoutingHandoff": "9c5bb5080e8b5e1ff10bd524df16dd5cca4e234e59301dd304b3430a39aa118b"
+    },
+    {
+      "request_id": "req_02009",
+      "RoutingOnly": "69d42fbb09a114e418f773c612657c008977b6cb50f768799d6113eb3f69714f",
+      "RoutingHandoff": "f6ed0e8ea944991df23aaccc54bb1f842e367eae7127ee7dc9df392c55c582fa"
+    },
+    {
+      "request_id": "req_02025",
+      "RoutingOnly": "a985dff39fdff6fa979ebbd76115a6f24cc0cfe9d1d49ea88691ad9ebb8e3f80",
+      "RoutingHandoff": "94a0ef97cfdd86f6c666b2f0ccd5657975017656ecf2ffa815d11a1161fb8986"
+    },
+    {
+      "request_id": "req_02040",
+      "RoutingOnly": "d8430e1161c3d9e80696c8dc21360e32d69932f74c00bba9c84916b40a6a6380",
+      "RoutingHandoff": "891c60d51716debb71879664f5cf6189f9754c4305dca9eb4b07b5ea115a3281"
+    },
+    {
+      "request_id": "req_02058",
+      "RoutingOnly": "1a4e564194ec5c2198885e46b6069981d67ed4657e57613003969a8526b5d118",
+      "RoutingHandoff": "0e1726b6cfde0f83f4900ca51723fe01771a68ec5856a0d699b474390e3c03ce"
+    },
+    {
+      "request_id": "req_02061",
+      "RoutingOnly": "03c48699344f6ff95f67ea7c08b1dc315a6f7d39781f7199ae9b515708614223",
+      "RoutingHandoff": "ae8a66a7ede2b38ce31cf9be63217faf66cee1ea0b51bfc51df9fc6a0796f161"
+    },
+    {
+      "request_id": "req_02068",
+      "RoutingOnly": "d28629ba0368dd05a0d499e4602ba9c694a827a099ca62fea12c11eca143acbe",
+      "RoutingHandoff": "ea515bbf2a691ccead1fdfa050b7368f04fe8ad20a3b9e8eecae46d5bbf91d46"
+    },
+    {
+      "request_id": "req_02077",
+      "RoutingOnly": "6df2327fc6089250f6c0d7ef7fc31e7fe24b601f1c65b7c7ec5667de9b48d891",
+      "RoutingHandoff": "0b7c99a6972ca941410209bd5f5551d5033359c2ebd94840bc786a471896b481"
+    },
+    {
+      "request_id": "req_02081",
+      "RoutingOnly": "34db4a61149abcaa06e002dba4c6d75900c668efef9947a36397e1d63b292bf5",
+      "RoutingHandoff": "311d51a9b6a9d5a1fdfee8a5a0718f468f9ef9e98b3ebe73cd09ecd470c2ffe8"
+    },
+    {
+      "request_id": "req_02097",
+      "RoutingOnly": "d58fc704cbc18fcd43faf79881e418d3a6251bc5a1b9c4e1814adc5fcf9e9c88",
+      "RoutingHandoff": "7d2f5dd669a87c3bc9882417c7bac4f684e682d8c45f38afce0f20372912c02a"
+    },
+    {
+      "request_id": "req_02101",
+      "RoutingOnly": "abbf5c6732e45568d9282dd62b606cfc006a6cf1fa7379c52c2c120a32bbd913",
+      "RoutingHandoff": "d58fc704cbc18fcd43faf79881e418d3a6251bc5a1b9c4e1814adc5fcf9e9c88"
+    },
+    {
+      "request_id": "req_02171",
+      "RoutingOnly": "e2dbe4d62aa916a4246ce86c3499a032ae8e5f96ed4d98eca29c6cfd46f39b19",
+      "RoutingHandoff": "fc1c7a6c8f60732b2b16b6e2b46cbe54600a2cb7c984672bda7774b3fc253a2a"
+    },
+    {
+      "request_id": "req_02187",
+      "RoutingOnly": "97d7153f6e3121971a2fca21ae6a124adb3ab69135031065eb5a750c8979d750",
+      "RoutingHandoff": "3c97070f023570cfe06f4f4c1b148fb9967110456917ebe37ad11949883d39f5"
+    },
+    {
+      "request_id": "req_02189",
+      "RoutingOnly": "207664fe3d712ca37d6a17c879e5dbae1e21143b40ed02bee5e4be648a42b94e",
+      "RoutingHandoff": "c27681280cc27bf9a0002ea3ad48ec6a09d9c5da0929524d5232140588e2f136"
+    },
+    {
+      "request_id": "req_02194",
+      "RoutingOnly": "b2ee3500872ef5fb86f266a61d25baebaaf2d72ece634bb9c15ed5c75da24448",
+      "RoutingHandoff": "ac2294b7ef5b682264a6c719bdedf15d334098234526a54f8bd2930e85571549"
+    },
+    {
+      "request_id": "req_02214",
+      "RoutingOnly": "1e8a4bf599a15b71a8b91d40920a6de7390489faeb56d0e32220fb2b50b3239a",
+      "RoutingHandoff": "82a32d5ac1d15db61d5c6e32762fd13f79693f820d3855c20a2d6da78af16c59"
+    },
+    {
+      "request_id": "req_02253",
+      "RoutingOnly": "04e1e9c1536e714477549c40c03bff3ac7092b60d110be1ac9d67ad88253a2ee",
+      "RoutingHandoff": "385aa8fc570028f13a9c6e80ff2874538e274893bad761b75856c1d78c976502"
+    },
+    {
+      "request_id": "req_02271",
+      "RoutingOnly": "1e8a4bf599a15b71a8b91d40920a6de7390489faeb56d0e32220fb2b50b3239a",
+      "RoutingHandoff": "82a32d5ac1d15db61d5c6e32762fd13f79693f820d3855c20a2d6da78af16c59"
+    },
+    {
+      "request_id": "req_02308",
+      "RoutingOnly": "1e8a4bf599a15b71a8b91d40920a6de7390489faeb56d0e32220fb2b50b3239a",
+      "RoutingHandoff": "82a32d5ac1d15db61d5c6e32762fd13f79693f820d3855c20a2d6da78af16c59"
+    },
+    {
+      "request_id": "req_02320",
+      "RoutingOnly": "5dcc325b56c5154987a294fa573e536095e93f3a2ec2b91f1dcaf61e041d330b",
+      "RoutingHandoff": "91653039af54bc1c21ead7e320db5daabd6f368da688403cabb38755adda36e6"
+    },
+    {
+      "request_id": "req_02324",
+      "RoutingOnly": "6fc21b9c286a65587e00ead179855ca91cc96129650d0a344d4bd2a1361fd94c",
+      "RoutingHandoff": "9ff7a181c51cf73b778b5d7a0a31e7774a61c3720b5e44f1b2f25f2429100f34"
+    },
+    {
+      "request_id": "req_02330",
+      "RoutingOnly": "2a1aa7e164c28ba2069b3c5420130de93f508468406eacbb3efca3c8993646b5",
+      "RoutingHandoff": "62cdb6958e7c33cac62a4fdc1245b04876528d00efab9fda18b7e2383fa45304"
+    },
+    {
+      "request_id": "req_02340",
+      "RoutingOnly": "6e0bd925332e0d12f9105547beb347a6e37cce4b5798d1e9ad727182b44aa11c",
+      "RoutingHandoff": "e84292ee2b122b932f716c7cdca5171b46b473c7fa1ca4dad96ff2c0c2c1a3cf"
+    },
+    {
+      "request_id": "req_02347",
+      "RoutingOnly": "03c48699344f6ff95f67ea7c08b1dc315a6f7d39781f7199ae9b515708614223",
+      "RoutingHandoff": "ae8a66a7ede2b38ce31cf9be63217faf66cee1ea0b51bfc51df9fc6a0796f161"
+    },
+    {
+      "request_id": "req_02354",
+      "RoutingOnly": "d8430e1161c3d9e80696c8dc21360e32d69932f74c00bba9c84916b40a6a6380",
+      "RoutingHandoff": "891c60d51716debb71879664f5cf6189f9754c4305dca9eb4b07b5ea115a3281"
+    },
+    {
+      "request_id": "req_02373",
+      "RoutingOnly": "931e5de11b40384b64f94be8b0fcb738d10990577d9a557c36cab2957aa1f19c",
+      "RoutingHandoff": "6c062e088166d1f25ed95531035d08a8bd36193fb9e78f25bf2ef811006d8f8e"
+    },
+    {
+      "request_id": "req_02378",
+      "RoutingOnly": "311d51a9b6a9d5a1fdfee8a5a0718f468f9ef9e98b3ebe73cd09ecd470c2ffe8",
+      "RoutingHandoff": "34db4a61149abcaa06e002dba4c6d75900c668efef9947a36397e1d63b292bf5"
+    },
+    {
+      "request_id": "req_02392",
+      "RoutingOnly": "f9da92299204f13da04fc707c5baa72f252025800d16d57e8efa60c61b25c1bd",
+      "RoutingHandoff": "b71706478354f8b7fc3bb3d8a35aeb2302adaf2eba688a38407671afbaa3ce22"
+    },
+    {
+      "request_id": "req_02395",
+      "RoutingOnly": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "RoutingHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_02407",
+      "RoutingOnly": "b520efd21df7977a7acb0d2704279ca81f9f4539c6fd780cc9dd6981e7915312",
+      "RoutingHandoff": "a8d4d65d891410efa3a1497959b7ad15f1e1eefebb77a10cb452ecb6e50c498c"
+    },
+    {
+      "request_id": "req_02423",
+      "RoutingOnly": "ecca5aaab4ca45f65f971a21d41fcf322f335b4d1b0b72d5839402cba637aca9",
+      "RoutingHandoff": "38738558b3afd943b5bcc783130124d7a621b2674ae3da523d6f6467ed801089"
+    },
+    {
+      "request_id": "req_02424",
+      "RoutingOnly": "931e5de11b40384b64f94be8b0fcb738d10990577d9a557c36cab2957aa1f19c",
+      "RoutingHandoff": "6c062e088166d1f25ed95531035d08a8bd36193fb9e78f25bf2ef811006d8f8e"
+    },
+    {
+      "request_id": "req_02436",
+      "RoutingOnly": "03c48699344f6ff95f67ea7c08b1dc315a6f7d39781f7199ae9b515708614223",
+      "RoutingHandoff": "ae8a66a7ede2b38ce31cf9be63217faf66cee1ea0b51bfc51df9fc6a0796f161"
+    },
+    {
+      "request_id": "req_02443",
+      "RoutingOnly": "bd4b1229be44da667a558d49027605bfb486b3bac3d2ab76997eae8152df42cc",
+      "RoutingHandoff": "5036a59fded08d65d44a8a2e11a9fc1638078d1b98b9b55498b250b9f05b2106"
+    },
+    {
+      "request_id": "req_02478",
+      "RoutingOnly": "49bd491f7c8d888d88999f24e25f81b0b8faccff7ca3ba018bb206d62e3a86aa",
+      "RoutingHandoff": "86cb254e0c2c91bf07321f7e9bdcf0f8ae16f0140d85b6dc0f92f05c3e630590"
+    },
+    {
+      "request_id": "req_02484",
+      "RoutingOnly": "e9b0226be37343f0d95cdbf067e68032ff466ff3781bde0dc64d56a425b5a243",
+      "RoutingHandoff": "4fd3c79813ecdbacbdf8b320eed353833b7c07641998239ab75174508612486f"
+    },
+    {
+      "request_id": "req_02488",
+      "RoutingOnly": "7352b18664d88288b7a9c8d503cee71e36cfc6747aa172bbf8fe795bc6921760",
+      "RoutingHandoff": "70ab8b7277339cd07761c849581c9384ec6b07ee654ee8dbfc3a669cc6648a24"
+    },
+    {
+      "request_id": "req_02495",
+      "RoutingOnly": "e02e5001da648f17b84512612f0455881319357fbc5b2bbced96c5626613b70c",
+      "RoutingHandoff": "3e9cde124fc268fbd2f68b72f0683c93be744cd2b0ecfa7dd12db96f0209a408"
+    },
+    {
+      "request_id": "req_02519",
+      "RoutingOnly": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "RoutingHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_02537",
+      "RoutingOnly": "6fc21b9c286a65587e00ead179855ca91cc96129650d0a344d4bd2a1361fd94c",
+      "RoutingHandoff": "9ff7a181c51cf73b778b5d7a0a31e7774a61c3720b5e44f1b2f25f2429100f34"
+    },
+    {
+      "request_id": "req_02553",
+      "RoutingOnly": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "RoutingHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_02576",
+      "RoutingOnly": "69f9b5a53686a4cd2caad93cc4c7373fea0e06d88f8bbbe6f21b3950fba25d05",
+      "RoutingHandoff": "a6409579976f863974adf2d66f23650659a7f353425eed7d11e4c4dda6525c7f"
+    },
+    {
+      "request_id": "req_02579",
+      "RoutingOnly": "6c062e088166d1f25ed95531035d08a8bd36193fb9e78f25bf2ef811006d8f8e",
+      "RoutingHandoff": "931e5de11b40384b64f94be8b0fcb738d10990577d9a557c36cab2957aa1f19c"
+    },
+    {
+      "request_id": "req_02674",
+      "RoutingOnly": "0e1726b6cfde0f83f4900ca51723fe01771a68ec5856a0d699b474390e3c03ce",
+      "RoutingHandoff": "1a4e564194ec5c2198885e46b6069981d67ed4657e57613003969a8526b5d118"
+    },
+    {
+      "request_id": "req_02696",
+      "RoutingOnly": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "RoutingHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_02749",
+      "RoutingOnly": "c5b670f6356449588df195bd1f5e80cbf1d16067e122053ce71a2bc43f2f587b",
+      "RoutingHandoff": "90f376ce3cc9ca1213b5b088efcd83b6d050969edef6eaca4b3ada2b5fb020df"
+    },
+    {
+      "request_id": "req_02756",
+      "RoutingOnly": "55bbb068b211703ecbc25e413ee1a73ed02e7d198492888f9e7e116290f214ae",
+      "RoutingHandoff": "b96d5b7f9391cbe18c036df7cbdd7c5445fabcbc875bc471c3510ef2b0634b56"
+    },
+    {
+      "request_id": "req_02782",
+      "RoutingOnly": "b4198bd445843e053941234f988a3619aac1c4f9da94908f2206fa0e01cc32d9",
+      "RoutingHandoff": "9fc2d9d8294b2c41faf93aa28d3910b56feb4e9dc0c4b9f1b1da219e3c7ca16c"
+    },
+    {
+      "request_id": "req_02784",
+      "RoutingOnly": "6e36acfb61613458b2ae07249a699904ba5334b9e49229b28e019c11b1e84b81",
+      "RoutingHandoff": "dc98d0f41d5060bfb68f5e6c91daeb5f2511a611cbe2e793fa91980e66638ff8"
+    },
+    {
+      "request_id": "req_02796",
+      "RoutingOnly": "af6213a8abce0ee18626c7572af92e018ef0aab1219c1d783313e6031c47dde4",
+      "RoutingHandoff": "b5309a86e46be74c3b9d3464f581d52ca044957fe8a46dfedf42d5ce47211e0d"
+    },
+    {
+      "request_id": "req_02804",
+      "RoutingOnly": "758db5d4e6c5053cab126dbf0b3fafd341c73dbb47429701f614393a65bdb5db",
+      "RoutingHandoff": "e6283383dff1df3716d57fb997665de3d11ea204d3d423e2a5a9047df465b99f"
+    },
+    {
+      "request_id": "req_02820",
+      "RoutingOnly": "3106b28077e25826c38c4acd5618120cf356fe92a381e1c34b15673a6d18d84e",
+      "RoutingHandoff": "4ce0a11593d474b4272742b4a049411cf06ff96310765b59871ba455420e0b07"
+    },
+    {
+      "request_id": "req_02837",
+      "RoutingOnly": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "RoutingHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_02847",
+      "RoutingOnly": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "RoutingHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_02906",
+      "RoutingOnly": "3c97070f023570cfe06f4f4c1b148fb9967110456917ebe37ad11949883d39f5",
+      "RoutingHandoff": "e982a6c718ed79a68c7549b7442f1b950ba331bb5dcaa30c79abd42450748579"
+    },
+    {
+      "request_id": "req_02994",
+      "RoutingOnly": "21ef86106cac382b7f8977568bd190f459a9ff73c8297a857949f522f3449892",
+      "RoutingHandoff": "1e8adc0d854a87dfc237f789660e713c1bcf4181f37dfe2185de45fe188e66c2"
+    },
+    {
+      "request_id": "req_03041",
+      "RoutingOnly": "33e6f9b5e08b15dd44d44f0bbab2d4a53a7d9f72275e67c57b88e1d519d061ee",
+      "RoutingHandoff": "04e1e9c1536e714477549c40c03bff3ac7092b60d110be1ac9d67ad88253a2ee"
+    },
+    {
+      "request_id": "req_03070",
+      "RoutingOnly": "632ccf39c94b5b838bd8532dc6e764b052ec4ef3ce5003a9294f0879a303d8c5",
+      "RoutingHandoff": "506e9c3f385f3e326489532cd1371aa52dcd2e05c32813138cf08ef370b04a08"
+    },
+    {
+      "request_id": "req_03080",
+      "RoutingOnly": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "RoutingHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_03093",
+      "RoutingOnly": "e02e5001da648f17b84512612f0455881319357fbc5b2bbced96c5626613b70c",
+      "RoutingHandoff": "3e9cde124fc268fbd2f68b72f0683c93be744cd2b0ecfa7dd12db96f0209a408"
+    },
+    {
+      "request_id": "req_03113",
+      "RoutingOnly": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "RoutingHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_03136",
+      "RoutingOnly": "5532f47ce566a6cde2904bdc277e28b166c89cce252a9cf3e983da90ec1f64c7",
+      "RoutingHandoff": "e073b864046f5c7351e0b5ba9eb5404d02085ac7abdb69d3e529a010ad0d896b"
+    },
+    {
+      "request_id": "req_03141",
+      "RoutingOnly": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "RoutingHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_03144",
+      "RoutingOnly": "4219f0e434081b5255e8744a188f35c9598e73978ce6c69e95206154b0f5e3ec",
+      "RoutingHandoff": "8df45e99562ac69122cd4c84d6082a5ff3ad5d3d068c9f8e7c3678842945c4c1"
+    },
+    {
+      "request_id": "req_03158",
+      "RoutingOnly": "64d17faacc40def140844c2e56b7d6cf5afda1a6e25102ed703069e31a347ad0",
+      "RoutingHandoff": "efdb87f4c3e618f011c520ed352c18e18f35e57b32f80e29a95c910dfc8a4fd5"
+    },
+    {
+      "request_id": "req_03164",
+      "RoutingOnly": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "RoutingHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_03178",
+      "RoutingOnly": "17359b3b224a2e6a3f24bcf05be9db3e89a64c4e1ab259779e307b619092a0b6",
+      "RoutingHandoff": "617d65daa8ea70a91f99006425e2c8636663888a4c4b5a1614167a22e07bc292"
+    },
+    {
+      "request_id": "req_03184",
+      "RoutingOnly": "b5309a86e46be74c3b9d3464f581d52ca044957fe8a46dfedf42d5ce47211e0d",
+      "RoutingHandoff": "91d5fd0fa029f9b3eec4c49a25adad7349b63bfe0fb5cf9816878800b127aa58"
+    },
+    {
+      "request_id": "req_03187",
+      "RoutingOnly": "6e4d90f1c2d053d8a8d2ab80f2142a477deef196170fcd87f6d6f1e2cb631e67",
+      "RoutingHandoff": "5c6d7a66d07bd8da2bc60a8b84013246ec500957c38305e13e6560f876137f8b"
+    },
+    {
+      "request_id": "req_03196",
+      "RoutingOnly": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "RoutingHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_03217",
+      "RoutingOnly": "64524f6b1832f0c9c7de77bbae89220c24627bbb61511437f43aee36bf2fc86a",
+      "RoutingHandoff": "b71706478354f8b7fc3bb3d8a35aeb2302adaf2eba688a38407671afbaa3ce22"
+    },
+    {
+      "request_id": "req_03228",
+      "RoutingOnly": "3e91a95d3bd7017fa740c6d2a69e20dcc16e4c022fae03bbc8c161ef73eb3e00",
+      "RoutingHandoff": "37c86a78954dfb1b232290110f47677d0b69981a518c1b160f69b4368c1e95ab"
+    },
+    {
+      "request_id": "req_03284",
+      "RoutingOnly": "aa66ee36c685d8366f91ee9618b4878696d91550001b1994fa9d8455436f9cdc",
+      "RoutingHandoff": "63b4b66214bb41e6656a1ef6f594e4519c5ee005cc95007b8dce776e6783ccff"
+    },
+    {
+      "request_id": "req_03302",
+      "RoutingOnly": "50ebdc4bda29e0aa5dadaab2949bbbf1527bd4b19c2e9ff2cc92e487dab6241b",
+      "RoutingHandoff": "d549df861c975f04de43a310fb24d3fdef256b6c55dac8afaf09a523453fc0a2"
+    },
+    {
+      "request_id": "req_03365",
+      "RoutingOnly": "7352b18664d88288b7a9c8d503cee71e36cfc6747aa172bbf8fe795bc6921760",
+      "RoutingHandoff": "70ab8b7277339cd07761c849581c9384ec6b07ee654ee8dbfc3a669cc6648a24"
+    },
+    {
+      "request_id": "req_03393",
+      "RoutingOnly": "2b5837fc9bd66cff073bd0d2b6c674e85ff2ed7910dd78c66fe54e41801782fb",
+      "RoutingHandoff": "2b62500bd8c2e9ee5228462e34393d0b35aeae891d5d8631c333d7f5e7dcd6fa"
+    },
+    {
+      "request_id": "req_03423",
+      "RoutingOnly": "a596795d42b1af94a1c82214a2d0e7c836684e2e5bea4de80bc1ecc189aff970",
+      "RoutingHandoff": "62cdb6958e7c33cac62a4fdc1245b04876528d00efab9fda18b7e2383fa45304"
+    },
+    {
+      "request_id": "req_03474",
+      "RoutingOnly": "3ba62fc14e83e312971734dca504e637f65c7ccc7090c1bc82a8362f52967429",
+      "RoutingHandoff": "d06488eb1c793ef0a4d64e25e3ba960e64d3d97a2d90913f41e5b53df0ada347"
+    },
+    {
+      "request_id": "req_03513",
+      "RoutingOnly": "a2e7f559ae3f52673c5c0f97c578a40805236f312a167c28889126bdd6aa46f8",
+      "RoutingHandoff": "1f41c3b94a280d22024bfb060a0a2c33001cadcb5db3346c525fd05f0c3e3394"
+    },
+    {
+      "request_id": "req_03537",
+      "RoutingOnly": "f94314ef65169455c73c2599a6eb099584e68236735a32af942728c562e9178b",
+      "RoutingHandoff": "c5c4fea84f88016e1d5082e2fe88633fbc7a270aa65afc6d4bb3735f69f3a5bb"
+    },
+    {
+      "request_id": "req_03619",
+      "RoutingOnly": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "RoutingHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_03643",
+      "RoutingOnly": "ccbe371d423015a65c5373feec51e8da0f4dd017e6c88678e58d136032cd499b",
+      "RoutingHandoff": "51de05f1cce7daf901c5d57b2125769ba5aed2741e7f559e65dd77b45220e175"
+    },
+    {
+      "request_id": "req_03668",
+      "RoutingOnly": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "RoutingHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_03694",
+      "RoutingOnly": "0883615db886e3c9d60324593b4ca3632f2d9ae768edc0331e75e3c00cad0de5",
+      "RoutingHandoff": "d0b49e7ebcd3fe0199f5447895ba49964aeb9e77d819a6e788785d26970163af"
+    },
+    {
+      "request_id": "req_03785",
+      "RoutingOnly": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "RoutingHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_03788",
+      "RoutingOnly": "ddbacd921c13ca7e1e8b3561ff94e8cb5af37fdf94c4e7d43a2b1cd1dc5b323a",
+      "RoutingHandoff": "cd9cf2390960f989ede39315ce063070e5f20a2d9ba27a9fffc7b3fc8494afbb"
+    },
+    {
+      "request_id": "req_03823",
+      "RoutingOnly": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "RoutingHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_03825",
+      "RoutingOnly": "90f376ce3cc9ca1213b5b088efcd83b6d050969edef6eaca4b3ada2b5fb020df",
+      "RoutingHandoff": "c5b670f6356449588df195bd1f5e80cbf1d16067e122053ce71a2bc43f2f587b"
+    },
+    {
+      "request_id": "req_03895",
+      "RoutingOnly": "cd9cf2390960f989ede39315ce063070e5f20a2d9ba27a9fffc7b3fc8494afbb",
+      "RoutingHandoff": "ddbacd921c13ca7e1e8b3561ff94e8cb5af37fdf94c4e7d43a2b1cd1dc5b323a"
+    },
+    {
+      "request_id": "req_03908",
+      "RoutingOnly": "d223c06990559f9f3697ea0011c13620d5b15f2d28cbe8cb94ca7af1776d8d77",
+      "RoutingHandoff": "365e24e34483105db60177f7b04a1387657d2eee09c36b288f276d981cdcf04b"
+    },
+    {
+      "request_id": "req_03910",
+      "RoutingOnly": "ab66560ee6f010961612a71b9267d5b2da22df49e005845051817ed235e172e0",
+      "RoutingHandoff": "626a8d9cce50dd364a06775720637db48800dbfc5f924ebdab1295a50e41e825"
+    },
+    {
+      "request_id": "req_03962",
+      "RoutingOnly": "600d21a06a00f0d774c7140cb8e6ea7e91cf59658ad22f7bb54983dfdae8d28c",
+      "RoutingHandoff": "2694eeafb32dd388751f5c1799c718699cd33ca2aeeafef19fc9ad3eb7b68c15"
+    },
+    {
+      "request_id": "req_03965",
+      "RoutingOnly": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "RoutingHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    }
+  ],
+  "output_difference_reference": "RoutingOnly D1129",
+  "same_non_target_configuration": true,
+  "cleanup_compatibility_fix": {
+    "commit": "7ce2f815d697218733ee799c8017f27335a089de",
+    "failed_predecessor": "D1130",
+    "predecessor_used_in_ranking": false,
+    "performance_configuration_unchanged_from_failed_predecessor": true
+  },
+  "reused_observations": {
+    "Full": "D1115",
+    "ElasticOnly": "D1119",
+    "RoutingOnly": "D1129",
+    "CapacityOnly": "D1128",
+    "basis": "sealed comparison output SHA and common Full input anchor; no historical analysis rerun"
+  },
+  "cumulative_contrast": {
+    "reference": "RoutingOnly",
+    "candidate": "RoutingHandoff",
+    "only_activation_handoff_scope_and_identity_changed": true
+  },
+  "source_refs": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/comparison/comparison.json": "0d4e05e895377b7226f87b7129aa09812e23b63e83c87cbaf96bc0746ac5da0d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/comparison/mechanisms.json": "b2e194430e0dce30cf785efc31268984ae963921b79d993dc35442803d184612",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1128_7b_capacity_only_w1/comparison/comparison.json": "bae8c73863997c79318d683c40e656c7389d7ae6bfb662aeb95b0c07232db6cc",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1131_7b_routing_handoff_w1/prelaunch.json": "79bb62ea5ee670d686a29c31101a9e593e2d06cf8f52d471a2ebcf2edca12b98",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1130_7b_routing_handoff_w1/prelaunch.json": "87386dac45d3b20016e369f22d57d51e757bb4a593f01d2787c1b9a577cddb2a",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261108_d1129_7b_routing_only_w1.yaml": "279e9df7382afa5d4cb73e3795eb3b1f5ac6690db87e73154ef6c1f19b825e8c",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261108_d1131_7b_routing_handoff_w1.yaml": "04e36f3e720e3eb53e262da3a77cc42336819f3273bf20d03df9cfb67be11fbb",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1131_7b_routing_handoff_w1/result1/reconciliation.json": "47aa2a2fe213d4051c623e93fb03ed459b3dfca3a1ae1310012741d6fe33374f",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1131_7b_routing_handoff_w1/result1/evidence_review.json": "e50b2134f3d75c0354e61984216eef64eed84d78368344f9e4996a94a5810abf",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1131_20261108/7b_routing_handoff_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_routing_handoff_d1131_7b_routing_handoff_w1.json": "42a5acc7a64c30fd834594fca4d9d514d878fd5298f14e506442ef759b592b1b",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1131_20261108/7b_routing_handoff_w1/launch.json": "47dd999a491f717dc98bc4fc5a98e5a827bcb9a85eb88b0feb3e4e8c793ffb14",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1129_20261108/7b_routing_only_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_routing_only_d1129_7b_routing_only_w1.json": "29b41d3863f513df6856a772c18b0ff75e20ac5705f415b0fb1376df52cf093c",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1129_20261108/7b_routing_only_w1/launch.json": "8f02a3d0a0ebf8aa5fe17204781c82ce2fd2dcf88db169ef0b98bc136cc19719",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1131_20261108/7b_routing_handoff_w1/launch.launch/physical_deployment/main_outcome.json": "927f4d1c65b76bea97cc8744c14e2fa245b1e658e3a9ae594a7dbc4e4aa3d61e",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1131_20261108/7b_routing_handoff_w1/launch.launch/physical_deployment/summary.json": "1bab4e88a6f434ec93d9acfbccc28c450666214e69ecf51468c341e577917f24",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d594_reference_and_ttft/resident_references.json": "a9b6b25fe4ec8a17921dd5968c4fb494b7a6d795c0d4a11c7b7d306ac06bc60c",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1131_7b_routing_handoff_w1/compare.py": "acbe2e8b31830efd88476f4b1fd7e2b35097b49b66c13e60f9558ebd6d1d32fa",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/compare.py": "fda9c39c6e23b9dc564062f31a6ebdb9c47506140ff6002c06543a693d42b398",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/check_d299_full_context.py": "d17ae2bca1cfd1ab430dd9f4f09b3d1f95b3dbc858cc7126569021f794a64bc2",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d389_scaleup_handoff_labels.py": "7c72b0568b9eff81cf9292a25a6f0ce56addc060b0dc91e199c2dd53fa05a70f",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py": "f051c0e4a07bd1ebe5af008edbbe4be6db650e0a083604700502656595b15629",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+  },
+  "plan_sha256": "b5170643aa5d332efc67407af10ab7022a2d68fd802e2389d253968bd92dcf8f",
+  "confidence_interval": null,
+  "independent_numerical_proof": false,
+  "final_ranking_eligible": false,
+  "caveats": [
+    "Known seed42 development observations, not independent holdout or statistical inference.",
+    "Native binding/count agreement is distinct from independent numerical correctness; n_correct stays unknown.",
+    "Same-backend digest differences retained without an assumed numerical cause.",
+    "Closed-loop activations and prepared sets may differ; not a controlled identical-plan timing experiment.",
+    "Cumulative increments depend on the order of mechanisms.",
+    "D1130 failed CPU cleanup; D1131 uses the shared Linux pidfd compatibility fix. Failed-run numbers are retained as diagnostic, not selected for ranking.",
+    "Plan counts are not physical completion, use, latency savings or independent causal proof.",
+    "Each full workpoint retains its own resource, SLO and tail values; no splicing or preconditioned winner.",
+    "Legacy readiness_routing_enabled metadata is not the IEEE selector; actual snapshots are recomputed."
+  ]
+}

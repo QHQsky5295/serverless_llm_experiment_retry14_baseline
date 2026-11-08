@@ -1,0 +1,33 @@
+{
+  "sources": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/comparison/comparison.json": "0d4e05e895377b7226f87b7129aa09812e23b63e83c87cbaf96bc0746ac5da0d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/comparison/mechanisms.json": "b2e194430e0dce30cf785efc31268984ae963921b79d993dc35442803d184612",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1128_7b_capacity_only_w1/comparison/comparison.json": "bae8c73863997c79318d683c40e656c7389d7ae6bfb662aeb95b0c07232db6cc",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1131_7b_routing_handoff_w1/prelaunch.json": "79bb62ea5ee670d686a29c31101a9e593e2d06cf8f52d471a2ebcf2edca12b98",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1130_7b_routing_handoff_w1/prelaunch.json": "87386dac45d3b20016e369f22d57d51e757bb4a593f01d2787c1b9a577cddb2a",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261108_d1129_7b_routing_only_w1.yaml": "279e9df7382afa5d4cb73e3795eb3b1f5ac6690db87e73154ef6c1f19b825e8c",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261108_d1131_7b_routing_handoff_w1.yaml": "04e36f3e720e3eb53e262da3a77cc42336819f3273bf20d03df9cfb67be11fbb",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1131_7b_routing_handoff_w1/result1/reconciliation.json": "47aa2a2fe213d4051c623e93fb03ed459b3dfca3a1ae1310012741d6fe33374f",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1131_7b_routing_handoff_w1/result1/evidence_review.json": "e50b2134f3d75c0354e61984216eef64eed84d78368344f9e4996a94a5810abf",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1131_20261108/7b_routing_handoff_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_routing_handoff_d1131_7b_routing_handoff_w1.json": "42a5acc7a64c30fd834594fca4d9d514d878fd5298f14e506442ef759b592b1b",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1131_20261108/7b_routing_handoff_w1/launch.json": "47dd999a491f717dc98bc4fc5a98e5a827bcb9a85eb88b0feb3e4e8c793ffb14",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1129_20261108/7b_routing_only_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_routing_only_d1129_7b_routing_only_w1.json": "29b41d3863f513df6856a772c18b0ff75e20ac5705f415b0fb1376df52cf093c",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1129_20261108/7b_routing_only_w1/launch.json": "8f02a3d0a0ebf8aa5fe17204781c82ce2fd2dcf88db169ef0b98bc136cc19719",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1131_20261108/7b_routing_handoff_w1/launch.launch/physical_deployment/main_outcome.json": "927f4d1c65b76bea97cc8744c14e2fa245b1e658e3a9ae594a7dbc4e4aa3d61e",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1131_20261108/7b_routing_handoff_w1/launch.launch/physical_deployment/summary.json": "1bab4e88a6f434ec93d9acfbccc28c450666214e69ecf51468c341e577917f24",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d594_reference_and_ttft/resident_references.json": "a9b6b25fe4ec8a17921dd5968c4fb494b7a6d795c0d4a11c7b7d306ac06bc60c",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1131_7b_routing_handoff_w1/compare.py": "acbe2e8b31830efd88476f4b1fd7e2b35097b49b66c13e60f9558ebd6d1d32fa",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/compare.py": "fda9c39c6e23b9dc564062f31a6ebdb9c47506140ff6002c06543a693d42b398",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/check_d299_full_context.py": "d17ae2bca1cfd1ab430dd9f4f09b3d1f95b3dbc858cc7126569021f794a64bc2",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d389_scaleup_handoff_labels.py": "7c72b0568b9eff81cf9292a25a6f0ce56addc060b0dc91e199c2dd53fa05a70f",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py": "f051c0e4a07bd1ebe5af008edbbe4be6db650e0a083604700502656595b15629",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+  },
+  "outputs": {
+    "metrics.csv": "924d4bcc6f65c0ec3bad7508adfa9e227ae9152ff82709192b2cb34b9439ea61",
+    "mechanisms.json": "e34b104cefa7057917ad7996ee4ff3a42626b138b3ac90d5525dd08316484fd1",
+    "comparison.json": "5da2e6354b0adc98ffb44dcff266aa8e528ee14e23e966809993eb4a8e92e263"
+  }
+}

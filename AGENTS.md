@@ -1,5 +1,47 @@
 # PrimeLoRA IEEE TC execution contract
 
+TERMINAL2026-11-08 18:24+08:D1131 repaired7B RoutingHandoff W1 completed/released/
+analyzed/sealed. 4000terminal/success/nativecontracts;joint3900=97.50%,
+U7427.711741,TTFTmean830.836655/P952101.166630,TPOTmean34.298719/P9556.908889,
+E2Emean4582.157257/P959809.623940. launch.passtrue, service/watchdog/replay0,
+service_path_removed/native_gpu_context_release_confirmed true; remote journal132
+rows SHAfb499efd23d9e1b508f1f173d6e374c832da06f55892a29747fe5e24977259e2 from
+current remote clock d93a842a..., remote inactive; aux scope stopped. D1113/D299/
+D455/comparison/timing outputs sealed; D299/D455 transient wrapper timeout after
+complete output, no inference process. Comparison: RoutingHandoff vs RoutingOnly
+U+3.09%,joint-0.125pp,P95+12.48%; Full vs CapacityOnly U-4.61%,joint+0.30pp,P95
+near-flat. Physical:20 activations(1 initial/19 natural),326 explicit loads,
+134 before first dispatch,430 invocation unknown; timing contract incomplete,
+violations0. DoNOT call handoff net gain or global optimum; next controlledA2/A4
+orS2/S3, no same-key/Full/baseline/3B rerun. Read D1131 RESULT/RUN_STATUS.
+
+Latest17:43:31+08:D1131 SAMEpane458696live(Ss+,11:08),1010unique terminal/
+success/nativecontracts;sample654events/swap0/noabort/foreign/escaped,4GPU,
+available105641836544B/disk162370404352B. ContinueSAMEhandle. Goalread;PLANhash
+unchangedfrompriorfullread, V1/V2reread. Previous/currentturnVERIFIEDWAIT with
+offlineunexecutedanalysispreparation. d1131compare.py reusesD1130script and
+immutableD1130registrationforD1129source; newaudit_handoff_timing.py reuses
+D1126physicalreceiptlogic withRoutingHandoffidentity/currentPLAN. BOTH NOT
+imported/tested/executed. ReadD1131RUN_STATUS. No servingchange/test/heavy
+analysis/maintenance/push. Entiregoalactive;noFull/baseline/3B/k3srepeat.
+
+Latest17:35:14+08:D1131 SAMEpane458696live(Ss+,2:38at17:35),sameInvocationactive.
+114unique terminal/success/nativecontracts. sample133events/swap0/noabort/
+foreign/escaped,4GPU,available106826170368B/disk163332853760B. ContinueSAMErun;
+no maintenancewhilemeasuring. Fullscopeactive/currentPROGRESSthenVERIFIEDWAIT.
+ReadD1131RUN_STATUS;doNOTrepeatbackup/config/tests/launch/Full/baselines/3B/k3s.
+
+LIVE2026-11-08 17:32:24+08:D1131 RoutingHandoff7BW1 launchedONCE afterbackup
+340a3b8633fef37bbcad102d5aae7fdfba922f0c(remoteHEADsame). tmux
+tc-d1131-routing-handoff-7b-w1 pane%14/PID458696 live; service535639dcb6ac4933ab0b326e6909ac82
+active/running Invocationa58b01d45a2c46e39e5dce09821470d9;
+aux29d1944ae8c54a90869bc6ec363019fe. ReadD1131RUN_STATUS. sample34events/swap0,
+noabort/foreign/escaped. DoNOTrelaunch/test/backup/reanalyze/compress/push/change
+servingwhilemeasuring;monitorSAMEhandle. Afterrealrelease saveclockjournal+
+D1113/D299/D455explicitvariant thenreuseD1130preparedcomparison underD1131,
+notfailedD1130normalanalysis. NoFull/baseline repeat/3Bswitch/sharedk3s. Current
+turnPROGRESS,nowverifiedwait;entireremainingscopeactive. OldNOTSTARTEDnoteshistorical.
+
 CURRENT2026-11-08 17:31+08:D1131 repaired7B RoutingHandoff W1 REGISTERED,
 NOTSTARTED. Read D1131REGISTRATION/RUN_STATUS. Config04e36f3e720e3eb53e262da3a77cc42336819f3273bf20d03df9cfb67be11fbb;
 only3privatepaths differ fromD1130, parsedconfigurationequality passed. No new

@@ -1,0 +1,16 @@
+{
+  "commit": "340a3b8633fef37bbcad102d5aae7fdfba922f0c",
+  "remote_head": "340a3b8633fef37bbcad102d5aae7fdfba922f0c",
+  "remote": "faaslora_origin",
+  "branch": "retry14_continuous_queue_v2",
+  "explicit_file_count": 7,
+  "checks_passed": true,
+  "protected_user_dirty_unchanged": true,
+  "prior_tests_reused": true,
+  "no_bundles_changed": true,
+  "source_fix_commit": "7ce2f815d697218733ee799c8017f27335a089de",
+  "unit": "tc-d1131-registration-backup.service",
+  "main_returncode": 0,
+  "wrapper_returncode": 0,
+  "runtime_seconds": 3.419
+}
