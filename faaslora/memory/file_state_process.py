@@ -57,11 +57,12 @@ _COMPOSITE = frozenset({
 })
 
 
-def _initialize(roots, file_cache_policy, independent_host_reuse=True):
+def _initialize(roots, file_cache_policy, independent_host_reuse=True, file_preparation_scope=None):
     global _OWNER, _CONTEXTS, _EVENTS, _SEQUENCE
     from .residency_manager import LocalSourceReferences
 
     _OWNER = LocalSourceReferences(roots, file_cache_policy=file_cache_policy,
+                                   file_preparation_scope=file_preparation_scope,
                                    independent_host_reuse=independent_host_reuse)
     _CONTEXTS, _EVENTS, _SEQUENCE = {}, [], 0
     _OWNER.subscribe_file_changes('process_receipts', lambda tiers: _EVENTS.append(tuple(tiers)))
@@ -101,6 +102,8 @@ def _dispatch(operation, args):
         return getattr(_OWNER, operation)(**args)
     if operation == 'identity':
         return dict(owner_id=_OWNER.owner_id, pid=os.getpid(),
+                    file_cache_policy=_OWNER.file_cache_policy,
+                    file_preparation_scope=_OWNER.file_preparation_scope,
                     **_OWNER._host_reuse_metadata(),
                     roots={k: str(v) for k, v in _OWNER.roots.items()},
                     affinity=sorted(os.sched_getaffinity(0)),
@@ -529,7 +532,7 @@ class FileStateProcess:
     """
 
     def __init__(self, roots, *, file_cache_policy='planned_only', diagnostic_timing=False,
-                 diagnostic_journal=None, independent_host_reuse=True):
+                 diagnostic_journal=None, independent_host_reuse=True, file_preparation_scope=None):
         if type(independent_host_reuse) is not bool:
             raise ValueError('independent HOST reuse policy must be a bool')
         if type(diagnostic_timing) is not bool:
@@ -545,7 +548,8 @@ class FileStateProcess:
         frozen_roots = {key: str(Path(value).resolve()) for key, value in roots.items() if value}
         self._pool = ProcessPoolExecutor(max_workers=1,
             mp_context=multiprocessing.get_context('spawn'),
-            initializer=_initialize, initargs=(frozen_roots, file_cache_policy, independent_host_reuse))
+            initializer=_initialize,
+            initargs=(frozen_roots, file_cache_policy, independent_host_reuse, file_preparation_scope))
 
     def submit(self, operation, **args):
         if operation not in _METHODS | _COMPOSITE:
@@ -756,17 +760,21 @@ class ProcessLocalSourceReferences:
     the caller performs body I/O outside the owner transaction.
     """
 
-    def __init__(self, roots, *, file_cache_policy='planned_only', independent_host_reuse=True):
+    def __init__(self, roots, *, file_cache_policy='planned_only', independent_host_reuse=True,
+                 file_preparation_scope=None):
         self.roots = {key: Path(value).resolve() for key, value in roots.items() if value}
         self.file_cache_policy = file_cache_policy
         journal = _diagnostic_file_journal()
         self.process = FileStateProcess(self.roots, file_cache_policy=file_cache_policy,
+                                       file_preparation_scope=file_preparation_scope,
                                        independent_host_reuse=independent_host_reuse,
                                        diagnostic_timing=journal is not None,
                                        diagnostic_journal=journal)
         identity = self._call('identity')
         self.owner_id = identity['owner_id']
         self.identity = identity
+        self.file_cache_policy = identity['file_cache_policy']
+        self.file_preparation_scope = identity['file_preparation_scope']
         self._independent_host_reuse = identity.get('independent_host_reuse', True)
 
     @property
@@ -913,9 +921,9 @@ class ProcessLocalSourceReferences:
     def file_preparation_snapshot(self):
         return self._call('file_preparation_snapshot')
 
-    def register_file_preparation_plan(self, *, plan_id, targets):
+    def register_file_preparation_plan(self, *, plan_id, targets, mode=None, activation_id=None):
         return self._call('register_file_preparation_plan', plan_id=plan_id,
-                          targets=list(targets))
+                          targets=list(targets), mode=mode, activation_id=activation_id)
 
     def finish_file_preparation_target(self, *, plan_id, tier, adapter_id, **kwargs):
         return self._call('finish_file_preparation_target', plan_id=plan_id, tier=tier,

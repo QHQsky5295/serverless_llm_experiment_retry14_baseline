@@ -3786,6 +3786,73 @@ class OrdinaryArtifactLRU(unittest.TestCase):
         self.assertEqual(self.case.runner._remote_transfer_evidence[-1]['state'], 'not_published')
         self.assertFalse(self.owner.materializations or self.owner._transfer_workspaces)
 
+    def handoff_scope(self):
+        from faaslora.memory.residency_manager import LocalSourceReferences
+        self.owner = LocalSourceReferences({'host': self.case.host, 'nvme': self.case.nvme},
+            file_cache_policy='demand_lru', file_preparation_scope='handoff_only')
+        self.case.manager.local_source_references = self.owner
+
+    def handoff_plan(self, aid='a'):
+        from faaslora.storage.http_artifact_store import preparation_content_sha256
+        content = preparation_content_sha256(self.case.client.preparation_manifests([aid])[aid])
+        self.owner.register_file_preparation_plan(plan_id='handoff', mode='handoff',
+            activation_id='activation', targets=[dict(adapter_id=aid, tier='nvme', content_sha256=content)])
+        return content
+
+    def test_handoff_registration_is_scoped_and_cannot_change_activation(self):
+        self.handoff_scope()
+        for mode, activation in ((None, None), ('handoff', None), ('residency', 'activation')):
+            with self.subTest(mode=mode), self.assertRaisesRegex(ValueError, 'activation-bound'):
+                self.owner.register_file_preparation_plan(plan_id='wrong', targets=[],
+                                                          mode=mode, activation_id=activation)
+        self.handoff_plan()
+        row = self.owner.file_preparation_snapshot()['plans'][0]
+        self.assertEqual((row['mode'], row['activation_id']), ('handoff', 'activation'))
+        with self.assertRaisesRegex(ValueError, 'cannot change'):
+            self.owner.register_file_preparation_plan(plan_id='handoff', targets=[],
+                mode='handoff', activation_id='other')
+        with self.assertRaisesRegex(ValueError, 'forbids preparation'):
+            with self.owner.materializing(self.case.nvme/'d', replacement_epoch={}, budgeted=True):
+                self.fail('handoff enabled residency replacement')
+        self.owner.close_file_preparation_plan(plan_id='handoff')
+        self.assertFalse(self.owner._file_preparation_plans or self.owner.materializations)
+
+    def test_active_handoff_protects_its_targets_without_disabling_foreground_lru(self):
+        self.handoff_scope()
+        self.populate()
+        self.handoff_plan('a')
+        from faaslora.storage.http_artifact_store import preparation_content_sha256
+        content = preparation_content_sha256(self.case.client.preparation_manifests(['d'])['d'])
+        with self.owner.file_movement_interest(intent_id='request', target=self.case.nvme/'d',
+                                               content_sha256=content, required=True):
+            self.fetch('d')
+        self.assertEqual(self.names(), ['a', 'c', 'd'])
+        self.assertEqual(self.owner._file_replacement_events[-1]['required_intent_ids'], ['request'])
+        self.owner.close_file_preparation_plan(plan_id='handoff')
+
+    def test_optional_handoff_waits_but_joining_request_can_reclaim(self):
+        from faaslora.memory.residency_manager import FilePreparationDeferred
+        self.handoff_scope()
+        self.populate()
+        content = self.handoff_plan('d')
+        with self.owner.file_movement_interest(intent_id='preparation', target=self.case.nvme/'d',
+                                               content_sha256=content, required=False):
+            with self.assertRaises(FilePreparationDeferred):
+                self.fetch('d')
+            self.assertEqual(self.names(), ['a', 'b', 'c'])
+            self.assertFalse(self.owner._file_replacement_events or self.owner.materializations
+                             or self.owner._transfer_workspaces)
+            with self.owner.file_movement_interest(intent_id='request', target=self.case.nvme/'d',
+                                                   content_sha256=content, required=True):
+                self.fetch('d')
+        self.assertEqual(self.names(), ['b', 'c', 'd'])
+        self.assertEqual(self.owner._file_replacement_events[-1]['required_intent_ids'], ['request'])
+        self.owner.finish_file_preparation_target(plan_id='handoff', tier='nvme', adapter_id='d')
+        self.owner.close_file_preparation_plan(plan_id='handoff')
+        self.assertFalse(self.owner._file_movement_interests or self.owner._file_preparation_plans)
+        self.assertEqual(self.case.runner._remote_transfer_evidence[-1]['state'], 'published')
+        self.assertFalse(self.owner.materializations or self.owner._transfer_workspaces)
+
     def test_host_lru_respects_shared_native_allowance_and_other_tier(self):
         from faaslora.registry.schema import StorageTier
         self.populate()

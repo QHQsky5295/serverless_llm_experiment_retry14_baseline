@@ -286,13 +286,20 @@ class LocalSourceReferences:
     owner and may outlive the file read. No async work runs while the lock is held.
     """
 
-    def __init__(self, roots, *, file_cache_policy='planned_only', independent_host_reuse=True):
+    def __init__(self, roots, *, file_cache_policy='planned_only', independent_host_reuse=True,
+                 file_preparation_scope=None):
         if type(independent_host_reuse) is not bool:
             raise ValueError('independent HOST reuse policy must be a bool')
         self._independent_host_reuse = independent_host_reuse
         if file_cache_policy not in ('planned_only', 'demand_lru'):
             raise ValueError('unknown managed file cache policy')
         self.file_cache_policy = file_cache_policy
+        if file_preparation_scope is None:
+            file_preparation_scope = 'none' if file_cache_policy == 'demand_lru' else 'all'
+        if file_preparation_scope not in (
+                ('none', 'handoff_only') if file_cache_policy == 'demand_lru' else ('all',)):
+            raise ValueError('file preparation scope conflicts with cache policy')
+        self.file_preparation_scope = file_preparation_scope
         self._file_access_sequence = 0
         self.roots = {tier: Path(path).resolve() for tier, path in roots.items() if path}
         if (len(set(self.roots.values())) != len(self.roots) or
@@ -631,7 +638,9 @@ class LocalSourceReferences:
         required_intents = sorted(key for key, row in interests.items() if row['required'])
         if ((self.file_cache_policy == 'planned_only' and not required_intents)
                 or (self.file_cache_policy == 'demand_lru'
-                    and (self._file_preparation_plans or self._file_replacement_contexts))):
+                    and (self._file_replacement_contexts
+                         or (self._file_preparation_plans and self.file_preparation_scope != 'handoff_only')
+                         or (interests and not required_intents)))):
             raise ValueError('ordinary file LRU cannot execute a preparation objective')
         if required > limit_bytes:
             raise RuntimeError('local file capacity conflict: incoming transfer exceeds tier budget')
@@ -730,7 +739,7 @@ class LocalSourceReferences:
             plan.pop('replacement_sha256', None)
             plan.pop('native_fallbacks', None)
 
-    def register_file_preparation_plan(self, *, plan_id, targets):
+    def register_file_preparation_plan(self, *, plan_id, targets, mode=None, activation_id=None):
         """Protect every selected final/staging copy before starting any work.
 
         A pending target is not a resident copy or a capacity reservation. Plans
@@ -739,8 +748,11 @@ class LocalSourceReferences:
         """
         from ..storage.http_artifact_store import _quote_artifact_id
         with self.lock:
-            if self.file_cache_policy == 'demand_lru':
+            if self.file_preparation_scope == 'none':
                 raise ValueError('ordinary file LRU forbids proactive preparation plans')
+            if self.file_preparation_scope == 'handoff_only' and (
+                    mode != 'handoff' or not isinstance(activation_id, str) or not activation_id):
+                raise ValueError('handoff-only preparation requires an activation-bound handoff')
             if (not isinstance(plan_id, str) or not plan_id
                     or plan_id in self._closed_file_preparation_plans):
                 raise ValueError('file preparation needs a fresh plan identity')
@@ -764,11 +776,12 @@ class LocalSourceReferences:
                 normalized[path] = content
             old = self._file_preparation_plans.get(plan_id)
             if old is not None:
-                if old['targets'] != normalized:
+                if (old['targets'] != normalized or old['mode'] != mode
+                        or old['activation_id'] != activation_id):
                     raise ValueError('file preparation plan cannot change its targets')
             else:
                 self._file_preparation_plans[plan_id] = dict(targets=normalized,
-                                                            pending=set(normalized))
+                    pending=set(normalized), mode=mode, activation_id=activation_id)
             return dict(owner_id=self.owner_id, plan_id=plan_id, registered=True,
                         physical_resources_reserved=False, targets=len(normalized))
 
@@ -803,11 +816,13 @@ class LocalSourceReferences:
     def file_preparation_snapshot(self):
         with self.lock:
             return dict(owner_id=self.owner_id, plans=[dict(plan_id=pid,
+                mode=row['mode'], activation_id=row['activation_id'],
                 targets=[dict(path=str(path), content_sha256=content, pending=path in row['pending'])
                          for path, content in sorted(row['targets'].items())])
                 for pid, row in sorted(self._file_preparation_plans.items())],
                 physical_resources_reserved=False, replacements=copy.deepcopy(self._file_replacement_events),
                 file_cache_policy=self.file_cache_policy,
+                file_preparation_scope=self.file_preparation_scope,
                 **self._host_reuse_metadata(),
                 movement_interests=[dict(intent_id=key, **{**row, 'target': str(row['target'])})
                     for key, row in sorted(self._file_movement_interests.items())])
@@ -1395,7 +1410,10 @@ class LocalSourceReferences:
             elif before + required > effective_limit and transfer_id in self._file_replacement_contexts:
                 before, replacement = self._reclaim_for_file_preparation(
                     transfer_id, target, required, payload_required, effective_limit, before, content)
-            elif before + required > effective_limit and self.file_cache_policy == 'demand_lru':
+            elif (before + required > effective_limit and self.file_cache_policy == 'demand_lru'
+                    and not interests):
+                # Legacy demand callers have no movement intent. Optional
+                # handoff callers do: they must wait, not borrow request LRU.
                 before, replacement = self._reclaim_for_file_demand(
                     transfer_id, target, required, effective_limit, before)
             if before + required > effective_limit and interests:
@@ -4237,10 +4255,12 @@ class ResidencyManager:
             from .file_state_process import ProcessLocalSourceReferences
             self.local_source_references = ProcessLocalSourceReferences(
                 roots, file_cache_policy=memory_config.get('file_cache_policy', 'planned_only'),
+                file_preparation_scope=memory_config.get('file_preparation_scope'),
                 independent_host_reuse=memory_config.get('independent_host_reuse', True))
         else:
             self.local_source_references = LocalSourceReferences(
                 roots, file_cache_policy=memory_config.get('file_cache_policy', 'planned_only'),
+                file_preparation_scope=memory_config.get('file_preparation_scope'),
                 independent_host_reuse=memory_config.get('independent_host_reuse', True))
         self.local_transfer_evidence: List[Dict[str, Any]] = []
         self._local_transfer_evidence_lock = threading.Lock()

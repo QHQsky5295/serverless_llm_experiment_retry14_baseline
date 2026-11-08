@@ -1,5 +1,31 @@
 # PrimeLoRA IEEE TC execution contract
 
+D1130sourcecheckDONE:37sources/144protected/3userdirty andoriginalreference
+resultSHA verified; PLANb5170643 unchanged. main/wrapper0,prelaunch.jsonsaved.
+Next explicitbackup thenfullPLAN/freshresources/ONEregisteredlaunch;NOTSTARTED.
+
+CURRENT2026-11-08:D1130 current7B RoutingHandoff W1 IMPLEMENTED/REGISTERED,
+NOTSTARTED. Read D1130REGISTRATION/RUN_STATUS and curatedprelaunch_tests.md.
+60CPUtests passed/23.046s, main/wrapper0,domainremoved. Twoearlierattempts
+retained: vLLMspawn/sitecustomizehumming pressure interruptedownedunit(noOOM),
+thenwronglyplacedtestassertion diagnosed/restored; no servingworkaround.
+UseexistingLLM CPUenvironment forspawn tests asD1025/D1026; NOTvLLM env.
+Scopedhandoff+demandLRU nowcomposed; no steadyresidency/softadmission ornewformula.
+Config517c2367ddd55b4d8221d37d36cb7ed08efb0475b836dd098510be7aa86e2572.
+NEXTsource/protectedchecks+explicitbackup,thenfullPLAN/freshresourcesandONE
+registeredD1130W1launch. NoFull/baseline/reanalysisrepeat/3Bswitch/sharedk3s.
+CurrentturnPROGRESS; fullremaininggoalactive. OlderD1129notes historical.
+
+BACKUP COMPLETE2026-11-08:D1129 sealed/pushed as
+82d68db475376b8ba92ae6ce5acb51bfd5162209; remoteV2HEADmatches.
+17explicitfiles,15sealedoutputs/6analysisSHA,normaldiff/secretschecks pass,
+userdirty/protectedexcluded. Closure484d86b64d9583a94b702b8f65a42807a1c91620d326ccc87fcf714489860fa7.
+Backupmain/wrapper0; oldprelaunchunit-namecollision rejectedBEFOREstage, new
+backup-postrun unit succeeded. RAWreceipt saved. NoactiveGPU/analysisjob.
+NEXT RoutingHandoff scopedcomposition using backed-up entryreview/fixtures,
+notD1129reanalysis/seal/pushorFull/baseline repeat/3Bswitch/sharedk3s.
+CurrentgoalturnPROGRESS; entire remaining scopeactive. ReadD1129RESULT/RUN_STATUS.
+
 CURRENT2026-11-08 15:56+08:D1129 COMPLETE/released/analyzed. No liveGPUorCPUjob.
 ReadD1129_7B_ROUTING_ONLY_W1_RESULT_20261108.md. DoNOTrelaunch/waitoldpane114467.
 4000nativecontracts,joint97.625%,U7204.901377048809,P95TTFT1868.047927506268ms.

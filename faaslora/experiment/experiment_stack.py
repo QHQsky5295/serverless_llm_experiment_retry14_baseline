@@ -105,6 +105,7 @@ def _build_experiment_config(
         "memory": {
             **({} if host_reuse else {'independent_host_reuse': False}),
             "file_cache_policy": preload_cfg.get('file_cache_policy', 'planned_only'),
+            "file_preparation_scope": preload_cfg.get('file_preparation_scope'),
             "file_state_process": bool(preload_cfg.get('file_state_process', False)),
             "gpu": {
                 "total_memory_gb": gpu_total_mb / 1024,
@@ -157,8 +158,11 @@ class ExperimentStack:
         coordinator: Optional[Any] = None,
     ):
         if preload_cfg.get('file_cache_policy', 'planned_only') == 'demand_lru':
+            scope = preload_cfg.get('file_preparation_scope', 'none')
+            handoff = 'full' if scope == 'handoff_only' else 'no_handoff'
             if (coord_cfg.get('routing_policy') != 'ieee_confirmed'
-                    or coord_cfg.get('ieee_handoff_policy') != 'no_handoff'
+                    or scope not in ('none', 'handoff_only')
+                    or coord_cfg.get('ieee_handoff_policy') != handoff
                     or preload_cfg.get('hierarchical_residency_enabled') is not False
                     or coord_cfg.get('coordination_enabled') is not False
                     or coordination_enabled is not False):
@@ -909,9 +913,13 @@ class ExperimentStack:
         self._pending_scaleup_gpu_artifacts.clear()
         return plan
 
-    def _require_proactive_file_policy(self):
-        if self.residency_manager.local_source_references.file_cache_policy == 'demand_lru':
+    def _require_proactive_file_policy(self, *, mode=None, activation_id=None):
+        scope = self.residency_manager.local_source_references.file_preparation_scope
+        if scope == 'none':
             raise ValueError('ordinary file LRU forbids proactive preparation planning')
+        if scope == 'handoff_only' and (
+                mode != 'handoff' or not isinstance(activation_id, str) or not activation_id):
+            raise ValueError('handoff-only preparation requires an activation-bound handoff')
 
     def plan_ieee_preparation(self, *, mode, options, budgets, costs, source_snapshot_id,
                              source_view=None, size_edges_bytes=None):
@@ -937,7 +945,7 @@ class ExperimentStack:
         remains open; this path must not be relabelled complete Full.
         """
         from ..preloading.preloading_planner import owned_preparation_inputs
-        self._require_proactive_file_policy()
+        self._require_proactive_file_policy(mode=mode, activation_id=activation_id)
         if profiles.profile_id != costs.profile_id:
             raise ValueError('owned preparation profile differs from the replica cost model')
         inputs = owned_preparation_inputs(native_snapshot=native_snapshot,
@@ -967,7 +975,8 @@ class ExperimentStack:
         current storage; unchanged native/file execution rechecks remain required.
         """
         from ..preloading.planning_cpu import freeze_owned_planning, run_planning_cpu
-        self._require_proactive_file_policy()
+        self._require_proactive_file_policy(mode=received.get('mode'),
+                                            activation_id=received.get('activation_id'))
         args = freeze_owned_planning(demand=self.hotness_tracker.snapshot(), **received)
         return await run_planning_cpu(self, 'owned_execution_epoch', args)
 

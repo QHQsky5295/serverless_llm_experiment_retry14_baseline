@@ -96,6 +96,27 @@ class FileStateProcessTests(unittest.TestCase):
             self.assertEqual(command.receipt()['diagnostic_timing'], timing)
         self.assertEqual(failed.receipt()['sequence'], good.receipt()['sequence'] + 1)
 
+    def test_handoff_scope_is_enforced_by_actual_child_and_retains_plan_lifetime(self):
+        self.owner.close()
+        self.owner = FileStateProcess({'host': self.host, 'nvme': self.nvme},
+            file_cache_policy='demand_lru', file_preparation_scope='handoff_only')
+        identity = self.call('identity')
+        self.assertNotEqual(identity['pid'], os.getpid())
+        self.assertEqual(identity['file_preparation_scope'], 'handoff_only')
+        self.assertEqual(identity['file_cache_policy'], 'demand_lru')
+        with self.assertRaisesRegex(ValueError, 'activation-bound'):
+            self.call('register_file_preparation_plan', plan_id='residency', targets=[],
+                      mode='residency', activation_id='a')
+        self.call('configure_host_budget', limit_bytes=1024**2)
+        self.call('reserve_activation_host', activation_id='a', limit_bytes=4096)
+        self.call('register_file_preparation_plan', plan_id='handoff', targets=[],
+                  mode='handoff', activation_id='a')
+        # Closing the preparation task precedes returning the startup allowance.
+        self.call('close_file_preparation_plan', plan_id='handoff')
+        self.call('cancel_activation_host', activation_id='a')
+        self.assertFalse(self.call('file_preparation_snapshot')['plans'])
+        self.assertFalse(self.call('host_budget_snapshot')['activation_reservations'])
+
     def test_reserved_publication_atomic_acquisition_and_reclamation(self):
         payload = b'existing owner semantics'
         files = {'weights': (len(payload), hashlib.sha256(payload).hexdigest())}

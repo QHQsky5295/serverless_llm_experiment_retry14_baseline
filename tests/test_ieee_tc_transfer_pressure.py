@@ -1854,7 +1854,7 @@ class ActivationPreparation(unittest.TestCase):
 
     The fixture's timing/layout constants are not measured model profiles.
     """
-    def make(self, policy='full'):
+    def make(self, policy='full', *, demand_handoff=False):
         import copy
         import json
         import time
@@ -1866,6 +1866,11 @@ class ActivationPreparation(unittest.TestCase):
         factory = FileObjectiveReplacement()
         self.addCleanup(factory.doCleanups)
         fixture, runner, queue, engine, _, _, old_profiles, costs = factory.make(victims=())
+        if demand_handoff:
+            # Use the existing real-IO fixture with the cumulative cache policy;
+            # constructor/process propagation is checked in the launch/owner tests.
+            fixture.owner.file_cache_policy = 'demand_lru'
+            fixture.owner.file_preparation_scope = 'handoff_only'
         # No prior native owner. The HOST file ceiling and future native
         # allowance are separate and jointly charged by the real file owner.
         fixture.manager.tier_capacities[StorageTier.HOST].total_bytes = 16384
@@ -1929,6 +1934,15 @@ class ActivationPreparation(unittest.TestCase):
         tasks=list(getattr(runner,'_ieee_file_plan_tasks',()))
         if tasks: await asyncio.wait_for(asyncio.gather(*tasks),3)
         await asyncio.sleep(0)  # Deliver the completion journal callback.
+
+    def test_handoff_only_preserves_overlap_adoption_and_cancellation(self):
+        from functools import partial
+        scoped = partial(self.make, demand_handoff=True)
+        for check in (self.test_full_file_copy_precedes_runtime_ready_and_adoption_has_no_budget_gap,
+                      self.test_initial_and_natural_activation_forward_only_soft_admission_gate,
+                      self.test_cancel_before_initialization_joins_factory_and_real_file_readers):
+            with self.subTest(path=check.__name__), patch.object(self, 'make', scoped):
+                check()
 
     def test_initial_and_natural_activation_forward_only_soft_admission_gate(self):
         for category in ('initial', 'natural_scaleout'):
@@ -5363,6 +5377,17 @@ class RequiredFileCapacity(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(second['_movement']['owns_io'])
         self.assertEqual(fixture.owner._file_replacement_events[-1]['required_intent_ids'], ['request'])
         self.assertFalse(fixture.owner._file_movement_interests)
+
+    async def test_handoff_scope_shared_writer_and_cancelled_request_use_live_interest(self):
+        original = self.make
+        def scoped(*args, **kwargs):
+            made = original(*args, **kwargs)
+            made[1].owner.file_cache_policy = 'demand_lru'
+            made[1].owner.file_preparation_scope = 'handoff_only'
+            return made
+        with patch.object(self, 'make', scoped):
+            await self.test_optional_staging_defers_then_joining_request_uses_same_writer()
+            await self.test_cancelled_request_does_not_leave_optional_work_required()
 
     async def test_cancelled_request_does_not_leave_optional_work_required(self):
         factory, fixture, runner, queue, engine, _ = self.make()

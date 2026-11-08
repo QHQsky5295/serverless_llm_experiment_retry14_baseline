@@ -1530,7 +1530,7 @@ def _derive_online_hotness_window_s(
 
 
 def _ieee_system_variant_contract(coord_cfg, preload_cfg, *, environment=None):
-    """Identify a complete demand-only ablation, not an isolated feature gate.
+    """Identify a complete cumulative ablation, not an isolated feature gate.
 
     Existing Full and single-feature diagnostics keep their historical identity.
     The new variant is explicitly assembled; no missing flag is defaulted to
@@ -1542,17 +1542,24 @@ def _ieee_system_variant_contract(coord_cfg, preload_cfg, *, environment=None):
         return None
     variants = {'elastic_locality_v1': ('ElasticLocality', 'gpu_locality'),
                 'elastic_only_v1': ('ElasticOnly', 'load_only'),
-                'routing_only_v1': ('RoutingOnly', 'service_bins')}
+                'routing_only_v1': ('RoutingOnly', 'service_bins'),
+                'routing_handoff_v1': ('RoutingHandoff', 'service_bins')}
     if variant not in variants:
         raise ValueError('unknown IEEE system variant')
     system, selection_strategy = variants[variant]
+    handoff = variant == 'routing_handoff_v1'
+    handoff_policy = 'full' if handoff else 'no_handoff'
     expected_coord = dict(routing_policy='ieee_confirmed',
-        ieee_selection_strategy=selection_strategy, ieee_handoff_policy='no_handoff',
-        coordination_enabled=False, scale_up_handoff_enabled=False,
+        ieee_selection_strategy=selection_strategy, ieee_handoff_policy=handoff_policy,
+        coordination_enabled=False, scale_up_handoff_enabled=handoff,
         effective_capacity_admission_enabled=False)
     expected_preload = dict(file_cache_policy='demand_lru', enabled=False,
         hierarchical_residency_enabled=False, dynamic_forwarding_enabled=False,
         gpu_dynamic_forwarding_enabled=False, host_promotion_on_nvme_hit_enabled=False)
+    if handoff:
+        expected_preload['file_preparation_scope'] = 'handoff_only'
+    elif preload_cfg.get('file_preparation_scope', 'none') != 'none':
+        raise ValueError(f'{system} forbids proactive file preparation scope')
     for group, actual, expected in (('coordination', coord_cfg, expected_coord),
                                     ('preloading', preload_cfg, expected_preload)):
         for key, value in expected.items():
@@ -1571,8 +1578,9 @@ def _ieee_system_variant_contract(coord_cfg, preload_cfg, *, environment=None):
     return dict(kind='ieee_system_mechanism_contract_v1', system=system,
         variant=variant, routing_policy='ieee_confirmed',
         selection_strategy=selection_strategy, locality_load_slack=slack,
-        file_cache_policy='demand_lru', handoff_policy='no_handoff',
-        proactive_preparation=False, native_demand_loading=True,
+        file_cache_policy='demand_lru', handoff_policy=handoff_policy,
+        **(dict(file_preparation_scope='handoff_only') if handoff else {}),
+        proactive_preparation=handoff, native_demand_loading=True,
         physical_admission=True, autoscaler='IEEEReplicaControl',
         mechanism_execution_qualified=False)
 
@@ -16631,17 +16639,19 @@ class ScenarioRunner:
                     'system mechanism contract changed after assembly')
             expected_scenario = {'elastic_locality_v1': 'tc_ieee_elastic_locality',
                                  'elastic_only_v1': 'tc_ieee_elastic_only',
-                                 'routing_only_v1': 'tc_ieee_routing_only'}[mechanism['variant']]
+                                 'routing_only_v1': 'tc_ieee_routing_only',
+                                 'routing_handoff_v1': 'tc_ieee_routing_handoff'}[mechanism['variant']]
             require(self.name == expected_scenario,
                     f'{mechanism["system"]} must retain its own scenario identity')
             selection = self.router.selection_contract()
             require(selection['strategy'] == mechanism['selection_strategy']
                 and selection['locality_load_slack'] == mechanism['locality_load_slack']
                 and files.file_cache_policy == mechanism['file_cache_policy']
-                and self._ieee_handoff_policy == 'no_handoff'
+                and files.file_preparation_scope == mechanism.get('file_preparation_scope', 'none')
+                and self._ieee_handoff_policy == mechanism['handoff_policy']
                 and self._hierarchical_residency_enabled is False
                 and self._coordination_enabled is False
-                and self._scale_up_handoff_enabled is False,
+                and self._scale_up_handoff_enabled is mechanism['proactive_preparation'],
                 'actual locality owners differ from the complete contract')
         require(isinstance(self._service_profiles, FrozenServiceProfiles)
             and isinstance(self._preparation_profiles, FrozenPreparationProfiles),
@@ -22298,6 +22308,7 @@ class ScenarioRunner:
             'register_file_preparation_plan',
             plan_id=plan_id,
             targets=list(targets.values()),
+            mode=mode, activation_id=activation_id,
         )
         record = dict(plan_id=plan_id, objective_sha256=plan['plan_sha256'],
             target_replica=target_replica, trigger_reason=mode, activation_id=activation_id,

@@ -1,5 +1,21 @@
 # D1129 current7B RoutingOnly W1 status
 
+## Backup complete — 2026-11-08
+
+82d68db475376b8ba92ae6ce5acb51bfd5162209 committed/pushed to faaslora_origin
+retry14_continuous_queue_v2; remote HEAD matched. 17 explicit files,15 sealed
+outputs/6 analysis-source SHA, normal diff/secrets checks passed; three userdirty
+files and old publication files excluded. ClosureSHA
+484d86b64d9583a94b702b8f65a42807a1c91620d326ccc87fcf714489860fa7.
+Backup main/wrapper0. Initial service-name collision was the old failed
+prelaunch backup unit, MainPID0/empty domain; rejected before stage, then used
+unique backup-postrun unit. No repeated performance/analysis or global reset.
+RAW/backup_completion.json records receipt. No active GPU/analysis job.
+
+NEXT actual main-line work: RoutingHandoff scoped composition, following the
+backed-up entry review and existing fixtures. D1129 is sealed; do not repeat
+its analysis/seal/push/Full/baseline or switch to3B. Full remaining scope active.
+
 ## Complete and analyzed — 2026-11-08 15:56 +08
 
 SAME run finished: pane114467 dead/exit0, launch service/replay/watchdog0;

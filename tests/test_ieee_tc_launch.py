@@ -21,7 +21,7 @@ def ieee_control_fixture():
         ttft_upper_ms=1000, ttft_lower_ms=500, ttft_window_s=100, scale_down_cooldown_s=3)
 
 
-def elastic_locality_configuration_fixture(*, load_only=False, routing_only=False):
+def elastic_locality_configuration_fixture(*, load_only=False, routing_only=False, routing_handoff=False):
     coord, preload = (dict(ieee_system_variant='elastic_locality_v1',
         routing_policy='ieee_confirmed', ieee_selection_strategy='gpu_locality',
         locality_load_slack=1, ieee_handoff_policy='no_handoff',
@@ -36,6 +36,11 @@ def elastic_locality_configuration_fixture(*, load_only=False, routing_only=Fals
     if routing_only:
         coord.update(ieee_system_variant='routing_only_v1', ieee_selection_strategy='service_bins')
         coord.pop('locality_load_slack', None)
+    if routing_handoff:
+        coord.update(ieee_system_variant='routing_handoff_v1', ieee_selection_strategy='service_bins',
+                     ieee_handoff_policy='full', scale_up_handoff_enabled=True)
+        coord.pop('locality_load_slack', None)
+        preload['file_preparation_scope'] = 'handoff_only'
     return coord, preload
 
 
@@ -237,6 +242,54 @@ class RoutingOnlyContract(unittest.TestCase):
             check(coord, preload | {'hierarchical_residency_enabled': True}, environment={})
 
 
+class RoutingHandoffContract(unittest.TestCase):
+    def test_config_adds_only_handoff_scope_and_output_identity(self):
+        import copy
+        import yaml
+        root = Path(__file__).resolve().parents[1]/'configs/ieee_tc'
+        source = yaml.safe_load((root/'20261108_d1129_7b_routing_only_w1.yaml').read_text())
+        actual = yaml.safe_load((root/'20261108_d1130_7b_routing_handoff_w1.yaml').read_text())
+        runner._ieee_system_variant_contract(actual['resource_coordination'],
+                                             actual['scenarios'][0]['preloading'], environment={})
+        normalized = copy.deepcopy(actual)
+        for section, keys in (
+                ('experiment', ('output_dir',)),
+                ('storage', ('nvme_cache_dir', 'host_cache_dir')),
+                ('resource_coordination', ('ieee_system_variant', 'ieee_handoff_policy',
+                                           'scale_up_handoff_enabled'))):
+            for key in keys:
+                self.assertNotEqual(actual[section][key], source[section][key])
+                normalized[section][key] = source[section][key]
+        normalized['scenarios'][0]['name'] = source['scenarios'][0]['name']
+        self.assertEqual(normalized['scenarios'][0]['preloading'].pop('file_preparation_scope'),
+                         'handoff_only')
+        self.assertEqual(normalized, source)
+
+    def test_handoff_composition_keeps_demand_lru_and_no_steady_planning(self):
+        coord, preload = elastic_locality_configuration_fixture(routing_handoff=True)
+        check = runner._ieee_system_variant_contract
+        contract = check(coord, preload, environment={})
+        self.assertEqual(contract['system'], 'RoutingHandoff')
+        self.assertEqual(contract['selection_strategy'], 'service_bins')
+        self.assertEqual(contract['file_cache_policy'], 'demand_lru')
+        self.assertEqual(contract['file_preparation_scope'], 'handoff_only')
+        self.assertTrue(contract['proactive_preparation'])
+        for group, changes in (
+                ('coord', {'coordination_enabled': True}),
+                ('coord', {'ieee_handoff_policy': 'no_handoff'}),
+                ('coord', {'scale_up_handoff_enabled': False}),
+                ('preload', {'file_preparation_scope': 'all'}),
+                ('preload', {'hierarchical_residency_enabled': True}),
+                ('preload', {'file_cache_policy': 'planned_only'})):
+            with self.subTest(group=group, changes=changes), self.assertRaises(ValueError):
+                check(coord | (changes if group == 'coord' else {}),
+                      preload | (changes if group == 'preload' else {}), environment={})
+        for variant in ({}, {'load_only': True}, {'routing_only': True}):
+            c, p = elastic_locality_configuration_fixture(**variant)
+            with self.subTest(variant=variant), self.assertRaises(ValueError):
+                check(c, p | {'file_preparation_scope': 'handoff_only'}, environment={})
+
+
 async def terminal_run_observation(policy):
     """Exercise actual run() terminal branches; no serving/timing measurement.
 
@@ -431,10 +484,10 @@ class IEEEIntegratedLaunchContract(unittest.IsolatedAsyncioTestCase):
         self.service.engine_factory.assert_not_awaited()
         self.assertIsNone(self.service.engine.engine)
 
-    async def assemble_locality(self, *, load_only=False, routing_only=False):
+    async def assemble_locality(self, *, load_only=False, routing_only=False, routing_handoff=False):
         service = self.service
         coord, preload = elastic_locality_configuration_fixture(
-            load_only=load_only, routing_only=routing_only)
+            load_only=load_only, routing_only=routing_only, routing_handoff=routing_handoff)
         service.coord_cfg.update(coord)
         service.preload_cfg.update(preload)
         await service._stack.stop()
@@ -449,8 +502,11 @@ class IEEEIntegratedLaunchContract(unittest.IsolatedAsyncioTestCase):
         service.name = 'tc_ieee_elastic_only' if load_only else 'tc_ieee_elastic_locality'
         if routing_only:
             service.name = 'tc_ieee_routing_only'
-        service._ieee_handoff_policy = 'no_handoff'
-        service._coordination_enabled = service._scale_up_handoff_enabled = False
+        if routing_handoff:
+            service.name = 'tc_ieee_routing_handoff'
+        service._ieee_handoff_policy = coord['ieee_handoff_policy']
+        service._coordination_enabled = False
+        service._scale_up_handoff_enabled = coord['scale_up_handoff_enabled']
         service._hierarchical_residency_enabled = False
         service._ieee_mechanism_contract = runner._ieee_system_variant_contract(
             service.coord_cfg,service.preload_cfg,environment={})
@@ -503,6 +559,19 @@ class IEEEIntegratedLaunchContract(unittest.IsolatedAsyncioTestCase):
                 service._require_ieee_full_qualification()
         service.name = 'tc_ieee_routing_only'
         service.router.ieee_selection_strategy = 'load_only'
+        with self.assertRaisesRegex(RuntimeError, 'actual locality owners'):
+            service._require_ieee_full_qualification()
+
+    async def test_routing_handoff_binds_scoped_owner_without_soft_admission(self):
+        await self.assemble_locality(routing_handoff=True)
+        service = self.service
+        service._require_ieee_full_qualification()
+        owner = service._stack.residency_manager.local_source_references
+        self.assertEqual(owner.file_preparation_scope, 'handoff_only')
+        self.assertEqual(owner.file_cache_policy, 'demand_lru')
+        self.assertFalse(service._coordination_enabled or service._hierarchical_residency_enabled)
+        service.engine_factory.assert_not_awaited()
+        owner.file_preparation_scope = 'none'
         with self.assertRaisesRegex(RuntimeError, 'actual locality owners'):
             service._require_ieee_full_qualification()
 
@@ -3187,6 +3256,27 @@ class SharedDedicatedFactory(unittest.TestCase):
 
 
 class FullPreparationEntryIsolation(unittest.TestCase):
+    def test_handoff_only_scope_reaches_owner_and_blocks_residency_before_cpu_submission(self):
+        from faaslora.experiment.experiment_stack import ExperimentStack
+        coord, preload = elastic_locality_configuration_fixture(routing_handoff=True)
+        with tempfile.TemporaryDirectory() as tmp:
+            stack = ExperimentStack(adapter_info={}, hardware_cfg={}, coord_cfg=coord,
+                preload_cfg=preload, remote_dir=Path(tmp)/'remote', nvme_dir=Path(tmp)/'nvme',
+                host_dir=Path(tmp)/'host', coordination_enabled=False)
+            async def check():
+                try:
+                    self.assertEqual(stack.residency_manager.local_source_references.file_preparation_scope,
+                                     'handoff_only')
+                    stack._require_proactive_file_policy(mode='handoff', activation_id='activation')
+                    for received in ({}, {'mode': 'handoff'},
+                                     {'mode': 'residency', 'activation_id': 'activation'}):
+                        with self.subTest(received=received), self.assertRaisesRegex(ValueError, 'activation-bound'):
+                            await stack.plan_ieee_owned_preparation_async(**received)
+                    self.assertFalse(hasattr(stack, '_ieee_planning_cpu'))
+                finally:
+                    await stack.stop()
+            asyncio.run(check())
+
     def test_ordinary_file_cache_config_is_explicit_and_rejects_mixed_policies(self):
         from faaslora.experiment.experiment_stack import ExperimentStack
         coord = dict(routing_policy='ieee_confirmed', ieee_handoff_policy='no_handoff',
