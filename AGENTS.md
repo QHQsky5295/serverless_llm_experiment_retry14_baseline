@@ -1,5 +1,29 @@
 # PrimeLoRA IEEE TC execution contract
 
+Current handoff2026-11-08: D1126 current7B DelayedHandoff W1 REGISTERED,
+NOT STARTED. Read D1126_7B_DELAYED_HANDOFF_W1_REGISTRATION_20261108.md.
+Existing delayed gate +3paths only; no serving-code edit. Four focused tests
+pass, u393main0/wrapper1 timeout (inotifyENOSPC), actualdomainremoved; no rerun.
+u394 sourcecheck main/wrapper0:18sources/144oldpublicationfiles/userdirty/Full/PLAN
+verified. ConfigSHAfeb55626baf8b0abecb0df8c948cf95adb7aee8865e98e5a59d87396bfafdb4d.
+Next explicitbackup then freshresources and launchONCE in tc-d1126-delayed-handoff-7b-w1
+using existing D1100runner, registered7args. SameFullD1115, noFull/baseline replay,
+3Bswitch orsharedk3s. Actual physicaltiming, not queue registration; reuse D1124
+Fullhandoff audit/D1054 delayed method. Naturalclosedloop != cross-run sameplan.
+Afterrealrelease D1113/D299/D455 and mechanismcomparison, then NoHOST/CapacityOnly/
+cumulativenodes. WholeA1-A5/S1-S13/docs/figures/V2scopeACTIVE. ThisturnPROGRESS.
+Older D1125 next-step notes below are historical, not instructions to repeat.
+
+Backup COMPLETE2026-11-08: D1125 sealed and pushed as
+4ed05eb836c24d710659d190afcbcbd69eae0676; remoteV2 HEAD verified equal.
+17explicitfiles,15outputSHA/4analysis-sourceSHA,secretpatterns and normal
+gitdiffcheck passed; no whitespace exception used. ClosureSHA
+6d0d057281fa14d9c482dbce9133f9091919459bbca0eabacf9d5e322aa2bc71.
+Usermanifest and preexisting dirty status excluded. No activeGPUexperiment.
+Next actual main-line work current7B DelayedHandoff registration using existing
+gate and D1054 history, not D1125 reseal/replay or Full/baseline/3B/sharedk3s.
+Previousgoalturn VERIFIED WAIT; currentgoalturn PROGRESS; whole scopeactive.
+
 Current handoff2026-11-08 11:08+08: D1125 COMPLETE/released/analyzed; noGPUrun.
 Read D1125_7B_R0H0_W1_RESULT_20261108.md. DO NOT relaunch.4000nativecontracts,
 joint3971=99.275%,U8577.31897842791,P95TTFT1717.3255295492709ms.
