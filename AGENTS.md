@@ -1,5 +1,27 @@
 # PrimeLoRA IEEE TC execution contract
 
+CURRENT2026-11-08:D1128 current7B CapacityOnly W1 REGISTERED, NOTSTARTED.
+ReadD1128REGISTRATION/RUN_STATUS. Onlycoordination_enabledfalse+3paths fromD1100;
+no serving edit,FullD1115reused.6focusedCPUtests PASS/main0/wrapper1knowninotify
+timeout,actualgroupremoved. Sourcecheck23SHA/144protected/Full/PLAN/userfiles
+passedJSON/main0/wrapper1knownmanagementtimeout. ConfigSHAe136c37406075476fc1f14b5b0b37d49df3f835277aeb8bb8d21623361fa44a2.
+Nextexplicitbackup/freshresources/ONEtmuxlaunch;no repeatchecks.
+DoNOTrepeatD1127/Full/baselines/HydraServeor3Bqualification/sharedk3s.
+Afterrelease D1113/D299/D455/current7B+D1052admissionanalysis;no-triggerand
+tradeoffsretained. ThenRoutingOnly/RoutingHandoff;fullremainingA1-A5/S1-S13
+scopeactive. CurrentgoalturnPROGRESS. OlderD1127NEXTnotesbelowaresuperseded.
+
+BACKUP COMPLETE2026-11-08:D1127 committed/pushed
+d6d2b6bf4e7b8372680a1b458ef0dfa299f1ee2b;faaslora_originV2HEADmatches.
+16explicitfiles,15sealedoutputs/6analysisSHA/secrets/stageddiffchecked;
+userdirtymanifest/twostatusfilesexcluded. RAWbackup_completion.jsonrecordsreceipt.
+ClosureSHA9170b9cc965b2d58e34df12f3ae2d8f959b3d0add6c7e8f82bca6059f74f304f.
+Backupmain/wrapper0/dead;sealmain0/wrapper1knownmanagementtimeout,actualdomainremoved.
+NoactiveGPUoranalysisjob. Disk165481730048B,available121875070976B;refreshbeforelaunch.
+NEXTcurrent7BCapacityOnlyregistration usingexistinggate/history,notrepeatD1127
+analysis/seal/push/Full/baselineorcompleted-groupledger. Fullremaining scopeactive.
+ReadD1127RESULT/RUN_STATUS. CurrentgoalturnPROGRESS.
+
 CURRENT13:47+08 Nov8:D1127 COMPLETE/released/analyzed,noactiveGPUoranalysisjob.
 ReadD1127_7B_NOHOST_W1_RESULT_20261108.md. FullU-2.775590%,P95+15.909703%,
 joint-.625pp: retainresource-qualitytradeoff,notG2/globalwin.4000nativecontracts,

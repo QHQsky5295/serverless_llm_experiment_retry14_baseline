@@ -1,4 +1,18 @@
-# D1127 当前7B NoHOST W1：完成并已分析，待结果备份
+# D1127 当前7B NoHOST W1：完成、封存并已推送V2
+
+## 备份完成；下一项CapacityOnly
+
+16个显式文件已提交并推送`d6d2b6bf4e7b8372680a1b458ef0dfa299f1ee2b`，
+faaslora_origin/retry14_continuous_queue_v2远端HEAD已匹配；备份主进程/wrapper
+均0且实际域释放。15封存产物/6分析源码SHA及凭据模式、staged diff检查通过，
+没有暂存用户manifest或两份既有dirty状态文件。RAW backup_completion.json
+保存回执。closure SHA `9170b9cc965b2d58e34df12f3ae2d8f959b3d0add6c7e8f82bca6059f74f304f`。
+
+seal单元主进程0、管理wrapper因既有收尾问题timeout/1；已实查MainPID0、
+ControlGroup为空。没有重跑封存/分析/性能。当前无GPU或分析进程；磁盘
+165481730048B、可用内存121875070976B（下次启动仍刷新检查）。
+不要重复D1127备份或再做已完成组总审计；下一是当前7B CapacityOnly登记，
+复用既有物理安全保留的软准入开关及历史对照，仅补真实缺项。整份目标active。
 
 ## 当前交接：13:47+08，PROGRESS
 

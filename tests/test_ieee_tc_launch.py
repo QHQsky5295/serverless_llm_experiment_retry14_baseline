@@ -1698,6 +1698,19 @@ class IEEEQuantizationPrebuild(unittest.TestCase):
 
 
 class IEEEControlContract(unittest.TestCase):
+    def test_current_7b_capacity_only_changes_only_soft_admission_and_paths(self):
+        import yaml
+        root = Path(__file__).resolve().parents[1]/'configs/ieee_tc'
+        full = yaml.safe_load((root/'20261107_d1100_7b_busy_service_rate_w2.yaml').read_text())
+        capacity = yaml.safe_load((root/'20261108_d1128_7b_capacity_only_w1.yaml').read_text())
+        self.assertIs(capacity['resource_coordination'].pop('coordination_enabled'), False)
+        self.assertNotIn('coordination_enabled', full['resource_coordination'])
+        for section, key in (('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                             ('storage', 'host_cache_dir')):
+            self.assertNotEqual(full[section][key], capacity[section][key])
+            capacity[section][key] = full[section][key]
+        self.assertEqual(capacity, full)
+
     def test_current_7b_nohost_changes_only_independent_reuse_and_paths(self):
         import yaml
         root = Path(__file__).resolve().parents[1]/'configs/ieee_tc'
