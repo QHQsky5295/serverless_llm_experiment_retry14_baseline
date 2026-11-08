@@ -32,7 +32,10 @@ ROOT = Path(__file__).resolve().parents[1]
 GIB = 1024**3
 TMUX_CONFIG = "set-window-option -g remain-on-exit on\n"
 SOURCE_SHA = {
-    "start_serverlessllm_stack.sh": "9ded784fd6c1990dc9c0994d3ec7744b799cfbff830554ff22b85b8f9ddbb95d",
+    # This launcher hash includes the committed a6c5a4c source propagation
+    # change.  Keep the guard bound to the source actually used by the TC
+    # launcher rather than to the pre-a6c5a4c parent.
+    "start_serverlessllm_stack.sh": "3e44cb3ed4daf65bd971db78e50ad727798c2de401f15f9453aab4f9c64a2d67",
     "run_serverlessllm_head.sh": "8bb2cbb3e257085183f3cd586e86f0073770d98289f515850c7a84bb488c93ac",
     "run_serverlessllm_worker.sh": "d55ddb27716683e9866a5bd72c06e9f0302b35f5f776872b37fc63da0c720f09",
     "run_serverlessllm_serve.sh": "4b3a232f587f1c00986469f59ab7641b1e69835c45115b70b557e450545a27ec",
@@ -875,7 +878,9 @@ def measurement_sources(native_source: Path, variant: str,
     paths = ['sllm/app_lib.py', 'sllm/backends/vllm_backend.py',
              'sllm/routers/roundrobin_router.py']
     original = {p: (native_source / p).read_text() for p in paths}
-    if sha(original[paths[1]].encode()) != '994c80ae9c6106a6469f9d8d5889132e5c2032608c4e497141c00127f91cc777':
+    # The fixed-length TC contract uses the audited worktree backend that
+    # consumes return_token_ids and exposes the native RequestOutput IDs.
+    if sha(original[paths[1]].encode()) != '04833c156f7f9770b3ade2110915bc0d7b54c8e861a83a5d8217df38219aa0f3':
         raise ValueError('native backend source drift')
     if sha(original[paths[2]].encode()) != '2bcbba0d8a3fdf46354f75c1d8ca5bcd79e505f059fcb296bf30dbff176e8f6e':
         raise ValueError('repaired router source drift')
