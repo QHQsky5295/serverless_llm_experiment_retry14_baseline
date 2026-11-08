@@ -7667,6 +7667,25 @@ class ScenarioRunner:
         self.coord_cfg     = coord_cfg or {}
         self._ieee_mechanism_contract = _ieee_system_variant_contract(
             self.coord_cfg, self.preload_cfg)
+        # Optional cross-run A2 control.  The bundle contains only the
+        # logical handoff epoch; each run rebinds it to its own verified owner
+        # snapshot before the normal execution validator and physical leases.
+        self._ieee_handoff_plan_capture_path = os.environ.get(
+            'FAASLORA_IEEE_HANDOFF_PLAN_CAPTURE_PATH') or None
+        self._ieee_handoff_plan_replay_path = os.environ.get(
+            'FAASLORA_IEEE_HANDOFF_PLAN_REPLAY_PATH') or None
+        if self._ieee_handoff_plan_capture_path and self._ieee_handoff_plan_replay_path:
+            raise ValueError('A2 handoff control cannot capture and replay simultaneously')
+        for _path in (self._ieee_handoff_plan_capture_path, self._ieee_handoff_plan_replay_path):
+            if _path and not Path(_path).is_absolute():
+                raise ValueError('A2 handoff plan control paths must be absolute')
+        if self._ieee_handoff_plan_capture_path:
+            _capture_path = Path(self._ieee_handoff_plan_capture_path)
+            if _capture_path.exists() or _capture_path.with_name(_capture_path.name + '.partial').exists():
+                raise ValueError('A2 handoff plan capture path already exists; use a new execution key')
+        self._ieee_handoff_plan_replay_index = 0
+        self._ieee_handoff_plan_control_records = []
+        self._ieee_handoff_plan_replay_bundle = None
         if type(initial_runtime_pending) is not bool:
             raise ValueError('initial_runtime_pending must be a boolean')
         self._initial_runtime_pending = initial_runtime_pending
@@ -15773,6 +15792,105 @@ class ScenarioRunner:
             "preload_budget": event_preload_budget,
         }
 
+    def _load_ieee_handoff_replay_bundle(self):
+        if self._ieee_handoff_plan_replay_bundle is not None:
+            return self._ieee_handoff_plan_replay_bundle
+        path = Path(self._ieee_handoff_plan_replay_path)
+        try:
+            payload = json.loads(path.read_text(encoding='utf-8'))
+        except (OSError, ValueError) as exc:
+            raise ValueError(f'cannot read A2 handoff plan bundle: {path}') from exc
+        if (payload.get('kind') != 'ieee_handoff_plan_bundle_v1'
+                or not isinstance(payload.get('plans'), list) or not payload['plans']):
+            raise ValueError('invalid A2 handoff plan bundle')
+        self._ieee_handoff_plan_replay_bundle = payload
+        return payload
+
+    def _record_ieee_handoff_plan_capture(self, *, plan, activation_kind, activation_index):
+        from faaslora.preloading.preloading_planner import (
+            ieee_plan_comparison_sha256, serialize_ieee_handoff_plan)
+        path = Path(self._ieee_handoff_plan_capture_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        # The event loop is the sole writer for activation planning.  Write a
+        # complete, human-readable bundle after each plan so an interrupted
+        # capture remains explicitly partial rather than silently reusable.
+        plans = []
+        if self._ieee_handoff_plan_control_records:
+            plans = [row['bundle_entry'] for row in self._ieee_handoff_plan_control_records]
+        entry = dict(activation_index=activation_index, activation_kind=activation_kind,
+                     comparison_plan_sha256=ieee_plan_comparison_sha256(plan),
+                     plan=serialize_ieee_handoff_plan(plan))
+        plans.append(entry)
+        payload = dict(kind='ieee_handoff_plan_bundle_v1', version=1,
+                       plans=plans, complete=False)
+        temporary = path.with_name(path.name + '.partial')
+        temporary.write_text(json.dumps(payload, sort_keys=True, indent=2, allow_nan=False) + '\n',
+                             encoding='utf-8')
+        os.replace(temporary, path)
+        self._ieee_handoff_plan_control_records.append(dict(
+            activation_index=activation_index, activation_kind=activation_kind,
+            comparison_plan_sha256=entry['comparison_plan_sha256'],
+            bundle_entry=entry, mode='capture'))
+
+    def _apply_ieee_handoff_plan_replay(self, *, plan, activation_kind, activation_index):
+        from faaslora.preloading.preloading_planner import (
+            deserialize_ieee_handoff_plan, ieee_plan_comparison_sha256,
+            rebind_ieee_handoff_plan)
+        bundle = self._load_ieee_handoff_replay_bundle()
+        index = self._ieee_handoff_plan_replay_index
+        if index >= len(bundle['plans']):
+            raise ValueError('A2 replay produced more activations than the frozen capture')
+        entry = bundle['plans'][index]
+        if (entry.get('activation_index') != index
+                or entry.get('activation_kind') != activation_kind):
+            raise ValueError('A2 replay activation order/category differs from capture')
+        frozen = deserialize_ieee_handoff_plan(entry.get('plan'))
+        expected = entry.get('comparison_plan_sha256')
+        if expected != ieee_plan_comparison_sha256(frozen):
+            raise ValueError('A2 replay entry has an invalid comparison identity')
+        observed = ieee_plan_comparison_sha256(plan)
+        if observed != expected:
+            raise ValueError('A2 replay logical demand/source plan differs from capture')
+        rebound = rebind_ieee_handoff_plan(frozen, current_source_view=plan['source_view'])
+        self._ieee_handoff_plan_replay_index += 1
+        self._ieee_handoff_plan_control_records.append(dict(
+            activation_index=activation_index, activation_kind=activation_kind,
+            comparison_plan_sha256=expected, plan_sha256=rebound['plan_sha256'],
+            mode='replay'))
+        return rebound
+
+    def _ieee_handoff_plan_control_summary(self):
+        mode = ('capture' if self._ieee_handoff_plan_capture_path else
+                'replay' if self._ieee_handoff_plan_replay_path else 'disabled')
+        expected = (len(self._load_ieee_handoff_replay_bundle()['plans'])
+                    if mode == 'replay' else None)
+        consumed = (self._ieee_handoff_plan_replay_index if mode == 'replay'
+                    else len(self._ieee_handoff_plan_control_records))
+        complete = mode == 'disabled' or (mode == 'capture' and consumed > 0) or (
+            mode == 'replay' and consumed == expected)
+        return dict(kind='ieee_handoff_plan_control_v1', mode=mode,
+                    capture_path=self._ieee_handoff_plan_capture_path,
+                    replay_path=self._ieee_handoff_plan_replay_path,
+                    observed_activation_count=consumed,
+                    expected_activation_count=expected,
+                    complete=complete,
+                    records=[{key: value for key, value in row.items() if key != 'bundle_entry'}
+                             for row in self._ieee_handoff_plan_control_records])
+
+    def _finalize_ieee_handoff_plan_capture(self):
+        if not self._ieee_handoff_plan_capture_path:
+            return
+        path = Path(self._ieee_handoff_plan_capture_path)
+        if not path.exists():
+            return
+        payload = json.loads(path.read_text(encoding='utf-8'))
+        payload['complete'] = True
+        payload['observed_activation_count'] = len(self._ieee_handoff_plan_control_records)
+        temporary = path.with_name(path.name + '.partial')
+        temporary.write_text(json.dumps(payload, sort_keys=True, indent=2, allow_nan=False) + '\n',
+                             encoding='utf-8')
+        os.replace(temporary, path)
+
     async def _add_ieee_dedicated_instance(self, *, device_id, activation_kind):
         """Actual scale-out entry: freeze -> overlap files/init -> native recheck.
 
@@ -15792,6 +15910,7 @@ class ScenarioRunner:
         profiles.validate_runtime(self._planned_ieee_runtime_model_config())
         layout = profiles.activation_layout()
         activation_id = 'ieee-activation-' + uuid.uuid4().hex
+        activation_index = len(getattr(self, '_ieee_activations', []))
         files = self._stack.residency_manager.local_source_references
         if hasattr(files, 'call_async'):
             await files.call_async('configure_host_budget',
@@ -15849,6 +15968,16 @@ class ScenarioRunner:
                     profiles=profiles, costs=profiles.new_replica(),
                     expected_clock_id=local_monotonic_clock_id(), received_at=time.monotonic(),
                     activation_id=activation_id)
+                from faaslora.preloading.preloading_planner import ieee_plan_comparison_sha256
+                if self._ieee_handoff_plan_replay_path:
+                    plan = self._apply_ieee_handoff_plan_replay(
+                        plan=plan, activation_kind=activation_kind,
+                        activation_index=activation_index)
+                elif self._ieee_handoff_plan_capture_path:
+                    self._record_ieee_handoff_plan_capture(
+                        plan=plan, activation_kind=activation_kind,
+                        activation_index=activation_index)
+                record['comparison_plan_sha256'] = ieee_plan_comparison_sha256(plan)
                 record['plan_sha256'] = plan['plan_sha256']
             # Both coroutines are owned before yielding. Initialization is
             # shielded: cancellation must join it, never abandon a new worker.
@@ -28050,6 +28179,7 @@ async def _main_async_impl(
                         if experiment_stack is not None:
                             await experiment_stack.stop()
             runner.finalize_runtime_infra_accounting(result)
+            runner._finalize_ieee_handoff_plan_capture()
             if physical_deployment is not None:
                 # The final sidecar is written only after outer cleanup. Legacy
                 # lifecycle billing remains separate and keeps its old meaning.
@@ -28083,6 +28213,7 @@ async def _main_async_impl(
                     "request_plan_preparation": copy.deepcopy(
                         getattr(runner, "_request_plan_preparation_metrics", {})
                     ),
+                    "ieee_handoff_plan_control": runner._ieee_handoff_plan_control_summary(),
                     "remote_artifact_transfers": list(runner._remote_transfer_evidence),
                     "adapter_transfer_pressure": list(runner._adapter_transfer_pressure_evidence),
                     "proactive_admission_diagnostic": copy.deepcopy(

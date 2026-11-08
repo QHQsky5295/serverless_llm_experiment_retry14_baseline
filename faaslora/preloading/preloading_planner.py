@@ -578,6 +578,187 @@ class PreparationCandidate:
         return self.benefit_ms / self.footprint_bytes
 
 
+# The serving owner identifiers, activation UUIDs, paths and monotonic
+# timestamps are intentionally excluded from this view.  They identify one
+# physical execution, but are not part of the A2 question: whether two runs
+# made the same planning choice from the same logical demand/source state.
+_COMPARISON_VOLATILE_KEYS = frozenset({
+    'activation_id', 'owner_id', 'lease_id', 'epoch', 'captured_at',
+    'captured_monotonic_s', 'received_at', 'demand_observed_at',
+    'trigger_at', 'path', 'lora_path', 'source_id', 'device_uuid',
+    'clock_id',
+})
+
+
+def _comparison_json_value(value):
+    """Return a deterministic, JSON-native logical planning projection."""
+    if isinstance(value, Enum):
+        return value.value
+    if isinstance(value, PreparationCandidate):
+        return {
+            'artifact_id': value.artifact_id,
+            'source_tier': value.source_tier.value,
+            'target_tier': value.target_tier.value,
+            'footprint_bytes': value.footprint_bytes,
+            'demand_fraction': value.demand_fraction,
+            'source_load_ms': value.source_load_ms,
+            'target_load_ms': value.target_load_ms,
+        }
+    if isinstance(value, Mapping):
+        if 'activation_reservations' in value:
+            # Reservation keys are per-run UUIDs; retain their budget impact
+            # without making the cross-run identity depend on the UUID.
+            value = dict(value)
+            reservations = value.pop('activation_reservations')
+            if isinstance(reservations, Mapping):
+                value['activation_reservation_bytes_total'] = sum(
+                    int(amount) for amount in reservations.values())
+        return {
+            str(key): _comparison_json_value(item)
+            for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))
+            if str(key) not in _COMPARISON_VOLATILE_KEYS
+        }
+    if isinstance(value, (list, tuple)):
+        return [_comparison_json_value(item) for item in value]
+    if isinstance(value, (str, int, bool)) or value is None:
+        return value
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            raise ValueError('comparison plan contains a non-finite value')
+        return value
+    if hasattr(value, '__dataclass_fields__'):
+        return _comparison_json_value(asdict(value))
+    raise TypeError(f'comparison plan contains unsupported value {type(value).__name__}')
+
+
+def _comparison_source_view(view):
+    """Project the logical tier/content state while retaining capacities."""
+    if view is None:
+        return None
+    return _comparison_json_value(view)
+
+
+def _wire_json_value(value):
+    """Convert a plan to JSON without dropping execution fields."""
+    if isinstance(value, Enum):
+        return value.value
+    if isinstance(value, Mapping):
+        return {str(key): _wire_json_value(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_wire_json_value(item) for item in value]
+    if hasattr(value, '__dataclass_fields__'):
+        return _wire_json_value(asdict(value))
+    if isinstance(value, (str, int, bool)) or value is None:
+        return value
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            raise ValueError('serialized plan contains a non-finite value')
+        return value
+    raise TypeError(f'plan contains unsupported value {type(value).__name__}')
+
+
+def ieee_plan_comparison_view(plan):
+    """Return the cross-run A2 identity of an IEEE handoff plan.
+
+    ``plan_sha256`` remains the per-execution digest and therefore changes
+    when an owner rebinds.  This separate projection is stable across fresh
+    runs only when demand, measured costs, logical source tiers, capacities,
+    candidates, budgets and selected targets are identical.
+    """
+    if not isinstance(plan, Mapping) or plan.get('kind') != 'ieee_preparation_epoch_v1':
+        raise ValueError('comparison identity requires an IEEE preparation epoch')
+    selected = plan.get('selected', {})
+    selected_view = {
+        str(tier): [_comparison_json_value(candidate) for candidate in values]
+        for tier, values in sorted(selected.items(), key=lambda pair: str(pair[0]))
+    }
+    keys = (
+        'kind', 'mode', 'profile_id', 'cost_sequence', 'window_seconds',
+        'total_arrivals', 'arrival_counts', 'remaining_bytes', 'options',
+        'cost_estimates', 'option_scope', 'excluded_zero_demand_options',
+        'replacement_policy', 'size_edges_bytes',
+    )
+    view = {key: _comparison_json_value(plan[key]) for key in keys if key in plan}
+    view['selected'] = selected_view
+    view['source_view'] = _comparison_source_view(plan.get('source_view'))
+    return view
+
+
+def ieee_plan_comparison_sha256(plan) -> str:
+    """Hash the logical cross-run identity, excluding physical owner bindings."""
+    encoded = json.dumps(ieee_plan_comparison_view(plan), sort_keys=True,
+                         separators=(',', ':'), allow_nan=False).encode()
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def serialize_ieee_handoff_plan(plan):
+    """Create an auditable JSON bundle entry for a handoff plan."""
+    if not isinstance(plan, Mapping) or plan.get('mode') != 'handoff':
+        raise ValueError('only handoff plans can be serialized for A2')
+    result = _wire_json_value(plan)
+    result['selected'] = {
+        str(tier): [_comparison_json_value(candidate) for candidate in values]
+        for tier, values in sorted(plan.get('selected', {}).items(), key=lambda pair: str(pair[0]))
+    }
+    result['comparison_plan_sha256'] = ieee_plan_comparison_sha256(plan)
+    return result
+
+
+def deserialize_ieee_handoff_plan(payload):
+    """Restore JSON candidate rows without trusting the stored digest."""
+    if not isinstance(payload, Mapping) or payload.get('kind') != 'ieee_preparation_epoch_v1':
+        raise ValueError('invalid serialized IEEE handoff plan')
+    result = copy.deepcopy(dict(payload))
+    selected = {}
+    for tier, rows in (payload.get('selected') or {}).items():
+        try:
+            selected[str(tier)] = tuple(
+                PreparationCandidate(
+                    row['artifact_id'], StorageTier(row['source_tier']),
+                    StorageTier(row['target_tier']), int(row['footprint_bytes']),
+                    float(row['demand_fraction']), float(row['source_load_ms']),
+                    float(row['target_load_ms']),
+                ) for row in rows
+            )
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValueError('serialized handoff plan contains an invalid candidate') from exc
+    result['selected'] = selected
+    expected = ieee_plan_comparison_sha256(result)
+    if payload.get('comparison_plan_sha256') != expected:
+        raise ValueError('serialized handoff plan comparison digest mismatch')
+    return result
+
+
+def rebind_ieee_handoff_plan(plan, *, current_source_view):
+    """Bind a logical frozen plan to a fresh physical owner observation.
+
+    The logical identity must match exactly.  Only the owner-bound source view
+    and its per-run execution digest are replaced; selected candidates and
+    budgets are never recomputed here.  The normal execution validator still
+    rechecks the current owner, content and capacity before any transfer.
+    """
+    if not isinstance(plan, Mapping) or plan.get('mode') != 'handoff':
+        raise ValueError('only handoff plans can be rebound')
+    rebound = copy.deepcopy(dict(plan))
+    rebound['source_view'], rebound['source_snapshot_id'] = freeze_preparation_source_view(
+        current_source_view)
+    if 'comparison_plan_sha256' not in rebound:
+        rebound['comparison_plan_sha256'] = ieee_plan_comparison_sha256(rebound)
+    if ieee_plan_comparison_sha256(rebound) != plan.get('comparison_plan_sha256'):
+        raise ValueError('current logical owner/source state differs from frozen handoff plan')
+    keys = ('kind', 'mode', 'source_snapshot_id', 'profile_id', 'cost_sequence',
+            'demand_observed_at', 'window_seconds', 'total_arrivals',
+            'arrival_counts', 'remaining_bytes', 'options')
+    if 'cost_estimates' in rebound:
+        keys += ('cost_estimates',)
+    if 'option_scope' in rebound:
+        keys += ('option_scope', 'excluded_zero_demand_options')
+    frozen = {key: rebound[key] for key in keys}
+    rebound['plan_sha256'] = hashlib.sha256(json.dumps(
+        frozen, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+    return rebound
+
+
 @dataclass(frozen=True)
 class PreparationClass:
     """Preparation class, deliberately independent of request D/T/O bins.
