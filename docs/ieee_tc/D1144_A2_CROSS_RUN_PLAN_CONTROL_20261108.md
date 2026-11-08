@@ -34,12 +34,13 @@ epoch、单调时钟和采样时间；但保留逻辑 tier、内容、容量、�
 候选和选择结果。因此它表示“相同逻辑规划输入和输出”，而不是伪造两个运行
 共享同一物理 owner。
 
-重放时先按现有代码重新获得当前运行的完整 owner snapshot，再比较逻辑身份。
-一致后只重新绑定当前 `source_view` 和 `source_snapshot_id`，并重算当前运行的
-`plan_sha256`；候选、预算和选择顺序不重算、不改写。随后仍经过原有
-`execution_preparation_bundle`、owner/content/容量重检查和物理 reservation。
-逻辑身份不一致、activation 顺序不同、计划数量超出捕获包或物理校验失败时，
-运行明确失败/不具备 A2 资格，不能静默重规划或补 sleep。
+重放时先按现有代码重新获得当前运行的完整 owner snapshot，再重新绑定当前
+`source_view` 和 `source_snapshot_id`，并重算当前运行的 `plan_sha256`；捕获的
+需求、测量成本、候选、预算和选择顺序不重算、不改写。不同 handoff 时序导致的
+当前缓存/owner 图差异会记录 frozen/live source-view digest，而不被误判为计划
+差异；但 profile 不一致、activation 顺序不同、计划数量超出捕获包或物理校验
+失败时，运行明确失败/不具备 A2 资格，不能静默重规划或补 sleep。随后仍经过
+原有 `execution_preparation_bundle`、owner/content/容量重检查和物理 reservation。
 
 ## 论文可用的边界
 
@@ -57,9 +58,10 @@ out 数量或 activation 顺序不同，重放应报告“不满足同计划资�
 - owner UUID、activation UUID、epoch、路径和时间变化不改变逻辑 digest；
 - content/tier/选择变化被拒绝；
 - 当前运行 owner 重新绑定后仍保留候选和选择；
-- `test_ieee_tc_preparation_snapshot_copy.py` 与 `test_ieee_tc_planning.py`：25 项通过。
+- `test_ieee_tc_handoff_plan_control.py`、`test_ieee_tc_preparation_snapshot_copy.py` 与
+  `test_ieee_tc_planning.py`：28 项通过；另有 `py_compile` 与 `git diff --check` 通过。
 
-随后真实启动了两个短 smoke：
+随后真实启动了三个短 smoke：
 
 - `d1145_7b_a2_capture_smoke`：100/100 请求完成，Full capture 正常结束，生成
   4 个 activation entry（initial + 3 natural scale-out），bundle
@@ -69,6 +71,16 @@ out 数量或 activation 顺序不同，重放应报告“不满足同计划资�
   不说明 DelayedHandoff 性能。这个拒绝暴露出 replay 校验把应冻结的 demand
   当成了当前资格条件，已修正为只核对当前真实 owner/source 的逻辑状态和非
   demand 规划输入，再使用 capture 中的冻结需求与目标。
+- `d1149_7b_a2_replay_smoke`：修正后的 DelayedHandoff replay 通过真实执行层，
+  100/100 请求完成、无 fallback、native generation contract 全部匹配；4 个
+  activation（initial + 3 natural scale-out）按顺序完整消费捕获计划，
+  `launch.json pass=true` 且控制摘要 `complete=true`。三个 scale-out 的
+  live source-view digest 与 frozen digest 被逐项记录，说明回放没有把不同
+  运行时 owner 图伪装成相同物理状态。该 smoke 只证明入口和执行资格，不进入
+  性能排名。
+
+其中一次 `d1148` 仅因启动命令的配置路径拼写错误在 runner 入口前退出，未生成
+结果目录、未进入排名；随后使用新的唯一键 `d1149` 重跑，不复用该错误键。
 
 尚未完成：
 
@@ -79,9 +91,8 @@ out 数量或 activation 顺序不同，重放应报告“不满足同计划资�
 
 ## 唯一下一执行键
 
-先做一个不进入排名的 100 请求 smoke，检查 Full capture 与 Delayed replay 的
-入口契约和“不一致即拒绝”路径；smoke 不修改旧结果。smoke 通过后，使用新的
-独占输出目录执行 7B W1 Full capture 与 Delayed replay 各一次。两次回放均使用
+smoke 已通过。下一步使用新的独占输出目录执行 7B W1 Full capture 与 Delayed
+replay 各一次。两次回放均使用
 既有 source42 trace、500-adapter subset、fixed-length greedy contract、预发布
 gzip 交付和同一 W1 配置；不重新生成工件或负载。
 

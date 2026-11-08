@@ -736,22 +736,27 @@ def deserialize_ieee_handoff_plan(payload):
     return result
 
 
-def rebind_ieee_handoff_plan(plan, *, current_source_view):
+def rebind_ieee_handoff_plan(plan, *, current_source_view, allow_source_view_change=False):
     """Bind a logical frozen plan to a fresh physical owner observation.
 
-    The logical identity must match exactly.  Only the owner-bound source view
-    and its per-run execution digest are replaced; selected candidates and
-    budgets are never recomputed here.  The normal execution validator still
-    rechecks the current owner, content and capacity before any transfer.
+    By default the logical source view must match exactly.  The explicit A2
+    replay mode may set ``allow_source_view_change=True`` because the current
+    cache/owner graph is an observed runtime outcome of the policy being
+    compared; even then selected candidates and budgets are never recomputed.
+    The normal execution validator still rechecks the current owner, content
+    and capacity before any transfer.
     """
     if not isinstance(plan, Mapping) or plan.get('mode') != 'handoff':
         raise ValueError('only handoff plans can be rebound')
+    if type(allow_source_view_change) is not bool:
+        raise TypeError('allow_source_view_change must be a boolean')
     rebound = copy.deepcopy(dict(plan))
     rebound['source_view'], rebound['source_snapshot_id'] = freeze_preparation_source_view(
         current_source_view)
     if 'comparison_plan_sha256' not in rebound:
         rebound['comparison_plan_sha256'] = ieee_plan_comparison_sha256(rebound)
-    if ieee_plan_comparison_sha256(rebound) != plan.get('comparison_plan_sha256'):
+    if (not allow_source_view_change
+            and ieee_plan_comparison_sha256(rebound) != plan.get('comparison_plan_sha256')):
         raise ValueError('current logical owner/source state differs from frozen handoff plan')
     keys = ('kind', 'mode', 'source_snapshot_id', 'profile_id', 'cost_sequence',
             'demand_observed_at', 'window_seconds', 'total_arrivals',

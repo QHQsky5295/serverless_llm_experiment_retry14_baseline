@@ -56,7 +56,7 @@ class HandoffPlanControl(unittest.TestCase):
             self.assertEqual(rebound['selected']['gpu'][0].artifact_id, 'adapter')
             self.assertTrue(replay._ieee_handoff_plan_control_summary()['complete'])
 
-    def test_replay_rejects_logical_change(self):
+    def test_replay_rejects_profile_change(self):
         view = {'native': None, 'sources': {}, 'files': {}, 'activation_id': 'a'}
         with tempfile.TemporaryDirectory() as directory:
             path = str(Path(directory) / 'handoff.json')
@@ -66,9 +66,27 @@ class HandoffPlanControl(unittest.TestCase):
             replay = _runner(replay=path)
             changed = _plan({'native': None, 'sources': {'adapter': {'tier': 'host'}},
                              'files': {}, 'activation_id': 'b'})
+            changed['profile_id'] = 'different-profile'
             with self.assertRaises(ValueError):
                 replay._apply_ieee_handoff_plan_replay(
                     plan=changed, activation_kind='initial', activation_index=0)
+
+    def test_replay_allows_live_owner_rebind_but_records_difference(self):
+        view = {'native': None, 'sources': {}, 'files': {}, 'activation_id': 'a'}
+        with tempfile.TemporaryDirectory() as directory:
+            path = str(Path(directory) / 'handoff.json')
+            capture = _runner(capture=path)
+            capture._record_ieee_handoff_plan_capture(
+                plan=_plan(view), activation_kind='initial', activation_index=0)
+            replay = _runner(replay=path)
+            changed = _plan({'native': None, 'sources': {'adapter': {'tier': 'host'}},
+                             'files': {}, 'activation_id': 'b'})
+            rebound = replay._apply_ieee_handoff_plan_replay(
+                plan=changed, activation_kind='initial', activation_index=0)
+            self.assertEqual(rebound['selected']['gpu'][0].artifact_id, 'adapter')
+            record = replay._ieee_handoff_plan_control_records[0]
+            self.assertNotEqual(record['frozen_source_view_comparison_sha256'],
+                                record['live_source_view_comparison_sha256'])
 
 
 if __name__ == '__main__':
