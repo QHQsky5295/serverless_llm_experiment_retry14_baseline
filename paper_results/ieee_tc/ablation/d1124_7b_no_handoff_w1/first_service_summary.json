@@ -1,0 +1,145 @@
+{
+  "confidence_interval": null,
+  "counterfactual_pairing": false,
+  "results": {
+    "Full": {
+      "controlled": {
+        "activation_to_first_token_ms": {
+          "mean": null,
+          "missing": 0,
+          "n": 0,
+          "p95_type1": null
+        },
+        "engine_activation_ms": {
+          "mean": null,
+          "missing": 0,
+          "n": 0,
+          "p95_type1": null
+        },
+        "epochs": 0,
+        "first_request_ttft_ms": {
+          "mean": null,
+          "missing": 0,
+          "n": 0,
+          "p95_type1": null
+        },
+        "unused": 0
+      },
+      "initial": {
+        "activation_to_first_token_ms": {
+          "mean": 48127.01680790633,
+          "missing": 0,
+          "n": 1,
+          "p95_type1": 48127.01680790633
+        },
+        "engine_activation_ms": {
+          "mean": 45432.83857777715,
+          "missing": 0,
+          "n": 1,
+          "p95_type1": 45432.83857777715
+        },
+        "epochs": 1,
+        "first_request_ttft_ms": {
+          "mean": 979.5831306837499,
+          "missing": 0,
+          "n": 1,
+          "p95_type1": 979.5831306837499
+        },
+        "unused": 0
+      },
+      "natural_scaleout": {
+        "activation_to_first_token_ms": {
+          "mean": 43462.35059140446,
+          "missing": 0,
+          "n": 19,
+          "p95_type1": 62891.902924049646
+        },
+        "engine_activation_ms": {
+          "mean": 35283.0930635284,
+          "missing": 0,
+          "n": 19,
+          "p95_type1": 43565.84814330563
+        },
+        "epochs": 19,
+        "first_request_ttft_ms": {
+          "mean": 509.0810313673788,
+          "missing": 0,
+          "n": 19,
+          "p95_type1": 897.340924013406
+        },
+        "unused": 0
+      }
+    },
+    "NoHandoff": {
+      "controlled": {
+        "activation_to_first_token_ms": {
+          "mean": null,
+          "missing": 0,
+          "n": 0,
+          "p95_type1": null
+        },
+        "engine_activation_ms": {
+          "mean": null,
+          "missing": 0,
+          "n": 0,
+          "p95_type1": null
+        },
+        "epochs": 0,
+        "first_request_ttft_ms": {
+          "mean": null,
+          "missing": 0,
+          "n": 0,
+          "p95_type1": null
+        },
+        "unused": 0
+      },
+      "initial": {
+        "activation_to_first_token_ms": {
+          "mean": 48035.48916988075,
+          "missing": 0,
+          "n": 1,
+          "p95_type1": 48035.48916988075
+        },
+        "engine_activation_ms": {
+          "mean": 42663.023116998374,
+          "missing": 0,
+          "n": 1,
+          "p95_type1": 42663.023116998374
+        },
+        "epochs": 1,
+        "first_request_ttft_ms": {
+          "mean": 1019.4358979351819,
+          "missing": 0,
+          "n": 1,
+          "p95_type1": 1019.4358979351819
+        },
+        "unused": 0
+      },
+      "natural_scaleout": {
+        "activation_to_first_token_ms": {
+          "mean": 40895.8250902194,
+          "missing": 1,
+          "n": 14,
+          "p95_type1": 53415.51999375224
+        },
+        "engine_activation_ms": {
+          "mean": 35407.800111019365,
+          "missing": 0,
+          "n": 15,
+          "p95_type1": 46630.38798188791
+        },
+        "epochs": 15,
+        "first_request_ttft_ms": {
+          "mean": 591.2569552726511,
+          "missing": 1,
+          "n": 14,
+          "p95_type1": 1712.7012931741774
+        },
+        "unused": 1
+      }
+    }
+  },
+  "rule": "category-filtered recorded actual-first-dispatch epochs; missing values retained as missing; arithmetic mean and type-1 P95",
+  "source": "paper_results/ieee_tc/ablation/d1124_7b_no_handoff_w1/comparison/mechanisms.json",
+  "source_sha256": "8503e367437fa1a9b35b6feba660f5d01c2d4f038af3b4c27acf35dbc8a010db"
+}

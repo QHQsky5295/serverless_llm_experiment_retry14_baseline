@@ -1,5 +1,38 @@
 # D1124：当前7B NoHandoff W1单因素登记
 
+## 完成状态（2026-11-08）
+
+唯一回放已正常结束、资源释放并完成离线分析，不重启。完整结果见
+`D1124_7B_NO_HANDOFF_W1_RESULT_20261108.md`；下文保留原登记与启动历史。
+4000成功/原生合同匹配，联合SLO3903/4000，GPU-s7931.749177，
+P95TTFT2647.273098ms；封存备份后下一项为当前7B R0H0。
+
+## 实际启动回执（2026-11-08 09:22+08）
+
+已按下方登记命令启动一次，目前运行中；下文“尚未启动”是启动前记录。
+无需重做资格、备份或启动。本轮为PROGRESS，完整目标保持active。
+
+- 预启动备份：`7751e78e9129316d7dfd262987d8776f395642b5`，已推送V2。
+- 启动前可用内存121842077696B、磁盘169069486080B，GPU计算任务为空；
+  远端实验专用服务inactive，三个独占路径不存在，配置SHA与登记一致。
+- tmux：`tc-d1124-no-handoff-7b-w1`，pane PID `3456959`，实际存活。
+- service：`primelora-tc-svc-1c5272ea8c2843bb9035489f887fe261.scope`；
+  InvocationID：`26fec61671c34d36a00b45cceea1bd90`。
+- auxiliary：`primelora-tc-aux-cc72eacbc6fe4a8a8b57c364faee7263.scope`。
+- deployment notice：`3608101.361245384`；replay start：`3608161.361245384`。
+- remote clock：`remote-process-monotonic:94a13d63ed37440eb7eac04134da41c2`；
+  owned InvocationID：`8cad6bd501334728a8d5fcd90809893c`，PID `1777628`。
+- 远端HTTP初次连接未就绪，runner现有重试随后成功；已发布gzip/timing_v2
+  在共同部署通知前验证，不重建交付缓存，不事后扣除请求时延。
+- 09:22:26第91个监测样本：high/max/OOM/swap均0，无warning/abort、外来计算
+  或逃逸进程；持有1GPU，可用内存111830917120B、磁盘168780505088B。
+  已有13条terminal，提交到index23；不代表全量完成或最终性能结果。
+
+继续同一执行至真实终态/释放。测量期间无维护、测试、哈希扫描、推送、
+生产修改或远端配置修改。收尾证据和下一项遵循下文登记，不按阶段胜负改动。
+
+## 原始运行前登记
+
 2026-11-08，性能运行前登记，尚未启动。承接已封存并推送的D1123，继续既定
 A1主线，不重新复现baseline，不切换3B，不重跑Full。Full唯一参照为D1115。
 使用ablation-planner核对单因素与可行性；指定评审模型不可用，标记

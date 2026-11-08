@@ -1,0 +1,222 @@
+"""D1124: reuse D1051 physical handoff receipt analysis for current 7B.
+
+Reuses D1124 comparison and the existing actual-dispatch analyzer. No
+model execution, new workload, reference generation, or performance selection.
+"""
+import collections
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import ijson
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW = Path(__file__).resolve().parent
+BASE = Path(__file__).resolve().parent
+OUT = BASE/'handoff'
+sys.path.insert(0, str(ROOT))
+from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.audit_d389_scaleup_handoff_labels import activation_first_services, lora_int_id
+
+def read(path): return json.loads(path.read_text())
+def ref(path): return dict(path=str(path), sha256=p.digest(path), bytes=path.stat().st_size)
+def save(path, data):
+    with path.open('x') as f:
+        json.dump(data, f, indent=2, allow_nan=False); f.write('\n')
+def items(path, prefix):
+    with path.open('rb') as f:
+        yield from ijson.items(f, prefix, use_float=True)
+
+group = p.cg_path()
+# This offline analyzer runs in an owned, bounded transient user service, not
+# the inference/test UUID scope accepted by the historical launcher helper.
+# Record the actual domain; retain the independent resource/affinity checks.
+identity = dict(unit=group.name, path=str(group), pid=os.getpid(), uid=os.getuid(),
+    role='cpu_only_post_run_analysis_service')
+assert os.sched_getaffinity(0) == {2,3,26,27} and os.environ['CUDA_VISIBLE_DEVICES'] == ''
+for name, value in [('memory.high',3*p.GIB),('memory.max',4*p.GIB),('memory.swap.max',0)]:
+    assert (group/name).read_text().strip() == str(value)
+assert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()
+assert p.check_plan() == 'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83'
+comparison = read(BASE/'comparison/comparison.json')
+mechanisms = read(BASE/'comparison/mechanisms.json')
+sources = [ref(BASE/'comparison/comparison.json'),ref(BASE/'comparison/mechanisms.json')]
+for name, expected_sha in read(BASE/'comparison/manifest.json')['outputs'].items():
+    assert p.digest(BASE/'comparison'/name) == expected_sha
+
+def project(r):
+    n, g = r['native_token_timing'], r['gpu_reference_evidence']
+    receipt = g['receipt']
+    assert receipt['acquired'] and r['output_contract_match'] and r['success']
+    assert receipt['owner_id'] == n['gpu_reference_owner_id']
+    assert receipt['adapter_int_id'] == lora_int_id(r['adapter_id'])
+    source_snapshot=receipt.get('post_load_source_snapshot')
+    confirmed_source=None if source_snapshot is None else next(
+        (x for x in source_snapshot['sources'] if x['adapter_int_id']==receipt['adapter_int_id']),None)
+    return dict(request_id=r['request_id'], adapter_id=r['adapter_id'],
+        instance_id=r['instance_id'], prompt_sha=r['canonical_prompt_sha256'],
+        prompt_tokens_sha=n['native_prompt_token_ids_sha256'],
+        content_sha=receipt['expected_content_sha256'], target=r['requested_completion_tokens'],
+        actual=r['completion_tokens'], generation=r['generation_contract'],
+        output_sha=r['completion_token_ids_sha256'],
+        clock_id=n['native_clock_id'], owner_id=n['gpu_reference_owner_id'],
+        dispatch_monotonic_s=n['native_dispatch_monotonic_s'],
+        first_token_monotonic_s=n['native_first_token_monotonic_s'],
+        arrival_monotonic_s=r['external_arrival_timing']['planned_arrival_s'],
+        readiness_tier_before_dispatch=r['readiness_tier_before_dispatch'], success=r['success'],
+        gpu_confirmed_before_acquisition=receipt['gpu_confirmed_before_acquisition'],
+        native_load_invoked=receipt['native_load_invoked'],confirmed_native_source=confirmed_source,
+        completion_ids_retained='completion_token_ids' in n)
+
+requests, outcomes = {}, {}
+for variant, stem in [('Full','d1115_'),('NoHandoff','d1124_')]:
+    paths = [Path(path) for path in comparison['source_refs']
+        if Path(path).name.startswith('experiment_results_full') and stem in path]
+    assert len(paths) == 1
+    path = paths[0]; assert p.digest(path) == comparison['source_refs'][str(path)]
+    rows=[project(r) for r in items(path,'detailed_results.tc_ieee_full.requests.item')]
+    assert len(rows)==len({r['request_id'] for r in rows})==4000
+    requests[variant]={r['request_id']:r for r in rows}
+    actual=activation_first_services(mechanisms[variant]['activations'],rows,clock_id=rows[0]['clock_id'])
+    previous=mechanisms[variant]['first_services']
+    assert [(x['activation_id'],x['first_dispatch_candidate_ids']) for x in actual['records']]==[
+        (x['activation_id'],x['first_dispatch_candidate_ids']) for x in previous['records']]
+    outcomes[variant]=path.parent/'launch.launch/physical_deployment/main_outcome.json'
+    sources.append(ref(path))
+    print(json.dumps(dict(variant=variant,projected=len(rows))),flush=True)
+
+# Queue journals preserve every subscriber; coalesced demand is not silently
+# assigned to handoff, and a completed/reused queue job is not a physical copy.
+outcome=outcomes['Full']
+assert p.digest(outcome)==comparison['source_refs'][str(outcome)]; sources.append(ref(outcome))
+movements=[]
+for job in items(outcome,'coordination_after_shutdown.ieee_movements.item'):
+    subs=job['subscriptions']
+    if any(s['metadata']['trigger_reason']=='handoff' for s in subs.values()):
+        movements.append(job)
+remote=list(items(outcome,'remote_transfers.item'))
+local=list(items(outcome,'local_transfers.item'))
+epochs=[]
+for a, first in zip(mechanisms['Full']['activations'],mechanisms['Full']['first_services']['records']):
+    aid=a['activation_id']; assert aid==first['activation_id']
+    assert not first['first_dispatch_ambiguous']
+    fr=first['first_request']; dispatch=fr['dispatch_monotonic_s'] if fr else None
+    record=dict(activation_id=aid,category=a['category'],engine_ready_at=a['engine_ready_at'],
+        first_request=None if fr is None else requests['Full'][fr['request_id']],
+        gpu_attempts=[],host_attempts=[],movement_jobs=[])
+    later=[r for r in requests['Full'].values() if r['instance_id']==aid]
+    for family, target, start_key, end_key in [
+        ('_ieee_gpu_preparation_plans','gpu_attempts','native_load_started_monotonic_s','native_load_completed_monotonic_s'),
+        ('_ieee_native_host_preparations','host_attempts','load_started_monotonic_s','load_completed_monotonic_s')]:
+        seen=set()
+        for plan in mechanisms['Full']['plans'][family]['handoff_records']:
+            if plan['activation_id']!=aid: continue
+            assert plan['target_replica']==aid
+            for attempt in plan['attempts']:
+                key=attempt['attempt_id']; assert key not in seen; seen.add(key)
+                receipt=attempt.get('receipt')
+                row=dict(plan_id=plan['plan_id'],attempt_id=key,state=attempt['state'])
+                if receipt is None:
+                    row['receipt_available']=False; record[target].append(row); continue
+                assert receipt['owner_id']==a['native_owner_id'] and receipt['clock_id']==a['clock_id']
+                invoked=receipt.get('native_load_invoked')
+                row.update(receipt_available=True,native_load_invoked=invoked,
+                    adapter_id=receipt.get('lora_name'), acquired=receipt.get('acquired'),held=receipt.get('held'))
+                if target=='gpu_attempts' and 'preparation_interval' in attempt:
+                    row['source_tier']=attempt['preparation_interval']['source']['tier']
+                snapshot=receipt.get('post_load_source_snapshot')
+                row['confirmed_native_source']=None if snapshot is None else next(
+                    (x for x in snapshot['sources'] if x['adapter_int_id']==receipt['adapter_int_id']),None)
+                if invoked is True:
+                    start,end=receipt[start_key],receipt[end_key]
+                    assert a['trigger_at']<=start<=end
+                    row.update(start=start,end=end,completed_before_engine_ready=None if a['engine_ready_at'] is None else end<=a['engine_ready_at'],
+                        completed_before_first_dispatch=None if dispatch is None else end<=dispatch,
+                        first_request_adapter_match=fr is not None and fr['adapter_id']==receipt['lora_name'],
+                        duration_ms=(end-start)*1000)
+                    subsequent=[r for r in later if r['adapter_id']==receipt['lora_name'] and r['dispatch_monotonic_s']>=end]
+                    row['later_same_adapter_dispatches']=len(subsequent)
+                    row['later_same_adapter_gpu_hits']=sum(r['gpu_confirmed_before_acquisition'] for r in subsequent)
+                    # Reuse of a matching adapter later is an association; absent
+                    # continuous residency identity it is not proof this load survived.
+                record[target].append(row)
+    for job in movements:
+        selected=[s for s in job['subscriptions'].values() if s['metadata']['trigger_reason']=='handoff'
+            and s['metadata']['activation_id']==aid]
+        if not selected: continue
+        if job['key'][1] not in ('host','nvme'): continue
+        row=dict(job_id=job['job_id'],key=job['key'],state=job['state'],
+            storage_domain='native' if job['key'][0]==a['native_owner_id'] else 'shared_file',
+            created_at=job['created_at'],finished_at=job['finished_at'],attempts=job['attempts'],
+            subscriptions=job['subscriptions'],
+            completed_before_engine_ready=None if a['engine_ready_at'] is None else
+                job['state']=='completed' and job['finished_at']<=a['engine_ready_at'],
+            completed_before_first_dispatch=None if dispatch is None else
+                job['state']=='completed' and job['finished_at']<=dispatch,
+            remote_receipts=[])
+        # Require same content, local owner, adapter and actual load interval.
+        for transfer in remote:
+            if transfer['artifact_id']!=job['key'][2] or transfer['local_source_owner_id']!=job['key'][0]: continue
+            if not job['created_at']<=transfer['loading_started_monotonic_s']: continue
+            if job['finished_at'] is None or transfer['published_monotonic_s']>job['finished_at']: continue
+            assert transfer['loading_clock_id']==a['clock_id']
+            row['remote_receipts'].append({k:transfer[k] for k in (
+                'transfer_id','artifact_id','loading_started_monotonic_s','published_monotonic_s',
+                'transferred_bytes','content_verified','remote_pack_performed','content_manifest_sha256')})
+        record['movement_jobs'].append(row)
+    epochs.append(record)
+
+# This 7B analysis does not import the historical 3B HF/PEFT reference.
+# Native binding/count checks and output-digest differences remain distinct from
+# an independent numerical proof; preserve unknowns, with no GPU reference run.
+all_different=[rid for rid in requests['Full'] if requests['Full'][rid]['output_sha']!=requests['NoHandoff'][rid]['output_sha']]
+assert set(all_different)=={r['request_id'] for r in comparison['output_digest_differences']}
+output_summary=dict(current_output_changes=len(all_different),
+    retained_native_sequences={v:sum(r['completion_ids_retained'] for r in rows.values())
+        for v,rows in requests.items()},
+    independent_numerical_proof=False)
+
+summary=dict(activation_count=len(epochs),categories=dict(collections.Counter(x['category'] for x in epochs)),
+    gpu_physical_loads=0,host_physical_loads=0,gpu_loads_before_engine_ready=0,host_loads_before_engine_ready=0,
+    gpu_loads_before_first_dispatch=0,host_loads_before_first_dispatch=0,
+    first_request_gpu_prepared_epochs=0,movement_jobs=0,movement_jobs_before_engine_ready=0,
+    movement_jobs_with_actual_remote_receipts=0,local_transfer_count=len(local),
+    movement_domains={},gpu_preparation_source_tiers={})
+domains,sources_by_tier=collections.Counter(),collections.Counter()
+for e in epochs:
+    for tier in ('gpu','host'):
+        rows=[r for r in e[tier+'_attempts'] if r.get('native_load_invoked') is True]
+        summary[tier+'_physical_loads']+=len(rows)
+        for limit in ('engine_ready','first_dispatch'):
+            summary[tier+'_loads_before_'+limit]+=sum(r['completed_before_'+limit] is True for r in rows)
+    summary['first_request_gpu_prepared_epochs']+=any(r.get('first_request_adapter_match') and
+        r.get('completed_before_first_dispatch') for r in e['gpu_attempts'])
+    summary['movement_jobs']+=len(e['movement_jobs'])
+    summary['movement_jobs_before_engine_ready']+=sum(r['completed_before_engine_ready'] is True for r in e['movement_jobs'])
+    summary['movement_jobs_with_actual_remote_receipts']+=sum(bool(r['remote_receipts']) for r in e['movement_jobs'])
+    domains.update(r['storage_domain']+':'+r['key'][1] for r in e['movement_jobs'])
+    sources_by_tier.update(r['source_tier'] for r in e['gpu_attempts'] if 'source_tier' in r)
+summary['movement_domains']=dict(domains)
+summary['gpu_preparation_source_tiers']=dict(sources_by_tier)
+OUT.mkdir(parents=True,exist_ok=False)
+save(OUT/'handoff.json',dict(summary=summary,epochs=epochs,limitations=[
+    'Native load completion is physical evidence; plan completion/queue reuse alone is not.',
+    'Later same-adapter GPU-hit association does not establish uninterrupted residency of this preparation.',
+    'Natural epochs and first requests differ between variants; not a controlled same-plan causal experiment.']))
+save(OUT/'outputs.json',dict(summary=output_summary,
+    changed_ids=all_different,n_correct=None,formal_ranking_eligible=False,
+    limitations=['Current performance data do not independently explain every output-digest change.',
+        'Historical 3B reference and its zero-update-pool limitation are not substituted for 7B numerical evidence.',
+        'Digest agreement is exact sequence agreement under the recorded serialization, not semantic task accuracy.']))
+with (OUT/'audit.py.snapshot').open('x') as f: f.write(Path(__file__).read_text())
+save(OUT/'manifest.json',dict(kind='d1124_7b_retained_handoff_evidence_v1',passed=True,source_refs=sources,
+    revision='v2_distinguishes_native_HOST_queue_jobs_from_file_copies',
+    reused_analysis_source=ref(ROOT/'paper_results/ieee_tc/ablation/d1051_handoff_receipts_v2/audit.py.snapshot'),
+    analysis_script=ref(Path(__file__)),identity=identity,resources=p.cgroup_snapshot(group),
+    plan_sha256=p.check_plan(),metric_protocol_sha256=p.digest(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+    single_run_sha256=p.digest(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md'),
+    outputs=[ref(x) for x in sorted(OUT.iterdir()) if x.is_file()]))
+print(json.dumps(dict(handoff=summary,outputs=output_summary)),flush=True)
+

@@ -1,5 +1,60 @@
 # PrimeLoRA IEEE TC execution contract
 
+Current handoff2026-11-08 10:09+08: D1124 COMPLETE/released/analyzed; NO live GPUrun.
+Read D1124_7B_NO_HANDOFF_W1_RESULT_20261108.md. Do NOT restart.
+4000 native contracts,joint3903=97.575%,U7931.749177354854,
+P95TTFT2647.2730981186032ms. SameFullD1115 saves4.133697%U,
+P95-11.934680%,joint+0.975pp; NoHandoff meanE2E/meanTPOT lower, keeptrade-off.
+All16activation gates no_handoff/emptyplan/disabled; nohandoffrecords,steady
+residency1528 andsoftadmission1378(1375admit/3defer) stillactive.16closedleases,
+15natural/14firstservices/1readyunused. Full actualGPU/HOST loads115/115,
+before-ready0/0, beforefirstdispatch47/55;3matchingfirstadapters. Shared-file
+jobs4pre-ready,one remotejob demand-first then handoffcoalesced (not独立预取).
+169outputdigestdifferences unknown,n_correctnull.132transfers/131480060bytes.
+2274resourcesamples,nohigh/max/OOM/swap; remoteinactive/GPUempty.
+u375–u378 metric/stage/comparison pass;u379failed oldUUIDscope helper before
+analysis output;recordactual boundedCPUservice,u380physicalauditpass,u38168sources/
+144protectedfiles/userdirtypass. Next closure/explicitbackup then current7B R0H0.
+NoFull/baseline repeat/3Bswitch/sharedk3swork. ThisturnPROGRESS; fullscopeactive.
+All older LIVE notes below are historical, not instructions to monitor/relaunch.
+
+Latest verified wait2026-11-08 09:47:30+08: D1124 SAME panePID3456959 live;
+service Invocation26fec61671c34d36a00b45cceea1bd90 unchanged/active.3033 unique
+terminal requests,3033success/3033native-contract,submittedindex3041. Sample1575
+high/max/OOM/swap0,no warning/abort/foreign/escaped compute,4GPUheld,
+available104277622784B,disk166328643584B. Previous turn VERIFIED WAIT; this turn
+VERIFIED WAIT. No restart/new run/change/test/maintenance/push. Continue SAME
+run through complete replay and actual release, then registered analysis.
+Post-release handoff physical-work reuse: read D1051_HANDOFF_PHYSICAL_EVIDENCE_20261104.md
+and paper_results/ieee_tc/ablation/d1051_handoff_receipts_v2/audit.py.snapshot.
+Same-owner/clock native receipts, before-ready/first-dispatch boundaries and
+native HOST vs shared-file queue distinctions are reusable; do NOT reuse its
+3B HF reference/performance. Read only this turn, no data analysis/qualification.
+Full scope active; no full outcome yet.
+
+LIVE handoff 2026-11-08 09:22+08: D1124 NoHandoff 7B W1 launched ONCE.
+tmux tc-d1124-no-handoff-7b-w1 panePID3456959 confirmed live; DO NOT relaunch.
+Checkpoint7751e78e9129316d7dfd262987d8776f395642b5 was already pushed before launch.
+Service1c5272ea8c2843bb9035489f887fe261, Invocation26fec61671c34d36a00b45cceea1bd90;
+auxcc72eacbc6fe4a8a8b57c364faee7263. Notice3608101.361245384,
+replay3608161.361245384; remoteclock94a13d63ed37440eb7eac04134da41c2,
+owned remote Invocation8cad6bd501334728a8d5fcd90809893c/PID1777628.
+At09:22:26 sample91 high/max/OOM/swap0, no warning/abort/foreign/escaped compute,
+1GPUheld, available111830917120B, disk168780505088B;13terminalrecords,
+submittedindex23. Initial HTTP connection retry succeeded before deployment notice;
+publishedgzip/timingv2 verified. Same run continues, no final performance verdict.
+No production changes/tests/maintenance/hashscans/push/remote changes while measuring.
+After real terminal/release use registered D1113/D299/D455 plus no_handoff/steady
+residency/first-service audit and same FullD1115. Then current7B R0H0, not baseline/
+Full repetition,3B switch or sharedk3s work. This turn PROGRESS; full goal active.
+Older NOTSTARTED notes below are historical, not new launch instructions.
+
+D1124 prelaunch backup COMPLETE2026-11-08 04:13+08:7751e78e9129316d7dfd262987d8776f395642b5
+pushedV2/remotematched.7explicitfiles,17sourceSHA/secrets/diffchecks passed;
+userdirtymanifest/status excluded. D1124 still NOTSTARTED; next actual action
+fullPLAN/freshresources and ONE registered launch, not repeat tests/backup.
+Previous/currentgoalturn PROGRESS. No liveGPUrun; fullgoal remains active.
+
 Current handoff2026-11-08: D1124 current7B NoHandoffW1 REGISTERED, NOT STARTED.
 Read D1124_7B_NO_HANDOFF_W1_REGISTRATION_20261108.md. Existing no_handoff only
 plus3isolatedpaths from D1100/Full; no serving edit.4logic tests pass(main0)

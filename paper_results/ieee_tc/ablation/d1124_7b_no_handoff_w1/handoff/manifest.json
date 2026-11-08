@@ -1,0 +1,91 @@
+{
+  "kind": "d1124_7b_retained_handoff_evidence_v1",
+  "passed": true,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1124_7b_no_handoff_w1/comparison/comparison.json",
+      "sha256": "29dee87b23b3f4cfda6c16413a02fa171278084cadb22bc7c6a348f033a3dfe0",
+      "bytes": 47512
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1124_7b_no_handoff_w1/comparison/mechanisms.json",
+      "sha256": "8503e367437fa1a9b35b6feba660f5d01c2d4f038af3b4c27acf35dbc8a010db",
+      "bytes": 15821842
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1115_20261107/7b_same_version_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d1115_7b_same_version_w1.json",
+      "sha256": "99574e407543545937b93d0277c7c70a4d3c28eb8107290d79db65aa1777e577",
+      "bytes": 292176956
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1124_20261108/7b_no_handoff_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d1124_7b_no_handoff_w1.json",
+      "sha256": "999c562b8029fcd61f13b7b827c311ef528e916247cc5b9a14439951e654c4ac",
+      "bytes": 295822901
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1115_20261107/7b_same_version_w1/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "9afaea049feced33c604957d5879c1e0df0609318e0ec153ef3e826ca43bcc48",
+      "bytes": 490133940
+    }
+  ],
+  "revision": "v2_distinguishes_native_HOST_queue_jobs_from_file_copies",
+  "reused_analysis_source": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1051_handoff_receipts_v2/audit.py.snapshot",
+    "sha256": "96dd7511b9fe221f36b72da3ea9b86204c4f9a6b052f5e30a34b2fa2f9483a15",
+    "bytes": 16612
+  },
+  "analysis_script": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1124_7b_no_handoff_w1/audit_handoff.py",
+    "sha256": "f3186118f77144eb740a34140057b9c508cbe2c1e3ad530b11107a8885fe1496",
+    "bytes": 14839
+  },
+  "identity": {
+    "unit": "run-u380.service",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/run-u380.service",
+    "pid": 3568727,
+    "uid": 1001,
+    "role": "cpu_only_post_run_analysis_service"
+  },
+  "resources": {
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/run-u380.service",
+    "memory.current": 62701568,
+    "memory.peak": 62701568,
+    "memory.high": 3221225472,
+    "memory.max": 4294967296,
+    "memory.swap.current": 0,
+    "memory.swap.max": 0,
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+    "cpu.max": null,
+    "cpu.stat": "usage_usec 21888268\nuser_usec 20789455\nsystem_usec 1098812\ncore_sched.force_idle_usec 0",
+    "cpuset.cpus.effective": null,
+    "cgroup.controllers": "memory pids",
+    "memory.events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "outputs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1124_7b_no_handoff_w1/handoff/audit.py.snapshot",
+      "sha256": "f3186118f77144eb740a34140057b9c508cbe2c1e3ad530b11107a8885fe1496",
+      "bytes": 14839
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1124_7b_no_handoff_w1/handoff/handoff.json",
+      "sha256": "ff3e52e0787b9cbdfb6b1e535a847257e93081bd7d2ff3f349c901985c0ce2d0",
+      "bytes": 620625
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1124_7b_no_handoff_w1/handoff/outputs.json",
+      "sha256": "a7c176f56d2d9dc54602dfdc44ec5969695a1a4c2d8f27e0fffac828503f9055",
+      "bytes": 3472
+    }
+  ]
+}

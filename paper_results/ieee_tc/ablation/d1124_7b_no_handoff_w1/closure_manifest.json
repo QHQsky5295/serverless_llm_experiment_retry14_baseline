@@ -1,0 +1,109 @@
+{
+  "analysis_attempts": "analysis_attempts.md",
+  "analysis_cpu_affinity": [
+    2,
+    3,
+    26,
+    27
+  ],
+  "analysis_memory_high_gib": 3,
+  "analysis_memory_max_gib": 4,
+  "analysis_sources": {
+    "docs/ieee_tc/D1124_7B_NO_HANDOFF_W1_REGISTRATION_20261108.md": "ae7bc542076ef69e5b8bee10cd488a97482dfb0128741dbd6694173e4e247373",
+    "docs/ieee_tc/D1124_7B_NO_HANDOFF_W1_RESULT_20261108.md": "0fa61dc088a518c72fc5daddc45fd1af0411f529bb0805bc3b4fc45c61cf73e4",
+    "paper_results/ieee_tc/main_comparison/d594_reference_and_ttft/resident_references.json": "a9b6b25fe4ec8a17921dd5968c4fb494b7a6d795c0d4a11c7b7d306ac06bc60c"
+  },
+  "analysis_swap_max": 0,
+  "analysis_units": [
+    "run-u375.service",
+    "run-u376.service",
+    "run-u377.service",
+    "run-u378.service",
+    "run-u379.service",
+    "run-u380.service",
+    "run-u381.service",
+    "run-u382.service"
+  ],
+  "budget_gpu_seconds": 6756.571050141065,
+  "extra_raw_hashes": {
+    "launch.json": "ec7e092b1a9d8d2d449da58b425e1e1daf68a80d8ce64e221f1e26170e562016",
+    "launcher.log": "47f88afec7a3b9062f5db8aa3188e37954efce07889e88b37eab397050b03519",
+    "remote_monitor.log": "2dcc4df7dc2a404209cc84394cfe9234569c46f70a2418f898f858877e1eb59b",
+    "remote_pre_health.json": "d1ac2c283f0ea03ecc72a62052d3d73080a022d28cdc7b01eb396ed949e35069",
+    "remote_service_stop.txt": "c21fa3c9864f884f0f038dc8566688577ee7382c4e11e49d1e743cb9e06dcb81",
+    "remote_transfers.jsonl": "2ace637afe8ddc188ddc6322f7ccdc65474a2420b3358b9770edf47e168bce39"
+  },
+  "gpu_compute_census_empty": true,
+  "independent_semantic_audit": {
+    "acceptance_status": "unavailable",
+    "reason": "Specified gpt-5.6-sol reviewer and shared reference package unavailable; executor deterministic checks are not independent review.",
+    "skill": "experiment-audit"
+  },
+  "kind": "d1124_7b_no_handoff_w1_closure_v1",
+  "main_goal_complete": false,
+  "backup_whitespace_exception": {
+    "reason": "Preserve exact executed analysis source bytes and their sealed SHA256 values; three added analysis source files have one extra blank line at EOF only.",
+    "paths": ["audit_handoff.py", "compare.py", "handoff/audit.py.snapshot"],
+    "validation": "git -c core.whitespace=blank-at-eol,space-before-tab,-blank-at-eof diff --cached --check; per-command exception only, no repository configuration change"
+  },
+  "new_performance_runs_this_analysis": 0,
+  "outputs": {
+    "analysis_attempts.md": "7e6315c5b750da0380b22cb99727811e6b10a1291a7ed6cb33a6c2df4783766c",
+    "audit_handoff.py": "f3186118f77144eb740a34140057b9c508cbe2c1e3ad530b11107a8885fe1496",
+    "compare.py": "fe1fcfede98289cd44f584855e0ed61cf1326cdb5446814b26a72a39a253587d",
+    "comparison/comparison.json": "29dee87b23b3f4cfda6c16413a02fa171278084cadb22bc7c6a348f033a3dfe0",
+    "comparison/manifest.json": "bb47f1ff73458c0c1e13fbc4fbd451daacf9e2ca90f735d08dd07f0733e3e01e",
+    "comparison/mechanisms.json": "8503e367437fa1a9b35b6feba660f5d01c2d4f038af3b4c27acf35dbc8a010db",
+    "comparison/metrics.csv": "e57ecf6599231166a988454d01fbd923871b12f1d8635a5e963f9a5534ab24d7",
+    "first_service_summary.json": "ec2d6fc76f838455c6cd5fee627a56458aecf991b506b7e687a5eac39be7cdfd",
+    "handoff/audit.py.snapshot": "f3186118f77144eb740a34140057b9c508cbe2c1e3ad530b11107a8885fe1496",
+    "handoff/handoff.json": "ff3e52e0787b9cbdfb6b1e535a847257e93081bd7d2ff3f349c901985c0ce2d0",
+    "handoff/manifest.json": "e2fc6d5391a71a00022d8f6ac5304970932e9118e9cdbd089f1e6b17fd0980e4",
+    "handoff/outputs.json": "a7c176f56d2d9dc54602dfdc44ec5969695a1a4c2d8f27e0fffac828503f9055",
+    "prelaunch.json": "e01392dabffcdacff253637c4d8611f75ab06464d589b0b61b585ffa85ba95e8",
+    "prelaunch_test_journal.txt": "58313d0a13f9f19e157910dd69c68de84e3eed3ef477b47371ae7d87858a905c",
+    "prelaunch_tests.txt": "7d7b0acd560dbafa7e28b083b7147b4a2185ab7a8c06af9ddcfd786144e8da36",
+    "result1/evidence_review.json": "5d7740413b765ba50393d7ca8805bd1ea6c7849192dca1248b0b0256550308dc",
+    "result1/manifest.json": "24e20fb9a07aece77af7f76a9bcafae5e336ec098078d98b357306589c6693cb",
+    "result1/reconciliation.json": "999fe2e0857ce26005c528032b352cb9777060624cfe22bc9d983a19a8a660f8",
+    "source_verification.json": "42005607c85f4c830d814ace763f4ec400b970864cad4efbee6f61ec76d7e796",
+    "stages/summary.json": "135b03a6362eed0096113c1e8ea40291f6d731514ca1b2d264c0db8e66a2f642"
+  },
+  "raw_directory": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1124_20261108/7b_no_handoff_w1",
+  "raw_result_sha256": "999c562b8029fcd61f13b7b827c311ef528e916247cc5b9a14439951e654c4ac",
+  "remote_clock_id": "remote-process-monotonic:94a13d63ed37440eb7eac04134da41c2",
+  "remote_journal": "/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-dec450c5d9d0467989471e1f00851b45.jsonl",
+  "remote_service_inactive_main_pid_zero": true,
+  "remote_sha256_matched": "2ace637afe8ddc188ddc6322f7ccdc65474a2420b3358b9770edf47e168bce39",
+  "run_checkpoint": "7751e78e9129316d7dfd262987d8776f395642b5",
+  "secret_pattern_check": true,
+  "source_verification": {
+    "analysis_unit": "run-u381.service",
+    "kind": "executor_hash_recheck_not_independent_review",
+    "protected_publication_files_unchanged": 144,
+    "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "verified_unique_sources": 68
+  },
+  "tests": {
+    "cpus": [
+      2,
+      3,
+      26,
+      27
+    ],
+    "duration_s": 16.444,
+    "exec_main_status": 0,
+    "global_limit_changed": false,
+    "inotify_ENOSPC_observed": true,
+    "interpretation": "All logic assertions passed, not a successful wrapper-lifecycle check. Existing D1121/D458 direct-watchdog and explicit-empty-domain cleanup path retained; no duplicate tests or serving-code change.",
+    "memory_high_gib": 3,
+    "memory_max_gib": 4,
+    "passed": 4,
+    "resource_domain_empty_then_removed": true,
+    "service_runtime_s": 125.402,
+    "swap_max": 0,
+    "systemd_result": "timeout",
+    "systemd_wrapper_exit_code": 1,
+    "unit": "run-u373.service"
+  }
+}
