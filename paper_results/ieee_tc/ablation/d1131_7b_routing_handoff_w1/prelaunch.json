@@ -1,0 +1,29 @@
+{
+  "kind": "d1131_repaired_routing_handoff_registration_v1",
+  "run_id": "D1131",
+  "status": "registered_not_started",
+  "model": "7b",
+  "profile": "W1",
+  "scenario": "tc_ieee_routing_handoff",
+  "source_fix_commit": "7ce2f815d697218733ee799c8017f27335a089de",
+  "config": "configs/ieee_tc/20261108_d1131_7b_routing_handoff_w1.yaml",
+  "config_sha256": "04e36f3e720e3eb53e262da3a77cc42336819f3273bf20d03df9cfb67be11fbb",
+  "previous_failed_config_sha256": "517c2367ddd55b4d8221d37d36cb7ed08efb0475b836dd098510be7aa86e2572",
+  "plan_sha256": "b5170643aa5d332efc67407af10ab7022a2d68fd802e2389d253968bd92dcf8f",
+  "only_private_paths_changed": true,
+  "normalized_configuration_equal": true,
+  "no_existing_run_paths": true,
+  "changed_fields": ["experiment.output_dir", "storage.nvme_cache_dir", "storage.host_cache_dir"],
+  "new_serving_edits": false,
+  "prior_failed_run": "D1130",
+  "prior_failure_reason": "CPU helper cleanup called unavailable Python pidfd wrappers",
+  "prior_failed_run_preserved": true,
+  "selection_based_on_performance": false,
+  "reused_test_evidence": "docs/ieee_tc/D1130_7B_ROUTING_HANDOFF_RECOVERY_20261108.md",
+  "old_publication_verification": "paper_results/ieee_tc/ablation/d1130_7b_routing_handoff_w1/source_verification.json",
+  "user_dirty_sha256": {
+    "configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "docs/ieee_tc/EXECUTION_STATUS.md": "95c5ad71d8777f111a198ee9f43d6747f3b8ef7ee497facc5bc3ee0d21a96f99",
+    "docs/ieee_tc/EXECUTION_STATUS_D1083_20261106.md": "aee8f612e75977ab15eb07fe0837cfea6191d7b4de53c74bb87e1a337ecfe95d"
+  }
+}

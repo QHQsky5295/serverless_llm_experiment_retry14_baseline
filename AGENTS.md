@@ -1,5 +1,22 @@
 # PrimeLoRA IEEE TC execution contract
 
+CURRENT2026-11-08 17:31+08:D1131 repaired7B RoutingHandoff W1 REGISTERED,
+NOTSTARTED. Read D1131REGISTRATION/RUN_STATUS. Config04e36f3e720e3eb53e262da3a77cc42336819f3273bf20d03df9cfb67be11fbb;
+only3privatepaths differ fromD1130, parsedconfigurationequality passed. No new
+servingedit, fix7ce2f815alreadytested/backedup. Next explicitregistrationbackup,
+freshresource/remotecheck thenONEexistingD1100runnerlaunch; no repeatCPUtests,
+Full/baselines/3B/k3s. D1130remainsfailed/R3;neverselectbetweenretriesbynumbers.
+CurrentturnPROGRESS;fullPLAN1684lines/goalread, fullremainingscopeactive.
+
+BACKUP COMPLETE17:24+08: D1130 recovery + CPU pidfd fix committed/pushed
+7ce2f815d697218733ee799c8017f27335a089de;remoteV2HEADmatches.20explicitfiles,
+38recoverysources/144oldpublication/3userdirty verified;normaldiff/secretschecks
+pass,main/wrapper0. Curatedbackup_recovery.json saved. DoNOTrepeatbackup/tests/
+recovery/cleanup. NoGPUjob. NEXT registerONE repairedRoutingHandoff key(D1131),
+sameconfig exceptprivatepaths andCPUcleanupfix,thenfreshresources/ownedremote
+andexistingD1100runner. D1130remainsfailed/R3diagnostic,notcleanA5result;never
+overwrite/relaunchitskey. CurrentPROGRESS,fullremaininggoalactive. Sharedk3sunchanged.
+
 CURRENT17:22+08 D1130 failure observations RECOVERED (not successful export):
 4000nativebindings,3929joint=98.225%,U7372.557966300286,19closedleases,
 P95TTFT1880.049470346421ms;2282samples/events0/swap0,132remote131480060B.

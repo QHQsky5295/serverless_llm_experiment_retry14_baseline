@@ -1,0 +1,32 @@
+{
+  "commit": "7ce2f815d697218733ee799c8017f27335a089de",
+  "remote_head": "7ce2f815d697218733ee799c8017f27335a089de",
+  "branch": "retry14_continuous_queue_v2",
+  "remote": "faaslora_origin",
+  "files": [
+    "AGENTS.md",
+    "docs/ieee_tc/D1130_7B_ROUTING_HANDOFF_RECOVERY_20261108.md",
+    "docs/ieee_tc/D1130_7B_ROUTING_HANDOFF_W1_RUN_STATUS_20261108.md",
+    "faaslora/cpu_frontend.py",
+    "faaslora/linux_pidfd.py",
+    "faaslora/metrics/metrics_collector.py",
+    "paper_results/ieee_tc/ablation/d1130_7b_routing_handoff_w1/backup_prelaunch.json",
+    "paper_results/ieee_tc/ablation/d1130_7b_routing_handoff_w1/cleanup_after.json",
+    "paper_results/ieee_tc/ablation/d1130_7b_routing_handoff_w1/cleanup_before.json",
+    "paper_results/ieee_tc/ablation/d1130_7b_routing_handoff_w1/compare.py",
+    "paper_results/ieee_tc/ablation/d1130_7b_routing_handoff_w1/reclaim.py",
+    "paper_results/ieee_tc/ablation/d1130_7b_routing_handoff_w1/recover.py",
+    "paper_results/ieee_tc/ablation/d1130_7b_routing_handoff_w1/recovery1/manifest.json",
+    "paper_results/ieee_tc/ablation/d1130_7b_routing_handoff_w1/recovery1/recovery.json",
+    "paper_results/ieee_tc/ablation/d1130_7b_routing_handoff_w1/recovery_notes.md",
+    "paper_results/ieee_tc/ablation/d1130_7b_routing_handoff_w1/remote_journal_source.json",
+    "paper_results/ieee_tc/ablation/d1130_7b_routing_handoff_w1/source_verification.json",
+    "scripts/ieee_tc/check_d299_full_context.py",
+    "tests/test_ieee_tc_cpu_frontend_lifecycle.py",
+    "tests/test_tc_serverless_qualification_population.py"
+  ],
+  "protected_files": 144,
+  "user_dirty_excluded": true,
+  "checks_passed": true,
+  "recorded_unix": 1794129834.618495
+}
