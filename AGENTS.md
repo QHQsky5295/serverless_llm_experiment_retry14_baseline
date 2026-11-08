@@ -1,5 +1,92 @@
 # PrimeLoRA IEEE TC execution contract
 
+CURRENT2026-11-08 14:58+08:D1128 COMPLETE/released/analyzed; no live GPU or
+analysis process. Read D1128_7B_CAPACITY_ONLY_W1_RESULT_20261108.md.
+FullD1115 vsCapacityOnly: U-4.61004749%,joint+.30pp,P95TTFT-0.08330814%
+(1.943807ms), auxiliary means worse; both overB, notG2/robusttailimprovement.
+Full1softdeferral/Capacity1softdeficitadmitted are DIFFERENT candidates/states;
+retain S3 controlled-contention question, no causal367GPU-s attribution.
+4000nativecontracts/192outputdigestdifferences/n_correctnull;16closedleases,
+15naturalfirstservices;132transfers unchanged.68sources/144protectedfiles/
+threeuserdirtySHA verified. Metrics/review/stages/source main0 wrapper1known
+inotifytimeout, actualdomainsremoved;compare main/wrapper0. DoNOTreexecute.
+Next closuremanifest/explicitbackup including METRIC_ALL_SYSTEMS_DISPLAY, then
+current7B RoutingOnly -> RoutingHandoff composition. No Full/baseline repeat,
+3Bswitch or sharedk3s change. Fullremaining scope active; currentturnPROGRESS.
+Older RUNNING notes below historical. Postrun backup not yet claimed.
+
+CURRENT2026-11-08 14:51+08:D1128 GPU run COMPLETE/released; do NOT wait/relaunch
+oldpane4150007(dead/status0). ReadD1128RUN_STATUS.4000nativecontracts,joint3930
+=98.25%,U7971.35807042988,P95TTFT2333.273326512426ms,n_correctnull.
+GPUempty/servicegone/remoteinactivePID0,launch3returncodes0;16closedleases.
+132matching-clock transfers SHA5bd902210c0abb8f1265c5d1a7906ed98fb13ef778d42bde70bfc118af092a70
+copied+parentlink. D1113/D299/D455 outputs saved/main0. Metrics/review wrapper1
+knowninotifytimeout, actualdomainempty before next;stagewrapper pending.
+Preparedcompare.py ASTpassed and is NOW RUNNING in boundedunit
+primelora-tc-d1128-compare-20261108.service,session66760/mainPID68761.
+Next compare/mechanisms/source-seal/explicitbackup inclmetricexplanation, then
+RoutingOnly/RoutingHandoff. No Full/baseline repeat/3Bswitch/sharedk3s. Fullscopeactive.
+CurrentturnPROGRESS following prior boundedclarification+VERIFIEDWAIT.
+
+Latest14:34:23+08:D1128SAMEpane4150007live(Ss+,27:37),3139unique terminal/
+success/nativecontracts;sample1630events/swap0,noabort/foreign/escaped,
+available107192811520B,disk162599452672B. ContinueSAMErun then registered
+analysis/seal/backup; no finalresult yet. New metric explanation saved locally,
+not pushed while measuring. This turn bounded clarification + VERIFIED WAIT.
+
+LATEST goal: read fully before task
+`/home/qhq/.codex/attachments/7503afa5-8c9c-487b-b400-f0e8954e5ff2/goal-objective.md`.
+Supersedes fe1b539f/a24095ba and older goal pointers below. New question answered
+in METRIC_ALL_SYSTEMS_DISPLAY_20261108.md: all systems stay in one table/figure;
+95% is a target/conditional-feasibility line, NEVER a baseline-inclusion gate.
+Report actual joint, U/offered, tails and failure status even below95. Conditional
+G1 infeasible is "no observed feasible point", not infinity/system impossibility.
+Do not splice workpoints, invent correctness or infer G2 from over-budget points.
+Already consistent with PLANb5170643; no protocol/PLAN/runtime migration or rerun.
+Primary literature checked, current six-system W1 example reuses sealed ledger.
+
+Latest14:32:00+08:D1128SAMEpane4150007live(Ss+,25:14),sameInvocationactive/running,
+2895unique terminal/success/nativecontracts;sample1489events/swap0,noabort/
+foreign/escaped,available104821477376B,disk162872692736B. ContinueSAMErun.
+No tests/heavyanalysis/productionedit/maintenance/push/remotechange. Prepared
+compare.py remainsUNEXECUTED. Postrelease registeredanalysis/seal/backup next.
+Sharedk3s question already resolved by HYDRASERVE_ISOLATION_DECISION_20261012.md;
+HydraServe two-model runs completed; no redeployment/shared-cluster changes.
+Full remaining objective active. New explanation to be backed up after release.
+
+Latest14:19:33+08:D1128SAMEpane4150007live(Ss+,12:47),1189unique terminal/
+success/nativecontracts;sample752events/swap0,noabort/foreign/escaped,
+available104982929408B,disk163684212736B. CurrentturnVERIFIEDWAIT.
+Onlyreadonlynextcumulativeentryreview: D1049demandLRU guards stillapply;
+readD1128RUN_STATUSforRoutingOnly/RoutingHandoffscope;no code/configwritten.
+Preparedcompare.pyUNEXECUTED;no tests/maintenance/push/remotechange.
+ContinueSAMErunthenregisteredanalysis/seal/backup. Fullgoalactive.
+
+Latest14:12:23+08:D1128SAMEpane4150007live(Ss+,5:36),437unique terminals/
+success/nativecontracts;sample328events/swap0,noabort/foreign/escaped,
+available104948641792B,disk164358594560B. PreviousgoalturnPROGRESS;
+currentverifiedwait+preparedcuratedcompare.py(D1127+D1052reuse),UNEXECUTED.
+No import/syntax/test/analysis/prodedit/maintenance/push/remotechange.
+ReadD1128RUN_STATUS. ContinueSAMErun,thenD1113/D299/D455/compare/seal/backup.
+DoNOTrecreatepreparedcompare,repeatFull/baselinesorstartnextGPUwhilelive.
+Fullremaining scopeactive,nextRoutingOnly/RoutingHandoffafterclosure.
+
+Latest14:08:52+08:D1128samepane4150007live,sameInvocationactive;sample120,
+4GPUheld,events/swap0,noabort/foreign/escaped,available105267380224B,
+disk165191147520B. Shortlyafter73uniqueterminals. No finalresult;SAMErun.
+
+LIVE2026-11-08 14:07+08:D1128 current7B CapacityOnlyW1 launchedONCE.
+ReadD1128RUN_STATUS. Prelaunch7c30e66d8e720c708195fc95e4db4edac048b95d
+pushedV2/remotematched,8files/23SHA,secretsdiffcheck;backupmain/wrapper0.
+tmux tc-d1128-capacity-only-7b-w1 panePID4150007live;service7625a6d1bc834c26a981da1180d5f15c
+Invocationf782d59063a14fada2b1d9f404c72157active/running,auxb9efbc5235fe4c2d95405b4ebe2835e0.
+Notice3625259.009721322,replay3625319.009721322,remoteclock7f16d216d98047479bf7ea91018771b6.
+Sample19startup events/swap0,noabort/foreign/escaped,available118145454080B.
+No finalresultyet. ContinueSAMErun/no tests,prodedit,maintenance,pushorremotechange.
+Afteractualrelease D1113/D299/D455 +current7B/D1052typed-admissionanalysis,
+no-trigger/negative/tradeoffretained. NextRoutingOnly/RoutingHandoff/fullscopeactive.
+CurrentgoalturnPROGRESS. OlderNOTSTARTED/D1127NEXTnotesbelowhistorical.
+
 CURRENT2026-11-08:D1128 current7B CapacityOnly W1 REGISTERED, NOTSTARTED.
 ReadD1128REGISTRATION/RUN_STATUS. Onlycoordination_enabledfalse+3paths fromD1100;
 no serving edit,FullD1115reused.6focusedCPUtests PASS/main0/wrapper1knowninotify

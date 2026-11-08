@@ -1,0 +1,16 @@
+{
+  "kind": "d1128_prelaunch_backup_v1",
+  "commit": "7c30e66d8e720c708195fc95e4db4edac048b95d",
+  "remote": "faaslora_origin",
+  "branch": "retry14_continuous_queue_v2",
+  "remote_head_matches": true,
+  "explicit_files": 8,
+  "source_hashes_verified": 23,
+  "user_dirty_excluded": true,
+  "diff_and_credential_checks_passed": true,
+  "unit": "primelora-tc-d1128-prelaunch-backup-20261108.service",
+  "main_exit": 0,
+  "wrapper_exit": 0,
+  "runtime_s": 3.714,
+  "cpu_s": 0.598
+}
