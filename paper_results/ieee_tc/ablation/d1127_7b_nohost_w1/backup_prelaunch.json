@@ -1,0 +1,14 @@
+{
+  "kind": "verified_checkpoint_backup",
+  "date": "2026-11-08",
+  "commit": "bc7e665be1e213fe132ccc37e4d085078a424b73",
+  "remote": "faaslora_origin",
+  "branch": "retry14_continuous_queue_v2",
+  "push_exit_code": 0,
+  "ls_remote_exit_code": 0,
+  "remote_head": "bc7e665be1e213fe132ccc37e4d085078a424b73",
+  "explicit_file_count": 7,
+  "protected_or_user_dirty_staged": false,
+  "performance_started_after_backup": true,
+  "goal_complete": false
+}

@@ -1,0 +1,35 @@
+{
+  "kind": "d1127_nohost_single_run_closure_v1",
+  "performance_checkpoint": "bc7e665be1e213fe132ccc37e4d085078a424b73",
+  "outputs": {
+    "paper_results/ieee_tc/ablation/d1127_7b_nohost_w1/analysis_attempts.md": "630e1fef72825156d5d45427617b8060ff4dfa5c21e4c5e589443e13cefb55a6",
+    "paper_results/ieee_tc/ablation/d1127_7b_nohost_w1/backup_prelaunch.json": "f75a98ab7f10ccdd05d415e6a4222c040b774483da968088b9f4be169d051b18",
+    "paper_results/ieee_tc/ablation/d1127_7b_nohost_w1/compare.py": "6f46dbbf3ecaee764d09daaac5a142dde9f3cba54a733edf46f4056b258a98d0",
+    "paper_results/ieee_tc/ablation/d1127_7b_nohost_w1/comparison/comparison.json": "10f74997219a5699fbba4afcbc561b5daac33e87427e783687d6a386e475b7a7",
+    "paper_results/ieee_tc/ablation/d1127_7b_nohost_w1/comparison/manifest.json": "34fb7781d26c540f539b0fa2d2bd767dd31836be4cff35c66023f63af5c4136f",
+    "paper_results/ieee_tc/ablation/d1127_7b_nohost_w1/comparison/mechanisms.json": "f7bf4804cc0df8ad4d60878202b581df085fae35abf8e01a0663f9f5d497c00f",
+    "paper_results/ieee_tc/ablation/d1127_7b_nohost_w1/comparison/metrics.csv": "e0e5b4d2b2ecb3f9348ef718c17d724cb57ea809318da9f8456a360134c067b5",
+    "paper_results/ieee_tc/ablation/d1127_7b_nohost_w1/prelaunch.json": "47357a4ad2405151833cc4baa5a54eb443dfde7e848889f94c8c0ce7bde928cf",
+    "paper_results/ieee_tc/ablation/d1127_7b_nohost_w1/prelaunch_tests.md": "45e6a16dc94953cffe9ef0bdd9118b5c2254a196cff8e513a1c225d7241e95bf",
+    "paper_results/ieee_tc/ablation/d1127_7b_nohost_w1/result1/evidence_review.json": "bf8e2ac0dee060e918705d2c76eb8b2b2ba48daae3d7c72ca2134a6ce5e5f5f8",
+    "paper_results/ieee_tc/ablation/d1127_7b_nohost_w1/result1/manifest.json": "7674ce1216fd8f09cafc8feb1a8a2183bd4d33ec8dd2f187d6ab3724485b9856",
+    "paper_results/ieee_tc/ablation/d1127_7b_nohost_w1/result1/reconciliation.json": "ab43c4ae36d4fcc870aad597ffea5ee55786ee3c23bb39cce434ba7081c6f5dd",
+    "paper_results/ieee_tc/ablation/d1127_7b_nohost_w1/source_verification.json": "5a4aa2b8d3714477fe8e04a11522587173b7119d05ebc920fdc2d8a170907213",
+    "paper_results/ieee_tc/ablation/d1127_7b_nohost_w1/stages/summary.json": "dd8d9916c35c8d05a54bece0d2d908d2f6d67c81e89ea27e9a81a9264d15230f",
+    "docs/ieee_tc/D1127_7B_NOHOST_W1_RESULT_20261108.md": "fd4aa75bc57eec3bd35293b945b7ead75cef918b3bcf20a2b54f01f1d1505632"
+  },
+  "analysis_sources": {
+    "paper_results/ieee_tc/ablation/d1127_7b_nohost_w1/compare.py": "6f46dbbf3ecaee764d09daaac5a142dde9f3cba54a733edf46f4056b258a98d0",
+    "paper_results/ieee_tc/main_comparison/d1113_contract_reconciliation/collect.py": "dc996480e5b97892c1ab3a33a6789b2cc6c3ed3ad463c7f1a82cec2b381bc33a",
+    "scripts/ieee_tc/check_d299_full_context.py": "cfd8204d45c86a8652773a288e7ff723c973c6983a0104f77465b7754bc4af14",
+    "scripts/ieee_tc/analyze_d455_stages.py": "c7b005e636d4b80cd121ccbfda5c272a9dd21675e370a146022ffbf50410f5e0",
+    "scripts/ieee_tc/audit_d389_scaleup_handoff_labels.py": "7c72b0568b9eff81cf9292a25a6f0ce56addc060b0dc91e199c2dd53fa05a70f",
+    "scripts/ieee_tc_preflight.py": "8f55c4577ee70bc48edb2fa82ac0438a3cc89587bf4d7b26d0617777a61adf62"
+  },
+  "source_verification_sha256": "5a4aa2b8d3714477fe8e04a11522587173b7119d05ebc920fdc2d8a170907213",
+  "plan_sha256": "b5170643aa5d332efc67407af10ab7022a2d68fd802e2389d253968bd92dcf8f",
+  "execution_closed": true,
+  "contribution": "conditional_resource_benefit_with_quality_tradeoff",
+  "whole_goal_complete": false,
+  "independent_numerical_proof": false
+}

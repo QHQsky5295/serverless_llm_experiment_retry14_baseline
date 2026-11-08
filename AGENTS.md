@@ -1,5 +1,70 @@
 # PrimeLoRA IEEE TC execution contract
 
+CURRENT13:47+08 Nov8:D1127 COMPLETE/released/analyzed,noactiveGPUoranalysisjob.
+ReadD1127_7B_NOHOST_W1_RESULT_20261108.md. FullU-2.775590%,P95+15.909703%,
+joint-.625pp: retainresource-qualitytradeoff,notG2/globalwin.4000nativecontracts,
+191outputdigestdifferences/n_correctnull. NoHOSTnativeHOST0vsFull411;
+21allocationsclosed,20naturalepochs/19firstservices/onecancelled-before-ready.
+1461steadyepochs/1383softadmission(1382admit/1defer)retained.132transferssameFull.
+69sources/144protectedfiles/userdirtyverified;compare+stagesmain/wrapper0,
+metrics/review/sourcecheckmain0wrapper1knowninotifytimeout,actualdomainsremoved.
+Nextclosuremanifest/explicitbackup,then7BCapacityOnly,notrepeatNoHOST/Full/baselines.
+CurrentturnPROGRESS;allremainingA1-A5/S1-S13/docs/figures/V2scopeactive.
+
+CURRENT13:42+08 Nov8: D1127 GPU replay COMPLETE/released, doNOTrelaunch/waitoldpane.
+ReadD1127RUN_STATUS.4000nativecontracts,joint3967=99.175%,U7820.952235782519,
+P95TTFT2011.3324946723878ms,n_correctnull. GPUempty,scopegone,remoteinactive/PID0,
+tmuxdead/exit0,launchallthreecodes0.132remotejournalrows copied/matchingclock,
+SHA df4ab920c995647a7eee7b084633ac4ca2ea316c34640cf4d123829568272ab6.
+D1113/D299/D455 done;NoHOSTcompare boundedunit/session78782 RUNNING,notyetresult.
+Metricsmain0/wrapper1inotifytimeout actualdomainremoved;reviewmain0/cgroupempty,
+wrapper15416pending;stagesmain/wrapper0/dead. No reanalysis/globalrepair.
+Nextcomparison/mechanisms/source-seal/explicitbackup,then7BCapacityOnly. Fullscopeactive.
+CurrentturnPROGRESS; olderLIVE notes below historical.
+
+Latestcheck13:29:13+08 Nov8: D1127 SAMEpane3984664live(Ss+,29:53),3394unique
+terminal/success/nativecontracts;sample1765events/swap0,noabort/foreign/escaped,
+4GPU,available105632366592B,disk163360501760B. No launch.json yet.
+Thisandpreviousturn VERIFIED WAIT. ReadRUN_STATUS updatedpostreleaseinterfaces.
+No newanalysis/test/prodedit/maintenance/push/remotechange;compare.py stillunexecuted.
+Continue SAMErun throughactualrelease thenregisteredanalysis/seal/backup; fullscopeactive.
+
+Latestcheck13:24:59+08 Nov8: D1127 SAMEpane3984664 confirmedlive(Ss+,25:40),
+2948unique terminal/success/nativecontracts;sample1515events/swap0,noabort/
+foreign/escaped,available106155204608B,disk163767644160B,4GPUheld.
+13:23same serviceactive/running Invocation56b30ba0b97b42baa412ecff4f540939.
+Thisgoalturn VERIFIED WAIT; completePLAN/AGENTS/V1/V2 reread aftercompaction.
+No newanalysis/syntaxcheck/test/prodedit/maintenance/push/remotechange.
+Preparedcompare.py stillUNEXECUTED. ContinueSAMErun toactualrelease, thenexisting
+analysis/NoHOSTcomparison/seal/backup. Fullremaining scopeactive. ReadRUN_STATUS.
+
+Latestcheck13:17:29+08 Nov8: D1127 SAMEpane3984664live,1951unique terminal/success/
+nativecontracts;sample1071events/swap0,noabort/foreign/escaped,available108378476544B,
+disk164273508352B. Same serviceactive/running Invocation56b30ba0b97b42baa412ecff4f540939.
+Currentandpreviousgoalturn VERIFIED WAIT; no newanalysis/test/edit exceptstatus.
+ReadRUN_STATUS. Preparedcuratedcompare.py reusingD1126+D1063,
+NOTimported/syntaxchecked/executed; doafteractualrelease, notwhilemeasuring.
+FrozenD594budgetread, nativeNoHOSTandcompletedfiletargetchecks; pendingtargettiers
+notfullyrecorded, no fabricatedcoverage. Scriptpreparationwaspriorwork, stillunexecuted.
+No prodedit/test/maintenance/push/remotechange.
+ContinueSAMErun,noFull/baseline/3Bswitch. Allscopeactive;nofinalresultyet.
+
+LIVE2026-11-08 13:01+08: D1127 current7B NoHOSTW1 launchedONCE.
+Later same-run check143unique terminal/success/nativecontracts; ownedremotePID2032224,
+Invocationd67ea0d179144e9c8254fff24a2f4aab active. No finalresult; continuemonitoring.
+Read D1127_7B_NOHOST_W1_RUN_STATUS_20261108.md. Do NOTrelaunch.
+Prelaunchbc7e665be1e213fe132ccc37e4d085078a424b73 pushedV2/remotematched.
+tmux tc-d1127-nohost-7b-w1 panePID3984664 live; service09cae2fe19dc4b3ca8ed7f40afe0cfa0,
+Invocation56b30ba0b97b42baa412ecff4f540939 active/running; aux0ae492f1c85d40a387462c3df222cd43.
+Notice3621211.850113618,replay3621271.850113618,remoteclock6e8cdcdda14940f6a2f84d5aabce695c.
+Sample122events/swap0,noabort/foreign/escaped,held4GPU,available107234525184B,
+disk165745414144B;48terminalrecords,notfinalperformance. Continue SAMErun toactual
+terminal/release; no tests/productionedits/maintenance/push/remotechanges/newGPUrun.
+Then D1113/D299/D455 + NoHOSTmechanism audit,currentPLANb5170643; reuseFullD1115.
+Old D1063comparison hashardcodedoldPLAN: reusemethod,notreexecuteoldsealedscript.
+CurrentturnPROGRESS. Fullremaining scopeactive. NextCapacityOnly/cumulativenodes,
+notFull/baseline repeat/3Bswitch/sharedk3s. Older NOTSTARTED below historical.
+
 CURRENT2026-11-08: D1127 current7B NoHOST W1 REGISTERED, NOT STARTED.
 Read D1127_7B_NOHOST_W1_REGISTRATION_20261108.md. Existing independent_host_reuse
 false at storage/scenario plus3paths only; same D1100/FullD1115 controls, no
