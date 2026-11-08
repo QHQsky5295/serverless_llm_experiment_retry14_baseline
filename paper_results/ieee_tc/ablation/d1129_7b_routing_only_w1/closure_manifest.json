@@ -1,0 +1,35 @@
+{
+  "kind": "d1129_routing_only_single_run_closure_v1",
+  "performance_checkpoint": "56d9b3453d11c2567fa5243f40a71f15e7ee08e9",
+  "outputs": {
+    "docs/ieee_tc/D1129_7B_ROUTING_ONLY_W1_RESULT_20261108.md": "83cd36dfcb5c645a58d8ec979eeb4e2d31541de45a92f0b3d5dbc27cbbe1a7b6",
+    "paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/analysis_attempts.md": "340b30f3607b7fea83e31d395c00384a910a5df48188fe3890ca91499ccbac2c",
+    "paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/backup_prelaunch.json": "7a9d8bac706c79221f218720ef5c2fe2ead0210b6930d84261290d1140cc09f0",
+    "paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/compare.py": "fda9c39c6e23b9dc564062f31a6ebdb9c47506140ff6002c06543a693d42b398",
+    "paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/comparison/comparison.json": "0d4e05e895377b7226f87b7129aa09812e23b63e83c87cbaf96bc0746ac5da0d",
+    "paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/comparison/manifest.json": "fe2ecc94b095a082140cc66f873879ab0a15976199640bfa1c3dad03e113a038",
+    "paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/comparison/mechanisms.json": "b2e194430e0dce30cf785efc31268984ae963921b79d993dc35442803d184612",
+    "paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/comparison/metrics.csv": "6bc7d04b3c708dbae5518a627c4c414c19d8bf7953b0543fc4f264eecf592f57",
+    "paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/prelaunch.json": "b81d0f54756d3d312f1ba0444a83d70d13b1d4df754d87b986f13bdf9eb1ad63",
+    "paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/prelaunch_tests.md": "c148cbf31259d754dea382e652eb2293d2f0c5c9f79c46367dbb413f14e82a37",
+    "paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/result1/evidence_review.json": "42583b6b38ac2b810921e3ac3490eb5eb1adb7d1130ede7e1c1b81a7ca1e0889",
+    "paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/result1/manifest.json": "0d1d7badd837a692690571182531a1894cbfa0f403d9d0b857267ced3d07ee3c",
+    "paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/result1/reconciliation.json": "4d9c57dc743d5fab86f0a05a21be87a3cafa8b6cf8ed24ac333b2329fe0f1201",
+    "paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/source_verification.json": "402dc050b911bd483dbff2ae6698fc60257e7d642cbc272137d9db22002bbd10",
+    "paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/stages/summary.json": "340e353a47e21296a1655c838d465700b6a02dddb187e64aaf47e956c5d02ec0"
+  },
+  "analysis_sources": {
+    "paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/compare.py": "fda9c39c6e23b9dc564062f31a6ebdb9c47506140ff6002c06543a693d42b398",
+    "paper_results/ieee_tc/main_comparison/d1113_contract_reconciliation/collect.py": "dc996480e5b97892c1ab3a33a6789b2cc6c3ed3ad463c7f1a82cec2b381bc33a",
+    "scripts/ieee_tc/check_d299_full_context.py": "cfd8204d45c86a8652773a288e7ff723c973c6983a0104f77465b7754bc4af14",
+    "scripts/ieee_tc/analyze_d455_stages.py": "c7b005e636d4b80cd121ccbfda5c272a9dd21675e370a146022ffbf50410f5e0",
+    "scripts/ieee_tc/audit_d389_scaleup_handoff_labels.py": "7c72b0568b9eff81cf9292a25a6f0ce56addc060b0dc91e199c2dd53fa05a70f",
+    "scripts/ieee_tc_preflight.py": "8f55c4577ee70bc48edb2fa82ac0438a3cc89587bf4d7b26d0617777a61adf62"
+  },
+  "source_verification_sha256": "402dc050b911bd483dbff2ae6698fc60257e7d642cbc272137d9db22002bbd10",
+  "plan_sha256": "b5170643aa5d332efc67407af10ab7022a2d68fd802e2389d253968bd92dcf8f",
+  "execution_closed": true,
+  "contribution": "routing_changes_measured_choices_with_resource_quality_tradeoffs_no_Full_dominance",
+  "whole_goal_complete": false,
+  "independent_numerical_proof": false
+}

@@ -1,0 +1,21 @@
+{
+  "kind": "d1129_postrun_source_verification_v1",
+  "source_manifests": {
+    "paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/prelaunch.json": "b81d0f54756d3d312f1ba0444a83d70d13b1d4df754d87b986f13bdf9eb1ad63",
+    "paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/result1/manifest.json": "0d1d7badd837a692690571182531a1894cbfa0f403d9d0b857267ced3d07ee3c",
+    "paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/result1/evidence_review.json": "42583b6b38ac2b810921e3ac3490eb5eb1adb7d1130ede7e1c1b81a7ca1e0889",
+    "paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/comparison/manifest.json": "fe2ecc94b095a082140cc66f873879ab0a15976199640bfa1c3dad03e113a038",
+    "paper_results/ieee_tc/ablation/d1129_7b_routing_only_w1/stages/summary.json": "340e353a47e21296a1655c838d465700b6a02dddb187e64aaf47e956c5d02ec0"
+  },
+  "unique_sources": 84,
+  "all_expected_hashes_match": true,
+  "protected_files": 144,
+  "protected_verified": true,
+  "protected_manifest_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+  "user_protected": {
+    "configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "docs/ieee_tc/EXECUTION_STATUS.md": "95c5ad71d8777f111a198ee9f43d6747f3b8ef7ee497facc5bc3ee0d21a96f99",
+    "docs/ieee_tc/EXECUTION_STATUS_D1083_20261106.md": "aee8f612e75977ab15eb07fe0837cfea6191d7b4de53c74bb87e1a337ecfe95d"
+  },
+  "plan_sha256": "b5170643aa5d332efc67407af10ab7022a2d68fd802e2389d253968bd92dcf8f"
+}

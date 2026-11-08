@@ -1,5 +1,87 @@
 # PrimeLoRA IEEE TC execution contract
 
+CURRENT2026-11-08 15:56+08:D1129 COMPLETE/released/analyzed. No liveGPUorCPUjob.
+ReadD1129_7B_ROUTING_ONLY_W1_RESULT_20261108.md. DoNOTrelaunch/waitoldpane114467.
+4000nativecontracts,joint97.625%,U7204.901377048809,P95TTFT1868.047927506268ms.
+RoutingOnlyvsElasticOnly U-15.983967%,P95+80.387158%,joint-2.05pp;FullvsRoutingOnly
+U+5.537526%,P95+24.800305%,joint+.925pp. Retaintradeoff,alloverB,notG2/globalwin.
+4000input/selectorchecks,2830shadowdifferences,proactiveplans0,19closedleases/
+18naturalfirstservices,132remote/131480060bytes,208outputdigestdifferencesunknown.
+84sources/144protected/3userdirtySHAverified. Allanalysismain0;comparewrapper0,
+otherswrapper1knowninotifytimeout,actualdomainsremoved. No repeatedanalysis.
+NEXTclosuremanifest/explicitbackup inclRoutingHandoffentryreview,thenimplement
+next7Bcumulative node. NoFull/baseline repeat/3Bswitch/sharedk3s. Fullscopeactive.
+Previousgoalturn VERIFIEDWAIT;currentPROGRESS. OlderLIVE notes historical.
+
+Latest15:42:53+08:D1129 SAMEpane114467live(Ss+,31:58),3539unique terminal/
+success/nativecontract;sample1888events/swap0/noabort/foreign/escaped,2GPU,
+available111694757888B/disk161469456384B. Service Invocation unchanged/active
+at15:39:30; no final launch.json. Continue SAMErun. Fullgoal/PLAN/AGENTS read;
+V1/V2 reread and preparedcomparison/nextnode reviewed readonly thisturn.
+Previous/currentturn VERIFIEDWAIT; no serving edit/test/analysis/maintenance/
+push/remotechange. Preparedcompare stillunexecuted; recorded postrelease CLI
+inRUN_STATUS. Nextactualrelease/analysis/seal/backup thenRoutingHandoff.
+Allremaining scopeactive; noFull/baseline repeat/3Bswitch/sharedk3s change.
+
+Latest15:30:58+08:D1129 SAMEpane114467live(Ss+,20:02),2180unique terminal/
+success/nativecontract,sample1182events/swap0/noabort/foreign/escaped,4GPU,
+available107020689408B/disk162340843520B. No final launch.json. ContinueSAMErun.
+Previous/currentgoalturn VERIFIEDWAIT; no code/test/analysis/maintenance/push/
+remotechange. D1129RUN_STATUS now records exact postrelease D1113/D299/D455 CLI;
+none invoked and compare.py stillunexecuted. Fullremaining scopeactive.
+
+Latest15:27:39+08:D1129 SAME pane114467live(Ss+,16:43), sameInvocationactive.
+1725unique terminal/success/native-contract,sample986events/swap0/noabort/
+foreign/escaped,4GPU,available107180834816B/disk162632335360B. No finalresult.
+Continue SAMErun. New bounded readonly next-node review saved as
+ROUTING_HANDOFF_COMPOSITION_REVIEW_20261108.md: demandLRU rejects request
+reclaim while any prepplan exists, optional-transfer fallback may reclaim;
+separate request eviction and handoff authorization, keep replacement_epoch
+prohibition (handoff has noresidencyobjective). Readbefore next implementation.
+Review is NOT implemented/registered/tested. PreparedD1129compare stillUNEXECUTED.
+Previous/currentgoalturn VERIFIEDWAIT;thisturn also boundedentryevidence.
+No serving/config/test/heavyanalysis/maintenance/push/remotechange. Fullscopeactive.
+
+Latest 15:20:30+08: D1129 SAME pane114467 live (Ss+,9:35), 859 unique
+terminal/success/native-contract records. Sample563 events/swap0, no warning/
+abort/foreign/escaped, 3GPUs, available110160646144B/disk163100635136B.
+No final launch.json; continue SAME run, not restart. Full goal/PLAN/V1/V2 read.
+Prepared curated d1129_7b_routing_only_w1/compare.py from D1120/D1119 plus
+D1127 budget/control checks; NOT imported/syntaxchecked/executed. Read current
+D1129 RUN_STATUS before postrelease analysis. Old D1119 refs exclude changed
+runner/preflight/PLAN; retain source checks, do not silently bypass mismatches.
+This turn VERIFIED WAIT + offline preparation; no serving/config/test/heavy
+analysis/maintenance/push/remote changes. All remaining scope active, next
+RoutingHandoff after this run's analysis/seal/backup. No baseline/Full repeats.
+
+Latest15:13:08+08:D1129SAMEpane114467live(Ss+,2:12),serviceInvocation
+c9035398478e42b89c5448d74cd80088active/running.53uniqueterminals,sample127
+events/swap0,noabort/foreign/escaped,4GPUheld,available108203941888B,
+disk164040560640B. No finalresult;continueSAMErun. ReadD1129RUN_STATUS.
+CurrentturnPROGRESS(newlaunch)+verifiedwait. No newcode/test/analysis/maintenance/
+push/remotechange. Fullremainingscopeactive;doNOTrepeat/restartD1129.
+
+LIVE2026-11-08 15:11+08:D1129 RoutingOnly7BW1 launchedONCE; panePID114467live
+in tc-d1129-routing-only-7b-w1. ReadD1129RUN_STATUS. DoNOTrelaunch. Prelaunch
+56d9b3453d11c2567fa5243f40a71f15e7ee08e9 pushedV2/remotematched.
+Servicea888604c14104f8f876bcae94b8e1824/auxb9934daae1c44dbc8207dc125fdac1b0;
+notice3629107.615178683,replay3629167.615178683,remoteclockd92f9441eb744a36bff622722ae4d62f.
+Sample26events/swap0/noabort/foreign/escaped,available114958336000B,
+disk164571897856B. FullPLAN1684lines/latestgoalreadthisturn;PROGRESS afterpriorPROGRESS.
+No tests/prodedit/maintenance/push/hashscan/remotechanges whilemeasuring.
+Continue SAMErun toactualterminal/release thenregisteredD1113/D299/D455,
+compareD1119ElasticOnly+D1115Full. NoFull/baseline repeat/3Bswitch/sharedk3s.
+NextRoutingHandoff scopedcomposition; fullremainingscopeactive. Older
+NOTSTARTED/backup-pending entries below historical, notnewlaunchinstructions.
+
+BACKUP COMPLETE15:08+08 Nov8:D1129 prelaunch56d9b3453d11c2567fa5243f40a71f15e7ee08e9
+pushedV2/remotematched.9explicitfiles/30sources/3userdirty verified,normaldiff/
+secretschecks pass. Firstbackup Python3.10 file_digestunsupported BEFOREstage;
+secondreusedexistingdigest main/wrapper0/domainremoved;curatedreceipt saved.
+D1129 STILLNOTSTARTED. GPUcensus empty; doNOTrepeat tests/sourcechecks/backup.
+NEXT rereadPLAN/freshmemorydisk/GPU/ownedremote checks thenONEregisteredD1100
+launch in tc-d1129-routing-only-7b-w1. Fullremaininggoalactive/currentPROGRESS.
+
 CURRENT2026-11-08:D1129 current7B RoutingOnlyW1 REGISTERED/TESTED, NOTSTARTED.
 Read D1129REGISTRATION/RUN_STATUS. Minimal variant/scenario mapping adds
 routing_only_v1/service_bins; Full/selector/cache/autoscaler/equations unchanged.

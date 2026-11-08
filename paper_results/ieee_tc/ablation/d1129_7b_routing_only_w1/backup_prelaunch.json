@@ -1,0 +1,15 @@
+{
+  "commit": "56d9b3453d11c2567fa5243f40a71f15e7ee08e9",
+  "remote": "faaslora_origin/retry14_continuous_queue_v2",
+  "remote_head_verified": "56d9b3453d11c2567fa5243f40a71f15e7ee08e9",
+  "staged_files": 9,
+  "source_hashes_verified": 30,
+  "user_dirty_hashes_verified": 3,
+  "whitespace_and_secret_checks": "pass",
+  "first_attempt": "Python3.10 lacks hashlib.file_digest; failed before staging/commit, main and wrapper1. Reused existing preflight.digest in next attempt; no serving change or experiment retry.",
+  "backup_unit": "primelora-tc-d1129-backup2-20261108.service",
+  "main_returncode": 0,
+  "wrapper_returncode": 0,
+  "actual_domain_removed": true,
+  "performance_started": false
+}
