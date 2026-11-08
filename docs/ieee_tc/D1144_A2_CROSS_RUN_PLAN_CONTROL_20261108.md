@@ -59,9 +59,21 @@ out 数量或 activation 顺序不同，重放应报告“不满足同计划资�
 - 当前运行 owner 重新绑定后仍保留候选和选择；
 - `test_ieee_tc_preparation_snapshot_copy.py` 与 `test_ieee_tc_planning.py`：25 项通过。
 
+随后真实启动了两个短 smoke：
+
+- `d1145_7b_a2_capture_smoke`：100/100 请求完成，Full capture 正常结束，生成
+  4 个 activation entry（initial + 3 natural scale-out），bundle
+  `complete=true`，资源收尾通过。
+- `d1146_7b_a2_replay_smoke`：DelayedHandoff 在第一次自然 scale-out 处发现
+  实时需求窗口不同，旧实现按预期拒绝并保留失败原因；该结果不进入排名，也
+  不说明 DelayedHandoff 性能。这个拒绝暴露出 replay 校验把应冻结的 demand
+  当成了当前资格条件，已修正为只核对当前真实 owner/source 的逻辑状态和非
+  demand 规划输入，再使用 capture 中的冻结需求与目标。
+
 尚未完成：
 
-- 7B Full capture 与 Delayed replay 的真实回放；
+- 修正后的 7B Delayed replay smoke；
+- 7B Full capture 与 Delayed replay 的 4,000 请求真实回放；
 - 4,000 请求完整性、计划数量完全消费及性能结果；
 - A2 是否支持 handoff 净收益的最终论文结论。
 

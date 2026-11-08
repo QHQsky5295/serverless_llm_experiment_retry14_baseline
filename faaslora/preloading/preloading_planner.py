@@ -691,6 +691,13 @@ def ieee_plan_comparison_sha256(plan) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def ieee_source_view_comparison_sha256(view) -> str:
+    """Hash only the logical owner/source state used to rebind a frozen plan."""
+    encoded = json.dumps(_comparison_source_view(view), sort_keys=True,
+                         separators=(',', ':'), allow_nan=False).encode()
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def serialize_ieee_handoff_plan(plan):
     """Create an auditable JSON bundle entry for a handoff plan."""
     if not isinstance(plan, Mapping) or plan.get('mode') != 'handoff':

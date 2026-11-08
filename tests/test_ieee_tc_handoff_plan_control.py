@@ -46,8 +46,12 @@ class HandoffPlanControl(unittest.TestCase):
             self.assertTrue(payload['complete'])
 
             replay = _runner(replay=path)
+            current = _plan({'native': None, 'sources': {}, 'files': {}, 'activation_id': 'b'})
+            current['demand_observed_at'] = 22.0
+            current['arrival_counts'] = {'adapter': 2}
+            current['total_arrivals'] = 4
             rebound = replay._apply_ieee_handoff_plan_replay(
-                plan=_plan({'native': None, 'sources': {}, 'files': {}, 'activation_id': 'b'}),
+                plan=current,
                 activation_kind='initial', activation_index=0)
             self.assertEqual(rebound['selected']['gpu'][0].artifact_id, 'adapter')
             self.assertTrue(replay._ieee_handoff_plan_control_summary()['complete'])

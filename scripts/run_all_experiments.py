@@ -15835,7 +15835,7 @@ class ScenarioRunner:
     def _apply_ieee_handoff_plan_replay(self, *, plan, activation_kind, activation_index):
         from faaslora.preloading.preloading_planner import (
             deserialize_ieee_handoff_plan, ieee_plan_comparison_sha256,
-            rebind_ieee_handoff_plan)
+            ieee_source_view_comparison_sha256, rebind_ieee_handoff_plan)
         bundle = self._load_ieee_handoff_replay_bundle()
         index = self._ieee_handoff_plan_replay_index
         if index >= len(bundle['plans']):
@@ -15848,14 +15848,25 @@ class ScenarioRunner:
         expected = entry.get('comparison_plan_sha256')
         if expected != ieee_plan_comparison_sha256(frozen):
             raise ValueError('A2 replay entry has an invalid comparison identity')
-        observed = ieee_plan_comparison_sha256(plan)
-        if observed != expected:
-            raise ValueError('A2 replay logical demand/source plan differs from capture')
+        # The current request stream may expose a different live demand window
+        # precisely because Full and Delayed alter readiness timing.  Demand,
+        # selected targets and measured costs are the frozen A2 inputs; only
+        # the current physical owner/source view is re-observed here.  The
+        # non-demand planning inputs must nevertheless remain identical.
+        if (ieee_source_view_comparison_sha256(plan['source_view'])
+                != ieee_source_view_comparison_sha256(frozen['source_view'])):
+            raise ValueError('A2 replay logical owner/source state differs from capture')
+        for key in ('kind', 'mode', 'profile_id', 'cost_sequence',
+                    'remaining_bytes', 'options', 'cost_estimates'):
+            if plan.get(key) != frozen.get(key):
+                raise ValueError(f'A2 replay frozen planning input differs: {key}')
         rebound = rebind_ieee_handoff_plan(frozen, current_source_view=plan['source_view'])
         self._ieee_handoff_plan_replay_index += 1
         self._ieee_handoff_plan_control_records.append(dict(
             activation_index=activation_index, activation_kind=activation_kind,
             comparison_plan_sha256=expected, plan_sha256=rebound['plan_sha256'],
+            live_plan_comparison_sha256=ieee_plan_comparison_sha256(plan),
+            live_demand_overridden=True,
             mode='replay'))
         return rebound
 
