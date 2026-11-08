@@ -1,5 +1,69 @@
 # PrimeLoRA IEEE TC execution contract
 
+CURRENT17:22+08 D1130 failure observations RECOVERED (not successful export):
+4000nativebindings,3929joint=98.225%,U7372.557966300286,19closedleases,
+P95TTFT1880.049470346421ms;2282samples/events0/swap0,132remote131480060B.
+ReadD1130_7B_ROUTING_HANDOFF_RECOVERY_20261108.md. runR3/passfalse retained;
+diagnosticnotranking. CPUcleanupfix shares existingUAPIbinding +poll; 4actual
+deploymentPython casespass;92CPUregression qualified across91+onehighFDfixture
+rerunwithtest-onlyLimitNOFILE8192,reader1pass. Failedattemptsdocumented.
+Onlyowncachesreclaimed3.305GB afterhash/source/refproof;disk163876327424B.
+NoGPUjob. NEXT seal/check/backup thenONLYaffected repairedRoutingHandoff newkey;
+doNOTrelaunchD1130/reanalyze/repeatFull/baselines/3B/k3s. Preparedcompare notrun.
+Fullscopeactive/currentPROGRESS; sourceprotection/backup stillpending.
+
+TERMINAL Nov8 17:03+08: D1130 is NOT LIVE; pane291096 dead/status2.
+4000/4000 native-contract requests completed, GPU released/service domain gone,
+remote stopped. launch.pass=false: CPU helper cleanup calls os.pidfd_open absent
+in qualified Conda Python (signal.pidfd_send_signal also absent); no final export.
+Preserved 265MiB main_outcome.json contains completed_scenario_windows. NEXT:
+inspect recoverable evidence and reuse qualified Linux pidfd binding for focused
+lifecycle fix/test; never rewrite failure as pass or blindly rerun. Old prepared
+compare assumes successful export and is NOT executed. D1113/D299/D455 NOT run.
+Reclaim only owned rebuildable leftover caches with receipt before next heavy
+task (disk149.76GiB at17:02). Fullscopeactive/currentPROGRESS. Read D1130 status.
+
+Latest16:50:36+08:D1130SAMEpane291096live(Ss+,26:52),sameInvocationactive.
+3048unique terminal/success/nativecontracts;sample1586events/swap0/noabort/
+foreign/escaped,3GPU,available107600375808B/disk161490165760B(~150.4GiB).
+ContinueSAMErun;no maintenance whilemeasuring. Afterrelease reassessdisk before
+nextheavy task;onlyownedrebuildablecleanup,notraw/uniqueassets. Previous/current
+VERIFIEDWAIT;preparedcompareunexecuted. ReadD1130RUN_STATUS;fullscopeactive.
+
+Latest16:42:30+08:D1130 SAMEpane291096live(Ss+,18:46),2000terminal/success/
+nativecontract;sample1107events/swap0/noabort,disk162093658112B. ContinueSAMErun.
+SameInvocationactiveat16:36:55. Previous/currentgoalturnVERIFIEDWAIT; fullPLAN/
+goal/statusreread. Preparedcompare stillunexecuted; no code/test/analysis/
+maintenance/push/remotechange. D1126/closureledgerconfirmcontrolledA2/A4,S2/S3
+stillmissing; no reanalysis/replay. ReadD1130RUN_STATUSafterrelease. Fullscopeactive.
+
+Latest16:35:49+08:D1130 SAMEpane291096live(Ss+,12:05),sameInvocationactive.
+1135unique terminal/success/nativecontracts;sample711events/swap0/noabort/
+foreign/escaped,4GPU,available104934182912B/disk162424053760B. ContinueSAMErun.
+Preparedcuratedd1130compare.py reusesD1129helpers/sealedD1129+D1128observations;
+NOTimported/syntaxchecked/tested/executed. ReadD1130RUN_STATUSfor postrelease
+D1113/D299/D455CLI andphysicalhandoffaudit. FullPLAN/V1/V2/latestgoal reread.
+CurrentVERIFIEDWAIT+offlinepreparation;no servingedit/test/analysis/maintenance/
+push/remotechange. Fullscopeactive;noFull/baseline repeat/3Bswitch/sharedk3s.
+
+LIVE2026-11-08 16:25+08:D1130 RoutingHandoff7BW1 launchedONCE16:23:44;
+panePID291096liveSs+ in tc-d1130-routing-handoff-7b-w1. ReadD1130RUN_STATUS.
+Service9bc9db3948444471acb73115cb495e96 active/running,Invocation
+5c7db59d5aeb40b9b6ea169b8aa02a95;aux87ef3d765dc246b1899348d8b93c02ea.
+Notice3633476.994553152/replay3633536.994553152,remoteclockd6ebf5009c764cd8a73997f6039adca4.
+Sample72events/swap0/noabort/foreign/escaped,firstnativecontractrequestcomplete.
+FullPLAN1684lines/latestgoal read; previous/currentturnPROGRESS,nowverifiedwait.
+DoNOTrelaunch/repeattests/sourcecheck/backup,Full/baseline repeat/3Bswitch/k3s.
+No code/tests/heavyanalysis/compression/push/remotechange whilemeasuring.
+Afteractualrelease savejournal+D1113/D299/D455 thencompare/seal/backup.
+AllremainingA1–A5/S1–S13/M2/3B/CE/docs/figuresactive. OlderNOTSTARTEDnotes historical.
+
+D1130PRELAUNCHBACKUP COMPLETE:b526f36385e6c8559aca76a216438dd724e80a29
+pushedV2/remoteHEADmatched;16explicitfiles/37sources/3userdirtychecks,mainwrapper0.
+ReadD1130RUN_STATUS. StillNOTSTARTED/GPUempty. No repeatedtests/sourcecheck/
+backup. NEXTfullPLAN/freshlaunchresources+ownedremote thenONEregisteredD1130W1
+in tc-d1130-routing-handoff-7b-w1. Allscopeactive,currentturnPROGRESS.
+
 D1130sourcecheckDONE:37sources/144protected/3userdirty andoriginalreference
 resultSHA verified; PLANb5170643 unchanged. main/wrapper0,prelaunch.jsonsaved.
 Next explicitbackup thenfullPLAN/freshresources/ONEregisteredlaunch;NOTSTARTED.

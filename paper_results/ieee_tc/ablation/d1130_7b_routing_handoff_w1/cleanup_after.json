@@ -1,0 +1,13 @@
+{
+  "removed": [
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1130_20261108/7b_nvme_routing_handoff_w1/tc_ieee_routing_handoff",
+    "/dev/shm/tc-d1130-7b-routing-handoff-w1/tc_ieee_routing_handoff"
+  ],
+  "disk_before_bytes": 160571166720,
+  "disk_after_bytes": 163876327424,
+  "observed_reclaimed_bytes": 3305160704,
+  "before_sha256": "dc8b5a2dc2b8e87d70255d14ef0b5fb77bf389e45e67400502fe981539a5039e",
+  "raw_results_removed": false,
+  "unique_artifacts_removed": false,
+  "recorded_unix": 1794129290.9059994
+}

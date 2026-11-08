@@ -24,6 +24,7 @@ from collections import deque
 from ..utils.config import Config
 from ..utils.logger import get_logger
 from ..clock import local_monotonic_clock_id
+from ..linux_pidfd import open_pidfd as _open_pidfd
 
 
 class PhysicalGPULedger:
@@ -384,26 +385,6 @@ class PhysicalGPUDeployment:
             handle.write('\n')
         self._write_physical_resource_manifest(report)
         return report
-
-
-def _open_pidfd(pid):
-    """Linux x86-64 UAPI binding for the qualified Conda runtime.
-
-    Its Python was built without os.pidfd_open, and host glibc2.35 has no wrapper.
-    434 is the kernel ABI number (Linux6.8 syscall_64.tbl / installed unistd_64.h),
-    not a scheduling parameter. Unsupported ABI/errors fail; no PID-poll fallback.
-    """
-    import ctypes
-    if (os.uname().sysname != 'Linux' or os.uname().machine != 'x86_64'
-            or ctypes.sizeof(ctypes.c_void_p) != 8 or type(pid) is not int or pid <= 0):
-        raise ValueError('pidfd binding requires Linux x86-64 and a positive PID')
-    syscall = ctypes.CDLL(None, use_errno=True).syscall
-    syscall.restype = ctypes.c_long
-    fd = syscall(ctypes.c_long(434), ctypes.c_int(pid), ctypes.c_uint(0))
-    if fd < 0:
-        error = ctypes.get_errno()
-        raise OSError(error, os.strerror(error))
-    return int(fd)
 
 
 class PhysicalGPUAllocation:

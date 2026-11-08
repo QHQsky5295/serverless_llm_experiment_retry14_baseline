@@ -1,0 +1,12 @@
+{
+  "commit": "b526f36385e6c8559aca76a216438dd724e80a29",
+  "remote_head_verified": "b526f36385e6c8559aca76a216438dd724e80a29",
+  "staged_files": 16,
+  "source_hashes_verified": 37,
+  "user_dirty_hashes_verified": 3,
+  "checks": "diff/secrets/explicit-stage/source checks passed",
+  "performance_started": false,
+  "unit": "primelora-tc-d1130-backup-prelaunch-20261108.service",
+  "main_returncode": 0,
+  "wrapper_returncode": 0
+}

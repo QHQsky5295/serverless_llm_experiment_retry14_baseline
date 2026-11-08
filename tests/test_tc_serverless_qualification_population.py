@@ -1043,5 +1043,40 @@ class ElasticLocalityMatchedTests(unittest.TestCase):
                     matched_controller_rows(source, scenario, {})
 
 
+class RetainedOutcomeControllerTests(unittest.TestCase):
+    def test_failed_outcome_requires_explicit_matching_identity_and_complete_rows(self):
+        from scripts.ieee_tc.check_d299_full_context import matched_controller_rows
+        r = dict(request_id='r', adapter_id='a', success=True,
+            native_token_timing=dict(native_prompt_token_ids_sha256='p', actual_prompt_tokens=2,
+                native_dispatch_monotonic_s=2., controller_completed_monotonic_s=4.),
+            external_arrival_timing=dict(source_item_sha256='source', planned_arrival_s=0., client_submit_s=1.),
+            requested_completion_tokens=2, canonical_prompt_sha256='prompt',
+            generation_contract='fixed_length_greedy_v1', overall_ttft_ms=3000.,
+            tpot_ms=1000., overall_e2e_ms=4000.)
+        data = dict(kind='ieee_main_outcome_v1', scenario='tc_ieee_routing_handoff',
+            planned_request_count=1, run_completed=False,
+            completed_scenario_windows=dict(requests=[r]))
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory)/'outcome.json'
+            source.write_text(json.dumps(data))
+            with self.assertRaises(ValueError):
+                matched_controller_rows(source, data['scenario'], {'a':'content'}, expected_count=1)
+            with patch('scripts.ieee_tc.check_d299_full_context.binding_checks', return_value={'native':True}), \
+                    patch('scripts.ieee_tc.check_d299_full_context.request_vectors'):
+                rows = matched_controller_rows(source, data['scenario'], {'a':'content'},
+                    expected_count=1, retained_outcome=True)
+                self.assertEqual(set(rows), {'r'})
+                for key, value in [('kind','wrong'), ('scenario','tc_ieee_full'),
+                                   ('planned_request_count',2), ('run_completed',True)]:
+                    source.write_text(json.dumps(dict(data, **{key:value})))
+                    with self.subTest(key=key), self.assertRaises(ValueError):
+                        matched_controller_rows(source, data['scenario'], {'a':'content'},
+                            expected_count=1, retained_outcome=True)
+                source.write_text(json.dumps(dict(data, completed_scenario_windows=dict(requests=[]))))
+                with self.assertRaises(ValueError):
+                    matched_controller_rows(source, data['scenario'], {'a':'content'},
+                        expected_count=1, retained_outcome=True)
+
+
 if __name__ == '__main__':
     unittest.main()

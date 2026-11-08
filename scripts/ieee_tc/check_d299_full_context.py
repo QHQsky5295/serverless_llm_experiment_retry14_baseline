@@ -1011,12 +1011,29 @@ def require_unchanged_reference(recomputed, frozen):
     return frozen
 
 
-def matched_controller_rows(source, scenario, content, *, expected_count=4000):
+def matched_controller_rows(source, scenario, content, *, expected_count=4000,
+                            retained_outcome=False):
     """Stream native controller requests with the same checks for Full and controls."""
     import ijson
+    prefix = f'detailed_results.{scenario}.requests.item'
+    if retained_outcome:
+        # Explicit diagnostic reader, never a synthesized successful export.
+        # Keep the normal launch/result eligibility gates elsewhere unchanged.
+        with source.open('rb') as handle:
+            header = {}
+            for key, value in ijson.kvitems(handle, '', use_float=True):
+                header[key] = value
+                if key == 'run_completed':
+                    break
+        if (header.get('kind') != 'ieee_main_outcome_v1'
+                or header.get('scenario') != scenario
+                or header.get('planned_request_count') != expected_count
+                or header.get('run_completed') is not False):
+            raise ValueError('explicit retained failed-outcome identity required')
+        prefix = 'completed_scenario_windows.requests.item'
     result = {}
     with source.open('rb') as handle:
-        for r in ijson.items(handle, f'detailed_results.{scenario}.requests.item', use_float=True):
+        for r in ijson.items(handle, prefix, use_float=True):
             rid, n, ext = r['request_id'], r['native_token_timing'], r['external_arrival_timing']
             if rid in result or not r['success'] or not all(binding_checks(r, content[r['adapter_id']]).values()):
                 raise ValueError('controller source/native binding failed')

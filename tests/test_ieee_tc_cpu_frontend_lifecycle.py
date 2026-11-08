@@ -1,12 +1,17 @@
 """D468 CPU state/IPC fixtures, NOT native CUDA or performance evidence."""
 import asyncio
 import copy
+import fcntl
 import inspect
 import json
 import os
+import resource
 from pathlib import Path
 import socket
+import select
+import signal
 import subprocess
+import sys
 import tempfile
 import time
 from types import SimpleNamespace as NS
@@ -359,6 +364,109 @@ class DedicatedWorkerBoundary(unittest.IsolatedAsyncioTestCase):
         self.payload.write_text(json.dumps(self.cfg))
         with self.assertRaisesRegex(ValueError,'inherited activation'):
             await self.worker._run_worker(self.payload,self.ready,activation_channel=object())
+
+
+class RealCPUHelperExit(unittest.IsolatedAsyncioTestCase):
+    """Actual orphan-helper exit in the deployment Python, no model/CUDA imports."""
+
+    @staticmethod
+    def identity(pid):
+        proc = Path('/proc')/str(pid)
+        fields = (proc/'stat').read_text().rsplit(')', 1)[1].split()
+        cgroup = next(line[3:] for line in (proc/'cgroup').read_text().splitlines()
+                      if line.startswith('0::'))
+        return dict(pid=pid, uid=proc.stat().st_uid, start_ticks=int(fields[19]),
+                    cgroup=cgroup)
+
+    def helper(self):
+        from faaslora.linux_pidfd import open_pidfd, send_pidfd_signal
+        code = ('import os,sys,signal\n'
+                'child=os.fork()\n'
+                'if child==0:\n'
+                ' print(os.getpid(),flush=True)\n'
+                ' while True: signal.pause()\n'
+                'sys.stdin.buffer.read(1)\n'
+                'os._exit(0)\n')
+        leader = subprocess.Popen([sys.executable, '-S', '-c', code],
+            start_new_session=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            text=True)
+        self.addCleanup(leader.stdout.close)
+        self.addCleanup(leader.stdin.close)
+        # Bound the fixture startup; cleanup retains the original session leader.
+        ready = select.select([leader.stdout], [], [], 5)[0]
+        if not ready:
+            os.killpg(leader.pid, signal.SIGKILL)
+            leader.wait(timeout=5)
+            self.fail('CPU helper did not publish its PID')
+        child = int(leader.stdout.readline())
+        pinned = open_pidfd(child)
+        def cleanup():
+            try:
+                try:
+                    send_pidfd_signal(pinned, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                poll = select.poll()
+                poll.register(pinned, select.POLLIN)
+                self.assertTrue(poll.poll(5000))
+            finally:
+                os.close(pinned)
+                if leader.poll() is None:
+                    leader.kill()
+                    leader.wait(timeout=5)
+        self.addCleanup(cleanup)
+        birth = self.identity(leader.pid)
+        leader.stdin.write('x')
+        leader.stdin.flush()
+        self.assertEqual(leader.wait(timeout=5), 0)
+        return leader, birth, pinned
+
+    async def test_actual_helper_exit_without_python_pidfd_wrappers(self):
+        from faaslora.cpu_frontend import finish_process_group
+        leader, birth, pinned = self.helper()
+        with patch.object(os, 'pidfd_open', create=True) as forbidden_open, \
+                patch.object(signal, 'pidfd_send_signal', create=True) as forbidden_signal:
+            await finish_process_group(leader, birth, self.identity)
+            forbidden_open.assert_not_called()
+            forbidden_signal.assert_not_called()
+        poll = select.poll()
+        poll.register(pinned, select.POLLIN)
+        self.assertTrue(poll.poll(0))
+
+    async def test_actual_high_descriptor_exit(self):
+        from faaslora import cpu_frontend
+        from faaslora.linux_pidfd import open_pidfd
+        leader, birth, _ = self.helper()
+        limits = resource.getrlimit(resource.RLIMIT_NOFILE)
+        self.assertGreaterEqual(limits[1], 2049)
+        resource.setrlimit(resource.RLIMIT_NOFILE, (max(limits[0], 2049), limits[1]))
+        self.addCleanup(resource.setrlimit, resource.RLIMIT_NOFILE, limits)
+        def high_fd(pid):
+            fd = open_pidfd(pid)
+            try:
+                return fcntl.fcntl(fd, fcntl.F_DUPFD_CLOEXEC, 2048)
+            finally:
+                os.close(fd)
+        with patch.object(cpu_frontend, 'open_pidfd', side_effect=high_fd):
+            await cpu_frontend.finish_process_group(leader, birth, self.identity)
+
+    async def test_foreign_owner_never_signalled(self):
+        from faaslora import cpu_frontend
+        leader, birth, pinned = self.helper()
+        with patch.object(cpu_frontend, 'send_pidfd_signal') as send:
+            with self.assertRaisesRegex(RuntimeError, 'unqualified CPU helper ownership'):
+                await cpu_frontend.finish_process_group(leader,
+                    dict(birth, uid=birth['uid']+1), self.identity)
+            send.assert_not_called()
+        poll = select.poll()
+        poll.register(pinned, select.POLLIN)
+        self.assertFalse(poll.poll(0))
+
+    def test_invalid_descriptor_preserves_kernel_error(self):
+        from faaslora.linux_pidfd import send_pidfd_signal
+        with tempfile.TemporaryFile() as file:
+            with self.assertRaises(OSError):
+                send_pidfd_signal(file.fileno(), 0)
 
 
 if __name__ == '__main__':unittest.main()

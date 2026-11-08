@@ -1,0 +1,13 @@
+{
+  "remote_alias": "primelora-artifact-174",
+  "remote_path": "/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-772ffbdffb9f433687c5c2bd7bb4b16a.jsonl",
+  "clock_id": "remote-process-monotonic:d6ebf5009c764cd8a73997f6039adca4",
+  "rows": 132,
+  "remote_sha256": "dca30d217864e9f5fb8081f660b8547d9a3d0be2e3b815cdb0451ba3b27876ec",
+  "local_sha256": "dca30d217864e9f5fb8081f660b8547d9a3d0be2e3b815cdb0451ba3b27876ec",
+  "collected_after_release": true,
+  "remote_service": "primelora-artifact-tc-7b.service",
+  "remote_state_at_collection": "inactive",
+  "remote_main_pid": 0,
+  "local_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1130_20261108/7b_routing_handoff_w1/remote_transfers.jsonl"
+}

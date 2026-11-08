@@ -20,6 +20,8 @@ import socket
 import subprocess
 import time
 
+from .linux_pidfd import open_pidfd, send_pidfd_signal
+
 CONTRACT = 'fixed_uuid_cpu_frontend_v1'
 MAX_ACTIVATION_BYTES = 4096
 
@@ -52,22 +54,34 @@ async def finish_process_group(process, birth, identity):
                         or not Path(member['cgroup']).is_relative_to(birth['cgroup'])
                         or int(fields[3]) != process.pid):
                     raise RuntimeError('unqualified CPU helper ownership; refusing to signal')
-                fd = os.pidfd_open(member['pid'])
+                fd = open_pidfd(member['pid'])
                 pinned.append(fd)
                 if identity(member['pid']) != member:
                     raise RuntimeError('CPU helper birth changed during pidfd acquisition')
             if not pinned:
                 return
             for fd in pinned:
-                signal.pidfd_send_signal(fd, sig)
+                try:
+                    send_pidfd_signal(fd, sig)
+                except ProcessLookupError:
+                    # The pinned process may exit between census and signal;
+                    # its actual exit must still be confirmed by poll below.
+                    pass
             pending = set(pinned)
+            poller = select.poll()
+            for fd in pending:
+                poller.register(fd, select.POLLIN)
             deadline = time.monotonic() + 5.
             while pending:
-                ready, _, _ = await asyncio.to_thread(select.select, list(pending), [], [],
-                    max(0., deadline - time.monotonic()))
+                ready = await asyncio.to_thread(poller.poll,
+                    math.ceil(1000 * max(0., deadline - time.monotonic())))
                 if not ready:
                     break
-                pending.difference_update(ready)
+                for fd, event in ready:
+                    if event & (select.POLLERR | select.POLLNVAL) or not event & select.POLLIN:
+                        raise RuntimeError('CPU helper pidfd has no confirmed exit event')
+                    poller.unregister(fd)
+                    pending.remove(fd)
             if not pending:
                 # Re-census: a helper may have created a child before exiting.
                 continue
