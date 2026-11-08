@@ -1,0 +1,644 @@
+{
+  "kind": "retained_7b_control_observation_v1",
+  "model": "7b",
+  "reports": {
+    "d1125_20261108": {
+      "counts": {
+        "N": 4000,
+        "ttft_pass": 3990,
+        "tpot_pass_including_single_token": 3980,
+        "joint_timing_pass": 3971,
+        "single_token": 0,
+        "tpot_conditional_pass": 3980,
+        "tpot_conditional_N": 4000
+      },
+      "metrics": {
+        "ttft_ms": {
+          "count": 4000,
+          "mean": 771.3568782372167,
+          "p50_type1": 631.1877798289061,
+          "p95_type1": 1717.3255295492709,
+          "p99_type1": 2834.3395083211362
+        },
+        "tpot_ms": {
+          "count": 4000,
+          "mean": 31.667777349945784,
+          "p50_type1": 29.115629341939222,
+          "p95_type1": 51.600989031915866,
+          "p99_type1": 67.78075802139938
+        },
+        "e2e_ms": {
+          "count": 4000,
+          "mean": 4302.397679367452,
+          "p50_type1": 3484.5824288204312,
+          "p95_type1": 9057.45727661997,
+          "p99_type1": 11332.607469987124
+        }
+      },
+      "scenario": "tc_ieee_full",
+      "input_contract_sha256": "0a2e69ed6914ba12d23ede3e9ada640900e26d786d1c5c350c53c6f9d6ad2848",
+      "source_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+      "source_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016",
+      "original_trace_role": "exploratory",
+      "original_formal_run": false,
+      "n_correct": null,
+      "gpu_seconds_per_correct_request": null,
+      "physical_gpu_seconds": 8577.31897842791,
+      "gpu_seconds_per_offered": 2.1443297446069773,
+      "physical_windows": {
+        "arrival": 8486.115764799993,
+        "cleanup": 40.29839864978567,
+        "drain": 2.548727124929428,
+        "pre_arrival": 48.356087853200734
+      },
+      "native_binding_checks": {
+        "request_adapter_binding": 4000,
+        "owner_binding": 4000,
+        "lease_binding": 4000,
+        "native_adapter_binding": 4000,
+        "slot_binding": 4000,
+        "frozen_content_binding": 4000,
+        "acquired_and_released": 4000,
+        "common_native_clock": 4000,
+        "acquired_before_dispatch": 4000,
+        "token_digest_transport": 4000
+      },
+      "dispatch_tier_counts": {
+        "remote": 135,
+        "gpu": 2282,
+        "host": 600,
+        "nvme": 983
+      },
+      "max_stage_identity_error_ms": 0.0,
+      "mean_stages_ms": {
+        "arrival_release_ms": 40.09429395431653,
+        "release_to_acquire_ms": 23.22662734647747,
+        "acquire_to_resume_ms": 3.670200744527392,
+        "runtime_slot_wait_ms": 207.83919268276077,
+        "runtime_to_controller_admission_ms": 0.0,
+        "admission_to_engine_dispatch_ms": 202.6355898922775,
+        "engine_entry_to_queue_ms": 98.7369411336258,
+        "native_engine_queue_ms": 4.422920042998157,
+        "native_prefill_ms": 190.73111244023312,
+        "native_decode_ms": 3390.6915469552623,
+        "worker_completion_notification_ms": 95.35590336867608,
+        "worker_to_controller_completion_ms": 44.9933508062968
+      },
+      "first100_ttft_ms": {
+        "count": 100,
+        "mean": 951.8777712993324,
+        "p50_type1": 590.3969844803214,
+        "p95_type1": 2821.93607930094
+      },
+      "first3_ttft_ms": [
+        928.4536228515208,
+        215.97612602636218,
+        499.420000705868
+      ],
+      "control_outcomes": {
+        "no_action": 1067,
+        "activation_scheduled": 10,
+        "drained_replica_retired": 7,
+        "no_free_device": 4
+      },
+      "control_action_reasons": {
+        "scale_up": {
+          "ieee_max_score_above_one": 3,
+          "ieee_forecast_horizon_capacity": 7
+        },
+        "scale_down": {
+          "ieee_all_low_through_cooldown": 4,
+          "ieee_forecast_capacity_release": 3
+        }
+      },
+      "first_control_actions": [
+        {
+          "action": "scale_up",
+          "target_instances": 2,
+          "current_instances": 1,
+          "reason": "ieee_max_score_above_one",
+          "observed_at": 3611767.77140205,
+          "queue_depth": 0,
+          "active_requests": 9,
+          "ready_capacity": 14,
+          "ready_instances": 1,
+          "pending_instances": 0,
+          "active_saturation": 0.6428571428571429,
+          "p95_ttft_ms": 928.4536228515208,
+          "ttft_sample_count": 9,
+          "p95_pressure_class": "tier_mismatch",
+          "ratios": {
+            "queue": 0.0,
+            "active": 1.2857142857142858,
+            "ttft": 0.18569072457030417
+          },
+          "score": 1.2857142857142858,
+          "all_low": false,
+          "low_since": null,
+          "busy_time_observation": "reservation_events_v1",
+          "predictive_observation": {
+            "arrival_rate_rps": 0.3280292240281608,
+            "service_rate_rps_per_busy_instance": 0.35718113842283206,
+            "activation_horizon_s": null,
+            "history_elapsed_s": 44.63231164170429,
+            "busy_instance_seconds": 22.589104344137013,
+            "busy_instance_seconds_total": 22.589104344137013,
+            "busy_instance_event_count": 28
+          },
+          "predictive_target_instances": null,
+          "draining_active_requests": 0,
+          "draining_instances": 0,
+          "outcome": "activation_scheduled",
+          "scheduled": 1
+        },
+        {
+          "action": "scale_up",
+          "target_instances": 3,
+          "current_instances": 2,
+          "reason": "ieee_max_score_above_one",
+          "observed_at": 3611769.796746417,
+          "queue_depth": 0,
+          "active_requests": 9,
+          "ready_capacity": 14,
+          "ready_instances": 1,
+          "pending_instances": 1,
+          "active_saturation": 0.6428571428571429,
+          "p95_ttft_ms": 928.4536228515208,
+          "ttft_sample_count": 11,
+          "p95_pressure_class": "tier_mismatch",
+          "ratios": {
+            "queue": 0.0,
+            "active": 1.2857142857142858,
+            "ttft": 0.18569072457030417
+          },
+          "score": 1.2857142857142858,
+          "all_low": false,
+          "low_since": null,
+          "busy_time_observation": "reservation_events_v1",
+          "predictive_observation": {
+            "arrival_rate_rps": 0.38798989113067806,
+            "service_rate_rps_per_busy_instance": 0.4020365648749472,
+            "activation_horizon_s": null,
+            "history_elapsed_s": 44.64778452087194,
+            "busy_instance_seconds": 24.614448711276054,
+            "busy_instance_seconds_total": 24.614448711276054,
+            "busy_instance_event_count": 32
+          },
+          "predictive_target_instances": null,
+          "draining_active_requests": 0,
+          "draining_instances": 0,
+          "outcome": "activation_scheduled",
+          "scheduled": 1
+        },
+        {
+          "action": "scale_up",
+          "target_instances": 4,
+          "current_instances": 3,
+          "reason": "ieee_max_score_above_one",
+          "observed_at": 3611771.87632826,
+          "queue_depth": 0,
+          "active_requests": 13,
+          "ready_capacity": 14,
+          "ready_instances": 1,
+          "pending_instances": 2,
+          "active_saturation": 0.9285714285714286,
+          "p95_ttft_ms": 928.4536228515208,
+          "ttft_sample_count": 11,
+          "p95_pressure_class": "tier_mismatch",
+          "ratios": {
+            "queue": 0.0,
+            "active": 1.8571428571428572,
+            "ttft": 0.18569072457030417
+          },
+          "score": 1.8571428571428572,
+          "all_low": false,
+          "low_since": null,
+          "busy_time_observation": "reservation_events_v1",
+          "predictive_observation": {
+            "arrival_rate_rps": 0.462350763015467,
+            "service_rate_rps_per_busy_instance": 0.4070568568210237,
+            "activation_horizon_s": null,
+            "history_elapsed_s": 44.716750000137836,
+            "busy_instance_seconds": 26.694030554499477,
+            "busy_instance_seconds_total": 26.694030554499477,
+            "busy_instance_event_count": 40
+          },
+          "predictive_target_instances": null,
+          "draining_active_requests": 0,
+          "draining_instances": 0,
+          "outcome": "activation_scheduled",
+          "scheduled": 1
+        },
+        {
+          "action": "scale_down",
+          "target_instances": 3,
+          "current_instances": 4,
+          "reason": "ieee_all_low_through_cooldown",
+          "observed_at": 3612067.481901232,
+          "queue_depth": 0,
+          "active_requests": 0,
+          "ready_capacity": 56,
+          "ready_instances": 4,
+          "pending_instances": 0,
+          "active_saturation": 0.0,
+          "p95_ttft_ms": 1297.5032357499003,
+          "ttft_sample_count": 53,
+          "p95_pressure_class": "scaleup_warmup",
+          "ratios": {
+            "queue": 0.0,
+            "active": 0.0,
+            "ttft": 0.25950064714998006
+          },
+          "score": 0.25950064714998006,
+          "all_low": true,
+          "low_since": 3612067.481901232,
+          "busy_time_observation": "reservation_events_v1",
+          "predictive_observation": {
+            "arrival_rate_rps": 1.004371253022458,
+            "service_rate_rps_per_busy_instance": 0.4400942051544069,
+            "activation_horizon_s": 39.00288845482282,
+            "history_elapsed_s": 44.91808105725795,
+            "busy_instance_seconds": 116.8414231557399,
+            "busy_instance_seconds_total": 990.7252783467993,
+            "busy_instance_event_count": 1023
+          },
+          "predictive_target_instances": 3,
+          "draining_active_requests": 0,
+          "draining_instances": 0,
+          "outcome": "drained_replica_retired",
+          "target_replica": "ieee-activation-d10e42ed7da5413b932c857469c4c11a",
+          "released_monotonic_s": 3612076.066339999
+        },
+        {
+          "action": "scale_up",
+          "target_instances": 4,
+          "current_instances": 3,
+          "reason": "ieee_forecast_horizon_capacity",
+          "observed_at": 3612119.012359338,
+          "queue_depth": 0,
+          "active_requests": 8,
+          "ready_capacity": 42,
+          "ready_instances": 3,
+          "pending_instances": 0,
+          "active_saturation": 0.19047619047619047,
+          "p95_ttft_ms": 1039.3558996729553,
+          "ttft_sample_count": 50,
+          "p95_pressure_class": "admission_wait",
+          "ratios": {
+            "queue": 0.0,
+            "active": 0.38095238095238093,
+            "ttft": 0.20787117993459106
+          },
+          "score": 0.38095238095238093,
+          "all_low": true,
+          "low_since": 3612119.012359338,
+          "busy_time_observation": "reservation_events_v1",
+          "predictive_observation": {
+            "arrival_rate_rps": 1.2729451175444755,
+            "service_rate_rps_per_busy_instance": 0.4169383129767199,
+            "activation_horizon_s": 39.00288845482282,
+            "history_elapsed_s": 43.42763622989878,
+            "busy_instance_seconds": 119.5163124804385,
+            "busy_instance_seconds_total": 1110.2415908272378,
+            "busy_instance_event_count": 1138
+          },
+          "predictive_target_instances": 4,
+          "draining_active_requests": 0,
+          "draining_instances": 0,
+          "outcome": "activation_scheduled",
+          "scheduled": 1
+        },
+        {
+          "action": "scale_down",
+          "target_instances": 3,
+          "current_instances": 4,
+          "reason": "ieee_forecast_capacity_release",
+          "observed_at": 3612363.377323237,
+          "queue_depth": 0,
+          "active_requests": 5,
+          "ready_capacity": 56,
+          "ready_instances": 4,
+          "pending_instances": 0,
+          "active_saturation": 0.08928571428571429,
+          "p95_ttft_ms": 1906.489516608417,
+          "ttft_sample_count": 50,
+          "p95_pressure_class": "scaleup_warmup",
+          "ratios": {
+            "queue": 0.0,
+            "active": 0.17857142857142858,
+            "ttft": 0.3812979033216834
+          },
+          "score": 0.3812979033216834,
+          "all_low": true,
+          "low_since": 3612358.827227112,
+          "busy_time_observation": "reservation_events_v1",
+          "predictive_observation": {
+            "arrival_rate_rps": 1.196655769516139,
+            "service_rate_rps_per_busy_instance": 0.5394966437969648,
+            "activation_horizon_s": 36.510980257880874,
+            "history_elapsed_s": 43.436532301828265,
+            "busy_instance_seconds": 94.73087456729263,
+            "busy_instance_seconds_total": 1930.9146358710714,
+            "busy_instance_event_count": 2173
+          },
+          "predictive_target_instances": 3,
+          "draining_active_requests": 0,
+          "draining_instances": 0,
+          "outcome": "drained_replica_retired",
+          "target_replica": "ieee-activation-8c2d25f2094d4c4a863901c1a4210fb3",
+          "released_monotonic_s": 3612375.584492854
+        },
+        {
+          "action": "scale_up",
+          "target_instances": 4,
+          "current_instances": 3,
+          "reason": "ieee_forecast_horizon_capacity",
+          "observed_at": 3612371.519831353,
+          "queue_depth": 0,
+          "active_requests": 19,
+          "ready_capacity": 42,
+          "ready_instances": 3,
+          "pending_instances": 0,
+          "active_saturation": 0.4523809523809524,
+          "p95_ttft_ms": 1906.489516608417,
+          "ttft_sample_count": 72,
+          "p95_pressure_class": "scaleup_warmup",
+          "ratios": {
+            "queue": 0.0,
+            "active": 0.9047619047619048,
+            "ttft": 0.3812979033216834
+          },
+          "score": 0.9047619047619048,
+          "all_low": false,
+          "low_since": null,
+          "busy_time_observation": "reservation_events_v1",
+          "predictive_observation": {
+            "arrival_rate_rps": 1.8763057440415989,
+            "service_rate_rps_per_busy_instance": 0.5802183057852286,
+            "activation_horizon_s": 36.510980257880874,
+            "history_elapsed_s": 43.425045202020556,
+            "busy_instance_seconds": 119.15866739675403,
+            "busy_instance_seconds_total": 1955.3424287005328,
+            "busy_instance_event_count": 2232
+          },
+          "predictive_target_instances": 4,
+          "draining_active_requests": 0,
+          "draining_instances": 1,
+          "outcome": "no_free_device",
+          "scheduled": 0
+        },
+        {
+          "action": "scale_up",
+          "target_instances": 4,
+          "current_instances": 3,
+          "reason": "ieee_forecast_horizon_capacity",
+          "observed_at": 3612373.548569661,
+          "queue_depth": 0,
+          "active_requests": 18,
+          "ready_capacity": 42,
+          "ready_instances": 3,
+          "pending_instances": 0,
+          "active_saturation": 0.42857142857142855,
+          "p95_ttft_ms": 1840.0726499967277,
+          "ttft_sample_count": 81,
+          "p95_pressure_class": "scaleup_warmup",
+          "ratios": {
+            "queue": 0.0,
+            "active": 0.8571428571428571,
+            "ttft": 0.36801452999934553
+          },
+          "score": 0.8571428571428571,
+          "all_low": false,
+          "low_since": null,
+          "busy_time_observation": "reservation_events_v1",
+          "predictive_observation": {
+            "arrival_rate_rps": 2.078004924873465,
+            "service_rate_rps_per_busy_instance": 0.6134756589671184,
+            "activation_horizon_s": 36.510980257880874,
+            "history_elapsed_s": 43.42668846901506,
+            "busy_instance_seconds": 125.24488232145086,
+            "busy_instance_seconds_total": 1961.4286436252296,
+            "busy_instance_event_count": 2253
+          },
+          "predictive_target_instances": 4,
+          "draining_active_requests": 0,
+          "draining_instances": 1,
+          "outcome": "no_free_device",
+          "scheduled": 0
+        },
+        {
+          "action": "scale_up",
+          "target_instances": 4,
+          "current_instances": 3,
+          "reason": "ieee_forecast_horizon_capacity",
+          "observed_at": 3612375.588836146,
+          "queue_depth": 0,
+          "active_requests": 12,
+          "ready_capacity": 42,
+          "ready_instances": 3,
+          "pending_instances": 0,
+          "active_saturation": 0.2857142857142857,
+          "p95_ttft_ms": 1906.489516608417,
+          "ttft_sample_count": 89,
+          "p95_pressure_class": "scaleup_warmup",
+          "ratios": {
+            "queue": 0.0,
+            "active": 0.5714285714285714,
+            "ttft": 0.3812979033216834
+          },
+          "score": 0.5714285714285714,
+          "all_low": false,
+          "low_since": null,
+          "busy_time_observation": "reservation_events_v1",
+          "predictive_observation": {
+            "arrival_rate_rps": 2.2015829819137314,
+            "service_rate_rps_per_busy_instance": 0.6454868802118487,
+            "activation_horizon_s": 36.510980257880874,
+            "history_elapsed_s": 43.43785153282806,
+            "busy_instance_seconds": 131.36568177631125,
+            "busy_instance_seconds_total": 1967.54944308009,
+            "busy_instance_event_count": 2263
+          },
+          "predictive_target_instances": 4,
+          "draining_active_requests": 0,
+          "draining_instances": 0,
+          "outcome": "activation_scheduled",
+          "scheduled": 1
+        },
+        {
+          "action": "scale_down",
+          "target_instances": 3,
+          "current_instances": 4,
+          "reason": "ieee_all_low_through_cooldown",
+          "observed_at": 3612578.389143915,
+          "queue_depth": 0,
+          "active_requests": 0,
+          "ready_capacity": 56,
+          "ready_instances": 4,
+          "pending_instances": 0,
+          "active_saturation": 0.0,
+          "p95_ttft_ms": 1368.546285200864,
+          "ttft_sample_count": 70,
+          "p95_pressure_class": "scaleup_warmup",
+          "ratios": {
+            "queue": 0.0,
+            "active": 0.0,
+            "ttft": 0.2737092570401728
+          },
+          "score": 0.2737092570401728,
+          "all_low": true,
+          "low_since": 3612578.389143915,
+          "busy_time_observation": "reservation_events_v1",
+          "predictive_observation": {
+            "arrival_rate_rps": 1.4217855447871313,
+            "service_rate_rps_per_busy_instance": 0.4994544094451451,
+            "activation_horizon_s": 40.24103495205054,
+            "history_elapsed_s": 44.94255768600851,
+            "busy_instance_seconds": 142.33795473258942,
+            "busy_instance_seconds_total": 2684.0709543921985,
+            "busy_instance_event_count": 3099
+          },
+          "predictive_target_instances": 3,
+          "draining_active_requests": 0,
+          "draining_instances": 0,
+          "outcome": "drained_replica_retired",
+          "target_replica": "ieee-activation-3656f66e13644a94a328528787dad981",
+          "released_monotonic_s": 3612586.666732326
+        },
+        {
+          "action": "scale_up",
+          "target_instances": 4,
+          "current_instances": 3,
+          "reason": "ieee_forecast_horizon_capacity",
+          "observed_at": 3612635.903847167,
+          "queue_depth": 1,
+          "active_requests": 13,
+          "ready_capacity": 42,
+          "ready_instances": 3,
+          "pending_instances": 0,
+          "active_saturation": 0.30952380952380953,
+          "p95_ttft_ms": 1500.110144726932,
+          "ttft_sample_count": 81,
+          "p95_pressure_class": "scaleup_warmup",
+          "ratios": {
+            "queue": 0.125,
+            "active": 0.6190476190476191,
+            "ttft": 0.30002202894538643
+          },
+          "score": 0.6190476190476191,
+          "all_low": false,
+          "low_since": null,
+          "busy_time_observation": "reservation_events_v1",
+          "predictive_observation": {
+            "arrival_rate_rps": 2.033471919205935,
+            "service_rate_rps_per_busy_instance": 0.6573688054175202,
+            "activation_horizon_s": 40.24103495205054,
+            "history_elapsed_s": 43.101608810946345,
+            "busy_instance_seconds": 120.82778927497566,
+            "busy_instance_seconds_total": 2804.898743667174,
+            "busy_instance_event_count": 3279
+          },
+          "predictive_target_instances": 4,
+          "draining_active_requests": 0,
+          "draining_instances": 0,
+          "outcome": "activation_scheduled",
+          "scheduled": 1
+        },
+        {
+          "action": "scale_down",
+          "target_instances": 3,
+          "current_instances": 4,
+          "reason": "ieee_all_low_through_cooldown",
+          "observed_at": 3612806.381703466,
+          "queue_depth": 0,
+          "active_requests": 0,
+          "ready_capacity": 56,
+          "ready_instances": 4,
+          "pending_instances": 0,
+          "active_saturation": 0.0,
+          "p95_ttft_ms": 1313.2241112180054,
+          "ttft_sample_count": 59,
+          "p95_pressure_class": "admission_wait",
+          "ratios": {
+            "queue": 0.0,
+            "active": 0.0,
+            "ttft": 0.2626448222436011
+          },
+          "score": 0.2626448222436011,
+          "all_low": true,
+          "low_since": 3612806.381703466,
+          "busy_time_observation": "reservation_events_v1",
+          "predictive_observation": {
+            "arrival_rate_rps": 1.1856494517789542,
+            "service_rate_rps_per_busy_instance": 0.6421055449757311,
+            "activation_horizon_s": 36.84545079365489,
+            "history_elapsed_s": 44.96851130435243,
+            "busy_instance_seconds": 90.47094116499647,
+            "busy_instance_seconds_total": 3356.656727003865,
+            "busy_instance_event_count": 4120
+          },
+          "predictive_target_instances": 2,
+          "draining_active_requests": 0,
+          "draining_instances": 0,
+          "outcome": "drained_replica_retired",
+          "target_replica": "ieee-activation-29088d28dca848b9b92243dabe6214af",
+          "released_monotonic_s": 3612816.087941892
+        }
+      ],
+      "suppressed_control_actions": [],
+      "measurement_complete": true,
+      "independent_holdout": false,
+      "g1_g2_qualified": false
+    }
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+      "sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+      "sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d455_stages.py",
+      "sha256": "c7b005e636d4b80cd121ccbfda5c272a9dd21675e370a146022ffbf50410f5e0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1125_20261108/7b_r0h0_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d1125_7b_r0h0_w1.json",
+      "sha256": "7bc113c51767a313b9154db806472a408a966f98f6242fbae02aa41aed29ae5d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1125_20261108/7b_r0h0_w1/launch.json",
+      "sha256": "ff47dbea3dd925ca67a3bbfab93d31e4870e092d82075691aecdf34e53715773"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1125_20261108/7b_r0h0_w1/launch.launch/physical_deployment/summary.json",
+      "sha256": "a870e894c7799b06124891b54c8a30b884975687a9ba3939f954a7e5570d0c58"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1125_20261108/7b_r0h0_w1/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "ee0a702a3aa45c4ed4e78e6abe23c46a7c161f504046377225f43ca1b90d6427"
+    }
+  ],
+  "matched_request_inputs": true,
+  "causal_attribution_established": false,
+  "independent_numerical_qualification": false,
+  "new_performance_runs": 0,
+  "confidence_interval": null,
+  "caveats": [
+    "Binding witnesses do not certify numerical LoRA arithmetic.",
+    "GPU-s/offered is diagnostic; unknown N_correct is not replaced by 4000.",
+    "Matched input does not establish identical compiler caches or sole-feature execution differences.",
+    "Timing attainment is not correctness-qualified joint SLO.",
+    "No single-configuration cross-scenario optimum or G2 budget qualification."
+  ]
+}

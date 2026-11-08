@@ -1,5 +1,39 @@
 # PrimeLoRA IEEE TC execution contract
 
+Current handoff2026-11-08 11:08+08: D1125 COMPLETE/released/analyzed; noGPUrun.
+Read D1125_7B_R0H0_W1_RESULT_20261108.md. DO NOT relaunch.4000nativecontracts,
+joint3971=99.275%,U8577.31897842791,P95TTFT1717.3255295492709ms.
+FullD1115 U-11.349051%,P95+35.753500%,joint-0.725pp: preserve trade-off.
+FourcellsD1115/D1124/D1123/D1125:GammaU365.257970GPU-s,P95Gamma465.184165ms,
+jointGamma0.825pp;meanE2E/TPOTnegativeGamma, notall-metric synergy orCI.
+4000load-only selections match;2671same-state shadowdisagreements;11no_handoff
+activations,zero handoffplans,1734residency/1396admission(1395admit/1defer).
+10natural first-services/all11leasesclosed,132transfers/131480060bytes;
+189outputdigestdifferences unknown,n_correctnull.2275samples events/swap0.
+64unique sources/144protectedfiles/userdirty verified. u385/389/390main+wrapper0;
+u386/387analysiscallerrors retained;u388/391main0 butwrapper1/inotifytimeout,
+domainsactuallyempty/removed. No measuredrunfailure. Nextseal/explicitbackup,
+then current7BDelayedHandoff,NoHOST,CapacityOnly,cumulativenodes. NoFull/baseline
+replay,3Bswitch/sharedk3s; A1-A5/S1-S13/docs/figures/V2 fullscopeACTIVE.
+Older LIVE/NOTSTARTED/pending-analysis paragraphs below are historical.
+
+LIVE handoff2026-11-08 10:23+08: D1125 R0H0 7B W1 launchedONCE.
+Read D1125_7B_R0H0_W1_RUN_STATUS_20261108.md; registrationSHA unchanged.
+Prelaunch840a834226608743c4d741f70ea7323c25845938 pushedV2/remotematched.
+tmux tc-d1125-r0h0-7b-w1 panePID3604668 live; DO NOT relaunch.
+Servicebabdcb9d06e94bb99664b57d09067257 Invocation4eab3c3231b7404fbf6093924e9facde;
+aux186ae771d1d34c4a82309cb43aa883b1. Notice3611681.358963971,
+replay3611741.358963971;remoteclock9a9d024a464c4ec4b26ddd22721fd83e,
+ownedremoteInvocationc3a8d5981a554b9880b21b3e119a8033/PID1853845.
+Sample185:146unique terminal/success/nativecontract,submittedindex152;
+high/max/OOM/swap0,noabort/foreign/escaped,held4GPU,available105262661632B,
+disk167221657600B. Continue SAMErun to realterminal/release. No tests/production
+changes/maintenance/push/remotechanges while measuring. Then D1113/D299/D455,
+same7B fourcellsD1115/D1124/D1123/D1125; reuse D1124 physicalhandoff audit.
+Read D1054 delayed historical notes only, not next execution. Next DelayedHandoff,
+NoHOST,CapacityOnly etc. NoFull/baseline repeat/3Bswitch/sharedk3s. ThisturnPROGRESS;
+fullscopeactive. Older NOTSTARTED notes below are history,notnewlaunchinstructions.
+
 Current handoff2026-11-08: D1125 current7B R0H0 W1 REGISTERED, NOT STARTED.
 Read D1125_7B_R0H0_W1_REGISTRATION_20261108.md. Only existing load_only and
 no_handoff plus3isolatedpaths; sameFullD1115/non-targets, no serving-code change.

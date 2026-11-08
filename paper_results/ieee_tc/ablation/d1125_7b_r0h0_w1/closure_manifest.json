@@ -1,0 +1,112 @@
+{
+  "analysis_attempts": "analysis_attempts.md",
+  "analysis_cpu_affinity": [
+    2,
+    3,
+    26,
+    27
+  ],
+  "analysis_memory_high_gib": 3,
+  "analysis_memory_max_gib": 4,
+  "analysis_sources": {
+    "docs/ieee_tc/D1125_7B_R0H0_W1_REGISTRATION_20261108.md": "13103f267cbd171ce0ee88ca899144abad836acc496e2b3ea0ce6a55ed5aae84",
+    "docs/ieee_tc/D1125_7B_R0H0_W1_RESULT_20261108.md": "72d56790ab3a7ed27d376fb1c694e569ff3773bd3a41b4fdd1865066f797a6f6",
+    "paper_results/ieee_tc/ablation/d1123_7b_no_routing_w1/closure_manifest.json": "e07ab8b53e8d4478da839d218eb3b3c13ae7c947299dfb35c4596b7cd0817d91",
+    "paper_results/ieee_tc/ablation/d1124_7b_no_handoff_w1/closure_manifest.json": "1fef63e63ee495b539d1f56e83b16edaadbab425447bd91c4beb05c12d5e451f"
+  },
+  "analysis_swap_max": 0,
+  "analysis_units": [
+    "run-u385.service",
+    "run-u386.service",
+    "run-u387.service",
+    "run-u388.service",
+    "run-u389.service",
+    "run-u390.service",
+    "run-u391.service",
+    "run-u392.service"
+  ],
+  "analysis_wrapper_exceptions": {
+    "run-u388.service": {
+      "main_exit": 0,
+      "resource_domain_empty_then_removed": true,
+      "result": "timeout",
+      "wrapper_exit": 1
+    },
+    "run-u391.service": {
+      "main_exit": 0,
+      "resource_domain_empty_then_removed": true,
+      "result": "timeout",
+      "wrapper_exit": 1
+    }
+  },
+  "budget_gpu_seconds": 6756.571050141065,
+  "extra_raw_hashes": {
+    "launch.json": "ff47dbea3dd925ca67a3bbfab93d31e4870e092d82075691aecdf34e53715773",
+    "launcher.log": "798dfcdcdd5c20a39f3994026923043415ad5a2be18629392f32aa3d490e7f21",
+    "remote_monitor.log": "e5edada4a35dfda7c38a4dc751cc02f8e5d16855fc1fcf5264ae5a753d474668",
+    "remote_pre_health.json": "643384989c9b8502b5b1d6418f234d7fef99da32ffb0616d1da75793c22d7915",
+    "remote_service_stop.txt": "c21fa3c9864f884f0f038dc8566688577ee7382c4e11e49d1e743cb9e06dcb81",
+    "remote_transfers.jsonl": "9b34ab08d8cee68a5095c7963fafdf55ba3693c5f1737f306b4d8b457f650b2b"
+  },
+  "formal_ranking_eligible": false,
+  "gpu_compute_census_empty": true,
+  "independent_numerical_proof": false,
+  "independent_semantic_audit": {
+    "acceptance_status": "not_performed",
+    "reason": "Executor deterministic source, contract and formula checks are not independent semantic review."
+  },
+  "kind": "d1125_7b_r0h0_w1_closure_v1",
+  "main_goal_complete": false,
+  "n_correct": null,
+  "new_performance_runs_this_analysis": 0,
+  "outputs": {
+    "analysis_attempts.md": "fd50fd95835defc1ab2f3d6b6b0aff1ae6c1fda7c4e83fcb64bbd32e69c63a3d",
+    "compare.py": "abf273290c0457912c474cdb3fa4d975636fc68269895c3af815e5d34e185200",
+    "comparison/comparison.json": "30846a02fff843ce5789e6a9b62a5859ac060b539ae69ac462543d05ab6d3265",
+    "comparison/four_cell.csv": "1055dd47ee0dff35d7e418c10e840f8dccc5e060e9d66481e55c9debad93718f",
+    "comparison/four_cell.json": "7608ea5a69b81d631dc5b12ef50f886072d18223c37be15d6c61d30bb8ae4c57",
+    "comparison/manifest.json": "560f445c360d42edad9836ee98374e982311bdbb4b18c238d6dd2065a2a5ec64",
+    "comparison/mechanisms.json": "f1f0257697bc3cb2d327b526c50f3e0b88a3a6fda9cc2fad995319f73051bcd2",
+    "comparison/metrics.csv": "24d36f3a68a7aa06eb14c0e537a82f2886104356a21ad50f4d637758947dcef9",
+    "prelaunch.json": "d7177dd560371092fddaf08d6e5be126c57faf291079040076f4044f5c23e727",
+    "prelaunch_tests.txt": "a4b6c8c66f427644a2095020e8c9ee5c1904fefaa5185dcb194895e25ee72713",
+    "result1/evidence_review.json": "3749ab61c53cefa5bccb81af0d0bfe3b53e84fab52b20ceb1cbcd9808ed2dce4",
+    "result1/manifest.json": "30e4a5cdd36c5573c97cf2e9c44a5f219d6927b9306cd6b89c366c7f46be5a19",
+    "result1/reconciliation.json": "98f01321dc0ff2435cd7889592c17f15ac2ff7098a072745416492dc0a16d67f",
+    "source_verification.json": "afbd99de349c6469c18b0fda4e1ddba8300c4f72663b5b71babf02ee7f94173c",
+    "stages/summary.json": "7aaba9e924fbdb54bf5a30a8a60eade064bb27bc5b808e5cdafdecb6dad0322d"
+  },
+  "raw_directory": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1125_20261108/7b_r0h0_w1",
+  "raw_result_sha256": "7bc113c51767a313b9154db806472a408a966f98f6242fbae02aa41aed29ae5d",
+  "remote_clock_id": "remote-process-monotonic:9a9d024a464c4ec4b26ddd22721fd83e",
+  "remote_journal": "/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-ef8d2af466794257a61df3f609e36e0e.jsonl",
+  "remote_service_inactive_main_pid_zero": true,
+  "remote_sha256_matched": "9b34ab08d8cee68a5095c7963fafdf55ba3693c5f1737f306b4d8b457f650b2b",
+  "reused_full_physical_handoff_evidence": "paper_results/ieee_tc/ablation/d1124_7b_no_handoff_w1/handoff/manifest.json",
+  "run_checkpoint": "840a834226608743c4d741f70ea7323c25845938",
+  "source_verification": {
+    "analysis_unit": "run-u391.service",
+    "kind": "executor_hash_recheck_not_independent_review",
+    "protected_publication_files_unchanged": 144,
+    "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "verified_unique_sources": 64
+  },
+  "tests": {
+    "cpus": [
+      2,
+      3,
+      26,
+      27
+    ],
+    "duration_s": 0.203,
+    "exec_main_status": 0,
+    "memory_high_gib": 3,
+    "memory_max_gib": 4,
+    "passed": 10,
+    "reused_no_handoff_activation_tests": "D1124 unchanged production and activation test sources; prior wrapper timeout retained, no repeat",
+    "service_runtime_s": 10.258,
+    "swap_max": 0,
+    "systemd_wrapper_exit_code": 0,
+    "unit": "run-u383.service"
+  }
+}
