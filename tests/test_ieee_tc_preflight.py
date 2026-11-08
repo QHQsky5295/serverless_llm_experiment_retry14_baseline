@@ -200,10 +200,10 @@ class NativeGraphDiagnosticSelection(unittest.TestCase):
 
 
 class ApprovedPlanIdentity(unittest.TestCase):
-    def test_current_binding_matches_published_baselines_and_single_run_plan(self):
-        self.assertEqual(p.SNAPSHOT.name, 'PLAN_APPROVED_20261014_PUBLISHED_BASELINES.md')
+    def test_current_binding_matches_quality_resource_closure_plan(self):
+        self.assertEqual(p.SNAPSHOT.name, 'PLAN_APPROVED_20261108_QUALITY_RESOURCE_CLOSURE.md')
         self.assertEqual(p.check_plan(),
-            'd7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83')
+            'b5170643aa5d332efc67407af10ab7022a2d68fd802e2389d253968bd92dcf8f')
 
     def test_plan_mismatch_still_refuses_instead_of_selecting_a_fallback(self):
         with tempfile.TemporaryDirectory() as tmp:

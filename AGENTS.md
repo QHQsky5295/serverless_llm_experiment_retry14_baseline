@@ -1,5 +1,101 @@
 # PrimeLoRA IEEE TC execution contract
 
+LATESTgoal a24095ba-25f6-48fb-8732-ac24a825984c readfully. Readthisattachment
+beforecontinuing, supersedes2d471652. Addedinstruction reinforces minimalgates/
+no defensivecoding/mainline. No metric/PLANchange needed: frozenG1/G2 andapproved
+closurepriorities alreadyapply. Closureledger reusesexistingrecords, no duplicate
+qualification/all-aux-first/minimumeffectsize threshold. Independentreviewpending
+is disclosure, not experimentblocker. Finishcurrentexplicitbackup, thenledger.
+
+Planrevisionu402 FINISHED:2/2tests/main0,wrapper1timeout,actualdomainremoved.
+DoNOTrerun tests. ReadPLAN_REVISION_20261108_QUALITY_RESOURCE_CLOSURE.md.
+Current noGPUrun/noanalysisprocess. Needexplicitbackup thencompleted-group ledger.
+
+CURRENT2026-11-08 12:14+08: D1126 COMPLETED/released/analyzed/source-sealed.
+DO NOT re-run/wait oldGPUhandle. ReadD1126_7B_DELAYED_HANDOFF_W1_RESULT_20261108.md
+andRUN_STATUS.4000nativecontracts,joint97.8%,U7864.276308908593,P95TTFT2454.767521.
+FullD1115 U-3.311196%,P95-5.028501%,joint+.75pp; meanTPOT/E2Eworse,bothoverB,
+notG2/globalwin.191outputdigestdifferences/n_correctnull retained.65sources/144old
+publicationfiles/userdirtyverified; closureSHA5e005242b6e930fcca0ec89845dab41f6e20b6b539ed5ad72642ab9b38cf9539.
+MAIN PLAN UPDATE DONE: fullpriorcontentpreserved,newSHA
+b5170643aa5d332efc67407af10ab7022a2d68fd802e2389d253968bd92dcf8f,
+newapprovedsnapshotPLAN_APPROVED_20261108_QUALITY_RESOURCE_CLOSURE.md.
+preflightSNAPSHOT+identitytestonly; 2testsPASS/u402main0, wrapperstillawaited.
+D1126sealedwitholdPLAN/sourcebinding; no historicalmutations. NEXTexplicitbackup,
+thenALL completed-group closureledger usingcanonicaltables/registries BEFORE
+nextheavyjob. Userlatestgoal2d471652 read; primaryG1/G2/secondary and bounded
+execution/subclaim/systemclosure now normative. No blanketGPUreruns/noNoHOSTlaunch
+untilboundedledgercomplete. Entiregoalactive. PreviousturnVERIFIEDWAIT,currentPROGRESS.
+OlderLIVE/planpending paragraphs below are historical, not currentinstructions.
+
+NEW USER OBJECTIVE2026-11-08: read
+/home/qhq/.codex/attachments/2d471652-385d-404d-8aa5-d9233f0004ea/goal-objective.md
+instead of superseded4fc75b6c/09c239d3/a0e1d596. User APPROVES quality/resource closure structure
+and explicitly requests memory AND main PLAN update. Adopted in CLOSURE_CRITERIA_
+REASSESSMENT_20261108.md top: common95%minimum -> GPUtime; commonbudget -> joint+
+P95TTFT; wholefrontier/sensitivity, noactual-equal-quality claim/nocherry-picking.
+LATEST clarification: distinguish primary/secondary and execution/subclaim/system
+closure. LowGPUtime+higherP95 is NOT system-superiorityclosure. G1conditionalU
+benefit alone insufficient; G2 commonbudget P95lower AND observedjointnotlower
+must be evidenced in claimedscope. Secondarymean/P99/TPOT/E2E/CE cannotmaskmain
+failure; noall-aux-first rule. Workpointsseparate, noinventedmatchedqualitycurve.
+Detailednormative table nowinCLOSUREdoc; includeit inpendingmainPLANrevision.
+LATEST addition: audit ALL completed experiment groups before nextheavyjob;
+reusecanonical tables/registries/sourceevidence, classify executionsealed vs
+G1/G2/causalclaim supported/tradeoff/insufficient. Seal supported scope, retain
+allnegativepoints; no winnerfilter/globalclaim fromoneW1/no blanketGPUreruns.
+Unfinishedclaim -> existingdirectexperiment or ONE evidencedbottleneck candidate,
+boundednotendlessoptimization; secondarymetrics alone notnewoptimizationtask.
+Perform this bounded CPU/document audit AFTER D1126release/analysis and PLANupdate,
+BEFORE next7BNoHOST/newheavyjob; doNOTrestartHydraServeor3Bqualification.
+MANDATORY after D1126 actualrelease/analysis/source-seal, BEFORE D1127: prepend
+approvednormative revision to /home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md,
+preservewholepriorplan, addnewapprovedsnapshot, updatepreflight SNAPSHOT and
+ApprovedPlanIdentity targetedtests; retainoldsnapshot/runtimeSHA. MainPLAN
+currently STILL oldd7acd081; doNOTchange midrun orclaimalreadyupdated. No new
+performance rerun needed. ReadRUN_STATUS for exacthandoff.
+D1126timing preparedscript now separates observedchecks/evidencecompleteness;
+missing/nonbool native_load_invoked retainedunknown, notfalse/no-load. Still
+UNEXECUTED/UNTESTED. No performanceinvalidating gate orservingedit. CurrentD1126
+continues, sample1361 2569nativecontracts/noevents/swap; fullscopeactive.
+
+Latestverifiedwait2026-11-08 11:42:14+08: D1126 SAMErun, doNOTrelaunch.
+11:40panePID3757084live/serviceactive, Invocation5d5f6e09b671419a98df2fcb92e9ba2a.
+2092unique terminal/success/native-contract;submitted2096,sample1153events/swap0,
+noabort/foreign/escaped;3GPUheld,available107487952896B,disk164995158016B.
+ThisturnVERIFIED WAIT; latestgoal/wholePLAN reread. ReadD1126RUN_STATUS.
+No newconfig/prodedit/test/analysis/maintenance/push/remotechange/newGPUrun.
+ReadD1063NoHOSToutcome/boundary andD1065isolation history: implementedNoHOST gate
+independent_host_reuse=false, retain backing/staging; noD1127registration yet.
+Continue current7BD1126; noFull/baseline rerun/3Bswitch/sharedk3s. Wholegoalactive.
+
+Latestverifiedwait2026-11-08 11:33:31+08: D1126 SAMEpanePID3757084live,
+serviceactive/running Invocation5d5f6e09b671419a98df2fcb92e9ba2a unchanged.
+1000unique terminal/success/native-contract;two500phasescomplete,plannedgap.
+Sample636events/swap0,noabort/foreign/escaped,4GPUheld;available103073329152B,
+disk165710176256B. PreviousgoalturnPROGRESS;thisturnVERIFIED WAIT. ContinueSAMErun.
+Prepared curatedD1126 compare.py(fromD1124) and audit_delayed_timing.py(fromD1054),
+NOT imported/executed/syntaxchecked; Fullphysicalaudit reuseD1124bySHA only.
+ReadRUN_STATUS beforepostrelease syntax/analysis. No prodedit/test/maintenance/
+push/newGPUrun/remotechange. Fullscopeactive; no finalresult orclaimyet.
+
+LIVE handoff2026-11-08 11:28+08: D1126 DelayedHandoff7BW1 startedONCE,
+tmux tc-d1126-delayed-handoff-7b-w1 panePID3757084 live; DO NOT relaunch.
+Read D1126_7B_DELAYED_HANDOFF_W1_RUN_STATUS_20261108.md. Prelaunch4828565398acec5cd2e98a562a05150845bca00a
+pushedV2/remotematched. Service17cebf5cb2844997b440f6a655652232,
+Invocation5d5f6e09b671419a98df2fcb92e9ba2a;aux361bef274635475598257c006acf9505.
+Notice3615413.923865474,replay3615473.923865474,remoteclock0165252d60f44449a30ad87a8df61044.
+Sample306noevents/swap/abort/foreign/escaped,4GPUs;425unique terminal/success/nativecontract.
+Latestgoalfile a0e1d596-bac0-48c9-a9e9-5bd152eedaf8 read fully; new closure-analysis
+request handled in CLOSURE_CRITERIA_REASSESSMENT_20261108.md with primary literature.
+Distinguish commonminimumquality,actualA,latencythresholds,budget;keep95main/90,99,
+70,80exploratoryonly. No selective threshold,retuned-control ormixingworkpoints.
+Independent result-to-claim route unavailable, not a whole-goal blocker; no localPASS.
+Continue SAMErun toactualrelease, no tests/maintenance/push/production/remotechanges.
+Then existingD1113/D299/D455,Delayedphysicaltiming usingD1054;reuseD1124Fullaudit.
+NextNoHOST/CapacityOnly/cumulativenodes; entireA1-A5/S1-S13/docs/figures/V2active.
+ThisturnPROGRESS. All older NOTSTARTED below is history, not a newlaunch instruction.
+
 Current handoff2026-11-08: D1126 current7B DelayedHandoff W1 REGISTERED,
 NOT STARTED. Read D1126_7B_DELAYED_HANDOFF_W1_REGISTRATION_20261108.md.
 Existing delayed gate +3paths only; no serving-code edit. Four focused tests

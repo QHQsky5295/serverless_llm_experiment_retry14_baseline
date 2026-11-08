@@ -1,0 +1,1166 @@
+{
+  "kind": "d1126_7b_delayed_handoff_w1_observation_v1",
+  "results": {
+    "Full": {
+      "run": "D1115",
+      "system": "PrimeLoRA",
+      "requests": 4000,
+      "counts": {
+        "ttft_pass": 3963,
+        "tpot_pass": 3978,
+        "joint_pass": 3942
+      },
+      "workload": "W1",
+      "replay_plan": {
+        "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json",
+        "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+        "view_sha256": "103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3",
+        "count": 4000,
+        "source_count": 4000,
+        "profile": "W1",
+        "rate_scale": 1.0
+      },
+      "common_slo_sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+      "metrics": {
+        "ttft_ms": {
+          "count": 4000,
+          "mean": 988.9003224200569,
+          "p50_type1": 760.6630525551736,
+          "p95_type1": 2331.3295198604465
+        },
+        "tpot_ms": {
+          "count": 4000,
+          "mean": 36.31860317399562,
+          "p50_type1": 34.25881092811061,
+          "p95_type1": 56.03729913893499
+        },
+        "e2e_ms": {
+          "count": 4000,
+          "mean": 5141.060583192855,
+          "p50_type1": 4445.336711127311,
+          "p95_type1": 10955.810483545065
+        }
+      },
+      "physical_gpu_seconds": 7603.874677798245,
+      "gpu_seconds_per_offered_request": 1.9009686694495613,
+      "n_correct": null,
+      "variant": "Full",
+      "scenario": "tc_ieee_full",
+      "joint_slo": 0.9855,
+      "timing_feasible": true,
+      "remote": {
+        "server_transfers": 132,
+        "matched_request_transfers": 132,
+        "unmatched_server_transfers": 0,
+        "wire_bytes": 131480060,
+        "delivery": "prepublished_gzip_v1",
+        "request_time_packing": false
+      },
+      "resource": {
+        "samples": 2270,
+        "events": {
+          "watchdog_ready": 1,
+          "resource_sample": 2270,
+          "gpu_terminal_census": 1,
+          "service_domain_gone": 1
+        },
+        "host_min_available_bytes": 102288670720,
+        "service_peak_bytes": 21465821184,
+        "max_swap_bytes": 0,
+        "memory_events": {
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0
+        }
+      },
+      "tier_counts": {
+        "remote": 135,
+        "gpu": 2590,
+        "host": 435,
+        "nvme": 840
+      }
+    },
+    "DelayedHandoff": {
+      "run": "D1126",
+      "system": "PrimeLoRA",
+      "requests": 4000,
+      "counts": {
+        "ttft_pass": 3954,
+        "tpot_pass": 3954,
+        "joint_pass": 3912
+      },
+      "scenario": "tc_ieee_full",
+      "workload": "W1",
+      "replay_plan": {
+        "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json",
+        "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+        "view_sha256": "103ac4add35a43c4c2859cb1d9118ea18971186e7332ba8f025eb2754e98d9a3",
+        "count": 4000,
+        "source_count": 4000,
+        "profile": "W1",
+        "rate_scale": 1.0
+      },
+      "common_slo_sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+      "metrics": {
+        "ttft_ms": {
+          "count": 4000,
+          "mean": 995.7535092742182,
+          "p50_type1": 737.4498620629311,
+          "p95_type1": 2454.7675205394626
+        },
+        "tpot_ms": {
+          "count": 4000,
+          "mean": 35.80325482287906,
+          "p50_type1": 33.55517947096743,
+          "p95_type1": 57.46513656857941
+        },
+        "e2e_ms": {
+          "count": 4000,
+          "mean": 5048.701057064347,
+          "p50_type1": 4334.816719871014,
+          "p95_type1": 10887.287742458284
+        }
+      },
+      "physical_gpu_seconds": 7864.276308908593,
+      "gpu_seconds_per_offered_request": 1.9660690772271483,
+      "n_correct": null,
+      "variant": "DelayedHandoff",
+      "joint_slo": 0.978,
+      "timing_feasible": true,
+      "remote": {
+        "server_transfers": 132,
+        "matched_request_transfers": 131,
+        "unmatched_server_transfers": 1,
+        "wire_bytes": 131480060,
+        "delivery": "prepublished_gzip_v1",
+        "request_time_packing": false
+      },
+      "resource": {
+        "samples": 2274,
+        "events": {
+          "watchdog_ready": 1,
+          "resource_sample": 2274,
+          "gpu_terminal_census": 1,
+          "service_domain_gone": 1
+        },
+        "host_min_available_bytes": 101391585280,
+        "service_peak_bytes": 21732651008,
+        "max_swap_bytes": 0,
+        "memory_events": {
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0
+        }
+      },
+      "tier_counts": {
+        "remote": 136,
+        "gpu": 2560,
+        "host": 467,
+        "nvme": 837
+      }
+    }
+  },
+  "Full_relative_to_DelayedHandoff": {
+    "gpu_seconds_reduction": 0.03311196362917295,
+    "joint_slo_difference_percentage_points": 0.7500000000000062,
+    "p95_ttft_reduction": 0.05028500648073152
+  },
+  "matched_inputs": 4000,
+  "output_digest_differences": [
+    {
+      "request_id": "req_00009",
+      "Full": "4b65f946d8dd4705d3ed227f31aa6343970c2e79502d83e89e02739e1c0c7b26",
+      "DelayedHandoff": "ebcbe3bfab382a63ed9fe1789739c516a876398ffd505c274b4b5c617acf4bd8"
+    },
+    {
+      "request_id": "req_00037",
+      "Full": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "DelayedHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_00067",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_00077",
+      "Full": "191f72092b57948d0e5c9de1cfe48eb891b062394e9a6228a3650ca98b5ee796",
+      "DelayedHandoff": "4221eee50d9e6753af72843b415b50ec6a60a0822dbf230aafe3e5e3087fff73"
+    },
+    {
+      "request_id": "req_00091",
+      "Full": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6",
+      "DelayedHandoff": "49f63f849f9574140d818b861aaea0c7963cefb34b0ad3338b19d34c4b4a5ec4"
+    },
+    {
+      "request_id": "req_00104",
+      "Full": "3fd38ac7692dd3329565b11e7d619351dae75067a4b805954f72fe740d876cfa",
+      "DelayedHandoff": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6"
+    },
+    {
+      "request_id": "req_00125",
+      "Full": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "DelayedHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_00134",
+      "Full": "5036a59fded08d65d44a8a2e11a9fc1638078d1b98b9b55498b250b9f05b2106",
+      "DelayedHandoff": "bd4b1229be44da667a558d49027605bfb486b3bac3d2ab76997eae8152df42cc"
+    },
+    {
+      "request_id": "req_00146",
+      "Full": "dce9c6d4dd86068d0e1e464f1b60ab07391646b5c2ae48a9f5504cad44a02af3",
+      "DelayedHandoff": "4288a1993df25f6a3eb4c6220d54479813651083d894ba6df74957a50acc908b"
+    },
+    {
+      "request_id": "req_00161",
+      "Full": "08ca768f454d346fec7b94a30dfa78f67e7b8c93dd6ad01fcaa5481da9e25bd2",
+      "DelayedHandoff": "0b7cec3f37e583df834e674dcb30cb80e9194c2e57664dc6a3ae5611e3825a52"
+    },
+    {
+      "request_id": "req_00181",
+      "Full": "d549df861c975f04de43a310fb24d3fdef256b6c55dac8afaf09a523453fc0a2",
+      "DelayedHandoff": "50ebdc4bda29e0aa5dadaab2949bbbf1527bd4b19c2e9ff2cc92e487dab6241b"
+    },
+    {
+      "request_id": "req_00187",
+      "Full": "191f72092b57948d0e5c9de1cfe48eb891b062394e9a6228a3650ca98b5ee796",
+      "DelayedHandoff": "4221eee50d9e6753af72843b415b50ec6a60a0822dbf230aafe3e5e3087fff73"
+    },
+    {
+      "request_id": "req_00202",
+      "Full": "4221eee50d9e6753af72843b415b50ec6a60a0822dbf230aafe3e5e3087fff73",
+      "DelayedHandoff": "191f72092b57948d0e5c9de1cfe48eb891b062394e9a6228a3650ca98b5ee796"
+    },
+    {
+      "request_id": "req_00295",
+      "Full": "965d5e303933266e507e062922f1ada9c624a1d2b08242ea46beea6327a6ca40",
+      "DelayedHandoff": "75437b1fb2372276e6201dca521f6ed530275891b924fb54cf7bee3a0a326134"
+    },
+    {
+      "request_id": "req_00325",
+      "Full": "4221eee50d9e6753af72843b415b50ec6a60a0822dbf230aafe3e5e3087fff73",
+      "DelayedHandoff": "191f72092b57948d0e5c9de1cfe48eb891b062394e9a6228a3650ca98b5ee796"
+    },
+    {
+      "request_id": "req_00329",
+      "Full": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6",
+      "DelayedHandoff": "49f63f849f9574140d818b861aaea0c7963cefb34b0ad3338b19d34c4b4a5ec4"
+    },
+    {
+      "request_id": "req_00343",
+      "Full": "fa14489ab2b24b096e1efd8c82bfe4c96c17621c5d8cd565c4ee8cfa7a1dead6",
+      "DelayedHandoff": "6df2327fc6089250f6c0d7ef7fc31e7fe24b601f1c65b7c7ec5667de9b48d891"
+    },
+    {
+      "request_id": "req_00390",
+      "Full": "86cb254e0c2c91bf07321f7e9bdcf0f8ae16f0140d85b6dc0f92f05c3e630590",
+      "DelayedHandoff": "49bd491f7c8d888d88999f24e25f81b0b8faccff7ca3ba018bb206d62e3a86aa"
+    },
+    {
+      "request_id": "req_00407",
+      "Full": "191f72092b57948d0e5c9de1cfe48eb891b062394e9a6228a3650ca98b5ee796",
+      "DelayedHandoff": "4221eee50d9e6753af72843b415b50ec6a60a0822dbf230aafe3e5e3087fff73"
+    },
+    {
+      "request_id": "req_00419",
+      "Full": "ddbacd921c13ca7e1e8b3561ff94e8cb5af37fdf94c4e7d43a2b1cd1dc5b323a",
+      "DelayedHandoff": "cd9cf2390960f989ede39315ce063070e5f20a2d9ba27a9fffc7b3fc8494afbb"
+    },
+    {
+      "request_id": "req_00421",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_00423",
+      "Full": "cd9cf2390960f989ede39315ce063070e5f20a2d9ba27a9fffc7b3fc8494afbb",
+      "DelayedHandoff": "ddbacd921c13ca7e1e8b3561ff94e8cb5af37fdf94c4e7d43a2b1cd1dc5b323a"
+    },
+    {
+      "request_id": "req_00472",
+      "Full": "191f72092b57948d0e5c9de1cfe48eb891b062394e9a6228a3650ca98b5ee796",
+      "DelayedHandoff": "4221eee50d9e6753af72843b415b50ec6a60a0822dbf230aafe3e5e3087fff73"
+    },
+    {
+      "request_id": "req_00473",
+      "Full": "8df45e99562ac69122cd4c84d6082a5ff3ad5d3d068c9f8e7c3678842945c4c1",
+      "DelayedHandoff": "4219f0e434081b5255e8744a188f35c9598e73978ce6c69e95206154b0f5e3ec"
+    },
+    {
+      "request_id": "req_00495",
+      "Full": "2a1aa7e164c28ba2069b3c5420130de93f508468406eacbb3efca3c8993646b5",
+      "DelayedHandoff": "62cdb6958e7c33cac62a4fdc1245b04876528d00efab9fda18b7e2383fa45304"
+    },
+    {
+      "request_id": "req_00499",
+      "Full": "c8b005a91adf4bc19c4c4c270ebf15711fced488ab95419f84290f87cfa4f68d",
+      "DelayedHandoff": "32017df8a7f7f4f3653dc623d4a6c1b5a171ad9a9721ca5c3fb164884d7379e2"
+    },
+    {
+      "request_id": "req_00510",
+      "Full": "3e9cde124fc268fbd2f68b72f0683c93be744cd2b0ecfa7dd12db96f0209a408",
+      "DelayedHandoff": "e02e5001da648f17b84512612f0455881319357fbc5b2bbced96c5626613b70c"
+    },
+    {
+      "request_id": "req_00519",
+      "Full": "3d8ebf3f0a7565871062901338857e222f84bd9181c1a2d11d57e97201d1c8bd",
+      "DelayedHandoff": "c1bd93b160857907eabb2af8e56f5d72fb2c9c1b2fb01ba3d20a07d2e3887f90"
+    },
+    {
+      "request_id": "req_00522",
+      "Full": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "DelayedHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_00525",
+      "Full": "86cb254e0c2c91bf07321f7e9bdcf0f8ae16f0140d85b6dc0f92f05c3e630590",
+      "DelayedHandoff": "49bd491f7c8d888d88999f24e25f81b0b8faccff7ca3ba018bb206d62e3a86aa"
+    },
+    {
+      "request_id": "req_00529",
+      "Full": "f30b8f2e8b03da9deb20b27c66c2e1979ab772281d87b62b18a66a6f82894613",
+      "DelayedHandoff": "5d601e79e33737415bd20b60588c2e10949963bdcd89a0d0bbac0e9f3bff0be4"
+    },
+    {
+      "request_id": "req_00647",
+      "Full": "3fd38ac7692dd3329565b11e7d619351dae75067a4b805954f72fe740d876cfa",
+      "DelayedHandoff": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6"
+    },
+    {
+      "request_id": "req_00667",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_00668",
+      "Full": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "DelayedHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_00682",
+      "Full": "cd9cf2390960f989ede39315ce063070e5f20a2d9ba27a9fffc7b3fc8494afbb",
+      "DelayedHandoff": "ddbacd921c13ca7e1e8b3561ff94e8cb5af37fdf94c4e7d43a2b1cd1dc5b323a"
+    },
+    {
+      "request_id": "req_00765",
+      "Full": "3c94a883ee52e3b6b43099c70334601f5e6c0f700d4503e68621cbbb938c273f",
+      "DelayedHandoff": "9696789cf2ca5b9379e6de6c2ec2bc089c0f9bc42dbcee763178682db48089c7"
+    },
+    {
+      "request_id": "req_00767",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_00803",
+      "Full": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "DelayedHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_00837",
+      "Full": "9ff7a181c51cf73b778b5d7a0a31e7774a61c3720b5e44f1b2f25f2429100f34",
+      "DelayedHandoff": "6fc21b9c286a65587e00ead179855ca91cc96129650d0a344d4bd2a1361fd94c"
+    },
+    {
+      "request_id": "req_00846",
+      "Full": "d9fab3413ff1e6652ea1e932074849630e83e2a4e8e4c224997b795c0cfee34b",
+      "DelayedHandoff": "f2bc45567d7a278bd9db9bfac43c7b35ad79ce111ace95dc87194e4ba4a4d038"
+    },
+    {
+      "request_id": "req_00875",
+      "Full": "90f2dee2cb5c08ab14ebdade6df49a8e01f02a895d22aa28508e305319b2611c",
+      "DelayedHandoff": "413270d2b06477bcd15d2a60c222d8dad8993a8c77962cde0a1ddc8899356809"
+    },
+    {
+      "request_id": "req_00880",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_00913",
+      "Full": "d8966041c00c6cb1f112aae5415e4462d7abbed565d85fb00d2656be97613235",
+      "DelayedHandoff": "fc3c84b6927aeb6c56aeb3fbb65550c0cd7b2a993a936d5ca3d51f817ca52f31"
+    },
+    {
+      "request_id": "req_00914",
+      "Full": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "DelayedHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_00965",
+      "Full": "506e9c3f385f3e326489532cd1371aa52dcd2e05c32813138cf08ef370b04a08",
+      "DelayedHandoff": "632ccf39c94b5b838bd8532dc6e764b052ec4ef3ce5003a9294f0879a303d8c5"
+    },
+    {
+      "request_id": "req_00968",
+      "Full": "4fd3c79813ecdbacbdf8b320eed353833b7c07641998239ab75174508612486f",
+      "DelayedHandoff": "e9b0226be37343f0d95cdbf067e68032ff466ff3781bde0dc64d56a425b5a243"
+    },
+    {
+      "request_id": "req_00993",
+      "Full": "50ebdc4bda29e0aa5dadaab2949bbbf1527bd4b19c2e9ff2cc92e487dab6241b",
+      "DelayedHandoff": "d549df861c975f04de43a310fb24d3fdef256b6c55dac8afaf09a523453fc0a2"
+    },
+    {
+      "request_id": "req_01006",
+      "Full": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "DelayedHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_01032",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_01052",
+      "Full": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "DelayedHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_01102",
+      "Full": "3e91a95d3bd7017fa740c6d2a69e20dcc16e4c022fae03bbc8c161ef73eb3e00",
+      "DelayedHandoff": "37c86a78954dfb1b232290110f47677d0b69981a518c1b160f69b4368c1e95ab"
+    },
+    {
+      "request_id": "req_01137",
+      "Full": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "DelayedHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_01163",
+      "Full": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "DelayedHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_01187",
+      "Full": "49bd491f7c8d888d88999f24e25f81b0b8faccff7ca3ba018bb206d62e3a86aa",
+      "DelayedHandoff": "86cb254e0c2c91bf07321f7e9bdcf0f8ae16f0140d85b6dc0f92f05c3e630590"
+    },
+    {
+      "request_id": "req_01236",
+      "Full": "891c60d51716debb71879664f5cf6189f9754c4305dca9eb4b07b5ea115a3281",
+      "DelayedHandoff": "d8430e1161c3d9e80696c8dc21360e32d69932f74c00bba9c84916b40a6a6380"
+    },
+    {
+      "request_id": "req_01278",
+      "Full": "34db4a61149abcaa06e002dba4c6d75900c668efef9947a36397e1d63b292bf5",
+      "DelayedHandoff": "311d51a9b6a9d5a1fdfee8a5a0718f468f9ef9e98b3ebe73cd09ecd470c2ffe8"
+    },
+    {
+      "request_id": "req_01296",
+      "Full": "600d21a06a00f0d774c7140cb8e6ea7e91cf59658ad22f7bb54983dfdae8d28c",
+      "DelayedHandoff": "2694eeafb32dd388751f5c1799c718699cd33ca2aeeafef19fc9ad3eb7b68c15"
+    },
+    {
+      "request_id": "req_01302",
+      "Full": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "DelayedHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_01338",
+      "Full": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6",
+      "DelayedHandoff": "3fd38ac7692dd3329565b11e7d619351dae75067a4b805954f72fe740d876cfa"
+    },
+    {
+      "request_id": "req_01357",
+      "Full": "04e1e9c1536e714477549c40c03bff3ac7092b60d110be1ac9d67ad88253a2ee",
+      "DelayedHandoff": "385aa8fc570028f13a9c6e80ff2874538e274893bad761b75856c1d78c976502"
+    },
+    {
+      "request_id": "req_01384",
+      "Full": "3c97070f023570cfe06f4f4c1b148fb9967110456917ebe37ad11949883d39f5",
+      "DelayedHandoff": "97d7153f6e3121971a2fca21ae6a124adb3ab69135031065eb5a750c8979d750"
+    },
+    {
+      "request_id": "req_01408",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_01414",
+      "Full": "9296dcba865be59444f8dadbf2c66ecd876a42b613c9fb0b81a4edcd4fc14584",
+      "DelayedHandoff": "203f3309e5f84b18457e05680c6edd0e8df6047765ede3ba2812337011a2aa23"
+    },
+    {
+      "request_id": "req_01421",
+      "Full": "e02e5001da648f17b84512612f0455881319357fbc5b2bbced96c5626613b70c",
+      "DelayedHandoff": "3e9cde124fc268fbd2f68b72f0683c93be744cd2b0ecfa7dd12db96f0209a408"
+    },
+    {
+      "request_id": "req_01436",
+      "Full": "2694eeafb32dd388751f5c1799c718699cd33ca2aeeafef19fc9ad3eb7b68c15",
+      "DelayedHandoff": "600d21a06a00f0d774c7140cb8e6ea7e91cf59658ad22f7bb54983dfdae8d28c"
+    },
+    {
+      "request_id": "req_01439",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_01479",
+      "Full": "31751bb32671d4efbd417df8f4aca55faad01a9fb66e03ed1a3b34aea8c48b09",
+      "DelayedHandoff": "4eeda84f906a253b4d0d8539d209c47060bc4cd740a1f6557c2c6c02937d30d2"
+    },
+    {
+      "request_id": "req_01493",
+      "Full": "2694eeafb32dd388751f5c1799c718699cd33ca2aeeafef19fc9ad3eb7b68c15",
+      "DelayedHandoff": "600d21a06a00f0d774c7140cb8e6ea7e91cf59658ad22f7bb54983dfdae8d28c"
+    },
+    {
+      "request_id": "req_01498",
+      "Full": "c5b670f6356449588df195bd1f5e80cbf1d16067e122053ce71a2bc43f2f587b",
+      "DelayedHandoff": "90f376ce3cc9ca1213b5b088efcd83b6d050969edef6eaca4b3ada2b5fb020df"
+    },
+    {
+      "request_id": "req_01504",
+      "Full": "49bd491f7c8d888d88999f24e25f81b0b8faccff7ca3ba018bb206d62e3a86aa",
+      "DelayedHandoff": "86cb254e0c2c91bf07321f7e9bdcf0f8ae16f0140d85b6dc0f92f05c3e630590"
+    },
+    {
+      "request_id": "req_01529",
+      "Full": "4bad213b1e7eaab7ce1af818593502cb9795ea68ffb600857e4d540505274111",
+      "DelayedHandoff": "836fc8b71e827d1ac9a6f26e2f5382239fcb10844d6eceadaba3187756430673"
+    },
+    {
+      "request_id": "req_01541",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_01550",
+      "Full": "9c5bb5080e8b5e1ff10bd524df16dd5cca4e234e59301dd304b3430a39aa118b",
+      "DelayedHandoff": "c041f2d6053649d03159572d0fdf7563709bc537f752ec839b354f0993e807c0"
+    },
+    {
+      "request_id": "req_01565",
+      "Full": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "DelayedHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_01642",
+      "Full": "a96129b4f91a13610d12cae898accdff69b8f5af0c08915c5af3fe3f33508747",
+      "DelayedHandoff": "d397bd43dc2de69cc211ac6547ddcfcb163d849d629b7ef68ed8114192fb96ea"
+    },
+    {
+      "request_id": "req_01735",
+      "Full": "a90e513b6de7fe9f205f3a91526e2971b55737078b1977572818fa3f294f5399",
+      "DelayedHandoff": "0ddc73eecee623de54ca2b0a8b6c0f6585d3b64295c8f156b75913e8d55433e8"
+    },
+    {
+      "request_id": "req_01740",
+      "Full": "9ff7a181c51cf73b778b5d7a0a31e7774a61c3720b5e44f1b2f25f2429100f34",
+      "DelayedHandoff": "6fc21b9c286a65587e00ead179855ca91cc96129650d0a344d4bd2a1361fd94c"
+    },
+    {
+      "request_id": "req_01763",
+      "Full": "06006ebc1e70c83a92c831c56d0fb6ef56f6f2d0b8c792f1ff2f08f55e70b6e1",
+      "DelayedHandoff": "122b5c259e9651a9a3c394e090b28d7029fdeb7c31c4d78e1fe26c7913d6e07b"
+    },
+    {
+      "request_id": "req_01766",
+      "Full": "836fc8b71e827d1ac9a6f26e2f5382239fcb10844d6eceadaba3187756430673",
+      "DelayedHandoff": "4bad213b1e7eaab7ce1af818593502cb9795ea68ffb600857e4d540505274111"
+    },
+    {
+      "request_id": "req_01780",
+      "Full": "50ebdc4bda29e0aa5dadaab2949bbbf1527bd4b19c2e9ff2cc92e487dab6241b",
+      "DelayedHandoff": "d549df861c975f04de43a310fb24d3fdef256b6c55dac8afaf09a523453fc0a2"
+    },
+    {
+      "request_id": "req_01782",
+      "Full": "4219f0e434081b5255e8744a188f35c9598e73978ce6c69e95206154b0f5e3ec",
+      "DelayedHandoff": "8df45e99562ac69122cd4c84d6082a5ff3ad5d3d068c9f8e7c3678842945c4c1"
+    },
+    {
+      "request_id": "req_01786",
+      "Full": "3d67692071b8fe7f7820520bbfb2a421575fa45ddf2ff3ad67c8180f1fae2217",
+      "DelayedHandoff": "26d6e3368f8678f00d7a45ac0c412f34d87e1dc6dead427c2e96cb1c7d4ca3ae"
+    },
+    {
+      "request_id": "req_01800",
+      "Full": "2a1aa7e164c28ba2069b3c5420130de93f508468406eacbb3efca3c8993646b5",
+      "DelayedHandoff": "62cdb6958e7c33cac62a4fdc1245b04876528d00efab9fda18b7e2383fa45304"
+    },
+    {
+      "request_id": "req_01811",
+      "Full": "01dd14af51ef8a9a21208926f173c5831b174320e82563d0dc9dd5c1ba78faf9",
+      "DelayedHandoff": "a959a1af5a0695b47dba70f13993eff2a64c660024da471e36b46ac9e3803c4c"
+    },
+    {
+      "request_id": "req_01812",
+      "Full": "dce9c6d4dd86068d0e1e464f1b60ab07391646b5c2ae48a9f5504cad44a02af3",
+      "DelayedHandoff": "4288a1993df25f6a3eb4c6220d54479813651083d894ba6df74957a50acc908b"
+    },
+    {
+      "request_id": "req_01814",
+      "Full": "48efcbaa18402496ad4269faac0e17234d33e0507c0c77c08fd552496e9cdd48",
+      "DelayedHandoff": "24ded50e8cd0eb1a23c9f5c881381509f53712e55bb929278239a08163a0fe26"
+    },
+    {
+      "request_id": "req_01865",
+      "Full": "34db4a61149abcaa06e002dba4c6d75900c668efef9947a36397e1d63b292bf5",
+      "DelayedHandoff": "311d51a9b6a9d5a1fdfee8a5a0718f468f9ef9e98b3ebe73cd09ecd470c2ffe8"
+    },
+    {
+      "request_id": "req_01901",
+      "Full": "6eff6a701b83e0d3322ac7f3dd99ca25c42ef3483287a29ce76e60567e335a9c",
+      "DelayedHandoff": "91449b5babde70eb5ec8cfcde011f9f993cbdc0b994af081b03cea3a81321eb8"
+    },
+    {
+      "request_id": "req_01915",
+      "Full": "3e9cde124fc268fbd2f68b72f0683c93be744cd2b0ecfa7dd12db96f0209a408",
+      "DelayedHandoff": "e02e5001da648f17b84512612f0455881319357fbc5b2bbced96c5626613b70c"
+    },
+    {
+      "request_id": "req_01939",
+      "Full": "3b678dcbb8925d083a328237fe8b800eba5625b1603f7d5d27e3234c3d74e142",
+      "DelayedHandoff": "4384927fd0a481adf0ed4041c4244b597c4ed6d054d3b24ba1ae6e5eb2817fc2"
+    },
+    {
+      "request_id": "req_02002",
+      "Full": "9c5bb5080e8b5e1ff10bd524df16dd5cca4e234e59301dd304b3430a39aa118b",
+      "DelayedHandoff": "c041f2d6053649d03159572d0fdf7563709bc537f752ec839b354f0993e807c0"
+    },
+    {
+      "request_id": "req_02009",
+      "Full": "69d42fbb09a114e418f773c612657c008977b6cb50f768799d6113eb3f69714f",
+      "DelayedHandoff": "f6ed0e8ea944991df23aaccc54bb1f842e367eae7127ee7dc9df392c55c582fa"
+    },
+    {
+      "request_id": "req_02012",
+      "Full": "d9fab3413ff1e6652ea1e932074849630e83e2a4e8e4c224997b795c0cfee34b",
+      "DelayedHandoff": "f2bc45567d7a278bd9db9bfac43c7b35ad79ce111ace95dc87194e4ba4a4d038"
+    },
+    {
+      "request_id": "req_02027",
+      "Full": "d16c40e98081143b49eee09b3b6f98983e48253df2f9fd489c5f98650d74ba19",
+      "DelayedHandoff": "9d2f1a24e7e3c4d33c5c0aee5e178341e299aea1371616da8dd119856ac0dec9"
+    },
+    {
+      "request_id": "req_02049",
+      "Full": "4d1169ded6acc97e2d9d5192826dfa46485cafa2512d1543479cbf5ad19d2d86",
+      "DelayedHandoff": "e522362b294b031721772bf8da7960ac12f22abcd4bc6ee3289244d81340280d"
+    },
+    {
+      "request_id": "req_02051",
+      "Full": "3fd38ac7692dd3329565b11e7d619351dae75067a4b805954f72fe740d876cfa",
+      "DelayedHandoff": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6"
+    },
+    {
+      "request_id": "req_02068",
+      "Full": "d28629ba0368dd05a0d499e4602ba9c694a827a099ca62fea12c11eca143acbe",
+      "DelayedHandoff": "ea515bbf2a691ccead1fdfa050b7368f04fe8ad20a3b9e8eecae46d5bbf91d46"
+    },
+    {
+      "request_id": "req_02078",
+      "Full": "e9b0226be37343f0d95cdbf067e68032ff466ff3781bde0dc64d56a425b5a243",
+      "DelayedHandoff": "4fd3c79813ecdbacbdf8b320eed353833b7c07641998239ab75174508612486f"
+    },
+    {
+      "request_id": "req_02097",
+      "Full": "d58fc704cbc18fcd43faf79881e418d3a6251bc5a1b9c4e1814adc5fcf9e9c88",
+      "DelayedHandoff": "abbf5c6732e45568d9282dd62b606cfc006a6cf1fa7379c52c2c120a32bbd913"
+    },
+    {
+      "request_id": "req_02108",
+      "Full": "ca4a4815d9a6ed2346b6c4a7e0870ae135ba5f45ee6d207253155b237e648ec3",
+      "DelayedHandoff": "db52ad1ca4946474fec5f74195d4b4ceda807045790d3ea9353895f4fc89fc61"
+    },
+    {
+      "request_id": "req_02187",
+      "Full": "97d7153f6e3121971a2fca21ae6a124adb3ab69135031065eb5a750c8979d750",
+      "DelayedHandoff": "3c97070f023570cfe06f4f4c1b148fb9967110456917ebe37ad11949883d39f5"
+    },
+    {
+      "request_id": "req_02199",
+      "Full": "86cb254e0c2c91bf07321f7e9bdcf0f8ae16f0140d85b6dc0f92f05c3e630590",
+      "DelayedHandoff": "49bd491f7c8d888d88999f24e25f81b0b8faccff7ca3ba018bb206d62e3a86aa"
+    },
+    {
+      "request_id": "req_02214",
+      "Full": "82a32d5ac1d15db61d5c6e32762fd13f79693f820d3855c20a2d6da78af16c59",
+      "DelayedHandoff": "1e8a4bf599a15b71a8b91d40920a6de7390489faeb56d0e32220fb2b50b3239a"
+    },
+    {
+      "request_id": "req_02271",
+      "Full": "1e8a4bf599a15b71a8b91d40920a6de7390489faeb56d0e32220fb2b50b3239a",
+      "DelayedHandoff": "82a32d5ac1d15db61d5c6e32762fd13f79693f820d3855c20a2d6da78af16c59"
+    },
+    {
+      "request_id": "req_02320",
+      "Full": "5dcc325b56c5154987a294fa573e536095e93f3a2ec2b91f1dcaf61e041d330b",
+      "DelayedHandoff": "91653039af54bc1c21ead7e320db5daabd6f368da688403cabb38755adda36e6"
+    },
+    {
+      "request_id": "req_02326",
+      "Full": "ae8a66a7ede2b38ce31cf9be63217faf66cee1ea0b51bfc51df9fc6a0796f161",
+      "DelayedHandoff": "03c48699344f6ff95f67ea7c08b1dc315a6f7d39781f7199ae9b515708614223"
+    },
+    {
+      "request_id": "req_02332",
+      "Full": "891c60d51716debb71879664f5cf6189f9754c4305dca9eb4b07b5ea115a3281",
+      "DelayedHandoff": "d8430e1161c3d9e80696c8dc21360e32d69932f74c00bba9c84916b40a6a6380"
+    },
+    {
+      "request_id": "req_02336",
+      "Full": "70ab8b7277339cd07761c849581c9384ec6b07ee654ee8dbfc3a669cc6648a24",
+      "DelayedHandoff": "7352b18664d88288b7a9c8d503cee71e36cfc6747aa172bbf8fe795bc6921760"
+    },
+    {
+      "request_id": "req_02340",
+      "Full": "e84292ee2b122b932f716c7cdca5171b46b473c7fa1ca4dad96ff2c0c2c1a3cf",
+      "DelayedHandoff": "6e0bd925332e0d12f9105547beb347a6e37cce4b5798d1e9ad727182b44aa11c"
+    },
+    {
+      "request_id": "req_02341",
+      "Full": "a2e7f559ae3f52673c5c0f97c578a40805236f312a167c28889126bdd6aa46f8",
+      "DelayedHandoff": "1f41c3b94a280d22024bfb060a0a2c33001cadcb5db3346c525fd05f0c3e3394"
+    },
+    {
+      "request_id": "req_02344",
+      "Full": "c1f9325650f11a6395b3155361af32c8ce9bad10049aa84eb1723b9e3cdb5443",
+      "DelayedHandoff": "8d8f7afd8a0307ef8f8ccab538bdc31832a0df620d2ff3bb65c56b1b75ce9fb9"
+    },
+    {
+      "request_id": "req_02347",
+      "Full": "ae8a66a7ede2b38ce31cf9be63217faf66cee1ea0b51bfc51df9fc6a0796f161",
+      "DelayedHandoff": "03c48699344f6ff95f67ea7c08b1dc315a6f7d39781f7199ae9b515708614223"
+    },
+    {
+      "request_id": "req_02391",
+      "Full": "e377f6fd88abb1f179fdbc353fff9bd80228c2e36e4021bcca2d11e519f9f237",
+      "DelayedHandoff": "15143d45f3f38cb2ac6fb61f415f446a5126f3a453ef2f9994bc932a8b0296c1"
+    },
+    {
+      "request_id": "req_02395",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_02417",
+      "Full": "e982a6c718ed79a68c7549b7442f1b950ba331bb5dcaa30c79abd42450748579",
+      "DelayedHandoff": "3c97070f023570cfe06f4f4c1b148fb9967110456917ebe37ad11949883d39f5"
+    },
+    {
+      "request_id": "req_02435",
+      "Full": "2b5837fc9bd66cff073bd0d2b6c674e85ff2ed7910dd78c66fe54e41801782fb",
+      "DelayedHandoff": "2b62500bd8c2e9ee5228462e34393d0b35aeae891d5d8631c333d7f5e7dcd6fa"
+    },
+    {
+      "request_id": "req_02436",
+      "Full": "03c48699344f6ff95f67ea7c08b1dc315a6f7d39781f7199ae9b515708614223",
+      "DelayedHandoff": "ae8a66a7ede2b38ce31cf9be63217faf66cee1ea0b51bfc51df9fc6a0796f161"
+    },
+    {
+      "request_id": "req_02484",
+      "Full": "4fd3c79813ecdbacbdf8b320eed353833b7c07641998239ab75174508612486f",
+      "DelayedHandoff": "e9b0226be37343f0d95cdbf067e68032ff466ff3781bde0dc64d56a425b5a243"
+    },
+    {
+      "request_id": "req_02494",
+      "Full": "742c018a0ce52dd4eea4dda5d102542631b89631f30754fa2d98e4abe4539414",
+      "DelayedHandoff": "d815b1303fbc92daea538c9ae570ca93b963bdbf38edf7b8475bbfdc2473321c"
+    },
+    {
+      "request_id": "req_02519",
+      "Full": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "DelayedHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_02553",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_02578",
+      "Full": "207664fe3d712ca37d6a17c879e5dbae1e21143b40ed02bee5e4be648a42b94e",
+      "DelayedHandoff": "c27681280cc27bf9a0002ea3ad48ec6a09d9c5da0929524d5232140588e2f136"
+    },
+    {
+      "request_id": "req_02585",
+      "Full": "d58fc704cbc18fcd43faf79881e418d3a6251bc5a1b9c4e1814adc5fcf9e9c88",
+      "DelayedHandoff": "7d2f5dd669a87c3bc9882417c7bac4f684e682d8c45f38afce0f20372912c02a"
+    },
+    {
+      "request_id": "req_02608",
+      "Full": "4fd3c79813ecdbacbdf8b320eed353833b7c07641998239ab75174508612486f",
+      "DelayedHandoff": "e9b0226be37343f0d95cdbf067e68032ff466ff3781bde0dc64d56a425b5a243"
+    },
+    {
+      "request_id": "req_02619",
+      "Full": "930057ed89b824f62620e5b9decee7746b9c7a83083847f493a1184e49e74d4e",
+      "DelayedHandoff": "4d9393357f4e85091251b28c8a6358a29ba835ee5e31966015cf2538767e892f"
+    },
+    {
+      "request_id": "req_02623",
+      "Full": "e8a75c3b47bc71da8a5042877b17b0e47b8bfddfb6d817d05d25d6b7431dda7e",
+      "DelayedHandoff": "b08208f485aa92c313906b70c5a029f2b25bd4d68ea702588bab82c3a10a7b2a"
+    },
+    {
+      "request_id": "req_02717",
+      "Full": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6",
+      "DelayedHandoff": "3fd38ac7692dd3329565b11e7d619351dae75067a4b805954f72fe740d876cfa"
+    },
+    {
+      "request_id": "req_02729",
+      "Full": "e51e2e847f1dfc6e3cbe2b5fc9b873f4d087a83310f57ac1a4d8e0b929447999",
+      "DelayedHandoff": "20b0522e7d061a51207f669c7137b64c3927f5b137f9a2bd8f8707350adca178"
+    },
+    {
+      "request_id": "req_02760",
+      "Full": "f9ea9667cbfd89dd1bd75751c40a86516b8eb6630d57841ea0ff865c90733947",
+      "DelayedHandoff": "a2dbb0b39f82d9bc54d99147c2da0992bad32aeae9b4b06a84d9b9ee541eac57"
+    },
+    {
+      "request_id": "req_02765",
+      "Full": "33be974f7e81c46e1b409345213f4616d9659588268f063f95ce44fe1896747e",
+      "DelayedHandoff": "296d6f3a6327b763e5ef83c2947e32798f30253f940aef2ea7399c2a35da69cf"
+    },
+    {
+      "request_id": "req_02775",
+      "Full": "44d142a0b6da042bfc383d47756f4ab60706178167e601a8982467651694b664",
+      "DelayedHandoff": "30cce5873143419a36d49b7fd392cc19eb72dd7b3d719301ae7e3706f3229042"
+    },
+    {
+      "request_id": "req_02780",
+      "Full": "57a4df964bd726c8a384ad64083477574b3113bb7686c381bd3717f059b4b84c",
+      "DelayedHandoff": "15143d45f3f38cb2ac6fb61f415f446a5126f3a453ef2f9994bc932a8b0296c1"
+    },
+    {
+      "request_id": "req_02782",
+      "Full": "9fc2d9d8294b2c41faf93aa28d3910b56feb4e9dc0c4b9f1b1da219e3c7ca16c",
+      "DelayedHandoff": "b4198bd445843e053941234f988a3619aac1c4f9da94908f2206fa0e01cc32d9"
+    },
+    {
+      "request_id": "req_02818",
+      "Full": "965d5e303933266e507e062922f1ada9c624a1d2b08242ea46beea6327a6ca40",
+      "DelayedHandoff": "75437b1fb2372276e6201dca521f6ed530275891b924fb54cf7bee3a0a326134"
+    },
+    {
+      "request_id": "req_02820",
+      "Full": "4ce0a11593d474b4272742b4a049411cf06ff96310765b59871ba455420e0b07",
+      "DelayedHandoff": "3106b28077e25826c38c4acd5618120cf356fe92a381e1c34b15673a6d18d84e"
+    },
+    {
+      "request_id": "req_02828",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_02836",
+      "Full": "1c55ccae3fa54c43a0d2a119ccb0ceba25abb72589e519d8a9b325e249990c60",
+      "DelayedHandoff": "cbf9bd0a2f8b00912191772622a58999147a53731ec07348acb46ac2447ea794"
+    },
+    {
+      "request_id": "req_02847",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_02854",
+      "Full": "7cfe54287de7e1ea610b74c26410207ef3864bb6b9d312f3c237fd390e3e7450",
+      "DelayedHandoff": "992c9604874ba8ca82b6dad92f2eccba9ebc43f36b775a09f56b36b1fce64393"
+    },
+    {
+      "request_id": "req_02886",
+      "Full": "c5b670f6356449588df195bd1f5e80cbf1d16067e122053ce71a2bc43f2f587b",
+      "DelayedHandoff": "90f376ce3cc9ca1213b5b088efcd83b6d050969edef6eaca4b3ada2b5fb020df"
+    },
+    {
+      "request_id": "req_02906",
+      "Full": "3c97070f023570cfe06f4f4c1b148fb9967110456917ebe37ad11949883d39f5",
+      "DelayedHandoff": "97d7153f6e3121971a2fca21ae6a124adb3ab69135031065eb5a750c8979d750"
+    },
+    {
+      "request_id": "req_02912",
+      "Full": "00e50dfbacc9ae659463021934cbf30a721c7bb694361c6bd35def7b1bbe18a9",
+      "DelayedHandoff": "332b5a8109debc74e584fefd21338e5e1e892459faa16714985821ccf449f017"
+    },
+    {
+      "request_id": "req_02920",
+      "Full": "d075674cbc1234633c8b5a4ea1098341e666da11569cf8f80bda5a3949e67771",
+      "DelayedHandoff": "a4fcb379a627936d22a29857db806026b73c633c9dc7b60a5c25e684b946cb7e"
+    },
+    {
+      "request_id": "req_02935",
+      "Full": "92e37cc749d541a77fb9d7e737f749671fb57ceb94f8cafbaf1824934cc4ca5b",
+      "DelayedHandoff": "e522362b294b031721772bf8da7960ac12f22abcd4bc6ee3289244d81340280d"
+    },
+    {
+      "request_id": "req_02972",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_02994",
+      "Full": "21ef86106cac382b7f8977568bd190f459a9ff73c8297a857949f522f3449892",
+      "DelayedHandoff": "1e8adc0d854a87dfc237f789660e713c1bcf4181f37dfe2185de45fe188e66c2"
+    },
+    {
+      "request_id": "req_03030",
+      "Full": "e073b864046f5c7351e0b5ba9eb5404d02085ac7abdb69d3e529a010ad0d896b",
+      "DelayedHandoff": "5532f47ce566a6cde2904bdc277e28b166c89cce252a9cf3e983da90ec1f64c7"
+    },
+    {
+      "request_id": "req_03065",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_03070",
+      "Full": "506e9c3f385f3e326489532cd1371aa52dcd2e05c32813138cf08ef370b04a08",
+      "DelayedHandoff": "632ccf39c94b5b838bd8532dc6e764b052ec4ef3ce5003a9294f0879a303d8c5"
+    },
+    {
+      "request_id": "req_03075",
+      "Full": "0be5e00bcbcb4a79efbc04bc02a7ee6d60b1e4eecd54a8b6b10d66011db727dc",
+      "DelayedHandoff": "91dc8ed9b687c9b0ec0ae138a751668af2c9fae9406608c6eae952cba663a11a"
+    },
+    {
+      "request_id": "req_03079",
+      "Full": "a54f00a5427744daf48698de66f8861b188ae1cca99bed2ad8ca709475bd73a6",
+      "DelayedHandoff": "d97623ac5ac99db2c382a7b79bda85f7031cb8ebdc46c4d96dc1557df24f60c0"
+    },
+    {
+      "request_id": "req_03080",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_03083",
+      "Full": "ce85c7bb9c9f223a608e6b42b962ba82cad8a3b46ba7331dafc33e5b560c948e",
+      "DelayedHandoff": "e8859b976dd0b054d55dabc6bc626a8f32a122ae5dd65207d8c805b8c18c3c92"
+    },
+    {
+      "request_id": "req_03125",
+      "Full": "f94314ef65169455c73c2599a6eb099584e68236735a32af942728c562e9178b",
+      "DelayedHandoff": "c5c4fea84f88016e1d5082e2fe88633fbc7a270aa65afc6d4bb3735f69f3a5bb"
+    },
+    {
+      "request_id": "req_03135",
+      "Full": "03c48699344f6ff95f67ea7c08b1dc315a6f7d39781f7199ae9b515708614223",
+      "DelayedHandoff": "ae8a66a7ede2b38ce31cf9be63217faf66cee1ea0b51bfc51df9fc6a0796f161"
+    },
+    {
+      "request_id": "req_03139",
+      "Full": "5532f47ce566a6cde2904bdc277e28b166c89cce252a9cf3e983da90ec1f64c7",
+      "DelayedHandoff": "e073b864046f5c7351e0b5ba9eb5404d02085ac7abdb69d3e529a010ad0d896b"
+    },
+    {
+      "request_id": "req_03160",
+      "Full": "617d65daa8ea70a91f99006425e2c8636663888a4c4b5a1614167a22e07bc292",
+      "DelayedHandoff": "17359b3b224a2e6a3f24bcf05be9db3e89a64c4e1ab259779e307b619092a0b6"
+    },
+    {
+      "request_id": "req_03183",
+      "Full": "4fd3c79813ecdbacbdf8b320eed353833b7c07641998239ab75174508612486f",
+      "DelayedHandoff": "aa0eaf9edb5c616b6543e326f8a7c84bdb5d6f01443e910aaf270e614f553219"
+    },
+    {
+      "request_id": "req_03212",
+      "Full": "c4732b549c5fa5a65d550bf4c1ec8d77fb2848688fd36b6e11927c8a20d52ca6",
+      "DelayedHandoff": "aaa1740f052507d0aa8717285f544290c2cd6c69a5a92eb91624740df81d4bf0"
+    },
+    {
+      "request_id": "req_03228",
+      "Full": "3e91a95d3bd7017fa740c6d2a69e20dcc16e4c022fae03bbc8c161ef73eb3e00",
+      "DelayedHandoff": "37c86a78954dfb1b232290110f47677d0b69981a518c1b160f69b4368c1e95ab"
+    },
+    {
+      "request_id": "req_03280",
+      "Full": "a4fcb379a627936d22a29857db806026b73c633c9dc7b60a5c25e684b946cb7e",
+      "DelayedHandoff": "d075674cbc1234633c8b5a4ea1098341e666da11569cf8f80bda5a3949e67771"
+    },
+    {
+      "request_id": "req_03283",
+      "Full": "5bde02bfaf32c2a0b44613f1aaed29cc099a992b6592be811a9059f18777236f",
+      "DelayedHandoff": "e9cde80d8acd474a3fdc47240087f5421020dd8cd1946628ea004e2902fc4598"
+    },
+    {
+      "request_id": "req_03287",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_03300",
+      "Full": "7628ab2e2acafe37f47d907a2d33499e988a2266a63568e881863c837fdf5b06",
+      "DelayedHandoff": "04878fcfb4623cc06cc20e520a9ae3b4e1e329a45af23837d6acb233b2d7d3c5"
+    },
+    {
+      "request_id": "req_03302",
+      "Full": "d549df861c975f04de43a310fb24d3fdef256b6c55dac8afaf09a523453fc0a2",
+      "DelayedHandoff": "50ebdc4bda29e0aa5dadaab2949bbbf1527bd4b19c2e9ff2cc92e487dab6241b"
+    },
+    {
+      "request_id": "req_03342",
+      "Full": "75437b1fb2372276e6201dca521f6ed530275891b924fb54cf7bee3a0a326134",
+      "DelayedHandoff": "965d5e303933266e507e062922f1ada9c624a1d2b08242ea46beea6327a6ca40"
+    },
+    {
+      "request_id": "req_03356",
+      "Full": "3ad3b9b7d0ec4b195bdcb6dfad8918de03f9bf348c06c5001d521b6b2999098c",
+      "DelayedHandoff": "6ce0c4c1fa894115f6b525e00acd3f7bf75eb6e9744b95d82d523dc4a0fde17a"
+    },
+    {
+      "request_id": "req_03365",
+      "Full": "70ab8b7277339cd07761c849581c9384ec6b07ee654ee8dbfc3a669cc6648a24",
+      "DelayedHandoff": "7352b18664d88288b7a9c8d503cee71e36cfc6747aa172bbf8fe795bc6921760"
+    },
+    {
+      "request_id": "req_03410",
+      "Full": "671fed602c328226561e5577efae300431dca94eaab145a0f7b1524d55e39fba",
+      "DelayedHandoff": "e21faa0aa9c9cdac914cb42638d24b0fc9b930ad20f495912c1fda827ab12135"
+    },
+    {
+      "request_id": "req_03448",
+      "Full": "6df2327fc6089250f6c0d7ef7fc31e7fe24b601f1c65b7c7ec5667de9b48d891",
+      "DelayedHandoff": "0b7c99a6972ca941410209bd5f5551d5033359c2ebd94840bc786a471896b481"
+    },
+    {
+      "request_id": "req_03466",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_03474",
+      "Full": "3ba62fc14e83e312971734dca504e637f65c7ccc7090c1bc82a8362f52967429",
+      "DelayedHandoff": "d06488eb1c793ef0a4d64e25e3ba960e64d3d97a2d90913f41e5b53df0ada347"
+    },
+    {
+      "request_id": "req_03485",
+      "Full": "d075674cbc1234633c8b5a4ea1098341e666da11569cf8f80bda5a3949e67771",
+      "DelayedHandoff": "a4fcb379a627936d22a29857db806026b73c633c9dc7b60a5c25e684b946cb7e"
+    },
+    {
+      "request_id": "req_03513",
+      "Full": "a2e7f559ae3f52673c5c0f97c578a40805236f312a167c28889126bdd6aa46f8",
+      "DelayedHandoff": "1f41c3b94a280d22024bfb060a0a2c33001cadcb5db3346c525fd05f0c3e3394"
+    },
+    {
+      "request_id": "req_03526",
+      "Full": "0e1726b6cfde0f83f4900ca51723fe01771a68ec5856a0d699b474390e3c03ce",
+      "DelayedHandoff": "1a4e564194ec5c2198885e46b6069981d67ed4657e57613003969a8526b5d118"
+    },
+    {
+      "request_id": "req_03530",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_03621",
+      "Full": "3fd38ac7692dd3329565b11e7d619351dae75067a4b805954f72fe740d876cfa",
+      "DelayedHandoff": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6"
+    },
+    {
+      "request_id": "req_03643",
+      "Full": "b9899e2bb6ce53ea8adf242b14508a083b29f2560fc79e20f41274c1c18de7b6",
+      "DelayedHandoff": "ccbe371d423015a65c5373feec51e8da0f4dd017e6c88678e58d136032cd499b"
+    },
+    {
+      "request_id": "req_03645",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_03654",
+      "Full": "2ee1dfd9436c65c27fb45cabed04f0e7796508da1367cb6160357dfa12975930",
+      "DelayedHandoff": "62630772528bf1aeae0fd5b6f87a3772e7779690ffa2b692a04fe96fadfabfe5"
+    },
+    {
+      "request_id": "req_03667",
+      "Full": "d0f2c4238422661644e0fbdd2c9b30b92ce798c8f5fbc6f1dc63d4b3a79bcd95",
+      "DelayedHandoff": "96961f4f0ec70e742999b5935f0b5c401a4cf995e1a689547bd3b5816a654706"
+    },
+    {
+      "request_id": "req_03738",
+      "Full": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "DelayedHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_03781",
+      "Full": "a12ceb16d4ce301fa28105a360b13b41ade24c64f57a71c3f430ff1c8e7afee5",
+      "DelayedHandoff": "af225ecd617d6a8da82c526a2f3cdd5d1f50d7dec6a7ee282871a7b6e8161029"
+    },
+    {
+      "request_id": "req_03808",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_03834",
+      "Full": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "DelayedHandoff": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_03836",
+      "Full": "f30b8f2e8b03da9deb20b27c66c2e1979ab772281d87b62b18a66a6f82894613",
+      "DelayedHandoff": "5d601e79e33737415bd20b60588c2e10949963bdcd89a0d0bbac0e9f3bff0be4"
+    },
+    {
+      "request_id": "req_03849",
+      "Full": "70ab8b7277339cd07761c849581c9384ec6b07ee654ee8dbfc3a669cc6648a24",
+      "DelayedHandoff": "7352b18664d88288b7a9c8d503cee71e36cfc6747aa172bbf8fe795bc6921760"
+    },
+    {
+      "request_id": "req_03869",
+      "Full": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6",
+      "DelayedHandoff": "3fd38ac7692dd3329565b11e7d619351dae75067a4b805954f72fe740d876cfa"
+    },
+    {
+      "request_id": "req_03906",
+      "Full": "e662e544f00faf5f94d509c65f899c421207e301eb00e8553803d454e222ee56",
+      "DelayedHandoff": "78ba14c18571953a3b0c399f0a78f02f1aa0a41d14a9efe2b3bce697387b1965"
+    },
+    {
+      "request_id": "req_03915",
+      "Full": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "DelayedHandoff": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_03955",
+      "Full": "53d3d301e88b4aa9de8765fa03a8a83c0a7006583a4438c40a9fd4ac8e8ddd09",
+      "DelayedHandoff": "c5ce146187bec18ba33f77a62da09e0671e90a869dff46c3729ccd907ddfe272"
+    }
+  ],
+  "same_non_target_configuration": true,
+  "confidence_interval": null,
+  "independent_numerical_proof": false,
+  "final_ranking_eligible": false,
+  "source_refs": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261107_d1100_7b_busy_service_rate_w2.yaml": "386a34c84ec70e5d0d366f6d3bcaf0891536be503ba1359d583a93bd5ecf303f",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261108_d1126_7b_delayed_handoff_w1.yaml": "feb55626baf8b0abecb0df8c948cf95adb7aee8865e98e5a59d87396bfafdb4d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d1115_same_version_w1/result1/reconciliation.json": "8702484813d0fb7da009f513a983557478f8ee731b6b2208dafd266740c17656",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d1115_same_version_w1/result1/evidence_review.json": "6bc9f78b8ce2f3030742b3261df8fa6ac6f10a16af5b9c4c1f14c849556e6efd",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1115_20261107/7b_same_version_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d1115_7b_same_version_w1.json": "99574e407543545937b93d0277c7c70a4d3c28eb8107290d79db65aa1777e577",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1115_20261107/7b_same_version_w1/launch.json": "23adfd7b7b8b7519d0e6e9c969a2ed2c5fb16e7a7eba8cd1638b920e6c8e5cb4",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1115_20261107/7b_same_version_w1/launch.launch/physical_deployment/main_outcome.json": "9afaea049feced33c604957d5879c1e0df0609318e0ec153ef3e826ca43bcc48",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1115_20261107/7b_same_version_w1/launch.launch/physical_deployment/summary.json": "a1e7dbcb0c372c8cf32463cc1011c91d939cca1aa80c15183ee3e163f4e7cf1a",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1126_7b_delayed_handoff_w1/result1/reconciliation.json": "a9e00df56e09084525f0b282926fd26f206bf3cf204c7baa00778b2f636c070d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1126_7b_delayed_handoff_w1/result1/evidence_review.json": "d0c6c16b51644133f7df6b88b54e05f98ebecadef0c7b9f2477abeab63ec7f99",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1126_20261108/7b_delayed_handoff_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d1126_7b_delayed_handoff_w1.json": "0b432e0b76c368affd475a8e6bf95c00fe6dc7a8ee4941ecdb044491431b6720",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1126_20261108/7b_delayed_handoff_w1/launch.json": "09462be941ce0089e9f29298893bde79f2cf5ba1fab66defa1a5389b6543881b",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1126_20261108/7b_delayed_handoff_w1/launch.launch/physical_deployment/main_outcome.json": "f8c8da02385995e432a2547cd6ad40ddee7829e006f91b98d2d4ad7b57760227",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1126_20261108/7b_delayed_handoff_w1/launch.launch/physical_deployment/summary.json": "c794c20f180720a1356c11ee7f8fb4912b994dc0deb25d35e60f680324a1451c",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1126_7b_delayed_handoff_w1/compare.py": "22e642582d9c25e04d813347a33ce2119e8c3a001cbf4d94cbf166ec79f3cf89",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/check_d299_full_context.py": "cfd8204d45c86a8652773a288e7ff723c973c6983a0104f77465b7754bc4af14",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d389_scaleup_handoff_labels.py": "7c72b0568b9eff81cf9292a25a6f0ce56addc060b0dc91e199c2dd53fa05a70f",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py": "f051c0e4a07bd1ebe5af008edbbe4be6db650e0a083604700502656595b15629",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1054_3b_delayed_handoff_w1/comparison/compare.py.snapshot": "2c4c3e33912cc603c6b200e4fd6fb0975f7491a72432fd9f912c42690be1fb98",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/ablation/d1124_7b_no_handoff_w1/compare.py": "fe1fcfede98289cd44f584855e0ed61cf1326cdb5446814b26a72a39a253587d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+  },
+  "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "caveats": [
+    "Known seed42 development observations; not independent holdout or statistical inference.",
+    "Raw n_correct remains unknown; native binding and token contract are separate evidence.",
+    "Same-backend output changes retained, without an assumed numerical explanation.",
+    "Only handoff execution waits for engine-ready. Routing, ready-residency, admission, demand loading and physical safety are shared; closed-loop plans and activations may differ. This is not a cross-run same-plan controlled comparison.",
+    "Routing checks confirm shared service-bin semantics, not counterfactual latency. Handoff plan counts alone do not prove physical work before ready or first dispatch.",
+    "All resource and timing trade-offs are retained; no winner is preconditioned by this analyzer."
+  ]
+}

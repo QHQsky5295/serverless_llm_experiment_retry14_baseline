@@ -1,0 +1,119 @@
+{
+  "analysis_cpu_affinity": [
+    2,
+    3,
+    26,
+    27
+  ],
+  "analysis_memory_high_gib": 3,
+  "analysis_memory_max_gib": 4,
+  "analysis_sources": {
+    "paper_results/ieee_tc/ablation/d1126_7b_delayed_handoff_w1/audit_delayed_timing.py": "cf1b8db88bbf89f07167acbbeae87bb8edcfc477f209821442e0b0d623892722",
+    "paper_results/ieee_tc/ablation/d1126_7b_delayed_handoff_w1/compare.py": "22e642582d9c25e04d813347a33ce2119e8c3a001cbf4d94cbf166ec79f3cf89",
+    "paper_results/ieee_tc/main_comparison/d1113_contract_reconciliation/collect.py": "dc996480e5b97892c1ab3a33a6789b2cc6c3ed3ad463c7f1a82cec2b381bc33a",
+    "scripts/ieee_tc/analyze_d455_stages.py": "c7b005e636d4b80cd121ccbfda5c272a9dd21675e370a146022ffbf50410f5e0",
+    "scripts/ieee_tc/check_d299_full_context.py": "cfd8204d45c86a8652773a288e7ff723c973c6983a0104f77465b7754bc4af14",
+    "scripts/ieee_tc_preflight.py": "a15c5f21e7e30860dd5e413580726e6047245362cfcbbbc290799fff2acdcd4d"
+  },
+  "analysis_swap_max": 0,
+  "analysis_units": [
+    "run-u395.service",
+    "run-u396.service",
+    "run-u397.service",
+    "run-u398.service",
+    "run-u399.service",
+    "run-u400.service",
+    "run-u401.service"
+  ],
+  "analysis_wrapper_exceptions": {
+    "run-u395.service": {
+      "main_exit": 0,
+      "resource_domain_empty_then_removed": true,
+      "result": "timeout",
+      "wrapper_exit": 1
+    },
+    "run-u396.service": {
+      "main_exit": 0,
+      "resource_domain_empty_then_removed": true,
+      "result": "timeout",
+      "wrapper_exit": 1
+    }
+  },
+  "budget_gpu_seconds": 6756.571050141065,
+  "execution_plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+  "extra_raw_hashes": {
+    "launch.json": "09462be941ce0089e9f29298893bde79f2cf5ba1fab66defa1a5389b6543881b",
+    "launcher.log": "0863c3600a193f1c90823399b49171e850ee39c352a703355ff894987dca2a83",
+    "remote_journal_source.json": "e68736f06c19f5021ff62dcf6ab2ce3c99a7eeff63a9c035375c56f59b2c4b3d",
+    "remote_monitor.log": "b3a419ad76689930690e91e7aeb4bc2948d483b3b490e21f7e1555e723e8cced",
+    "remote_pre_health.json": "852ce2072f14fcaa2afea6b36adb911c12313a319108c631739e7f4bab04fab1",
+    "remote_service_stop.txt": "c21fa3c9864f884f0f038dc8566688577ee7382c4e11e49d1e743cb9e06dcb81",
+    "remote_transfers.jsonl": "1ff5d23f5371fb9fde384deaad7f30f5533de8e759ae69706e765eaa1db369a6"
+  },
+  "formal_ranking_eligible": false,
+  "gpu_compute_census_empty": true,
+  "independent_numerical_proof": false,
+  "independent_semantic_audit": {
+    "acceptance_status": "not_performed",
+    "reason": "Executor checks are not independent review."
+  },
+  "kind": "d1126_7b_delayed_handoff_w1_closure_v1",
+  "main_goal_complete": false,
+  "n_correct": null,
+  "new_performance_runs_this_analysis": 0,
+  "outputs": {
+    "analysis_attempts.md": "86587da521ab771bdb7e715ac92a7eaf6e73b51b88f035e5e34cbc6ae3721d43",
+    "audit_delayed_timing.py": "cf1b8db88bbf89f07167acbbeae87bb8edcfc477f209821442e0b0d623892722",
+    "compare.py": "22e642582d9c25e04d813347a33ce2119e8c3a001cbf4d94cbf166ec79f3cf89",
+    "comparison/comparison.json": "826f8dfba44306358f5610e4422a23514f492d29f90467d9819aea3556380109",
+    "comparison/manifest.json": "7b9300401958d0cf72f4ed49bd13a43a2252522d7e7a2999d04f20c2bf0dbdfc",
+    "comparison/mechanisms.json": "e845b08a64c282fa23aa5ec0aa08082bf25c74b55e691cf344a523f21c253b1c",
+    "comparison/metrics.csv": "be8347eec1ce882ce142defa19ac2e11a722aacd4333fb035be1b534e9093ffa",
+    "prelaunch.json": "9a533bef64613f6c1a30e6b4a76fb7a2aa4d32b55ea1e386e90c2dc8cea95284",
+    "prelaunch_tests.md": "af1f67fd2710c7d1f0a3bd0bed930d1537a14f852d7335b863db4b73f7d5cc86",
+    "result1/evidence_review.json": "d0c6c16b51644133f7df6b88b54e05f98ebecadef0c7b9f2477abeab63ec7f99",
+    "result1/manifest.json": "37b98632ef682641da774f1a823dd9a693517e5fd6bb71e9b7131673e910fa19",
+    "result1/reconciliation.json": "a9e00df56e09084525f0b282926fd26f206bf3cf204c7baa00778b2f636c070d",
+    "source_verification.json": "09007356405577e8446d36224ee2a29fac79525aab514b79e27f1e0e67c98534",
+    "stages/summary.json": "c01bcac267cc98ecaecb90437082c82f1d30b446b67a26ad74a0da2450f8e6ba",
+    "timing/audit_delayed_timing.py.snapshot": "cf1b8db88bbf89f07167acbbeae87bb8edcfc477f209821442e0b0d623892722",
+    "timing/handoff_timing.json": "84b75734a714bd4aaf055d939571344c1aa35436f2f8815f5957844142403cec",
+    "timing/manifest.json": "a3516c851859143e4c25033f2ae9fc6591049c7d159f8db8a1a9455d385237a7"
+  },
+  "raw_directory": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1126_20261108/7b_delayed_handoff_w1",
+  "raw_result_sha256": "0b432e0b76c368affd475a8e6bf95c00fe6dc7a8ee4941ecdb044491431b6720",
+  "remote_journal_source": {
+    "clock_id": "remote-process-monotonic:0165252d60f44449a30ad87a8df61044",
+    "kind": "post_release_remote_journal_copy_v1",
+    "local_name": "remote_transfers.jsonl",
+    "local_sha256": "1ff5d23f5371fb9fde384deaad7f30f5533de8e759ae69706e765eaa1db369a6",
+    "notes": [
+      "Clock ID was verified from journal contents; filename UUID is independent.",
+      "An initial filename derived from the clock ID did not exist; that copy attempt created no local data.",
+      "Campaign-parent symlink resolves to this run's unchanged copied journal."
+    ],
+    "remote_alias": "primelora-artifact-174",
+    "remote_main_pid": 0,
+    "remote_path": "/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-b4abb7cb5df242c7823007c79c6845e3.jsonl",
+    "remote_service_observed_inactive": true,
+    "remote_sha256": "1ff5d23f5371fb9fde384deaad7f30f5533de8e759ae69706e765eaa1db369a6",
+    "rows": 132
+  },
+  "remote_service_inactive_main_pid_zero": true,
+  "result_document": {
+    "path": "docs/ieee_tc/D1126_7B_DELAYED_HANDOFF_W1_RESULT_20261108.md",
+    "sha256": "d8d58a5e108548b7a1fe3b86ecc9dc605eb942a097a05c9c113f2abc156a78f0"
+  },
+  "run_checkpoint": "4828565398acec5cd2e98a562a05150845bca00a",
+  "source_verification": {
+    "analysis_unit": "run-u400.service",
+    "execution_plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83",
+    "kind": "executor_hash_recheck_not_independent_review",
+    "protected_publication_files_unchanged": 144,
+    "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "verified_unique_sources": 65
+  },
+  "source_verification_sha256": "09007356405577e8446d36224ee2a29fac79525aab514b79e27f1e0e67c98534",
+  "timing_evidence_complete": false,
+  "timing_observed_checks_passed": true
+}
