@@ -1541,7 +1541,8 @@ def _ieee_system_variant_contract(coord_cfg, preload_cfg, *, environment=None):
     if variant is None:
         return None
     variants = {'elastic_locality_v1': ('ElasticLocality', 'gpu_locality'),
-                'elastic_only_v1': ('ElasticOnly', 'load_only')}
+                'elastic_only_v1': ('ElasticOnly', 'load_only'),
+                'routing_only_v1': ('RoutingOnly', 'service_bins')}
     if variant not in variants:
         raise ValueError('unknown IEEE system variant')
     system, selection_strategy = variants[variant]
@@ -1560,8 +1561,8 @@ def _ieee_system_variant_contract(coord_cfg, preload_cfg, *, environment=None):
     slack = coord_cfg.get('locality_load_slack')
     if variant == 'elastic_locality_v1' and (type(slack) is not int or slack < 0):
         raise ValueError('ElasticLocality requires a nonnegative integer load slack')
-    if variant == 'elastic_only_v1' and 'locality_load_slack' in coord_cfg:
-        raise ValueError('ElasticOnly does not use locality_load_slack')
+    if variant != 'elastic_locality_v1' and 'locality_load_slack' in coord_cfg:
+        raise ValueError(f'{system} does not use locality_load_slack')
     env = os.environ if environment is None else environment
     for key in ('FAASLORA_IEEE_PROACTIVE_DIAGNOSTIC',
                 'FAASLORA_IEEE_PROACTIVE_DIAGNOSTIC_DURING_REPLAY'):
@@ -16629,7 +16630,8 @@ class ScenarioRunner:
             require(mechanism == getattr(self, '_ieee_mechanism_contract', None),
                     'system mechanism contract changed after assembly')
             expected_scenario = {'elastic_locality_v1': 'tc_ieee_elastic_locality',
-                                 'elastic_only_v1': 'tc_ieee_elastic_only'}[mechanism['variant']]
+                                 'elastic_only_v1': 'tc_ieee_elastic_only',
+                                 'routing_only_v1': 'tc_ieee_routing_only'}[mechanism['variant']]
             require(self.name == expected_scenario,
                     f'{mechanism["system"]} must retain its own scenario identity')
             selection = self.router.selection_contract()

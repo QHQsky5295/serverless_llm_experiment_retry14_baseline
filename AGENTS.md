@@ -1,5 +1,27 @@
 # PrimeLoRA IEEE TC execution contract
 
+CURRENT2026-11-08:D1129 current7B RoutingOnlyW1 REGISTERED/TESTED, NOTSTARTED.
+Read D1129REGISTRATION/RUN_STATUS. Minimal variant/scenario mapping adds
+routing_only_v1/service_bins; Full/selector/cache/autoscaler/equations unchanged.
+32focusedCPUtests passed/main0,wrapper1knownmanagementtimeout,domainremoved.
+Sourcecheck main/wrapper0:30sources/Full+ElasticOnly/144protected/3userdirtySHA
+verified. Config279e9df7382afa5d4cb73e3795eb3b1f5ac6690db87e73154ef6c1f19b825e8c.
+NEXTexplicitbackup thenfreshresources+ONEregisteredD1100runner launch.
+NoGPUrun; noFull/baseline/reanalysisrepeat or3Bswitch/sharedk3s. Afteractualrelease
+D1113/D299/D455 explicit tc_ieee_routing_only, compareD1119+D1115. Next
+RoutingHandoff scopedhandoff-only design; no newpatch thereyet. Fullscopeactive.
+CurrentturnPROGRESS. D1128 sealed/pushed e83ab2e3; doNOTrepeat it.
+
+BACKUP COMPLETE2026-11-08:D1128 sealed/pushed as
+e83ab2e3abb9eeaa1779b33a601eed7b46290920;remoteV2HEADverifiedequal.
+17explicitfiles,15output/6analysisSHA checked;userdirty/protectedexcluded.
+Closurec98f09b6175ee3996133c59f5fdf0a50649b14d640593b4540e9efe6ccd47209.
+Firstbackup stoppedbeforecommit on one sealedcompare.py trailingblankEOF;
+secondpreservedexecutedbytes with per-command blank-at-EOF exception only,
+allotherchecks passed/main+wrapper0. No globalgitconfigchanged. RAWreceipt saved.
+NoGPUrun. NEXT RoutingOnly composition implementation+focusedtests/registration,
+thenRoutingHandoff;no Full/baseline/reanalysisrepeat or3Bswitch/sharedk3s.
+
 CURRENT2026-11-08 14:58+08:D1128 COMPLETE/released/analyzed; no live GPU or
 analysis process. Read D1128_7B_CAPACITY_ONLY_W1_RESULT_20261108.md.
 FullD1115 vsCapacityOnly: U-4.61004749%,joint+.30pp,P95TTFT-0.08330814%

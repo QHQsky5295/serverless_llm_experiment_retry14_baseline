@@ -21,7 +21,7 @@ def ieee_control_fixture():
         ttft_upper_ms=1000, ttft_lower_ms=500, ttft_window_s=100, scale_down_cooldown_s=3)
 
 
-def elastic_locality_configuration_fixture(*, load_only=False):
+def elastic_locality_configuration_fixture(*, load_only=False, routing_only=False):
     coord, preload = (dict(ieee_system_variant='elastic_locality_v1',
         routing_policy='ieee_confirmed', ieee_selection_strategy='gpu_locality',
         locality_load_slack=1, ieee_handoff_policy='no_handoff',
@@ -33,6 +33,9 @@ def elastic_locality_configuration_fixture(*, load_only=False):
     if load_only:
         coord.update(ieee_system_variant='elastic_only_v1', ieee_selection_strategy='load_only')
         del coord['locality_load_slack']
+    if routing_only:
+        coord.update(ieee_system_variant='routing_only_v1', ieee_selection_strategy='service_bins')
+        coord.pop('locality_load_slack', None)
     return coord, preload
 
 
@@ -194,6 +197,44 @@ class ElasticOnlyContract(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'forbids proactive'):
             asyncio.run(service.run_ieee_proactive_admission_diagnostic())
         self.assertFalse(hasattr(service, '_ieee_proactive_diagnostic_attempted'))
+
+
+class RoutingOnlyContract(unittest.TestCase):
+    def test_configuration_changes_only_routing_identity_and_three_paths(self):
+        import copy
+        import yaml
+        root = Path(__file__).resolve().parents[1]/'configs/ieee_tc'
+        elastic = yaml.safe_load((root/'20261107_d1119_7b_elastic_only_w1.yaml').read_text())
+        routing = yaml.safe_load((root/'20261108_d1129_7b_routing_only_w1.yaml').read_text())
+        contract = runner._ieee_system_variant_contract(routing['resource_coordination'],
+            routing['scenarios'][0]['preloading'], environment={})
+        self.assertEqual(contract['system'], 'RoutingOnly')
+        self.assertEqual(contract['selection_strategy'], 'service_bins')
+        self.assertFalse(contract['proactive_preparation'])
+        self.assertEqual(routing['scenarios'][0]['name'], 'tc_ieee_routing_only')
+        normalized = copy.deepcopy(routing)
+        for section, keys in (
+                ('experiment', ('output_dir',)),
+                ('storage', ('nvme_cache_dir', 'host_cache_dir')),
+                ('resource_coordination', ('ieee_system_variant', 'ieee_selection_strategy'))):
+            for key in keys:
+                self.assertNotEqual(routing[section][key], elastic[section][key])
+                normalized[section][key] = elastic[section][key]
+        normalized['scenarios'][0]['name'] = elastic['scenarios'][0]['name']
+        self.assertEqual(normalized, elastic)
+
+    def test_routing_contract_does_not_enable_preparation_or_change_full(self):
+        coord, preload = elastic_locality_configuration_fixture(routing_only=True)
+        check = runner._ieee_system_variant_contract
+        self.assertIsNone(check({}, {}, environment={}))
+        self.assertEqual(check(coord, preload, environment={})['file_cache_policy'], 'demand_lru')
+        for changes in ({'ieee_selection_strategy': 'load_only'},
+                        {'ieee_handoff_policy': 'full'}, {'coordination_enabled': True},
+                        {'locality_load_slack': 0}):
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                check(coord | changes, preload, environment={})
+        with self.assertRaises(ValueError):
+            check(coord, preload | {'hierarchical_residency_enabled': True}, environment={})
 
 
 async def terminal_run_observation(policy):
@@ -390,9 +431,10 @@ class IEEEIntegratedLaunchContract(unittest.IsolatedAsyncioTestCase):
         self.service.engine_factory.assert_not_awaited()
         self.assertIsNone(self.service.engine.engine)
 
-    async def assemble_locality(self, *, load_only=False):
+    async def assemble_locality(self, *, load_only=False, routing_only=False):
         service = self.service
-        coord, preload = elastic_locality_configuration_fixture(load_only=load_only)
+        coord, preload = elastic_locality_configuration_fixture(
+            load_only=load_only, routing_only=routing_only)
         service.coord_cfg.update(coord)
         service.preload_cfg.update(preload)
         await service._stack.stop()
@@ -405,6 +447,8 @@ class IEEEIntegratedLaunchContract(unittest.IsolatedAsyncioTestCase):
             service_bin_ms=1.,ieee_selection_strategy=coord['ieee_selection_strategy'],
             locality_load_slack=coord.get('locality_load_slack'))
         service.name = 'tc_ieee_elastic_only' if load_only else 'tc_ieee_elastic_locality'
+        if routing_only:
+            service.name = 'tc_ieee_routing_only'
         service._ieee_handoff_policy = 'no_handoff'
         service._coordination_enabled = service._scale_up_handoff_enabled = False
         service._hierarchical_residency_enabled = False
@@ -441,6 +485,25 @@ class IEEEIntegratedLaunchContract(unittest.IsolatedAsyncioTestCase):
         service.router.ieee_selection_strategy = 'load_only'
         del service.coord_cfg['ieee_system_variant']
         with self.assertRaisesRegex(RuntimeError, 'complete locality variant'):
+            service._require_ieee_full_qualification()
+
+    async def test_routing_only_binds_service_bins_and_preserves_demand_owner(self):
+        await self.assemble_locality(routing_only=True)
+        service = self.service
+        service._require_ieee_full_qualification()
+        contract = service._ieee_full_launch_contract['system_mechanism_contract']
+        self.assertEqual(contract['system'], 'RoutingOnly')
+        self.assertEqual(contract['selection_strategy'], 'service_bins')
+        self.assertEqual(service._stack.residency_manager.local_source_references.file_cache_policy,
+                         'demand_lru')
+        service.engine_factory.assert_not_awaited()
+        for name in ('tc_ieee_full', 'tc_ieee_elastic_only', 'tc_ieee_elastic_locality'):
+            service.name = name
+            with self.subTest(name=name), self.assertRaisesRegex(RuntimeError, 'own scenario'):
+                service._require_ieee_full_qualification()
+        service.name = 'tc_ieee_routing_only'
+        service.router.ieee_selection_strategy = 'load_only'
+        with self.assertRaisesRegex(RuntimeError, 'actual locality owners'):
             service._require_ieee_full_qualification()
 
     async def test_complete_locality_rejects_full_label_owner_drift_and_late_diagnostic(self):
