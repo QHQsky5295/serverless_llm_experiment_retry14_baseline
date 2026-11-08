@@ -1,5 +1,27 @@
 # PrimeLoRA IEEE TC execution contract
 
+CURRENT2026-11-08: D1127 current7B NoHOST W1 REGISTERED, NOT STARTED.
+Read D1127_7B_NOHOST_W1_REGISTRATION_20261108.md. Existing independent_host_reuse
+false at storage/scenario plus3paths only; same D1100/FullD1115 controls, no
+serving edit. ConfigSHAcf9318a6fc3d4213f15e1e9b893d8515b6d7d96da6139c26c7c49f67fd91d8ac.
+Five focused CPUtests passed20.559s, main0; wrapper1 inotifyENOSPC stop timeout,
+actualdomainremoved, no repeatedtests/globalchange. Sourcecheck main/wrapper0:
+20sources/144protectedfiles/userdirty/Full/PLANb5170643 verified.
+NEXT explicitbackup then freshresources and unique launch in tc-d1127-nohost-7b-w1
+with unchanged D1100runner sevenargs. NoFull/baseline replay,3Bswitch/sharedk3s.
+After actualrelease use existingD1113/D299/D455 and NoHOSTmechanism audit; preserve
+backing/staging, unknowncorrectness andnegativeoutcomes. CurrentgoalturnPROGRESS.
+Complete ledger2657c902 already backedup; do not redoit. Fullremaining scopeactive.
+
+BACKUP VERIFIED 2026-11-08: closure ledger checkpoint
+2657c9022aa7dd3d15306f6172b040747b9390bc is pushed to faaslora_origin V2;
+git ls-remote matches local HEAD. 13 explicit files, no user/protected files.
+Do not repeat collector, commit/push or completed-group audit. New backup receipt
+is metric_review/closure_20261108/backup_completion.json (include next checkpoint).
+NEXT is current 7B NoHOST registration using existing gate and D1063/D1089
+boundary, then unique execution after usual fresh resource check. NoGPUrun now.
+Ledger/table and whole PLAN already read; no new metric/PLAN change. PROGRESS.
+
 CURRENT 2026-11-08: completed-group closure ledger FINISHED; no new GPU run.
 Read docs/ieee_tc/COMPLETED_EXPERIMENT_CLOSURE_LEDGER_20261108.md before continuing.
 Curated metric_review/closure_20261108/result1: 64 observations, 54 comparisons,

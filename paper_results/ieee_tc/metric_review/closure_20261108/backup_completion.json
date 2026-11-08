@@ -1,0 +1,16 @@
+{
+  "kind": "verified_checkpoint_backup",
+  "date": "2026-11-08",
+  "commit": "2657c9022aa7dd3d15306f6172b040747b9390bc",
+  "remote": "faaslora_origin",
+  "branch": "retry14_continuous_queue_v2",
+  "push_exit_code": 0,
+  "ls_remote_exit_code": 0,
+  "remote_head": "2657c9022aa7dd3d15306f6172b040747b9390bc",
+  "explicit_file_count": 13,
+  "user_manifest_staged": false,
+  "old_publication_changed": false,
+  "gpu_runs_this_checkpoint": 0,
+  "goal_complete": false,
+  "next": "Current 7B NoHOST using existing feature gate; not a repeat of Full, baseline deployment or ledger."
+}

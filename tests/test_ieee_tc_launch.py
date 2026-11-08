@@ -1698,6 +1698,42 @@ class IEEEQuantizationPrebuild(unittest.TestCase):
 
 
 class IEEEControlContract(unittest.TestCase):
+    def test_current_7b_nohost_changes_only_independent_reuse_and_paths(self):
+        import yaml
+        root = Path(__file__).resolve().parents[1]/'configs/ieee_tc'
+        full = yaml.safe_load((root/'20261107_d1100_7b_busy_service_rate_w2.yaml').read_text())
+        nohost = yaml.safe_load((root/'20261108_d1127_7b_nohost_w1.yaml').read_text())
+        self.assertEqual(nohost['storage'].pop('preloading'), {'independent_host_reuse': False})
+        self.assertIs(nohost['scenarios'][0]['preloading'].pop('independent_host_reuse'), False)
+        for section, key in (('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                             ('storage', 'host_cache_dir')):
+            self.assertNotEqual(full[section][key], nohost[section][key])
+            nohost[section][key] = full[section][key]
+        self.assertEqual(nohost, full)
+
+    def test_current_7b_nohost_profiles_bind_actual_child(self):
+        import yaml
+        from scripts.run_all_experiments import (
+            _prepare_scenario_runtime_model_config, _prepare_dedicated_subprocess_model_cfg)
+        from faaslora.experiment.instance_pool import FrozenServiceProfiles
+        from faaslora.preloading.preloading_planner import FrozenPreparationProfiles
+        root = Path(__file__).resolve().parents[1]
+        config = yaml.safe_load((root/'configs/ieee_tc/20261108_d1127_7b_nohost_w1.yaml').read_text())
+        coord = config['resource_coordination']
+        model = _prepare_scenario_runtime_model_config(config['model'], config['workload'], coord)
+        model['independent_host_reuse'] = config['scenarios'][0]['preloading']['independent_host_reuse']
+        child, _ = _prepare_dedicated_subprocess_model_cfg(model, device_id=0, runtime_gpu_ids=[0])
+        self.assertIs(child['independent_host_reuse'], False)
+        identities = []
+        for name, cls in [('ieee_service_profile', FrozenServiceProfiles),
+                          ('ieee_preparation_profile', FrozenPreparationProfiles)]:
+            spec = coord[name]
+            profile = cls.load(Path(spec['path']), expected_sha256=spec['sha256'],
+                model_config=child, expected_context=spec['context'], beta=spec['ewma_beta'])
+            profile.validate_runtime(child)
+            identities.append(profile.model_config_json)
+        self.assertEqual(*identities)
+
     def test_current_7b_delayed_changes_only_handoff_start_and_paths(self):
         import yaml
         root = Path(__file__).resolve().parents[1]/'configs/ieee_tc'
