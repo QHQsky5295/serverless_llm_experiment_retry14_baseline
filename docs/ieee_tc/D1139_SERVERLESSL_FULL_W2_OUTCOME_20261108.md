@@ -106,6 +106,14 @@ injected_wait_s  = 0
 
 ## 5. 资源与成本资格边界
 
+### 5.1 到达时基边界
+
+请求的相对 arrival map 与 W2 trace 完全一致，但 replay 元数据记录的
+`replay_time_origin` 是 `process_start`。本次回放是在 ServerlessLLM stack ready
+之后由独立 replay 进程开始，因此没有绑定到 PrimeLoRA 主协议的共同 deployment
+notice + 60 s 绝对到达时基。这个差异不能通过事后平移时间戳或减去冷启动时间来
+修补；它是执行合同差异，必须在最终 G1/G2 资格表中保留。
+
 结果 summary 的资源列来自
 `simulated_gpu_second_deployment_lifecycle_v3_capped`，生命周期由
 `server_metrics_reconstructed` 的实例创建、ready、last-finished 和 300 s idle tail
