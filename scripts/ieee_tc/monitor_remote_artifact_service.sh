@@ -4,8 +4,20 @@
 set -euo pipefail
 unit=${1:?artifact unit required}
 invocation=${2:?owned invocation required}
+packing_peak_bytes=${3:?bounded concurrent packing peak required}
+log_growth_bytes=${4:?bounded log growth required}
+safety_reserve_bytes=${5:?positive safety reserve required}
 case "$unit" in primelora-artifact-tc-7b.service|primelora-artifact-tc-3b.service) ;; *) exit 2 ;; esac
 [[ "$invocation" =~ ^[a-f0-9]{32}$ ]]
+[[ "$packing_peak_bytes" =~ ^[0-9]+$ ]]
+[[ "$log_growth_bytes" =~ ^[0-9]+$ ]]
+[[ "$safety_reserve_bytes" =~ ^[0-9]+$ && "$safety_reserve_bytes" -gt 0 ]]
+# This is the independent artifact-node rule from PLAN §2.9:
+# free >= R + ceil(1.5 * (P + L)).  P is zero for the prepublished-gzip
+# serving contract because request-path packing is disabled.  Do not import the
+# inference-host 150/100 GiB floors here.
+growth_bytes=$((packing_peak_bytes + log_growth_bytes))
+artifact_disk_required_bytes=$((safety_reserve_bytes + (3 * growth_bytes + 1) / 2))
 base=/home/lab14/primelora_remote/tc/d80_20260927
 test "$(systemctl --user show "$unit" -p InvocationID --value)" = "$invocation"
 cg=/sys/fs/cgroup$(systemctl --user show "$unit" -p ControlGroup --value)
@@ -22,6 +34,12 @@ trap owned_stop EXIT
 trap 'exit 0' TERM INT
 high_pressure=0
 sample=0
+free=$(df -B1 --output=avail "$base" | tail -1 | tr -d ' ')
+test "$free" -ge "$artifact_disk_required_bytes" || exit 71
+test "$(df --output=iavail "$base" | tail -1 | tr -d ' ')" -ge 1000 || exit 72
+printf 'artifact_disk_gate packing_peak_bytes=%s log_growth_bytes=%s safety_reserve_bytes=%s required_bytes=%s free_bytes=%s\n' \
+  "$packing_peak_bytes" "$log_growth_bytes" "$safety_reserve_bytes" \
+  "$artifact_disk_required_bytes" "$free"
 while test "$(systemctl --user show "$unit" -p InvocationID --value)" = "$invocation" &&
       test "$(systemctl --user show "$unit" -p MainPID --value)" != 0; do
   sample=$((sample+1))
@@ -36,10 +54,11 @@ while test "$(systemctl --user show "$unit" -p InvocationID --value)" = "$invoca
   fi
   if test $((sample%30)) -eq 1; then
     free=$(df -B1 --output=avail "$base" | tail -1 | tr -d ' ')
-    test "$free" -ge 17179869184 || exit 71
+    test "$free" -ge "$artifact_disk_required_bytes" || exit 71
     test "$(df --output=iavail "$base" | tail -1 | tr -d ' ')" -ge 1000 || exit 72
   fi
-  printf 'sample=%s utc=%s mem_available_kib=%s full_avg10=%s disk_free_bytes=%s\n' "$sample" "$(date -u +%FT%TZ)" "$available_kib" "$pressure" "$free"
+  printf 'sample=%s utc=%s mem_available_kib=%s full_avg10=%s disk_free_bytes=%s artifact_disk_required_bytes=%s\n' \
+    "$sample" "$(date -u +%FT%TZ)" "$available_kib" "$pressure" "$free" "$artifact_disk_required_bytes"
   sed 's/^/host_net /' /proc/net/dev
   sed 's/^/host_disk /' /proc/diskstats
   sed -n '1s/^/host_cpu /p' /proc/stat

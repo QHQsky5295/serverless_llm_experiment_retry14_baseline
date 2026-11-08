@@ -838,7 +838,11 @@ class ProtocolGates(unittest.TestCase):
     def test_artifact_disk_rule_rejects_unknown_or_invalid_bounds(self):
         args = dict(concurrent_packs=[dict(max_concurrent=2, remaining_archive_bytes=7)],
                     log_growth_bytes=0, safety_reserve_bytes=100)
-        bad = [dict(concurrent_packs=[]), dict(concurrent_packs=None),
+        empty = p.artifact_disk_required(concurrent_packs=[], log_growth_bytes=0,
+                                         safety_reserve_bytes=100)
+        self.assertEqual(empty['packing_peak_bytes'], 0)
+        self.assertEqual(empty['required_bytes'], 100)
+        bad = [dict(concurrent_packs=None),
                dict(concurrent_packs=[dict(max_concurrent=0, remaining_archive_bytes=7)]),
                dict(concurrent_packs=[dict(max_concurrent=True, remaining_archive_bytes=7)]),
                dict(concurrent_packs=[dict(max_concurrent=2, remaining_archive_bytes=-1)]),

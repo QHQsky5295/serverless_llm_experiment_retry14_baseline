@@ -38,6 +38,12 @@ REMOTE_UNIT=primelora-artifact-tc-7b.service
 REMOTE_TOKEN=/home/lab14/.config/primelora-tc-d75/artifact.token
 REMOTE_INVOCATION=
 REMOTE_MONITOR_PID=
+# Independent artifact-node disk bound for the prepublished-gzip contract.
+# Request-path packing is disabled (P=0); the explicit 1 GiB log bound covers
+# the full W2 monitor/service record horizon, and 16 GiB is the recovery reserve.
+REMOTE_PACKING_PEAK_BYTES=0
+REMOTE_LOG_GROWTH_BYTES=$((1024 * 1024 * 1024))
+REMOTE_SAFETY_RESERVE_BYTES=$((16 * 1024 * 1024 * 1024))
 stop_remote() {
   if [[ -n "$REMOTE_INVOCATION" ]]; then
     ssh "$REMOTE" bash -s -- "$REMOTE_UNIT" "$REMOTE_INVOCATION" > "$RAW/remote_service_stop.txt" 2>&1 <<'SH' || true
@@ -58,6 +64,7 @@ ssh "$REMOTE" "systemctl --user start $REMOTE_UNIT && systemctl --user is-active
 REMOTE_INVOCATION=$(ssh "$REMOTE" "systemctl --user show $REMOTE_UNIT -p InvocationID --value")
 [[ "$REMOTE_INVOCATION" =~ ^[a-f0-9]{32}$ ]]
 ssh "$REMOTE" bash -s -- "$REMOTE_UNIT" "$REMOTE_INVOCATION" \
+  "$REMOTE_PACKING_PEAK_BYTES" "$REMOTE_LOG_GROWTH_BYTES" "$REMOTE_SAFETY_RESERVE_BYTES" \
   < scripts/ieee_tc/monitor_remote_artifact_service.sh > "$RAW/remote_monitor.log" 2>&1 &
 REMOTE_MONITOR_PID=$!
 for attempt in $(seq 1 30); do

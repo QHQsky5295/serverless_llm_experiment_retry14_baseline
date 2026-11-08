@@ -461,13 +461,14 @@ def artifact_disk_required(*, concurrent_packs: list[dict], log_growth_bytes: in
     """One artifact-node filesystem, not an inference-host override.
 
     Counts cover ALL services on this filesystem; per-pack remaining growth is
-    a bound, not a mean compressed size. Evidence for these caller-supplied
+    a bound, not a mean compressed size. An empty list is an explicit zero-pack
+    contract (for example, immutable prepublished delivery). Evidence for these caller-supplied
     bounds, quota and inodes is a separate qualification obligation. This pure
     arithmetic never tunes transfer concurrency, starts a service or deletes data.
     """
     if (type(log_growth_bytes) is not int or log_growth_bytes < 0
             or type(safety_reserve_bytes) is not int or safety_reserve_bytes <= 0
-            or not isinstance(concurrent_packs, list) or not concurrent_packs):
+            or not isinstance(concurrent_packs, list)):
         raise ValueError('artifact disk gate needs explicit growth and positive reserve')
     peak = 0
     for row in concurrent_packs:
