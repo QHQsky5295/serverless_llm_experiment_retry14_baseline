@@ -1698,6 +1698,38 @@ class IEEEQuantizationPrebuild(unittest.TestCase):
 
 
 class IEEEControlContract(unittest.TestCase):
+    def test_current_7b_r0h0_changes_only_ranking_handoff_and_paths(self):
+        import yaml
+        root = Path(__file__).resolve().parents[1]/'configs/ieee_tc'
+        full = yaml.safe_load((root/'20261107_d1100_7b_busy_service_rate_w2.yaml').read_text())
+        ablated = yaml.safe_load((root/'20261108_d1125_7b_r0h0_w1.yaml').read_text())
+        cc = ablated['resource_coordination']
+        self.assertEqual(cc.pop('ieee_selection_strategy'), 'load_only')
+        self.assertEqual(cc['ieee_handoff_policy'], 'no_handoff')
+        self.assertEqual(cc['routing_policy'], 'ieee_confirmed')
+        self.assertTrue(cc['ieee_route_confirmed_snapshot_cache'])
+        self.assertEqual((cc['min_instances'], cc['max_instances']), (1, 4))
+        cc['ieee_handoff_policy'] = 'full'
+        for section, key in (('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                             ('storage', 'host_cache_dir')):
+            self.assertNotEqual(full[section][key], ablated[section][key])
+            ablated[section][key] = full[section][key]
+        self.assertEqual(ablated, full)
+
+    def test_r0h0_combined_runner_keeps_owned_hierarchy_and_admission(self):
+        # Reuse the D1056 combined fixture; no alternate runtime or legacy route.
+        from tests.test_ieee_tc_service_routing import FrozenMeasuredInitialization
+        fixture = FrozenMeasuredInitialization()
+        fixture.setUp()
+        self.addCleanup(fixture.doCleanups)
+        runner = fixture.runner(coord_changes=dict(
+            ieee_selection_strategy='load_only', ieee_handoff_policy='no_handoff'))
+        self.assertEqual(runner.router.selection_contract()['strategy'], 'load_only')
+        self.assertEqual(runner.router.policy, 'ieee_confirmed')
+        self.assertEqual(runner._ieee_handoff_policy, 'no_handoff')
+        self.assertTrue(runner._coordination_enabled)
+        self.assertTrue(runner._hierarchical_residency_enabled)
+
     def test_current_7b_no_handoff_changes_only_activation_preparation_and_paths(self):
         import yaml
         root = Path(__file__).resolve().parents[1]/'configs/ieee_tc'

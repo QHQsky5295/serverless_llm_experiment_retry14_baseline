@@ -1,5 +1,18 @@
 # PrimeLoRA IEEE TC execution contract
 
+Current handoff2026-11-08: D1125 current7B R0H0 W1 REGISTERED, NOT STARTED.
+Read D1125_7B_R0H0_W1_REGISTRATION_20261108.md. Only existing load_only and
+no_handoff plus3isolatedpaths; sameFullD1115/non-targets, no serving-code change.
+10targetedCPUtests passed(u383/main0/wrapper0);21sourceSHA/144protectedfiles/
+userdirty/Full/PLAN verifiedu384. D1124sealed/pusheda0849029db4afc7a2276360e81ac6a1f4d376abc,
+remoteV2matched. Its closureSHA1fef63e63ee495b539d1f56e83b16edaadbab425447bd91c4beb05c12d5e451f.
+Next explicit D1125 backup then freshresources and launchONCE using D1100runner
+in tc-d1125-r0h0-7b-w1. Afterrealrelease existingD1113/D299/D455,load_only and
+no_handoff receipt audit,current7B fourcells(D1115/D1124/D1123/D1125),noCI.
+NoFull/baseline repeat/3Bswitch/sharedk3swork. Reuse D1124 physicalhandoff audit,
+not another GPU replay or physical audit. Next DelayedHandoff,NoHOST,CapacityOnly.
+ThisturnPROGRESS; fullscopeactive. Older LIVE/nextbackup notes historical.
+
 Current handoff2026-11-08 10:09+08: D1124 COMPLETE/released/analyzed; NO live GPUrun.
 Read D1124_7B_NO_HANDOFF_W1_RESULT_20261108.md. Do NOT restart.
 4000 native contracts,joint3903=97.575%,U7931.749177354854,
