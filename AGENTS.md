@@ -1,5 +1,36 @@
 # PrimeLoRA IEEE TC execution contract
 
+CURRENT 2026-11-08: completed-group closure ledger FINISHED; no new GPU run.
+Read docs/ieee_tc/COMPLETED_EXPERIMENT_CLOSURE_LEDGER_20261108.md before continuing.
+Curated metric_review/closure_20261108/result1: 64 observations, 54 comparisons,
+576 fixed-q/budget rows, 76 input SHA. Uses current 3B D1083/D1082/D1084, NOT
+obsolete D1047/D810 Full. D1112 extra duplicate FAILED 95% and remains visible;
+do not repeat it or claim stable attainment. D1103/1106/1108 remain R2 by D1113.
+7B W1 Full dominates five measured external points on U/P95/joint (not G2).
+7B NoHandoff/Delayed and 3B LastKnown/NoHOST show main-metric advantages;
+3B latter pairs both within B. Auxiliary regressions disclosed, no all-aux gate.
+ElasticOnly/ElasticLocality remain resource-quality tradeoffs. Same-budget
+external frontier incomplete; no blanket system/global-best closure.
+Current 7B A1 9/11; next NoHOST -> CapacityOnly -> RoutingOnly -> RoutingHandoff.
+Old 3B A1 11/11 separate; current Full + four variants, check affected-path
+reuse before filling remaining six. No new Full/baseline repeat, 3B qualification,
+HydraServe deployment or shared-k3s changes. Full A1-A5/S1-S13/docs/figs scope active.
+Main PLAN b5170643 already updated, no new migration/tests. Analysis main/wrapper0,
+actual unit dead; first relative-path CPU launch failed before outputs, retained.
+Explicit checkpoint backup pending after this note; do not claim pushed yet.
+Current goal turn PROGRESS. Older ledger-not-done/LIVE notes below are history.
+
+BACKUP DONE2026-11-08:9205d346618c16026713fd8449cbc17ecf159370 pushedand
+faaslora_origin/retry14_continuous_queue_v2 HEADmatches.27explicitfiles,17outputs/
+6analysis-sources verified(oldpreflightat48285653),diff/secretschecks pass,user
+manifest/preexistingdirty statusexcluded. u404localcommitOKbutHTTPSconnecttimeout
+(unit lackedexisting shellproxy); u405passedwithproxyenv,main/wrapper0,actualdead.
+RAW backup_completion.json recordsbothattempts. DoNOTrepeatcommit/push/runD1126.
+NoGPUrunoranalysisjobnow. NEXT: completed-experiment closureledger, BEFOREnewheavy
+job. D1115three-scenario+D1118budget docsreadfororientationonly; ledgerNOTyetdone.
+NewPLANb5170643 applies; oldD1126 analysis stayssealedunderoldd7acd081, doNOTrerun
+oldhardcoded-plan analyzers afterbindingmigration. Wholegoalactive/currentPROGRESS.
+
 LATESTgoal a24095ba-25f6-48fb-8732-ac24a825984c readfully. Readthisattachment
 beforecontinuing, supersedes2d471652. Addedinstruction reinforces minimalgates/
 no defensivecoding/mainline. No metric/PLANchange needed: frozenG1/G2 andapproved
