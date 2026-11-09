@@ -1,7 +1,9 @@
 """Cross-run A2 handoff plan capture/replay remains auditable and strict."""
 import json
+import asyncio
 import tempfile
 import unittest
+from unittest.mock import AsyncMock
 from pathlib import Path
 
 from faaslora.preloading.preloading_planner import (
@@ -34,6 +36,78 @@ def _runner(*, capture=None, replay=None):
 
 
 class HandoffPlanControl(unittest.TestCase):
+    def test_fixed_activation_replays_pending_capture_submissions(self):
+        """A2 replay keeps capture submission frontiers while activations load."""
+        runner = object.__new__(ScenarioRunner)
+
+        class Pool:
+            max_instances = 4
+            min_instances = 1
+
+        runner.instance_pool = Pool()
+        runner._ieee_fixed_activation_schedule = {
+            'events': [{
+                'action': 'scale_up',
+                'request_index': 20,
+                'target_instances': 3,
+                'reason': 'capture_pressure',
+                'schedule_index': 1,
+            }],
+        }
+        runner._ieee_fixed_activation_schedule_index = 0
+        runner._ieee_fixed_activation_schedule_records = []
+        calls = []
+
+        def submit(**kwargs):
+            calls.append(kwargs)
+            return 1
+
+        runner._schedule_background_scale_up_instance_pool = submit
+        runner._refresh_ieee_deferred_host_capacity = AsyncMock()
+        runner._schedule_ieee_residency_epochs = AsyncMock()
+
+        changed = asyncio.run(runner._evaluate_ieee_fixed_activation_schedule(
+            result=object(), coord_enabled=True, replay_t0=0.0,
+            backlog=2, active_requests=1, completed_count=18,
+            arrived=20, ready=1, pending=1, draining_active=0))
+
+        self.assertTrue(changed)
+        self.assertEqual(runner._ieee_fixed_activation_schedule_index, 1)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0]['target_instances'], 3)
+        self.assertEqual(calls[0]['startup_parallelism_limit'], 2)
+
+    def test_fixed_activation_keeps_retirement_barrier(self):
+        """Scale-down is not issued while a prior activation is pending."""
+        runner = object.__new__(ScenarioRunner)
+
+        class Pool:
+            max_instances = 4
+            min_instances = 1
+
+        runner.instance_pool = Pool()
+        runner._ieee_fixed_activation_schedule = {
+            'events': [{
+                'action': 'scale_down',
+                'request_index': 124,
+                'reason': 'capture_release',
+                'schedule_index': 3,
+            }],
+        }
+        runner._ieee_fixed_activation_schedule_index = 0
+        runner._ieee_fixed_activation_schedule_records = []
+        runner._refresh_ieee_deferred_host_capacity = AsyncMock()
+        runner._schedule_ieee_residency_epochs = AsyncMock()
+
+        changed = asyncio.run(runner._evaluate_ieee_fixed_activation_schedule(
+            result=object(), coord_enabled=True, replay_t0=0.0,
+            backlog=2, active_requests=1, completed_count=120,
+            arrived=124, ready=4, pending=1, draining_active=0))
+
+        self.assertFalse(changed)
+        self.assertEqual(runner._ieee_fixed_activation_schedule_index, 0)
+        runner._refresh_ieee_deferred_host_capacity.assert_not_awaited()
+
     def test_capture_finalize_and_replay_rebind(self):
         view = {'native': None, 'sources': {}, 'files': {}, 'activation_id': 'a'}
         with tempfile.TemporaryDirectory() as directory:

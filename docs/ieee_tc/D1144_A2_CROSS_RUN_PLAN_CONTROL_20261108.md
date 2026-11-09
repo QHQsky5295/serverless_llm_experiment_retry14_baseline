@@ -59,7 +59,7 @@ out 数量或 activation 顺序不同，重放应报告“不满足同计划资�
 - content/tier/选择变化被拒绝；
 - 当前运行 owner 重新绑定后仍保留候选和选择；
 - `test_ieee_tc_handoff_plan_control.py`、`test_ieee_tc_preparation_snapshot_copy.py` 与
-  `test_ieee_tc_planning.py`：28 项通过；另有 `py_compile` 与 `git diff --check` 通过。
+  `test_ieee_tc_planning.py`：30 项通过；另有 `py_compile` 与 `git diff --check` 通过。
 
 随后真实启动了三个短 smoke：
 
@@ -108,19 +108,40 @@ out 数量或 activation 顺序不同，重放应报告“不满足同计划资�
   handoff entry 中 initial + 3 个前缀 scale-up 被完整消费，fixed schedule 前缀
   的 3 个事件逐项记录。由于该运行只覆盖 100 请求，后续 scale-down 和其余事件
   尚未到达，控制摘要按设计为 `complete=false`；该 smoke 仍不进入性能排名。
+- `d1156_7b_a2_fixed_schedule_replay_formal`：4,000 请求回放在约 150 个请求处
+  中止，`launch.json pass=false`，143 个请求完成、7 个请求因主进程中止而被打断。
+  这不是 GPU 启动失败：物理分配账本显示第四个 GPU 已成功 acquire，worker 已
+  ready，且在异常收尾前实例已加入池。失效原因是固定 schedule 回放器把所有
+  scale-up 串行化为“前一激活 ready 后才能提交下一激活”，而 d1150 捕获运行在
+  pending=1、2 时已经提交了第二、第三个 scale-up。回放因此把捕获前沿从
+  18/20/24 推迟到 18/55/101；随后 request 124 的 scale-down 尚未释放物理
+  ownership 时，request 143 的下一次 scale-up 返回 0，触发显式协议错误。该结果
+  不进入性能排名，但保留了完整的 launch、物理 allocation、worker 和中断请求
+  证据。
+- 针对上述原因，固定 schedule 的语义已改为“逐事件冻结提交前沿”：scale-up
+  事件使用捕获的 `target_instances`，允许在已有 activation pending 时再提交一个
+  事件对应的 activation（不注入等待、不重试、不放宽 owner/content/capacity/
+  reservation 检查）；scale-down 仍等待 pending activation settle 后再退休。新增
+  两个针对 pending scale-up 与 retirement barrier 的单元测试，连同原测试共 30
+  项通过。这个修正对应 d1150 的真实控制语义，而不是为了绕过 d1156 的物理
+  失败而放宽门禁。
+- 为满足推理机原有 150-GiB 门槛，仅删除了一个无打开句柄、可重建的旧 HuggingFace
+  `.incomplete` 缓存和一个无打开句柄的 vLLM 编译缓存；d1156 结果、worker 失败
+  目录、模型、adapter、trace 与历史结果均未删除。推理机与 OOM 门槛未改变。
 
 其中一次 `d1148` 仅因启动命令的配置路径拼写错误在 runner 入口前退出，未生成
 结果目录、未进入排名；随后使用新的唯一键 `d1149` 重跑，不复用该错误键。
 
 尚未完成：
 
-- 使用固定 activation schedule 的 7B Delayed replay 4,000 请求真实回放；
+- 使用修正后逐事件提交语义的固定 activation schedule 7B Delayed replay 4,000 请求
+  真实回放；
 - 4,000 请求完整性、计划数量完全消费及性能结果；
 - A2 是否支持 handoff 净收益的最终论文结论。
 
 ## 唯一下一执行键
 
-前缀 smoke 已通过。下一步使用新的独占输出目录执行 7B W1 Delayed replay
+在补丁提交并完成新的短前缀 smoke 后，使用新的独占输出目录执行 7B W1 Delayed replay
 （复用已完成的 `d1150` Full capture bundle，并启用固定 activation schedule）。
 回放使用
 既有 source42 trace、500-adapter subset、fixed-length greedy contract、预发布

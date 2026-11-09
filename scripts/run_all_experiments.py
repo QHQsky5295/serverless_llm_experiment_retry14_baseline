@@ -15880,17 +15880,33 @@ class ScenarioRunner:
         changed = False
         event = events[index] if index < len(events) else None
         if event is not None and arrived >= event['request_index']:
-            if pending:
-                return False
+            # The capture controller records submission frontiers, not
+            # ready-side completion frontiers.  In d1150 it submitted the
+            # second and third scale-up while one and two earlier activations
+            # were still pending.  A fixed replay must therefore preserve the
+            # same single-event submissions; serialising all scale-ups behind
+            # readiness changes the request frontier and can make a later
+            # scale-down/scale-up pair physically impossible.  Retirement
+            # remains single-flight: it is only issued after pending
+            # activations have settled, as in the capture trace.
             action = event['action']
+            if action != 'scale_up' and pending:
+                return False
             if action == 'scale_up':
                 max_instances = max(1, int(self.instance_pool.max_instances))
-                if ready >= max_instances:
+                target_instances = event.get('target_instances')
+                if type(target_instances) is not int:
+                    target_instances = ready + pending + 1
+                effective_instances = ready + pending
+                if effective_instances >= max_instances:
                     raise RuntimeError(
                         'fixed A2 schedule scale-up cannot be realized at the frozen frontier')
+                if effective_instances >= target_instances:
+                    raise RuntimeError(
+                        'fixed A2 schedule scale-up target already satisfied')
                 decision = SimpleNamespace(
                     reason='a2_fixed_schedule:' + event['reason'],
-                    target_instances=min(max_instances, ready + 1),
+                    target_instances=min(max_instances, target_instances),
                 )
                 scheduled = self._schedule_background_scale_up_instance_pool(
                     result=result, coord_enabled=coord_enabled, decision=decision,
@@ -15899,7 +15915,12 @@ class ScenarioRunner:
                     queue_visible_request_count=arrived,
                     arrived_request_count=arrived,
                     target_instances=decision.target_instances,
-                    runtime_handoff_plans=None, startup_parallelism_limit=1,
+                    runtime_handoff_plans=None,
+                    # One frozen event submits one activation.  Include the
+                    # already pending activations in the submission window so
+                    # this event is not silently rejected merely because the
+                    # previous engine is still starting.
+                    startup_parallelism_limit=pending + 1,
                 )
                 if scheduled != 1:
                     raise RuntimeError(
