@@ -72,7 +72,7 @@ from collections import defaultdict, deque
 from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any, Awaitable, Callable, Collection, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Awaitable, Callable, Collection, Dict, List, Mapping, Optional, Sequence, Tuple
 
 
 @asynccontextmanager
@@ -7674,9 +7674,14 @@ class ScenarioRunner:
             'FAASLORA_IEEE_HANDOFF_PLAN_CAPTURE_PATH') or None
         self._ieee_handoff_plan_replay_path = os.environ.get(
             'FAASLORA_IEEE_HANDOFF_PLAN_REPLAY_PATH') or None
+        self._ieee_fixed_activation_schedule_path = os.environ.get(
+            'FAASLORA_IEEE_FIXED_ACTIVATION_SCHEDULE_PATH') or None
+        if self._ieee_fixed_activation_schedule_path and not self._ieee_handoff_plan_replay_path:
+            raise ValueError('fixed activation schedule requires A2 handoff replay')
         if self._ieee_handoff_plan_capture_path and self._ieee_handoff_plan_replay_path:
             raise ValueError('A2 handoff control cannot capture and replay simultaneously')
-        for _path in (self._ieee_handoff_plan_capture_path, self._ieee_handoff_plan_replay_path):
+        for _path in (self._ieee_handoff_plan_capture_path, self._ieee_handoff_plan_replay_path,
+                      self._ieee_fixed_activation_schedule_path):
             if _path and not Path(_path).is_absolute():
                 raise ValueError('A2 handoff plan control paths must be absolute')
         if self._ieee_handoff_plan_capture_path:
@@ -7686,6 +7691,9 @@ class ScenarioRunner:
         self._ieee_handoff_plan_replay_index = 0
         self._ieee_handoff_plan_control_records = []
         self._ieee_handoff_plan_replay_bundle = None
+        self._ieee_fixed_activation_schedule = None
+        self._ieee_fixed_activation_schedule_index = 0
+        self._ieee_fixed_activation_schedule_records = []
         if type(initial_runtime_pending) is not bool:
             raise ValueError('initial_runtime_pending must be a boolean')
         self._initial_runtime_pending = initial_runtime_pending
@@ -14540,6 +14548,13 @@ class ScenarioRunner:
         if type(backlog) is not int or backlog < active_requests + draining_active:
             raise ValueError('unfinished arrivals do not cover the admitted set')
         arrived = self._arrived_request_count(replay_t0)
+        if self._ieee_fixed_activation_schedule_path:
+            return await self._evaluate_ieee_fixed_activation_schedule(
+                result=result, coord_enabled=coord_enabled, replay_t0=replay_t0,
+                backlog=backlog, active_requests=active_requests,
+                completed_count=completed_count, arrived=arrived, ready=ready,
+                pending=pending, draining_active=draining_active,
+            )
         busy_instances = self._busy_instance_count()
         snapshot = controller.evaluate(now=now, queue_depth=backlog-active_requests-draining_active,
             active_requests=active_requests, ready_capacity=ready*self._runtime_forward_capacity_limit(),
@@ -15806,6 +15821,131 @@ class ScenarioRunner:
         self._ieee_handoff_plan_replay_bundle = payload
         return payload
 
+    def _load_ieee_fixed_activation_schedule(self):
+        """Load the explicit A2 schedule used to hold autoscaling actions fixed.
+
+        This is a controlled replay input, not a runtime fallback.  It is
+        intentionally opt-in and only applies to the DelayedHandoff run.  The
+        schedule freezes the capture run's scale-up/scale-down event order;
+        every physical activation still executes the normal owner, content,
+        capacity, reservation, and retirement checks.
+        """
+        if self._ieee_fixed_activation_schedule is not None:
+            return self._ieee_fixed_activation_schedule
+        if not self._ieee_fixed_activation_schedule_path:
+            return None
+        path = Path(self._ieee_fixed_activation_schedule_path)
+        try:
+            payload = json.loads(path.read_text(encoding='utf-8'))
+        except (OSError, ValueError) as exc:
+            raise ValueError(f'cannot read fixed A2 activation schedule: {path}') from exc
+        if (payload.get('kind') != 'ieee_a2_fixed_activation_schedule_v1'
+                or not isinstance(payload.get('events'), list)
+                or not payload['events']):
+            raise ValueError('invalid fixed A2 activation schedule')
+        events = []
+        previous_key = None
+        for index, raw in enumerate(payload['events']):
+            if not isinstance(raw, Mapping):
+                raise ValueError('fixed A2 schedule event is not an object')
+            action = raw.get('action')
+            request_index = raw.get('request_index')
+            if (action not in ('scale_up', 'scale_down')
+                    or type(request_index) is not int or request_index < 0):
+                raise ValueError('fixed A2 schedule event has invalid action/index')
+            key = (request_index, 0 if action == 'scale_down' else 1, index)
+            if previous_key is not None and key[:2] < previous_key[:2]:
+                raise ValueError('fixed A2 schedule is not ordered by request index')
+            previous_key = key
+            events.append(dict(raw, schedule_index=index, request_index=request_index,
+                               action=action, reason=str(raw.get('reason', '') or '')))
+        payload = dict(payload, events=events)
+        self._ieee_fixed_activation_schedule = payload
+        return payload
+
+    async def _evaluate_ieee_fixed_activation_schedule(
+        self, *, result, coord_enabled, replay_t0, backlog, active_requests,
+        completed_count, arrived, ready, pending, draining_active,
+    ) -> bool:
+        """Replay capture-time activation actions without re-running autoscaling.
+
+        The schedule is consumed only when the frozen request frontier has
+        arrived and the previous physical action has settled.  A missing
+        device, an impossible scale-down, or an unconsumed event is an
+        explicit controlled-run failure; no event is silently dropped.
+        """
+        schedule = self._load_ieee_fixed_activation_schedule()
+        events = schedule['events']
+        index = self._ieee_fixed_activation_schedule_index
+        changed = False
+        event = events[index] if index < len(events) else None
+        if event is not None and arrived >= event['request_index']:
+            if pending:
+                return False
+            action = event['action']
+            if action == 'scale_up':
+                max_instances = max(1, int(self.instance_pool.max_instances))
+                if ready >= max_instances:
+                    raise RuntimeError(
+                        'fixed A2 schedule scale-up cannot be realized at the frozen frontier')
+                decision = SimpleNamespace(
+                    reason='a2_fixed_schedule:' + event['reason'],
+                    target_instances=min(max_instances, ready + 1),
+                )
+                scheduled = self._schedule_background_scale_up_instance_pool(
+                    result=result, coord_enabled=coord_enabled, decision=decision,
+                    current_instances=ready, pending_scale_up_instances=pending,
+                    request_index=arrived, completed_request_count=completed_count,
+                    queue_visible_request_count=arrived,
+                    arrived_request_count=arrived,
+                    target_instances=decision.target_instances,
+                    runtime_handoff_plans=None, startup_parallelism_limit=1,
+                )
+                if scheduled != 1:
+                    raise RuntimeError(
+                        'fixed A2 schedule scale-up did not produce one activation')
+                changed = True
+            else:
+                if ready <= max(1, int(self.instance_pool.min_instances)):
+                    raise RuntimeError(
+                        'fixed A2 schedule scale-down reached the minimum pool')
+                candidates = [slot for slot in self.instance_pool.get_slots()
+                              if slot.instance_id != self._primary_instance_id]
+                if not candidates:
+                    raise RuntimeError('fixed A2 schedule has no scale-down candidate')
+                selected = min(candidates, key=lambda slot: (
+                    int(getattr(slot, 'active_requests', 0) or 0),
+                    float(getattr(slot, 'last_selected_at', 0.0) or 0.0),
+                    str(getattr(slot, 'instance_id', '')),
+                ))
+                control_event = dict(
+                    action='scale_down', reason=event['reason'],
+                    schedule_index=event['schedule_index'],
+                    request_index=event['request_index'], observed_at=time.monotonic(),
+                    outcome='scheduled',
+                )
+                self._schedule_runtime_retirement(
+                    selected, reason='ieee_all_low_cooldown', result=result,
+                    control_event=control_event,
+                    control_event_index=event['schedule_index'],
+                )
+                if not hasattr(self, '_ieee_control_events'):
+                    self._ieee_control_events = []
+                self._ieee_control_events.append(control_event)
+                changed = True
+            self._ieee_fixed_activation_schedule_records.append(dict(
+                schedule_index=event['schedule_index'], action=action,
+                request_index=event['request_index'], observed_arrived=arrived,
+                reason=event['reason'], outcome='scheduled'))
+            self._ieee_fixed_activation_schedule_index += 1
+        elif event is not None and arrived < event['request_index']:
+            changed = False
+        elif event is None:
+            changed = False
+        await self._refresh_ieee_deferred_host_capacity()
+        await self._schedule_ieee_residency_epochs()
+        return changed
+
     def _record_ieee_handoff_plan_capture(self, *, plan, activation_kind, activation_index):
         from faaslora.preloading.preloading_planner import (
             ieee_plan_comparison_sha256, serialize_ieee_handoff_plan)
@@ -15879,14 +16019,34 @@ class ScenarioRunner:
                     if mode == 'replay' else None)
         consumed = (self._ieee_handoff_plan_replay_index if mode == 'replay'
                     else len(self._ieee_handoff_plan_control_records))
+        schedule_summary = None
+        schedule_complete = True
+        fixed_schedule_path = getattr(self, '_ieee_fixed_activation_schedule_path', None)
+        if fixed_schedule_path:
+            schedule = self._load_ieee_fixed_activation_schedule()
+            schedule_expected = len(schedule['events'])
+            schedule_consumed = self._ieee_fixed_activation_schedule_index
+            schedule_complete = schedule_consumed == schedule_expected
+            schedule_summary = dict(
+                kind=schedule.get('kind'),
+                path=fixed_schedule_path,
+                source_result=schedule.get('source_result'),
+                source_trace_sha256=schedule.get('source_trace_sha256'),
+                source_adapter_subset_sha256=schedule.get('source_adapter_subset_sha256'),
+                expected_event_count=schedule_expected,
+                consumed_event_count=schedule_consumed,
+                complete=schedule_complete,
+                records=list(self._ieee_fixed_activation_schedule_records),
+            )
         complete = mode == 'disabled' or (mode == 'capture' and consumed > 0) or (
-            mode == 'replay' and consumed == expected)
+            mode == 'replay' and consumed == expected and schedule_complete)
         return dict(kind='ieee_handoff_plan_control_v1', mode=mode,
                     capture_path=self._ieee_handoff_plan_capture_path,
                     replay_path=self._ieee_handoff_plan_replay_path,
                     observed_activation_count=consumed,
                     expected_activation_count=expected,
                     complete=complete,
+                    fixed_activation_schedule=schedule_summary,
                     records=[{key: value for key, value in row.items() if key != 'bundle_entry'}
                              for row in self._ieee_handoff_plan_control_records])
 
