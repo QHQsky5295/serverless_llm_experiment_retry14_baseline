@@ -17391,15 +17391,27 @@ class ScenarioRunner:
             await stack.start()
             stack._started = True
         stack._ensure_registered()
-        capacity_mb = float(
+        configured_capacity_mb = float(
             cfg.get("ieee_initial_nvme_capacity_mb", cfg.get("nvme_capacity_mb", 0))
             or 0.0
         )
-        if capacity_mb <= 0.0:
+        if configured_capacity_mb <= 0.0:
             raise ValueError(
                 "ieee_initial_nvme_preload requires a positive NVMe capacity"
             )
-        capacity_bytes = int(capacity_mb * 1024.0 * 1024.0)
+        configured_capacity_bytes = int(configured_capacity_mb * 1024.0 * 1024.0)
+        owner_capacity_bytes = int(
+            getattr(stack.residency_manager.tier_capacities[StorageTier.NVME],
+                    "total_bytes", 0) or 0
+        )
+        if owner_capacity_bytes <= 0:
+            raise RuntimeError(
+                "ieee_initial_nvme_preload requires a positive NVMe owner capacity"
+            )
+        # The file owner is the authority for the physical reservation.  A
+        # scenario-level value can be stale after runtime/profile assembly, so
+        # selection must never promise more bytes than the owner can reserve.
+        capacity_bytes = min(configured_capacity_bytes, owner_capacity_bytes)
         size_fn = getattr(stack, "_artifact_size_mb", None)
         manifest_order = sorted(
             (str(aid) for aid in self.adapter_info if aid),
@@ -17415,10 +17427,35 @@ class ScenarioRunner:
                 f"{selection_policy}"
             )
 
+        # The frozen content manifest is the authoritative payload footprint
+        # for the owner transaction.  Registry size hints remain a fallback
+        # only for non-native callers; native IEEE runs must have the manifest.
+        manifest_sizes: Dict[str, int] = {}
+        try:
+            frozen_manifests = remote.preparation_manifests(manifest_order)
+        except Exception as exc:
+            raise RuntimeError(
+                "ieee_initial_nvme_preload cannot read the frozen content manifest"
+            ) from exc
+        for aid in manifest_order:
+            files = frozen_manifests.get(aid, {})
+            payload_bytes = sum(
+                int(size)
+                for size, _digest in (files or {}).values()
+            )
+            if payload_bytes <= 0:
+                raise RuntimeError(
+                    f"frozen content manifest has no positive payload for {aid}"
+                )
+            manifest_sizes[aid] = payload_bytes
+
         size_bytes: Dict[str, int] = {}
         for aid in manifest_order:
+            # Keep the registry estimate visible for diagnostics, but use the
+            # frozen per-file footprint for the actual capacity decision.
             size_mb = float(size_fn(aid) if callable(size_fn) else 0.0)
-            size_bytes[aid] = max(0, int(size_mb * 1024.0 * 1024.0))
+            estimated_bytes = max(0, int(size_mb * 1024.0 * 1024.0))
+            size_bytes[aid] = int(manifest_sizes[aid] or estimated_bytes)
 
         staging_multiplier = 1.0
         effective_capacity_bytes = capacity_bytes
@@ -17478,16 +17515,28 @@ class ScenarioRunner:
             "manifest_count": len(manifest_order),
             "selected_count": len(ordered),
             "selected_bytes": int(required_bytes),
-            "configured_capacity_bytes": int(capacity_bytes),
+            "configured_capacity_bytes": int(configured_capacity_bytes),
+            "owner_capacity_bytes": int(owner_capacity_bytes),
+            "reservation_capacity_bytes": int(capacity_bytes),
             "effective_capacity_bytes": int(effective_capacity_bytes),
             "staging_multiplier": float(staging_multiplier),
             "excluded_count": len(manifest_order) - len(ordered),
+            "manifest_payload_bytes": int(sum(manifest_sizes.values())),
             "selection_source": (
                 "adapter_manifest_hotness_and_predicted_load_time"
                 if selection_policy == "demand_weighted_capacity_v1"
                 else "fixed_manifest"
             ),
         }
+
+        print(
+            "    IEEE deployment preload selection: "
+            f"configured={configured_capacity_bytes / 1024**3:.3f}GiB "
+            f"owner={owner_capacity_bytes / 1024**3:.3f}GiB "
+            f"effective={capacity_bytes / 1024**3:.3f}GiB "
+            f"selected={len(ordered)}/{len(manifest_order)} "
+            f"payload={required_bytes / 1024**3:.3f}GiB"
+        )
 
         started = time.perf_counter()
         transferred_bytes = 0
