@@ -7919,6 +7919,7 @@ class ScenarioRunner:
         self._initial_preload_remote_bytes = 0
         self._initial_preload_remote_transfer_count = 0
         self._initial_preload_mode = "none"
+        self._initial_preload_selection: Dict[str, Any] = {}
         self._initial_preload_injected_wait_s = 0.0
         self._initial_preload_gpu_count = self._runtime_gpu_count_for_cfg(self.model_cfg)
         self._primary_engine_initialization_wall_s = 0.0
@@ -17400,19 +17401,93 @@ class ScenarioRunner:
             )
         capacity_bytes = int(capacity_mb * 1024.0 * 1024.0)
         size_fn = getattr(stack, "_artifact_size_mb", None)
-        ordered = sorted(
+        manifest_order = sorted(
             (str(aid) for aid in self.adapter_info if aid),
             key=lambda aid: aid,
         )
-        required_bytes = 0
-        for aid in ordered:
+        selection_policy = str(
+            cfg.get("ieee_initial_nvme_selection_policy", "all_manifest")
+            or "all_manifest"
+        ).strip().lower()
+        if selection_policy not in {"all_manifest", "demand_weighted_capacity_v1"}:
+            raise ValueError(
+                "unsupported ieee_initial_nvme_selection_policy: "
+                f"{selection_policy}"
+            )
+
+        size_bytes: Dict[str, int] = {}
+        for aid in manifest_order:
             size_mb = float(size_fn(aid) if callable(size_fn) else 0.0)
-            required_bytes += max(0, int(size_mb * 1024.0 * 1024.0))
+            size_bytes[aid] = max(0, int(size_mb * 1024.0 * 1024.0))
+
+        staging_multiplier = 1.0
+        effective_capacity_bytes = capacity_bytes
+        ordered = list(manifest_order)
+        if selection_policy == "demand_weighted_capacity_v1":
+            # The selected set must leave room for the verified materialisation
+            # staging copy.  The multiplier is an explicit deployment contract,
+            # not a request-time latency fudge; D945 measured 1.5 for this path.
+            staging_multiplier = float(
+                cfg.get("ieee_initial_nvme_staging_multiplier", 1.5) or 1.5
+            )
+            if not math.isfinite(staging_multiplier) or staging_multiplier < 1.0:
+                raise ValueError(
+                    "ieee_initial_nvme_staging_multiplier must be finite and >= 1"
+                )
+            effective_capacity_bytes = int(capacity_bytes / staging_multiplier)
+
+            def utility_per_byte(aid: str) -> Tuple[float, float, float, str]:
+                info = self.adapter_info.get(aid, {}) or {}
+                hotness = float(info.get("hotness", 0.0) or 0.0)
+                predicted_load_ms = float(
+                    info.get("predicted_load_time_ms", info.get("last_load_time_ms", 1.0))
+                    or 1.0
+                )
+                benefit = max(0.0, hotness) * max(1.0, predicted_load_ms)
+                size = max(1, size_bytes.get(aid, 0))
+                return (benefit / size, benefit, hotness, aid)
+
+            ranked = sorted(
+                manifest_order,
+                key=utility_per_byte,
+                reverse=True,
+            )
+            selected: List[str] = []
+            selected_bytes = 0
+            for aid in ranked:
+                footprint = size_bytes.get(aid, 0)
+                if footprint <= 0 or selected_bytes + footprint > effective_capacity_bytes:
+                    continue
+                selected.append(aid)
+                selected_bytes += footprint
+            # Stable ordering keeps transfer journals reproducible after selection.
+            ordered = sorted(selected)
+            if not ordered:
+                raise RuntimeError(
+                    "demand-weighted initial NVMe selection produced an empty set"
+                )
+
+        required_bytes = sum(size_bytes.get(aid, 0) for aid in ordered)
         if required_bytes > capacity_bytes:
             raise RuntimeError(
-                "ieee_initial_nvme_preload manifest exceeds configured capacity: "
+                "ieee_initial_nvme_preload selected set exceeds configured capacity: "
                 f"required={required_bytes} capacity={capacity_bytes}"
             )
+        self._initial_preload_selection = {
+            "policy": selection_policy,
+            "manifest_count": len(manifest_order),
+            "selected_count": len(ordered),
+            "selected_bytes": int(required_bytes),
+            "configured_capacity_bytes": int(capacity_bytes),
+            "effective_capacity_bytes": int(effective_capacity_bytes),
+            "staging_multiplier": float(staging_multiplier),
+            "excluded_count": len(manifest_order) - len(ordered),
+            "selection_source": (
+                "adapter_manifest_hotness_and_predicted_load_time"
+                if selection_policy == "demand_weighted_capacity_v1"
+                else "fixed_manifest"
+            ),
+        }
 
         started = time.perf_counter()
         transferred_bytes = 0
@@ -17451,7 +17526,8 @@ class ScenarioRunner:
         self._initial_preload_mode = "ieee_initial_nvme_manifest_pre_gpu_v1"
         print(
             "    IEEE deployment preload: "
-            f"{transfer_count} adapters, {transferred_bytes / 1024**3:.3f} GiB, "
+            f"{transfer_count}/{len(manifest_order)} adapters, "
+            f"{transferred_bytes / 1024**3:.3f} GiB, "
             f"wall={(time.perf_counter() - started):.3f}s, GPU seconds excluded"
         )
 
@@ -28430,6 +28506,9 @@ async def _main_async_impl(
                         ),
                         "included_in_lifecycle_cost": True,
                         "included_in_request_latency": False,
+                        "selection": copy.deepcopy(
+                            getattr(runner, "_initial_preload_selection", {}) or {}
+                        ),
                     },
                     "pre_replay_deployment_accounting": {
                         "wall_s": round(
