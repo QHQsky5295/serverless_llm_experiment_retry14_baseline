@@ -1,0 +1,41 @@
+{
+  "schema": "ieee_tc_a4_ce_supplement_v2",
+  "campaign": "d1163_20261109",
+  "purpose": "offline CE and idle-billing sensitivity using sealed observations; no GPU rerun",
+  "primary_metrics_unchanged": ["G1_lifecycle_gpu_seconds", "G2_budget_constrained_p95_ttft", "joint_slo_attainment"],
+  "cost_model": {
+    "rate_usd_per_gpu_second": 0.0008,
+    "idle_factors": [0.0, 0.238095, 0.5, 0.75, 1.0],
+    "invocation_cost_usd_per_request": 0.0,
+    "ce_definition": "1/(average_e2e_seconds * cost_per_request_usd)",
+    "generalized_ce_definition": "1/(average_e2e_seconds^alpha * cost_per_request_usd^beta)",
+    "generalized_exponents": [0.5, 1.0, 2.0]
+  },
+  "current_primelora_sources": [
+    {
+      "run": "D1115",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1115_20261107/7b_same_version_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d1115_7b_same_version_w1.json",
+      "sha256": "99574e407543545937b93d0277c7c70a4d3c28eb8107290d79db65aa1777e577"
+    },
+    {
+      "run": "D1117",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1117_20261107/7b_budget_cap3_w1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d1117_7b_budget_cap3_w1.json",
+      "sha256": "8c7f2ebf41ec46833791e9f7d181b70963476fa91acc9a5d31ad9b2f25c5c340"
+    },
+    {
+      "run": "D1118",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d1118_20261107/7b_budget_cap3_w2/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d1118_7b_budget_cap3_w2.json",
+      "sha256": "be3084d7fade94fac62f295d5418edeba464a1517d1b0c6dbb431643bca3c9fe"
+    }
+  ],
+  "reused_matched_baseline_supplement": {
+    "directory": "paper_results/eurosys27_v2/a4_ce/legacy_7b_seed42",
+    "scope": "legacy 7B seed-42 main comparison; separate from D1115/D1117/D1118",
+    "headline_csv_sha256": "aefd7c76e04313b482b859e7aa8e106e4c73b0dbaba12c1b0138935700f38c97",
+    "idle_sensitivity_csv_sha256": "d42e3e93a1bccba8c651ce17f86dcd7686d77c51d463015550f33324a256cbef",
+    "generalized_sensitivity_csv_sha256": "d43f555c53726772ec07d799a9b3969ab3f5da406fc644c74f4a43284cafbf46",
+    "log_contribution_csv_sha256": "9a35d3e3c7499fcb6cb4717b1ca5b928a40f4720e4078674b5ef8247dfb63571",
+    "break_even_csv_sha256": "9207af91c0c2776bbc967a50cb0be51fd1e455f28ae9b0cfbce2587dd930e63b"
+  },
+  "status": "supplementary_only_not_a_new_main_comparison"
+}
