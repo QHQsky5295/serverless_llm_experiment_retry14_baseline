@@ -79,26 +79,60 @@ out 数量或 activation 顺序不同，重放应报告“不满足同计划资�
   运行时 owner 图伪装成相同物理状态。该 smoke 只证明入口和执行资格，不进入
   性能排名。
 
+补充的受控回放记录如下：
+
+- `d1150_7b_a2_capture_formal`：Full capture 在完整 4,000 请求 trace 上完成，
+  `launch.json pass=true`、4,000/4,000 成功，并生成 initial + 19 个 scale-up /
+  17 个 scale-down 的 20-entry handoff bundle。该 runner 仍标记为 exploratory，
+  因而它是同负载机制控制输入，不是 held-out 主排名结果。
+- `d1151_7b_a2_replay_formal`：DelayedHandoff 请求层面 4,000/4,000 成功，但
+  自然 autoscaler 只形成 17/20 个 activation entry。捕获与回放的请求、工件和
+  生成契约相同，扩缩容事件的 request frontier 却因运行时完成时刻不同而分叉；
+  因此控制摘要 `complete=false`，该运行明确不具备 A2 资格，也不进入性能排名。
+- 为消除上述 autoscaler 时间分叉，新增可选的
+  `FAASLORA_IEEE_FIXED_ACTIVATION_SCHEDULE_PATH`。它只冻结 capture 的
+  scale-up/scale-down 动作顺序及 request-index frontier；每一次实际激活仍走
+  当前 owner、内容、容量、reservation、handoff 和退休检查，不注入 sleep、不
+  伪造 GPU lease，也不放宽物理失败条件。schedule 的 source result、trace/subset
+  SHA、事件数和实际消费记录写入结果摘要；replay 的 `complete` 同时要求 handoff
+  entry 与 schedule event 全部消费。
+- `d1153_7b_a2_fixed_schedule_replay_smoke`：启动器因本机推理盘当时低于原有
+  150-GiB start floor 而拒绝，未进入服务；该证据只记录存储门禁，不是算法失败。
+  随后只清理了 `/tmp` 下无打开句柄、可再生成的临时/编译/旧审计对象，推理机
+  门槛保持不变。
+- `d1154_7b_a2_fixed_schedule_replay_smoke`：服务初始化暴露了固定 schedule
+  加载器遗漏 `Mapping` 导入，首个请求前退出；0/100，不进入分析。该实现错误已
+  修正并提交。
+- `d1155_7b_a2_fixed_schedule_replay_smoke`：修正后的 100 请求诊断前缀通过，
+  `launch.json pass=true`、100/100 成功、无 fallback；捕获 bundle 的 4 个
+  handoff entry 中 initial + 3 个前缀 scale-up 被完整消费，fixed schedule 前缀
+  的 3 个事件逐项记录。由于该运行只覆盖 100 请求，后续 scale-down 和其余事件
+  尚未到达，控制摘要按设计为 `complete=false`；该 smoke 仍不进入性能排名。
+
 其中一次 `d1148` 仅因启动命令的配置路径拼写错误在 runner 入口前退出，未生成
 结果目录、未进入排名；随后使用新的唯一键 `d1149` 重跑，不复用该错误键。
 
 尚未完成：
 
-- 修正后的 7B Delayed replay smoke；
-- 7B Full capture 与 Delayed replay 的 4,000 请求真实回放；
+- 使用固定 activation schedule 的 7B Delayed replay 4,000 请求真实回放；
 - 4,000 请求完整性、计划数量完全消费及性能结果；
 - A2 是否支持 handoff 净收益的最终论文结论。
 
 ## 唯一下一执行键
 
-smoke 已通过。下一步使用新的独占输出目录执行 7B W1 Full capture 与 Delayed
-replay 各一次。两次回放均使用
+前缀 smoke 已通过。下一步使用新的独占输出目录执行 7B W1 Delayed replay
+（复用已完成的 `d1150` Full capture bundle，并启用固定 activation schedule）。
+回放使用
 既有 source42 trace、500-adapter subset、fixed-length greedy contract、预发布
 gzip 交付和同一 W1 配置；不重新生成工件或负载。
 
-完整回放只有在计划包 `complete=true`、所有 activation 顺序/类型完全消费、
-4,000/4,000 请求合同和物理资源收尾均通过时，才可进入 A2 分析；否则仅保存
-失败原因和部分计划包，不把结果写入主比较表。
+完整回放只有在 handoff 计划包和固定 schedule 均 `complete=true`、所有 activation
+顺序/类型完全消费、4,000/4,000 请求合同和物理资源收尾均通过时，才可进入 A2
+分析；否则仅保存失败原因和部分计划包，不把结果写入主比较表。
 
 当前 Plan SHA：
 `b5170643aa5d332efc67407af10ab7022a2d68fd802e2389d253968bd92dcf8f`
+
+固定 activation schedule 实现已在提交 `fc08f7f2` 推送至
+`faaslora_origin/retry14_continuous_queue_v2`；该提交只包含控制代码，未包含
+用户工作区修改或历史结果。
