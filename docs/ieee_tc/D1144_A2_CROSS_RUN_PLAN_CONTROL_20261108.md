@@ -131,6 +131,19 @@ out 数量或 activation 顺序不同，重放应报告“不满足同计划资�
   request 18、20、24 提交，实际实例最终达到 4，且没有把第二、第三次提交推迟
   到前一激活 ready 之后。该运行只验证提交语义，schedule 消费为 3/36，仍不进入
   性能排名；它已排除 d1156 中的回放器串行化原因。
+- `d1158_7b_a2_fixed_schedule_replay_formal_v2`：在修正后的逐事件提交语义下完成
+  完整 4,000 请求回放。`launch.json pass=true`，服务、回放和 watchdog 返回码均为
+  0；4,000/4,000 请求完成、失败 0、无中断，固定 schedule 的 36/36 个事件全部
+  消费，19 个 scale-up 与 17 个 scale-down 均按冻结顺序执行。前三个 scale-up
+  仍在请求 18、20、24 提交，后续事件也保持相同 request frontier（少数由于轮询
+  边界记录为相邻请求）。结果中的 trace、adapter subset、generation contract 与
+  d1150 完全一致，物理 allocation journals 全部释放且无 open lease。
+  该运行的完整指标为平均 TTFT 1096.33 ms、P95 TTFT 2785.17 ms、平均 E2E
+  5377.39 ms、联合 TTFT SLO 达成率 99.375%、生命周期 GPU-s 9674.79。现有
+  launcher 仍将该路径标记为 exploratory（`formal_run=0`），且物理部署摘要不从
+  token contract 推断数值正确性，因此它是“相同 workload 下的 A2 机制控制证据”，
+  不是 held-out 主排名结果；这两个资格字段不影响其 4,000 请求和 36/36 事件的
+  完整性判断。
 - 为满足推理机原有 150-GiB 门槛，仅删除了一个无打开句柄、可重建的旧 HuggingFace
   `.incomplete` 缓存和一个无打开句柄的 vLLM 编译缓存；d1156 结果、worker 失败
   目录、模型、adapter、trace 与历史结果均未删除。推理机与 OOM 门槛未改变。
@@ -140,18 +153,18 @@ out 数量或 activation 顺序不同，重放应报告“不满足同计划资�
 
 尚未完成：
 
-- 使用修正后逐事件提交语义的固定 activation schedule 7B Delayed replay 4,000 请求
-  真实回放；
-- 4,000 请求完整性、计划数量完全消费及性能结果；
-- A2 是否支持 handoff 净收益的最终论文结论。
+- 对 d1150 Full capture 与 d1158 固定 schedule replay 做同 workload 的机制差异
+  分解（handoff 计划、tier/owner 触发和生命周期 GPU-s），并决定 A2 在正文还是
+  附录中呈现；
+- 其余 7B PrimeLoRA 主比较、ServerlessLLM 基线复核、消融和敏感性实验仍未开始
+  或尚未闭口；本记录不把 d1158 当作主排名结果提前封存。
 
 ## 唯一下一执行键
 
-在补丁提交并完成新的短前缀 smoke 后，使用新的独占输出目录执行 7B W1 Delayed replay
-（复用已完成的 `d1150` Full capture bundle，并启用固定 activation schedule）。
-回放使用
-既有 source42 trace、500-adapter subset、fixed-length greedy contract、预发布
-gzip 交付和同一 W1 配置；不重新生成工件或负载。
+下一步先使用唯一输出目录提取 d1150/d1158 的机制对照摘要（不重跑、不生成图），
+再回到计划规定的 7B PrimeLoRA 主线。d1158 复用了既有 source42 trace、500-adapter
+subset、fixed-length greedy contract、预发布 gzip 交付和同一 W1 配置，没有重新生成
+工件或负载。
 
 完整回放只有在 handoff 计划包和固定 schedule 均 `complete=true`、所有 activation
 顺序/类型完全消费、4,000/4,000 请求合同和物理资源收尾均通过时，才可进入 A2
