@@ -125,6 +125,12 @@ out 数量或 activation 顺序不同，重放应报告“不满足同计划资�
   两个针对 pending scale-up 与 retirement barrier 的单元测试，连同原测试共 30
   项通过。这个修正对应 d1150 的真实控制语义，而不是为了绕过 d1156 的物理
   失败而放宽门禁。
+- `d1157_7b_a2_fixed_schedule_replay_smoke_v2`：使用修正后的实现和同一 d1150
+  handoff bundle、d1152 schedule 做 100 请求前缀验证。`launch.json pass=true`，
+  100/100 请求完成、无 fallback；固定 schedule 的前三个 scale-up 逐事件在
+  request 18、20、24 提交，实际实例最终达到 4，且没有把第二、第三次提交推迟
+  到前一激活 ready 之后。该运行只验证提交语义，schedule 消费为 3/36，仍不进入
+  性能排名；它已排除 d1156 中的回放器串行化原因。
 - 为满足推理机原有 150-GiB 门槛，仅删除了一个无打开句柄、可重建的旧 HuggingFace
   `.incomplete` 缓存和一个无打开句柄的 vLLM 编译缓存；d1156 结果、worker 失败
   目录、模型、adapter、trace 与历史结果均未删除。推理机与 OOM 门槛未改变。
