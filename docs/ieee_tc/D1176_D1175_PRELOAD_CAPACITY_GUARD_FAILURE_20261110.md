@@ -42,8 +42,10 @@ launcher receipt 和失败缓存目录均保留。
   adapter registry 的估计值；
 - 在选择元数据中同时保存 configured/owner/effective capacity、manifest
   payload bytes 和 staging multiplier；
-- 保持已批准的 1.5 staging 语义、预发布 gzip 交付、相同 trace/adapter
-  subset/请求合同和 replay barrier；不修改请求路径计时。
+- 保持已批准的 1.5 staging 配置 provenance、预发布 gzip 交付、相同
+  trace/adapter subset/请求合同和 replay barrier；真正的容量选择以 owner 的
+  ext4/tmpfs reservation ceiling 和一次性 archive peak 为准，不修改请求路径
+  计时。
 
 该修正先通过静态检查和最小的物化容量验证，再使用新的执行键进行一次完整
 回放。D1175 不重跑、不覆盖，也不作为“失败的性能点”写入主表。

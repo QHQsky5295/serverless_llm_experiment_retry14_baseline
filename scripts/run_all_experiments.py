@@ -17430,7 +17430,13 @@ class ScenarioRunner:
         # The frozen content manifest is the authoritative payload footprint
         # for the owner transaction.  Registry size hints remain a fallback
         # only for non-native callers; native IEEE runs must have the manifest.
+        from faaslora.memory.residency_manager import (
+            _file_allocation_ceiling,
+            _file_allocation_geometry,
+        )
+        allocation_filesystem, allocation_unit = _file_allocation_geometry(stack.nvme_dir)
         manifest_sizes: Dict[str, int] = {}
+        manifest_reservation_bytes: Dict[str, int] = {}
         try:
             frozen_manifests = remote.preparation_manifests(manifest_order)
         except Exception as exc:
@@ -17448,6 +17454,27 @@ class ScenarioRunner:
                     f"frozen content manifest has no positive payload for {aid}"
                 )
             manifest_sizes[aid] = payload_bytes
+            manifest_reservation_bytes[aid] = sum(
+                _file_allocation_ceiling(int(size), allocation_unit, allocation_filesystem)
+                for size, _digest in (files or {}).values()
+            )
+
+        # ``prepare_transfer`` reserves one compressed archive together with
+        # the payload tree.  The archive is temporary and therefore only the
+        # largest selected archive contributes to the cumulative deployment
+        # bound; its exact immutable Content-Length is obtained by HEAD.
+        archive_bytes: Dict[str, int] = {}
+        if not callable(getattr(remote, "archive_size_bytes", None)):
+            raise RuntimeError(
+                "native preload requires archive-size HEAD support for owner budgeting"
+            )
+        for aid in manifest_order:
+            archive_bytes[aid] = int(remote.archive_size_bytes(aid))
+        max_archive_bytes = max(archive_bytes.values(), default=0)
+        max_archive_reservation_bytes = (
+            _file_allocation_ceiling(max_archive_bytes, allocation_unit, allocation_filesystem)
+            if max_archive_bytes > 0 else 0
+        )
 
         size_bytes: Dict[str, int] = {}
         for aid in manifest_order:
@@ -17458,12 +17485,12 @@ class ScenarioRunner:
             size_bytes[aid] = int(manifest_sizes[aid] or estimated_bytes)
 
         staging_multiplier = 1.0
-        effective_capacity_bytes = capacity_bytes
+        effective_capacity_bytes = max(0, capacity_bytes - max_archive_reservation_bytes)
         ordered = list(manifest_order)
         if selection_policy == "demand_weighted_capacity_v1":
-            # The selected set must leave room for the verified materialisation
-            # staging copy.  The multiplier is an explicit deployment contract,
-            # not a request-time latency fudge; D945 measured 1.5 for this path.
+            # The configured multiplier is retained as provenance, but the
+            # physical selection bound is derived from the exact ext4/tmpfs
+            # reservation envelope and the one-at-a-time archive peak.
             staging_multiplier = float(
                 cfg.get("ieee_initial_nvme_staging_multiplier", 1.5) or 1.5
             )
@@ -17481,7 +17508,7 @@ class ScenarioRunner:
                     or 1.0
                 )
                 benefit = max(0.0, hotness) * max(1.0, predicted_load_ms)
-                size = max(1, size_bytes.get(aid, 0))
+                size = max(1, manifest_reservation_bytes.get(aid, 0))
                 return (benefit / size, benefit, hotness, aid)
 
             ranked = sorted(
@@ -17492,7 +17519,7 @@ class ScenarioRunner:
             selected: List[str] = []
             selected_bytes = 0
             for aid in ranked:
-                footprint = size_bytes.get(aid, 0)
+                footprint = manifest_reservation_bytes.get(aid, 0)
                 if footprint <= 0 or selected_bytes + footprint > effective_capacity_bytes:
                     continue
                 selected.append(aid)
@@ -17504,17 +17531,22 @@ class ScenarioRunner:
                     "demand-weighted initial NVMe selection produced an empty set"
                 )
 
-        required_bytes = sum(size_bytes.get(aid, 0) for aid in ordered)
-        if required_bytes > capacity_bytes:
+        required_payload_bytes = sum(size_bytes.get(aid, 0) for aid in ordered)
+        required_reservation_bytes = sum(
+            manifest_reservation_bytes.get(aid, 0) for aid in ordered
+        )
+        if required_reservation_bytes + max_archive_reservation_bytes > capacity_bytes:
             raise RuntimeError(
                 "ieee_initial_nvme_preload selected set exceeds configured capacity: "
-                f"required={required_bytes} capacity={capacity_bytes}"
+                f"required_reservation={required_reservation_bytes + max_archive_reservation_bytes} "
+                f"capacity={capacity_bytes}"
             )
         self._initial_preload_selection = {
             "policy": selection_policy,
             "manifest_count": len(manifest_order),
             "selected_count": len(ordered),
-            "selected_bytes": int(required_bytes),
+            "selected_bytes": int(required_payload_bytes),
+            "selected_reservation_bytes": int(required_reservation_bytes),
             "configured_capacity_bytes": int(configured_capacity_bytes),
             "owner_capacity_bytes": int(owner_capacity_bytes),
             "reservation_capacity_bytes": int(capacity_bytes),
@@ -17522,6 +17554,11 @@ class ScenarioRunner:
             "staging_multiplier": float(staging_multiplier),
             "excluded_count": len(manifest_order) - len(ordered),
             "manifest_payload_bytes": int(sum(manifest_sizes.values())),
+            "manifest_reservation_bytes": int(sum(manifest_reservation_bytes.values())),
+            "max_archive_bytes": int(max_archive_bytes),
+            "max_archive_reservation_bytes": int(max_archive_reservation_bytes),
+            "allocation_filesystem": allocation_filesystem,
+            "allocation_unit_bytes": int(allocation_unit),
             "selection_source": (
                 "adapter_manifest_hotness_and_predicted_load_time"
                 if selection_policy == "demand_weighted_capacity_v1"
@@ -17533,9 +17570,11 @@ class ScenarioRunner:
             "    IEEE deployment preload selection: "
             f"configured={configured_capacity_bytes / 1024**3:.3f}GiB "
             f"owner={owner_capacity_bytes / 1024**3:.3f}GiB "
-            f"effective={capacity_bytes / 1024**3:.3f}GiB "
+            f"effective={effective_capacity_bytes / 1024**3:.3f}GiB "
             f"selected={len(ordered)}/{len(manifest_order)} "
-            f"payload={required_bytes / 1024**3:.3f}GiB"
+            f"payload={required_payload_bytes / 1024**3:.3f}GiB "
+            f"reservation={required_reservation_bytes / 1024**3:.3f}GiB "
+            f"archive_peak={max_archive_reservation_bytes / 1024**2:.1f}MiB"
         )
 
         started = time.perf_counter()

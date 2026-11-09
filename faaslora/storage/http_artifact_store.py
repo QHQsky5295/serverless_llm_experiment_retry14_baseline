@@ -346,6 +346,38 @@ class HttpArtifactStoreClient:
         except TimeoutError as exc:
             raise RemoteArtifactError(f"remote HEAD timed out for {artifact_id}") from exc
 
+    def archive_size_bytes(self, artifact_id: str) -> int:
+        """Read the immutable published archive length without downloading it.
+
+        Deployment-stage selectors need the same compressed-object peak that
+        ``download_artifact`` reserves after receiving HTTP headers.  A HEAD
+        request observes that frozen value without adding request-path bytes or
+        materializing a second artifact copy.
+        """
+        quoted = _quote_artifact_id(artifact_id)
+        try:
+            req = self._request(f"/artifacts/{quoted}.tar.gz", method="HEAD")
+            with self._opener.open(req, timeout=self.timeout_s) as resp:
+                raw = resp.headers.get("Content-Length", "")
+                if (not isinstance(raw, str) or not raw.isascii()
+                        or not raw.isdecimal() or int(raw) <= 0):
+                    raise RemoteArtifactError(
+                        f"published artifact has no positive Content-Length: {artifact_id}"
+                    )
+                return int(raw)
+        except urllib.error.HTTPError as exc:
+            raise RemoteArtifactError(
+                f"remote archive HEAD failed for {artifact_id}: HTTP {exc.code}"
+            ) from exc
+        except urllib.error.URLError as exc:
+            raise RemoteArtifactError(
+                f"remote archive HEAD failed for {artifact_id}: {exc}"
+            ) from exc
+        except TimeoutError as exc:
+            raise RemoteArtifactError(
+                f"remote archive HEAD timed out for {artifact_id}"
+            ) from exc
+
     def download_artifact(self, artifact_id: str, target_path: str, *,
                           publish=None, publish_verified=None, cancel_event=None, require_content_manifest=False,
                           evidence=None, workspace=None, reserve_files=None,

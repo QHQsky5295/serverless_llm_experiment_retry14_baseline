@@ -16,8 +16,10 @@ D1175 在请求开始前因 NVMe 文件所有者的容量事务拒绝而终止�
   中同时记录二者；
 - 每个 adapter 的选择 footprint 来自 content manifest，而不是 registry 的
   估计大小；
-- 保留既有 1.5 staging multiplier 和预发布 gzip 交付合同；部署期选择和
- 预物化仍发生在 replay notice 之前，未进入请求 TTFT/E2E。
+- 保留既有 1.5 staging multiplier 作为配置 provenance，但容量选择改用
+  owner 的 ext4/tmpfs reservation ceiling、冻结逐文件 footprint 和一次性
+  最大 gzip archive peak；预发布 gzip 交付合同不变。部署期选择和预物化仍
+  发生在 replay notice 之前，未进入请求 TTFT/E2E。
 
 ## 执行入口
 
